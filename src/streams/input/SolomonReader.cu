@@ -1,10 +1,10 @@
-#ifndef VRP_INPUT_SOLOMONREADER_HPP
-#define VRP_INPUT_SOLOMONREADER_HPP
+#ifndef VRP_STREAMS_SOLOMONREADER_HPP
+#define VRP_STREAMS_SOLOMONREADER_HPP
 
 #include "models/Problem.hpp"
 #include "models/Resources.hpp"
-#include "utils/CartesianProduct.cu"
-#include "utils/StreamUtils.hpp"
+#include "algorithms/CartesianProduct.cu"
+#include "streams/output/VectorWriter.hpp"
 
 #include <thrust/execution_policy.h>
 #include <thrust/host_vector.h>
@@ -16,7 +16,7 @@
 #include <sstream>
 
 namespace vrp {
-namespace input {
+namespace streams {
 
 /// Reads classical VRP instances in classical format defined by Solomon.
 template <typename T>
@@ -147,4 +147,4 @@ class SolomonReader final {
 }
 }
 
-#endif //VRP_INPUT_SOLOMONREADER_HPP
+#endif //VRP_STREAMS_SOLOMONREADER_HPP

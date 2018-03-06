@@ -1,5 +1,5 @@
-#ifndef VRP_UTILS_CARTESIANPRODUCTITERATOR_CU
-#define VRP_UTILS_CARTESIANPRODUCTITERATOR_CU
+#ifndef VRP_ALGORITHMS_CARTESIANPRODUCTITERATOR_CU
+#define VRP_ALGORITHMS_CARTESIANPRODUCTITERATOR_CU
 
 #include <thrust/iterator/counting_iterator.h>
 #include <thrust/iterator/transform_iterator.h>
@@ -101,4 +101,4 @@ class tiled_range {
 }
 }
 
-#endif //VRP_UTILS_CARTESIANPRODUCTITERATOR_CU
+#endif //VRP_ALGORITHMS_CARTESIANPRODUCTITERATOR_CU

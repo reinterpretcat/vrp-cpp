@@ -5,16 +5,14 @@ find_package(Thrust REQUIRED)
 set(LIBRARY_NAME Solver)
 
 set(HEADER_FILES
+        algorithms/CartesianProduct.cu
         models/Customers.hpp
         models/Problem.hpp
         models/Resources.hpp
         models/Solutions.hpp
         models/Tasks.hpp
-
-        input/SolomonReader.cu
-
-        utils/CartesianProduct.cu
-        utils/StreamUtils.hpp
+        streams/input/SolomonReader.cu
+        streams/output/VectorWriter.hpp
         )
 
 set(SOURCE_FILES

@@ -1,14 +1,15 @@
-#include "config.hpp"
 #include <catch/catch.hpp>
 
+#include "config.hpp"
 #include "models/Problem.hpp"
 #include "models/Resources.hpp"
-#include "input/SolomonReader.cu"
+#include "streams/input/SolomonReader.cu"
+#include "test_utils/VectorUtils.hpp"
 
 #include <fstream>
 
 using namespace vrp::models;
-using namespace vrp::input;
+using namespace vrp::streams;
 
 /// Calculates cartesian distance between two points on plane in 2D.
 struct CartesianDistance {
@@ -21,14 +22,12 @@ struct CartesianDistance {
   }
 };
 
-SCENARIO("Can create distances matrix from solomon format.", "[input]") {
-  std::fstream input(SOLOMON_DATA_PATH "T1.txt");
+SCENARIO("Can create distances matrix from solomon format.", "[streams]") {
+  std::fstream input(SOLOMON_TESTS_PATH "T1.txt");
   Problem problem;
 
   SolomonReader<CartesianDistance>::read(input, problem);
 
-  std::vector<float> distances;
-  thrust::copy(problem.distances.begin(), problem.distances.end(), std::back_inserter(distances));
-  CHECK_THAT(distances, Catch::Matchers::Equals(
-      std::vector<float>{0, 1, 3, 7, 1, 0, 2, 6, 3, 2, 0, 4, 7, 6, 4, 0}));
+  CHECK_THAT(vrp::test::copy(problem.distances),
+             Catch::Matchers::Equals(std::vector<float>{0, 1, 3, 7, 1, 0, 2, 6, 3, 2, 0, 4, 7, 6, 4, 0}));
 }

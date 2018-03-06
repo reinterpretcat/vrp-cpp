@@ -12,7 +12,9 @@ add_executable(${LIBRARY_TEST}
         config.hpp
         main.cpp
         EnvironmentTest.cu
-        input/SolomonReaderTest.cu
+        streams/input/SolomonReaderTest.cu
+
+        test_utils/VectorUtils.hpp
         )
 
 set_target_properties(${LIBRARY_TEST} PROPERTIES

@@ -1,14 +1,13 @@
-#include "utils/StreamUtils.hpp"
-
 #include <catch/catch.hpp>
+
+#include "streams/output/VectorWriter.hpp"
+#include "test_utils/VectorUtils.hpp"
 
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 #include <thrust/sequence.h>
 #include <thrust/fill.h>
 #include <thrust/transform.h>
-
-using namespace vrp::utils;
 
 namespace {
 
@@ -31,12 +30,13 @@ SCENARIO("Can perform SAXPY operation", "[environment]") {
   thrust::device_vector<float> d_res(N);
 
   thrust::sequence(d_x.begin(), d_x.end(), 0, 1);
-  thrust::fill(d_y.begin(), d_y.end(), 0.5);
+  thrust::fill(d_y.begin(), d_y.end(), 2);
 
   thrust::transform(d_x.begin(), d_x.end(),
                     d_y.begin(),
                     d_res.begin(),
-                    Saxpy(1.2));
+                    Saxpy(3));
 
-  thrust::host_vector<float> h_res = d_res;
+  CHECK_THAT(vrp::test::copy(d_res),
+             Catch::Matchers::Equals(std::vector<float>{ 2, 5, 8, 11, 14, 17, 20, 23, 26, 29 }));
 }
