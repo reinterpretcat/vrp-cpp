@@ -20,6 +20,14 @@ struct Customers {
 
   /// Customer time window end.
   thrust::device_vector<int> endTimes;
+
+  /// Reserves customers size.
+  void reserve(std::size_t size) {
+    ids.reserve(size);
+    demands.reserve(size);
+    startTimes.reserve(size);
+    endTimes.reserve(size);
+  }
 };
 
 }

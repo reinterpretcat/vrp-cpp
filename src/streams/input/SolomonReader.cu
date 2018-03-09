@@ -6,6 +6,7 @@
 #include "algorithms/CartesianProduct.cu"
 #include "streams/output/VectorWriter.hpp"
 
+#include <thrust/fill.h>
 #include <thrust/execution_policy.h>
 #include <thrust/host_vector.h>
 #include <thrust/iterator/zip_iterator.h>
@@ -70,13 +71,15 @@ class SolomonReader final {
     std::istringstream iss(line);
     iss >> thrust::get<0>(type) >> thrust::get<1>(type);
 
-    resources.vehicleAvalabilities.push_back(thrust::get<0>(type));
-    resources.vehicleCapacities.push_back(thrust::get<1>(type));
-    resources.vehicleDistanceCosts.push_back(1);
-    // NOTE not specified
-    resources.vehicleTimeCosts.push_back(0);
-    resources.vehicleWaitingCosts.push_back(0);
-    resources.vehicleTimeLimits.push_back(0);
+    auto count = static_cast<std::size_t>(thrust::get<0>(type));
+    auto capacity = thrust::get<1>(type);
+
+    resources.reserve(count);
+    thrust::fill_n(resources.capacities.begin(), count, capacity);
+    thrust::fill_n(resources.distanceCosts.begin(), count, 1);
+    thrust::fill_n(resources.timeCosts.begin(), count, 0);
+    thrust::fill_n(resources.waitingCosts.begin(), count, 0);
+    thrust::fill_n(resources.timeLimits.begin(), count, 0);
   }
 
   static void readProblem(std::istream &input, vrp::models::Problem &problem) {
@@ -109,7 +112,7 @@ class SolomonReader final {
   /// Sets customers on GPU.
   static void setCustomers(const thrust::host_vector<CustomerData> &data,
                            vrp::models::Customers &customers) {
-
+    customers.reserve(data.size());
     thrust::for_each(data.begin(), data.end(),
                      [&](const CustomerData &customer) {
                        customers.ids.push_back(thrust::get<0>(customer));

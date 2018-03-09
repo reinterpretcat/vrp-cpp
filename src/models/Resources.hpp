@@ -8,25 +8,29 @@ namespace models {
 
 /// Represents resources to solve VRP.
 struct Resources {
-
-  /// Vehicle quantities per type.
-  thrust::device_vector<int> vehicleAvalabilities;
-
-
   /// Maximum vehicle capacity (units).
-  thrust::device_vector<int> vehicleCapacities;
+  thrust::device_vector<int> capacities;
 
   /// Vehicle cost per distance.
-  thrust::device_vector<float> vehicleDistanceCosts;
+  thrust::device_vector<float> distanceCosts;
 
   /// Vehicle cost per traveling time.
-  thrust::device_vector<float> vehicleTimeCosts;
+  thrust::device_vector<float> timeCosts;
 
   /// Vehicle cost per waiting time.
-  thrust::device_vector<float> vehicleWaitingCosts;
+  thrust::device_vector<float> waitingCosts;
 
   /// Vehicle time limit.
-  thrust::device_vector<int> vehicleTimeLimits;
+  thrust::device_vector<int> timeLimits;
+
+  /// Reserves resource size.
+  void reserve(std::size_t size) {
+    capacities.reserve(size);
+    distanceCosts.reserve(size);
+    timeCosts.reserve(size);
+    waitingCosts.reserve(size);
+    timeLimits.reserve(size);
+  }
 };
 
 }
