@@ -11,12 +11,14 @@ namespace models {
 
 /// Represents a feasible solution by "Struct of Array" idiom.
 struct Solutions {
+  /// Defines tour (aka route) type.
+  using Tours = thrust::device_ptr<Tasks>;
 
   /// Aggregated costs.
   thrust::device_vector<float> costs;
 
-  /// Solution tasks.
-  thrust::device_vector<thrust::device_ptr<Tasks>> tasks;
+  /// Solution tours.
+  thrust::device_vector<Tours> tasks;
 };
 
 }

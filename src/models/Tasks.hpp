@@ -10,24 +10,19 @@ namespace models {
 struct Tasks {
 
   /// Customer id of the task.
-  thrust::device_vector<int> customerIds;
-
+  thrust::device_vector<int> ids;
 
   /// Cost of performing task.
   thrust::device_vector<float> costs;
 
-
-  /// Vehicle sequential id.
-  thrust::device_vector<int> vehicleIds;
+  /// Current vehicle. Negative is a marker of unprocessed.
+  thrust::device_vector<int> vehicles;
 
   /// Current vehicle capacity.
-  thrust::device_vector<int> vehicleCapacities;
+  thrust::device_vector<int> capacities;
 
   /// Current vehicle traveling time.
-  thrust::device_vector<int> vehicleTimes;
-
-  /// Current vehicle type.
-  thrust::device_vector<int> vehicleTypes;
+  thrust::device_vector<int> times;
 };
 
 }
