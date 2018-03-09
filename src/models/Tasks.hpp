@@ -23,6 +23,16 @@ struct Tasks {
 
   /// Current vehicle traveling time.
   thrust::device_vector<int> times;
+
+  /// Reserves tasks size.
+  void reserve(std::size_t populationSize, std::size_t problemSize) {
+    auto size = populationSize * problemSize;
+    ids.reserve(size);
+    costs.reserve(size);
+    vehicles.reserve(size);
+    capacities.reserve(size);
+    times.reserve(size);
+  }
 };
 
 }

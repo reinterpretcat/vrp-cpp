@@ -9,7 +9,6 @@ set(HEADER_FILES
         models/Customers.hpp
         models/Problem.hpp
         models/Resources.hpp
-        models/Solutions.hpp
         models/Tasks.hpp
         streams/input/SolomonReader.cu
         streams/output/VectorWriter.hpp

@@ -23,6 +23,11 @@ struct Problem {
 
   /// Available resources.
   Resources resources;
+
+  /// Returns problem size.
+  std::size_t size() const {
+    return customers.ids.size();
+  }
 };
 
 }
