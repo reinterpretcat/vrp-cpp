@@ -9,6 +9,17 @@ namespace models {
 /// Represent task by "Struct of Array" idiom.
 struct Tasks {
 
+  explicit Tasks() = default;
+
+  explicit Tasks(int size) {
+    auto s = static_cast<unsigned long>(size);
+    ids.reserve(s);
+    costs.reserve(s);
+    vehicles.reserve(s);
+    capacities.reserve(s);
+    times.reserve(s);
+  }
+
   /// Customer id of the task.
   thrust::device_vector<int> ids;
 
@@ -24,14 +35,9 @@ struct Tasks {
   /// Current vehicle traveling time.
   thrust::device_vector<int> times;
 
-  /// Reserves tasks size.
-  void reserve(std::size_t populationSize, std::size_t problemSize) {
-    auto size = populationSize * problemSize;
-    ids.reserve(size);
-    costs.reserve(size);
-    vehicles.reserve(size);
-    capacities.reserve(size);
-    times.reserve(size);
+  /// Returns size of tasks.
+  int size() const {
+    return static_cast<int>(ids.size());
   }
 };
 

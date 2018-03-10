@@ -25,8 +25,8 @@ struct Problem {
   Resources resources;
 
   /// Returns problem size.
-  std::size_t size() const {
-    return customers.ids.size();
+  int size() const {
+    return static_cast<int>(customers.ids.size());
   }
 };
 

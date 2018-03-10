@@ -10,11 +10,14 @@ set(HEADER_FILES
         models/Problem.hpp
         models/Resources.hpp
         models/Tasks.hpp
+        solver/genetic/init/PopulationFactory.hpp
+        solver/genetic/Settings.hpp
         streams/input/SolomonReader.cu
         streams/output/VectorWriter.hpp
         )
 
 set(SOURCE_FILES
+        solver/genetic/init/PopulationFactory.cu
         )
 
 add_library(${LIBRARY_NAME} STATIC
