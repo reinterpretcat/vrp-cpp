@@ -28,6 +28,6 @@ SCENARIO("Can create distances matrix from solomon format.", "[streams]") {
 
   SolomonReader<CartesianDistance>::read(input, problem);
 
-  CHECK_THAT(vrp::test::copy(problem.distances),
+  CHECK_THAT(vrp::test::copy(problem.routing.distances),
              Catch::Matchers::Equals(std::vector<float>{0, 1, 3, 7, 1, 0, 2, 6, 3, 2, 0, 4, 7, 6, 4, 0}));
 }

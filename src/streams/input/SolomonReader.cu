@@ -79,15 +79,15 @@ class SolomonReader final {
     thrust::fill_n(resources.distanceCosts.begin(), count, 1);
     thrust::fill_n(resources.timeCosts.begin(), count, 0);
     thrust::fill_n(resources.waitingCosts.begin(), count, 0);
-    thrust::fill_n(resources.timeLimits.begin(), count, 0);
+    thrust::fill_n(resources.timeLimits.begin(), count, std::numeric_limits<int>::max());
   }
 
   static void readProblem(std::istream &input, vrp::models::Problem &problem) {
     auto data = readCustomerData(input);
 
     setCustomers(data, problem.customers);
-    setDistances(data, problem.distances);
-    setDurations(data, problem.durations);
+    setDistances(data, problem.routing.distances);
+    setDurations(data, problem.routing.durations);
   }
 
   /// Read customer data from stream.
@@ -115,10 +115,9 @@ class SolomonReader final {
     customers.reserve(data.size());
     thrust::for_each(data.begin(), data.end(),
                      [&](const CustomerData &customer) {
-                       customers.ids.push_back(thrust::get<0>(customer));
                        customers.demands.push_back(thrust::get<3>(customer));
-                       customers.startTimes.push_back(thrust::get<4>(customer));
-                       customers.endTimes.push_back(thrust::get<5>(customer));
+                       customers.starts.push_back(thrust::get<4>(customer));
+                       customers.ends.push_back(thrust::get<5>(customer));
                      });
   }
 
@@ -142,7 +141,7 @@ class SolomonReader final {
 
   /// Creates durations matrix.
   static void setDurations(const thrust::host_vector<CustomerData> &data,
-                           thrust::device_vector<float> &durations) {
+                           thrust::device_vector<int> &durations) {
     durations.assign(data.size() * data.size(), 0);
   }
 };

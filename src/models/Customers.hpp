@@ -2,31 +2,47 @@
 #define VRP_MODELS_CUSTOMERS_HPP
 
 #include <thrust/device_vector.h>
+#include <thrust/device_ptr.h>
 
 namespace vrp {
 namespace models {
 
 /// Represents a customer by "Struct of Array" idiom.
-struct Customers {
-
-  /// Customer id.
-  thrust::device_vector<int> ids;
+struct Customers final {
+  /// Stores device pointers to data.
+  struct Shadow final {
+    thrust::device_ptr<const int> demands;
+    thrust::device_ptr<const int> services;
+    thrust::device_ptr<const int> starts;
+    thrust::device_ptr<const int> ends;
+  };
 
   /// Customer demand.
   thrust::device_vector<int> demands;
 
+  /// Customer service times.
+  thrust::device_vector<int> services;
+
   /// Customer time window start.
-  thrust::device_vector<int> startTimes;
+  thrust::device_vector<int> starts;
 
   /// Customer time window end.
-  thrust::device_vector<int> endTimes;
+  thrust::device_vector<int> ends;
 
   /// Reserves customers size.
   void reserve(std::size_t size) {
-    ids.reserve(size);
     demands.reserve(size);
-    startTimes.reserve(size);
-    endTimes.reserve(size);
+    services.reserve(size);
+    starts.reserve(size);
+    ends.reserve(size);
+  }
+
+  /// Returns shadow object.
+  Shadow getShadow() const {
+    return {demands.data(),
+            services.data(),
+            starts.data(),
+            ends.data()};
   }
 };
 

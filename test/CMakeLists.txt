@@ -13,6 +13,7 @@ add_executable(${LIBRARY_TEST}
         main.cpp
         EnvironmentTest.cu
         streams/input/SolomonReaderTest.cu
+        solver/genetic/PopulationFactoryTest.cu
 
         test_utils/VectorUtils.hpp
         )

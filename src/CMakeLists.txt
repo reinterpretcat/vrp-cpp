@@ -6,18 +6,25 @@ set(LIBRARY_NAME Solver)
 
 set(HEADER_FILES
         algorithms/CartesianProduct.cu
+        algorithms/Costs.cu
+        algorithms/Transitions.cu
+
         models/Customers.hpp
         models/Problem.hpp
         models/Resources.hpp
+        models/RoutingMatrix.hpp
         models/Tasks.hpp
-        solver/genetic/init/PopulationFactory.hpp
+        models/Transition.hpp
+
+        solver/genetic/PopulationFactory.hpp
         solver/genetic/Settings.hpp
+
         streams/input/SolomonReader.cu
         streams/output/VectorWriter.hpp
         )
 
 set(SOURCE_FILES
-        solver/genetic/init/PopulationFactory.cu
+        solver/genetic/PopulationFactory.cu
         )
 
 add_library(${LIBRARY_NAME} STATIC

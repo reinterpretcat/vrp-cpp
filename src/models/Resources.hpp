@@ -2,12 +2,22 @@
 #define VRP_MODELS_RESOURCES_HPP
 
 #include <thrust/device_vector.h>
+#include <thrust/device_ptr.h>
 
 namespace vrp {
 namespace models {
 
 /// Represents resources to solve VRP.
-struct Resources {
+struct Resources final {
+  /// Stores device pointers to data.
+  struct Shadow final {
+    thrust::device_ptr<const int> capacities;
+    thrust::device_ptr<const float> distanceCosts;
+    thrust::device_ptr<const float> timeCosts;
+    thrust::device_ptr<const float> waitingCosts;
+    thrust::device_ptr<const int> timeLimits;
+  };
+
   /// Maximum vehicle capacity (units).
   thrust::device_vector<int> capacities;
 
@@ -30,6 +40,15 @@ struct Resources {
     timeCosts.reserve(size);
     waitingCosts.reserve(size);
     timeLimits.reserve(size);
+  }
+
+  /// Returns shadow object.
+  Shadow getShadow() const {
+    return {capacities.data(),
+            distanceCosts.data(),
+            timeCosts.data(),
+            waitingCosts.data(),
+            timeLimits.data()};
   }
 };
 
