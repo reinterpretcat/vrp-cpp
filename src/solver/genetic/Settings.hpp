@@ -6,6 +6,7 @@ namespace genetic {
 
 /// Encapsulates genetic algorithm settings.
 struct Settings final {
+  /// Size of population.
   int populationSize;
 };
 

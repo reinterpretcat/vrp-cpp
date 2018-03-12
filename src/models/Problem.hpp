@@ -15,7 +15,7 @@ namespace models {
 struct Problem final {
   /// Stores device pointers to data.
   struct Shadow final {
-    int size = 0;
+    int size;
     Customers::Shadow customers;
     Resources::Shadow resources;
     RoutingMatrix::Shadow routing;
@@ -37,11 +37,10 @@ struct Problem final {
 
   /// Returns shadow object.
   Shadow getShadow() const {
-//    return {size(),
-//            customers.getShadow(),
-//            resources.getShadow(),
-//            routing.getShadow()};
-    return {};
+    return {size(),
+            customers.getShadow(),
+            resources.getShadow(),
+            routing.getShadow()};
   }
 };
 

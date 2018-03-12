@@ -89,10 +89,13 @@ Tasks createPopulation(const Problem &problem,
                    InitPopulation {problem.size()});
 
   // 2. create roots
-//  thrust::for_each(thrust::device,
-//                   thrust::make_counting_iterator(0),
-//                   thrust::make_counting_iterator(settings.populationSize()),
-//                   CreateRoots(problem));
+  thrust::for_each(thrust::device,
+                   thrust::make_counting_iterator(0),
+                   thrust::make_counting_iterator(settings.populationSize),
+                   CreateRoots(problem, population));
+
+  // 3. TODO complete solutions
+
 
   return std::move(population);
 }
