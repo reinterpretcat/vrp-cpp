@@ -25,33 +25,40 @@ struct CreateTransition {
     float distance = problem.routing.distances[matrix];
     int traveling = problem.routing.durations[matrix];
     int arrivalTime = time + traveling;
+    int demand = problem.customers.demands[toCustomer];
 
-    if (isTooLate(toCustomer, arrivalTime))
+    if (isTooLate(toCustomer, arrivalTime) || isTooMuch(vehicle, demand))
       return vrp::models::Transition::createInvalid();
-
-    // TODO check customer's demand
 
     int waiting = getWaitingTime(toCustomer, time + traveling);
     int serving = problem.customers.services[toCustomer];
     int departure = traveling + waiting + serving;
 
-    // NOTE check that we can return to depot
     return canReturn(vehicle, toCustomer, departure)
            ? vrp::models::Transition::createInvalid()
-           : vrp::models::Transition { toCustomer, vehicle, distance, traveling, serving, waiting };
+           : vrp::models::Transition { toCustomer, vehicle, distance, traveling, serving, waiting, demand };
   }
  private:
+
   /// Checks whether vehicle arrives too late.
   __host__ __device__
   inline bool isTooLate(int customer, int arrivalTime) const {
     return arrivalTime > problem.customers.ends[customer];
   }
+
+  /// Checks whether vehicle can carry requested demand.
+  __host__ __device__
+  inline bool isTooMuch(int vehicle, int demand) const {
+    return problem.resources.capacities[vehicle] < demand;
+  }
+
   /// Calculates waiting time.
   __host__ __device__
   inline int getWaitingTime(int customer, int arrivalTime) const {
     int startTime = problem.customers.starts[customer];
     return arrivalTime < startTime ? startTime - arrivalTime : 0;
   }
+
   /// Checks whether vehicle can return to depot.
   __host__ __device__
   inline bool canReturn(int vehicle, int toCustomer, int departure) const {

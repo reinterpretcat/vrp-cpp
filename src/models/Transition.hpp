@@ -22,6 +22,8 @@ struct Transition {
   const int serving;
   /// Waiting time.
   const int waiting;
+  /// Demand.
+  const int demand;
 
   __host__ __device__
   Transition(int customer,
@@ -29,9 +31,11 @@ struct Transition {
              float distance,
              int traveling,
              int serving,
-             int waiting) :
-      customer(customer), vehicle(vehicle), distance(distance),
-      traveling(traveling), serving(serving), waiting(waiting) { }
+             int waiting,
+             int demand) :
+      customer(customer), vehicle(vehicle),  distance(distance),
+      traveling(traveling), serving(serving), waiting(waiting),
+      demand(demand) { }
 
   /// Returns duration of transition.
   __host__ __device__
@@ -48,7 +52,7 @@ struct Transition {
   /// Creates invalid transition.
   __host__ __device__
   static Transition createInvalid() {
-    return {-1, -1, -1 , -1, -1, -1};
+    return {-1, -1, -1 , -1, -1, -1, -1};
   }
 
 };
