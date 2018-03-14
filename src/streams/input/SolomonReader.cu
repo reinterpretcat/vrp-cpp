@@ -87,7 +87,7 @@ class SolomonReader final {
 
     setCustomers(data, problem.customers);
     setDistances(data, problem.routing.distances);
-    setDurations(data, problem.routing.durations);
+    setDurations(data, problem.routing.distances, problem.routing.durations);
   }
 
   /// Read customer data from stream.
@@ -142,8 +142,12 @@ class SolomonReader final {
 
   /// Creates durations matrix.
   static void setDurations(const thrust::host_vector<CustomerData> &data,
+                           const thrust::device_vector<float> &distances,
                            thrust::device_vector<int> &durations) {
-    durations.assign(data.size() * data.size(), 0);
+    durations.resize(data.size() * data.size(), 0);
+    thrust::transform(distances.begin(), distances.end(),
+                      durations.begin(),
+                      thrust::placeholders::_1);
   }
 };
 

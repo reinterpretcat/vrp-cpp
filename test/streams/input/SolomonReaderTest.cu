@@ -25,7 +25,7 @@ SCENARIO("Can create routing data.", "[streams][solomon][T1]") {
   CHECK_THAT(vrp::test::copy(problem.routing.distances),
              Catch::Matchers::Equals(std::vector<float>{0, 1, 3, 7, 1, 0, 2, 6, 3, 2, 0, 4, 7, 6, 4, 0}));
   CHECK_THAT(vrp::test::copy(problem.routing.durations),
-             Catch::Matchers::Equals(std::vector<int>(16, 0)));
+             Catch::Matchers::Equals(std::vector<int>{0, 1, 3, 7, 1, 0, 2, 6, 3, 2, 0, 4, 7, 6, 4, 0}));
 }
 
 SCENARIO("Can create resources data.", "[streams][solomon][T1]") {
