@@ -75,11 +75,11 @@ class SolomonReader final {
     auto capacity = thrust::get<1>(type);
 
     resources.reserve(count);
-    thrust::fill_n(resources.capacities.begin(), count, capacity);
-    thrust::fill_n(resources.distanceCosts.begin(), count, 1);
-    thrust::fill_n(resources.timeCosts.begin(), count, 0);
-    thrust::fill_n(resources.waitingCosts.begin(), count, 0);
-    thrust::fill_n(resources.timeLimits.begin(), count, std::numeric_limits<int>::max());
+    resources.capacities.resize(count, capacity);
+    resources.distanceCosts.resize(count, 1);
+    resources.timeCosts.resize(count, 0);
+    resources.waitingCosts.resize(count, 0);
+    resources.timeLimits.resize(count, std::numeric_limits<int>::max());
   }
 
   static void readProblem(std::istream &input, vrp::models::Problem &problem) {
