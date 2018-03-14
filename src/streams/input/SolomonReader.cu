@@ -118,6 +118,7 @@ class SolomonReader final {
                        customers.demands.push_back(thrust::get<3>(customer));
                        customers.starts.push_back(thrust::get<4>(customer));
                        customers.ends.push_back(thrust::get<5>(customer));
+                       customers.services.push_back(thrust::get<6>(customer));
                      });
   }
 
@@ -126,8 +127,8 @@ class SolomonReader final {
                            thrust::device_vector<float> &distances) {
     // TODO move calculations on GPU
     typedef thrust::host_vector<CustomerData>::const_iterator Iterator;
-    vrp::utils::repeated_range<Iterator> repeated(data.begin(), data.end(), data.size());
-    vrp::utils::tiled_range<Iterator> tiled(data.begin(), data.end(), data.size());
+    vrp::algorithms::repeated_range<Iterator> repeated(data.begin(), data.end(), data.size());
+    vrp::algorithms::tiled_range<Iterator> tiled(data.begin(), data.end(), data.size());
 
     thrust::host_vector<float> hostDist(data.size() * data.size());
 

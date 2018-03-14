@@ -6,6 +6,7 @@ set(LIBRARY_NAME Solver)
 
 set(HEADER_FILES
         algorithms/CartesianProduct.cu
+        algorithms/CartesianDistance.cu
         algorithms/Costs.cu
         algorithms/Transitions.cu
 

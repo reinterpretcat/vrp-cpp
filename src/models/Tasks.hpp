@@ -20,7 +20,7 @@ struct Tasks final {
   explicit Tasks() = default;
 
   explicit Tasks(int size) {
-    reserve(static_cast<std::size_t>(size));
+    resize(static_cast<std::size_t>(size));
   }
 
   /// Customer id of the task.
@@ -40,12 +40,12 @@ struct Tasks final {
     return static_cast<int>(ids.size());
   }
 
-  /// Reserves tasks size.
-  void reserve(std::size_t size) {
-    ids.reserve(size);
-    costs.reserve(size);
-    vehicles.reserve(size);
-    times.reserve(size);
+  /// Resizes tasks size.
+  void resize(std::size_t size) {
+    ids.resize(size, -1);
+    costs.resize(size, -1);
+    vehicles.resize(size, -1);
+    times.resize(size, -1);
   }
 
   /// Returns shadow object.

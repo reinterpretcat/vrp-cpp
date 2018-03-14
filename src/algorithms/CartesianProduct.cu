@@ -10,7 +10,7 @@
 #include <thrust/device_vector.h>
 
 namespace vrp {
-namespace utils {
+namespace algorithms {
 
 template<typename Iterator>
 class repeated_range {

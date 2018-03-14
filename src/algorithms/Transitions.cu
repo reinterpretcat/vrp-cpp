@@ -30,9 +30,9 @@ struct CreateTransition {
     if (isTooLate(toCustomer, arrivalTime) || isTooMuch(vehicle, demand))
       return vrp::models::Transition::createInvalid();
 
-    int waiting = getWaitingTime(toCustomer, time + traveling);
+    int waiting = getWaitingTime(toCustomer, arrivalTime);
     int serving = problem.customers.services[toCustomer];
-    int departure = traveling + waiting + serving;
+    int departure = arrivalTime + waiting + serving;
 
     return canReturn(vehicle, toCustomer, departure)
            ? vrp::models::Transition::createInvalid()
