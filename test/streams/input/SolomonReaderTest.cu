@@ -15,6 +15,21 @@ using namespace vrp::algorithms;
 using namespace vrp::models;
 using namespace vrp::streams;
 
+SCENARIO("Can create customers data.", "[streams][solomon][T1]") {
+  std::fstream input(SOLOMON_TESTS_PATH "T1.txt");
+  Problem problem;
+
+  SolomonReader<CartesianDistance>::read(input, problem);
+
+  CHECK_THAT(vrp::test::copy(problem.customers.demands),
+             Catch::Matchers::Equals(std::vector<int>{0, 1, 1, 1}));
+  CHECK_THAT(vrp::test::copy(problem.customers.services),
+            Catch::Matchers::Equals(std::vector<int>(4, 1)));
+  CHECK_THAT(vrp::test::copy(problem.customers.starts),
+             Catch::Matchers::Equals(std::vector<int>(4, 0)));
+  CHECK_THAT(vrp::test::copy(problem.customers.ends),
+             Catch::Matchers::Equals(std::vector<int>(4, 1000)));
+}
 
 SCENARIO("Can create routing data.", "[streams][solomon][T1]") {
   std::fstream input(SOLOMON_TESTS_PATH "T1.txt");
