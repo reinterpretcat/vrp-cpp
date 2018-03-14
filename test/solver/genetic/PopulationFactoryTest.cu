@@ -5,6 +5,7 @@
 #include "algorithms/CartesianDistance.cu"
 #include "solver/genetic/PopulationFactory.hpp"
 #include "streams/input/SolomonReader.cu"
+#include "streams/output/VectorWriter.hpp"
 
 #include "test_utils/VectorUtils.hpp"
 
@@ -19,12 +20,16 @@ SCENARIO("Can create roots.", "[genetic][T2]") {
   std::fstream input(SOLOMON_TESTS_PATH "T2.txt");
   Problem problem;
   SolomonReader<CartesianDistance>::read(input, problem);
-  Settings settings { problem.size() };
+  Settings settings{3};
 
   auto population = createPopulation(problem, settings);
 
-  //CHECK_THAT(vrp::test::copy(population.ids),
-  //           Catch::Matchers::Equals(std::vector<int>{0, 1, 3, 7, 1, 0, 2, 6, 3, 2, 0, 4, 7, 6, 4, 0}));
+  CHECK_THAT(vrp::test::copy(population.ids),
+             Catch::Matchers::Equals(std::vector<int>{
+                 -1, 1, -1, -1, -1, -1,
+                 -1, 2, -1, -1, -1, -1,
+                 -1, 3, -1, -1, -1, -1,
+             }));
 }
 
 /*SCENARIO("Can create roots with operating time violation.", "[genetic][T2]") {

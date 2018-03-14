@@ -15,6 +15,7 @@ struct Tasks final {
     thrust::device_ptr<float> costs;
     thrust::device_ptr<int> times;
     thrust::device_ptr<int> vehicles;
+    thrust::device_ptr<bool> plan;
   };
 
   explicit Tasks() = default;
@@ -35,6 +36,9 @@ struct Tasks final {
   /// Current vehicle. Negative is a marker of unprocessed.
   thrust::device_vector<int> vehicles;
 
+  /// Keeps state of customer's state.
+  thrust::device_vector<bool> plan;
+
   /// Returns size of tasks.
   int size() const {
     return static_cast<int>(ids.size());
@@ -44,8 +48,9 @@ struct Tasks final {
   void resize(std::size_t size) {
     ids.resize(size, -1);
     costs.resize(size, -1);
-    vehicles.resize(size, -1);
     times.resize(size, -1);
+    vehicles.resize(size, -1);
+    plan.resize(size, false);
   }
 
   /// Returns shadow object.
@@ -53,7 +58,8 @@ struct Tasks final {
     return {ids.data(),
             costs.data(),
             times.data(),
-            vehicles.data()};
+            vehicles.data(),
+            plan.data()};
   }
 };
 

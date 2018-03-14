@@ -15,12 +15,12 @@ struct CreateTransition {
   explicit CreateTransition(const vrp::models::Problem::Shadow &problem) :
     problem(problem) {}
 
-  /// @param vehicle      id of vehicle performs transition.
   /// @param time         Current time.
+  /// @param vehicle      id of vehicle performs transition.
   /// @param fromCustomer Customer from which vehicle is moving.
   /// @param toCustomer   Customer to which vehicle is moving.
   __host__ __device__
-  vrp::models::Transition operator()(int vehicle, int time, int fromCustomer, int toCustomer) const {
+  vrp::models::Transition operator()(int time, int vehicle, int fromCustomer, int toCustomer) const {
     int matrix = fromCustomer * problem.size + toCustomer;
     float distance = problem.routing.distances[matrix];
     int traveling = problem.routing.durations[matrix];
@@ -80,6 +80,8 @@ struct PerformTransition {
     tasks.costs[task] = cost;
     tasks.times[task] = transition.duration();
     tasks.vehicles[task] = transition.vehicle;
+    // TODO determine proper index
+    tasks.plan[transition.customer] = true;
   }
 };
 
