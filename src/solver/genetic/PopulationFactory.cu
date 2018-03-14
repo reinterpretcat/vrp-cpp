@@ -59,7 +59,7 @@ namespace genetic {
 Tasks createPopulation(const Problem &problem,
                        const Settings &settings) {
 
-  Tasks population {settings.populationSize * problem.size()};
+  Tasks population {problem.size(), settings.populationSize * problem.size()};
 
   // create roots
   thrust::for_each(thrust::device,

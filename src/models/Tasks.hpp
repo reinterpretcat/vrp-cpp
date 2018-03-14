@@ -11,6 +11,7 @@ namespace models {
 struct Tasks final {
   /// Stores device pointers to data.
   struct Shadow final {
+    int customers;
     thrust::device_ptr<int> ids;
     thrust::device_ptr<float> costs;
     thrust::device_ptr<int> times;
@@ -20,9 +21,12 @@ struct Tasks final {
 
   explicit Tasks() = default;
 
-  explicit Tasks(int size) {
-    resize(static_cast<std::size_t>(size));
+  explicit Tasks(int customers, int taskSize) : customers(customers) {
+    resize(static_cast<std::size_t>(taskSize));
   }
+
+  /// Customers amount.
+  int customers = 0;
 
   /// Customer id of the task.
   thrust::device_vector<int> ids;
@@ -55,7 +59,8 @@ struct Tasks final {
 
   /// Returns shadow object.
   Shadow getShadow() {
-    return {ids.data(),
+    return {customers,
+            ids.data(),
             costs.data(),
             times.data(),
             vehicles.data(),

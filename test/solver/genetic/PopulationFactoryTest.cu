@@ -30,6 +30,12 @@ SCENARIO("Can create roots.", "[genetic][T2]") {
                  -1, 2, -1, -1, -1, -1,
                  -1, 3, -1, -1, -1, -1,
              }));
+  CHECK_THAT(vrp::test::copy(population.plan),
+             Catch::Matchers::Equals(std::vector<bool>{
+                 false, true, false, false, false, false,
+                 false, false, true, false, false, false,
+                 false, false, false, true, false, false,
+             }));
 }
 
 /*SCENARIO("Can create roots with operating time violation.", "[genetic][T2]") {

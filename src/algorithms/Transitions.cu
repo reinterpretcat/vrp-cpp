@@ -80,8 +80,13 @@ struct PerformTransition {
     tasks.costs[task] = cost;
     tasks.times[task] = transition.duration();
     tasks.vehicles[task] = transition.vehicle;
-    // TODO determine proper index
-    tasks.plan[transition.customer] = true;
+    tasks.plan[base(task) + transition.customer] = true;
+  }
+
+ private:
+  __host__ __device__
+  inline int base(int task) const {
+    return (task / tasks.customers) * tasks.customers;
   }
 };
 
