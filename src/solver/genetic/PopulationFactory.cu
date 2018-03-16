@@ -17,34 +17,48 @@ namespace {
 /// one customer making feasible solution.
 struct CreateRoots {
   CreateRoots(const Problem &problem, Tasks &tasks) :
-      problemSize(problem.size()),
-      startTime(problem.customers.starts[0]),
+      problem(problem.getShadow()),
+      tasks(tasks.getShadow()),
       getCost(problem.resources.getShadow()),
-      createTransition(problem.getShadow()),
+      createTransition(problem.getShadow(), tasks.getShadow()),
       performTransition(tasks.getShadow()) {}
 
   __host__ __device__
-  void operator()(int population) const {
-    population = population % problemSize;
+  void operator()(int population) {
+    population = population % problem.size;
 
-    int vehicle = 0;
-    int depot = 0;
     int customer = population + 1;
-    int task = population * problemSize + 1;
+    int task = population * problem.size;
+
+    createDepotTask(task);
 
     while(customer != 0) {
-      auto transition = createTransition(startTime, vehicle, depot, customer);
+      auto transition = createTransition(task, customer);
       if (transition.isValid()) {
-        performTransition(transition, task, getCost(transition));
+        performTransition(transition, getCost(transition));
         break;
       }
       // TODO try to pick another vehicle in case of heterogeneous fleet.
-      customer = (customer + 1) % problemSize;
+      customer = (customer + 1) % problem.size;
     }
   }
  private:
-  int problemSize;
-  int startTime;
+
+  __host__ __device__
+  void createDepotTask(int task) {
+    const int vehicle = 0;
+    const int depot = 0;
+
+    tasks.ids[task] = depot;
+    tasks.times[task] = problem.customers.starts[0];
+    tasks.capacities[task] = problem.resources.capacities[vehicle];
+    tasks.vehicles[task] = vehicle;
+    tasks.costs[task] = problem.resources.fixedCosts[vehicle];
+    tasks.plan[task] = true;
+  }
+
+  const Problem::Shadow problem;
+  Tasks::Shadow tasks;
 
   CalculateCost getCost;
   CreateTransition createTransition;

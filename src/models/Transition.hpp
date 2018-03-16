@@ -25,6 +25,9 @@ struct Transition {
   /// Demand.
   const int demand;
 
+  /// Task from which transition is performed.
+  const int task;
+
   __host__ __device__
   Transition(int customer,
              int vehicle,
@@ -32,10 +35,11 @@ struct Transition {
              int traveling,
              int serving,
              int waiting,
-             int demand) :
+             int demand,
+             int task) :
       customer(customer), vehicle(vehicle),  distance(distance),
       traveling(traveling), serving(serving), waiting(waiting),
-      demand(demand) { }
+      demand(demand), task(task) { }
 
   /// Returns duration of transition.
   __host__ __device__
@@ -46,13 +50,13 @@ struct Transition {
   /// Flag whether transition is valid.
   __host__ __device__
   bool isValid() const {
-    return distance >= 0;
+    return task > 0;
   }
 
   /// Creates invalid transition.
   __host__ __device__
   static Transition createInvalid() {
-    return {-1, -1, -1 , -1, -1, -1, -1};
+    return {-1, -1, -1 , -1, -1, -1, -1, -1};
   }
 
 };

@@ -12,6 +12,8 @@ add_executable(${LIBRARY_TEST}
         config.hpp
         main.cpp
         EnvironmentTest.cu
+
+        heuristics/CheapestInsertionTest.cu
         streams/input/SolomonReaderTest.cu
         solver/genetic/PopulationFactoryTest.cu
 

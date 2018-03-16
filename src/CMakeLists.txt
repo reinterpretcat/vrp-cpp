@@ -10,6 +10,8 @@ set(HEADER_FILES
         algorithms/Costs.cu
         algorithms/Transitions.cu
 
+        heuristics/CheapestInsertion.cu
+
         models/Customers.hpp
         models/Problem.hpp
         models/Resources.hpp

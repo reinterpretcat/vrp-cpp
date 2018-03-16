@@ -10,24 +10,21 @@ namespace algorithms {
 
 /// Creates transition between customers.
 struct CreateTransition {
-  const vrp::models::Problem::Shadow problem;
 
-  explicit CreateTransition(const vrp::models::Problem::Shadow &problem) :
-    problem(problem) {}
+  explicit CreateTransition(const vrp::models::Problem::Shadow &problem,
+                            const vrp::models::Tasks::Shadow tasks) :
+    problem(problem), tasks(tasks) {}
 
-  /// @param time         Current time.
-  /// @param vehicle      id of vehicle performs transition.
-  /// @param fromCustomer Customer from which vehicle is moving.
-  /// @param toCustomer   Customer to which vehicle is moving.
   __host__ __device__
-  vrp::models::Transition operator()(int time, int vehicle, int fromCustomer, int toCustomer) const {
-    int matrix = fromCustomer * problem.size + toCustomer;
+  vrp::models::Transition operator()(int task, int toCustomer) const {
+    int matrix = tasks.ids[task] * problem.size + toCustomer;
     float distance = problem.routing.distances[matrix];
     int traveling = problem.routing.durations[matrix];
-    int arrivalTime = time + traveling;
+    int arrivalTime = tasks.times[task] + traveling;
     int demand = problem.customers.demands[toCustomer];
+    int vehicle = tasks.vehicles[task];
 
-    if (isTooLate(toCustomer, arrivalTime) || isTooMuch(vehicle, demand))
+    if (isTooLate(toCustomer, arrivalTime) || isTooMuch(task, demand))
       return vrp::models::Transition::createInvalid();
 
     int waiting = getWaitingTime(toCustomer, arrivalTime);
@@ -36,10 +33,10 @@ struct CreateTransition {
 
     return canReturn(vehicle, toCustomer, departure)
            ? vrp::models::Transition::createInvalid()
-           : vrp::models::Transition { toCustomer, vehicle, distance, traveling, serving, waiting, demand };
+           : vrp::models::Transition { toCustomer, vehicle, distance, traveling,
+                                       serving, waiting, demand, task + 1 };
   }
  private:
-
   /// Checks whether vehicle arrives too late.
   __host__ __device__
   inline bool isTooLate(int customer, int arrivalTime) const {
@@ -48,8 +45,8 @@ struct CreateTransition {
 
   /// Checks whether vehicle can carry requested demand.
   __host__ __device__
-  inline bool isTooMuch(int vehicle, int demand) const {
-    return problem.resources.capacities[vehicle] < demand;
+  inline bool isTooMuch(int task, int demand) const {
+    return tasks.capacities[task] < demand;
   }
 
   /// Calculates waiting time.
@@ -65,21 +62,27 @@ struct CreateTransition {
     return departure + problem.routing.durations[toCustomer * problem.size] >
         problem.resources.timeLimits[vehicle];
   }
+
+  const vrp::models::Problem::Shadow problem;
+  const vrp::models::Tasks::Shadow tasks;
 };
 
-/// Performs transition.
+/// Performs transition with the cost.
 struct PerformTransition {
-  vrp::models::Tasks::Shadow tasks;
 
   explicit PerformTransition(const vrp::models::Tasks::Shadow &tasks) :
     tasks(tasks) {}
 
   __host__ __device__
-  void operator()(const vrp::models::Transition &transition, int task, float cost) const {
+  void operator()(const vrp::models::Transition &transition, float cost) const {
+    int task = transition.task;
+
     tasks.ids[task] = transition.customer;
-    tasks.costs[task] = cost;
     tasks.times[task] = transition.duration();
+    tasks.capacities[task] = tasks.capacities[task - 1] - transition.demand;
     tasks.vehicles[task] = transition.vehicle;
+
+    tasks.costs[task] = cost;
     tasks.plan[base(task) + transition.customer] = true;
   }
 
@@ -88,6 +91,8 @@ struct PerformTransition {
   inline int base(int task) const {
     return (task / tasks.customers) * tasks.customers;
   }
+
+  vrp::models::Tasks::Shadow tasks;
 };
 
 }

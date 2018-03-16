@@ -79,6 +79,7 @@ class SolomonReader final {
     resources.distanceCosts.resize(count, 1);
     resources.timeCosts.resize(count, 0);
     resources.waitingCosts.resize(count, 0);
+    resources.fixedCosts.resize(count, 0);
     resources.timeLimits.resize(count, std::numeric_limits<int>::max());
   }
 

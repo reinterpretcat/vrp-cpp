@@ -15,6 +15,7 @@ struct Resources final {
     thrust::device_ptr<const float> distanceCosts;
     thrust::device_ptr<const float> timeCosts;
     thrust::device_ptr<const float> waitingCosts;
+    thrust::device_ptr<const float> fixedCosts;
     thrust::device_ptr<const int> timeLimits;
   };
 
@@ -30,6 +31,9 @@ struct Resources final {
   /// Vehicle cost per waiting time.
   thrust::device_vector<float> waitingCosts;
 
+  /// Vehicle fixed cost.
+  thrust::device_vector<float> fixedCosts;
+
   /// Vehicle time limit.
   thrust::device_vector<int> timeLimits;
 
@@ -39,6 +43,7 @@ struct Resources final {
     distanceCosts.reserve(size);
     timeCosts.reserve(size);
     waitingCosts.reserve(size);
+    fixedCosts.reserve(size);
     timeLimits.reserve(size);
   }
 
@@ -48,6 +53,7 @@ struct Resources final {
             distanceCosts.data(),
             timeCosts.data(),
             waitingCosts.data(),
+            fixedCosts.data(),
             timeLimits.data()};
   }
 };
