@@ -16,6 +16,7 @@ namespace {
 
 using TransitionCost = NearestNeighbor::TransitionCost;
 
+/// Creates invalid transition-cost pair.
 __host__ __device__
 TransitionCost createInvalid() {
   return thrust::make_pair(vrp::models::Transition(), -1);
@@ -54,14 +55,15 @@ struct compare_transition_costs {
 }
 
 TransitionCost NearestNeighbor::operator()(int task) {
+  int base = (task / tasks.customers) * tasks.customers;
   return thrust::transform_reduce(
       thrust::make_zip_iterator(thrust::make_tuple(
           thrust::make_counting_iterator(0),
-          tasks.plan
+          tasks.plan + base
       )),
       thrust::make_zip_iterator(thrust::make_tuple(
           thrust::make_counting_iterator(problem.size),
-          tasks.plan + problem.size
+          tasks.plan + base + problem.size
       )),
       create_transition {task,
                         vrp::algorithms::create_transition {problem, tasks},

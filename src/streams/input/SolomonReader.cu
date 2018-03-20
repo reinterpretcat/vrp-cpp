@@ -42,8 +42,8 @@ class SolomonReader final {
 
  public:
   /// Creates VRP problem and resources from input stream.
-  static void read(std::istream &input,
-                   vrp::models::Problem &problem) {
+  static vrp::models::Problem read(std::istream &input) {
+    vrp::models::Problem problem;
 
     skipLines(input, 4);
 
@@ -52,6 +52,8 @@ class SolomonReader final {
     skipLines(input, 4);
 
     readProblem(input, problem);
+
+    return std::move(problem);
   }
 
  private:

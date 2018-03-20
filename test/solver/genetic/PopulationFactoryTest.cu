@@ -18,10 +18,8 @@ using namespace vrp::streams;
 
 SCENARIO("Can create initial population.", "[genetic][initial][T2]") {
   std::fstream input(SOLOMON_TESTS_PATH "T2.txt");
-  Problem problem;
-  SolomonReader<CartesianDistance>::read(input, problem);
   Settings settings{3};
-
+  auto problem = SolomonReader<CartesianDistance>::read(input);
 
   auto population = createPopulation(problem, settings);
 

@@ -17,9 +17,8 @@ using namespace vrp::streams;
 
 SCENARIO("Can create customers data.", "[streams][solomon][T1]") {
   std::fstream input(SOLOMON_TESTS_PATH "T1.txt");
-  Problem problem;
 
-  SolomonReader<CartesianDistance>::read(input, problem);
+  auto problem = SolomonReader<CartesianDistance>::read(input);
 
   CHECK_THAT(vrp::test::copy(problem.customers.demands),
              Catch::Matchers::Equals(std::vector<int>{0, 1, 1, 1}));
@@ -33,9 +32,8 @@ SCENARIO("Can create customers data.", "[streams][solomon][T1]") {
 
 SCENARIO("Can create routing data.", "[streams][solomon][T1]") {
   std::fstream input(SOLOMON_TESTS_PATH "T1.txt");
-  Problem problem;
 
-  SolomonReader<CartesianDistance>::read(input, problem);
+  auto problem = SolomonReader<CartesianDistance>::read(input);
 
   CHECK_THAT(vrp::test::copy(problem.routing.distances),
              Catch::Matchers::Equals(std::vector<float>{0, 1, 3, 7, 1, 0, 2, 6, 3, 2, 0, 4, 7, 6, 4, 0}));
@@ -45,9 +43,8 @@ SCENARIO("Can create routing data.", "[streams][solomon][T1]") {
 
 SCENARIO("Can create resources data.", "[streams][solomon][T1]") {
   std::fstream input(SOLOMON_TESTS_PATH "T1.txt");
-  Problem problem;
 
-  SolomonReader<CartesianDistance>::read(input, problem);
+  auto problem = SolomonReader<CartesianDistance>::read(input);
 
   CHECK_THAT(vrp::test::copy(problem.resources.capacities),
              Catch::Matchers::Equals(std::vector<int>{ 10 }));

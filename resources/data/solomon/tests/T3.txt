@@ -1,0 +1,15 @@
+T3: Customers with shuffled coordinates
+
+VEHICLE
+NUMBER     CAPACITY
+  1          10
+
+CUSTOMER
+CUST NO.  XCOORD.   YCOORD.    DEMAND   READY TIME  DUE DATE   SERVICE   TIME
+
+    0       0          0          0          0        1000         0
+    1       2          0          1          0        1000         10
+    2       4          0          1          0        1000         10
+    3       1          0          1          0        1000         10
+    4       5          0          1          0        1000         10
+    5       3          0          1          0        1000         10
