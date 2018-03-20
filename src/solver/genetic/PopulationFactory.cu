@@ -15,8 +15,8 @@ namespace {
 
 /// Creates roots in solutions. Root connects depot with exact
 /// one customer making feasible solution.
-struct CreateRoots {
-  CreateRoots(const Problem &problem, Tasks &tasks) :
+struct create_roots {
+  explicit create_roots(const Problem &problem, Tasks &tasks) :
       problem(problem.getShadow()),
       tasks(tasks.getShadow()),
       getCost(problem.resources.getShadow()),
@@ -60,9 +60,9 @@ struct CreateRoots {
   const Problem::Shadow problem;
   Tasks::Shadow tasks;
 
-  CalculateCost getCost;
-  CreateTransition createTransition;
-  PerformTransition performTransition;
+  calculate_cost getCost;
+  create_transition createTransition;
+  perform_transition performTransition;
 };
 
 }
@@ -79,7 +79,7 @@ Tasks createPopulation(const Problem &problem,
   thrust::for_each(thrust::device,
                    thrust::make_counting_iterator(0),
                    thrust::make_counting_iterator(settings.populationSize),
-                   CreateRoots(problem, population));
+                   create_roots(problem, population));
 
   // TODO complete solutions using fast heuristic
 

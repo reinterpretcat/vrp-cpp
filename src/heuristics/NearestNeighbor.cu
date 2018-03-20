@@ -22,11 +22,11 @@ TransitionCost createInvalid() {
 }
 
 /// Creates transition and calculates cost to given customer if it is not handled.
-struct CreateTransition {
+struct create_transition {
   int task;
 
-  vrp::algorithms::CreateTransition transitionFactory;
-  vrp::algorithms::CalculateCost costCalculator;
+  vrp::algorithms::create_transition transitionFactory;
+  vrp::algorithms::calculate_cost costCalculator;
 
   __host__ __device__
   TransitionCost operator()(const thrust::tuple<int, bool> &customer) {
@@ -41,7 +41,7 @@ struct CreateTransition {
 };
 
 /// Compares costs of two transitions and returns the lowest.
-struct CompareTransitionCosts {
+struct compare_transition_costs {
   __host__ __device__
   TransitionCost& operator()(TransitionCost &result, const TransitionCost &left) {
     if (left.first.isValid() && (left.second < result.second || !result.first.isValid())) {
@@ -63,10 +63,10 @@ TransitionCost NearestNeighbor::operator()(int task) {
           thrust::make_counting_iterator(problem.size),
           tasks.plan + problem.size
       )),
-      CreateTransition {task,
-                        vrp::algorithms::CreateTransition {problem, tasks},
-                        vrp::algorithms::CalculateCost {problem.resources}},
+      create_transition {task,
+                        vrp::algorithms::create_transition {problem, tasks},
+                        vrp::algorithms::calculate_cost {problem.resources}},
       createInvalid(),
-      CompareTransitionCosts()
+      compare_transition_costs()
   );
 }

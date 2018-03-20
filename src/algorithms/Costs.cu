@@ -9,11 +9,11 @@ namespace vrp {
 namespace algorithms {
 
 /// Calculates costs for transition.
-struct CalculateCost {
+struct calculate_cost {
   const vrp::models::Resources::Shadow resources;
 
   __host__ __device__
-  explicit CalculateCost(const vrp::models::Resources::Shadow &resources) :
+  explicit calculate_cost(const vrp::models::Resources::Shadow &resources) :
       resources(resources) {}
 
   __host__ __device__
