@@ -12,6 +12,7 @@ namespace algorithms {
 struct CalculateCost {
   const vrp::models::Resources::Shadow resources;
 
+  __host__ __device__
   explicit CalculateCost(const vrp::models::Resources::Shadow &resources) :
       resources(resources) {}
 

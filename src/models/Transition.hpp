@@ -9,24 +9,24 @@ namespace models {
 /// Represents transition between customers.
 struct Transition {
   /// Customer.
-  const int customer;
+  int customer;
   /// Vehicle.
-  const int vehicle;
+  int vehicle;
 
   /// Distance
-  const float distance;
+  float distance;
 
   /// Traveling time.
-  const int traveling;
+  int traveling;
   /// Serving time.
-  const int serving;
+  int serving;
   /// Waiting time.
-  const int waiting;
+  int waiting;
   /// Demand.
-  const int demand;
+  int demand;
 
   /// Task from which transition is performed.
-  const int task;
+  int task;
 
   __host__ __device__
   Transition(int customer,
@@ -40,6 +40,15 @@ struct Transition {
       customer(customer), vehicle(vehicle),  distance(distance),
       traveling(traveling), serving(serving), waiting(waiting),
       demand(demand), task(task) { }
+
+  __host__ __device__
+  Transition() : Transition(-1, -1, -1, -1, -1, -1, -1, -1) {}
+
+  __host__ __device__
+  Transition(const Transition&) = default;
+
+  __host__ __device__
+  Transition& operator=(const Transition&) = default;
 
   /// Returns duration of transition.
   __host__ __device__
@@ -56,9 +65,8 @@ struct Transition {
   /// Creates invalid transition.
   __host__ __device__
   static Transition createInvalid() {
-    return {-1, -1, -1 , -1, -1, -1, -1, -1};
+    return Transition();
   }
-
 };
 
 }

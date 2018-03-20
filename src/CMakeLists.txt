@@ -10,7 +10,7 @@ set(HEADER_FILES
         algorithms/Costs.cu
         algorithms/Transitions.cu
 
-        heuristics/CheapestInsertion.cu
+        heuristics/NearestNeighbor.hpp
 
         models/Customers.hpp
         models/Problem.hpp
@@ -27,6 +27,7 @@ set(HEADER_FILES
         )
 
 set(SOURCE_FILES
+        heuristics/NearestNeighbor.cu
         solver/genetic/PopulationFactory.cu
         )
 

@@ -3,7 +3,7 @@
 #include "config.hpp"
 
 #include "algorithms/CartesianDistance.cu"
-#include "heuristics/CheapestInsertion.cu"
+#include "heuristics/NearestNeighbor.hpp"
 #include "streams/input/SolomonReader.cu"
 
 #include <fstream>
@@ -13,12 +13,12 @@ using namespace vrp::heuristics;
 using namespace vrp::models;
 using namespace vrp::streams;
 
-SCENARIO("Can complete solution with cheapest insertion.", "[heuristics][cheapest]") {
+SCENARIO("Can complete solution with nearest neighbor method.", "[heuristics][construction]") {
   std::fstream input(SOLOMON_TESTS_PATH "T2.txt");
   Problem problem;
   SolomonReader<CartesianDistance>::read(input, problem);
   Tasks tasks {problem.size()};
 
-  //CheapestInsertion insertion;
+  //NearestNeighbor insertion;
 
 }

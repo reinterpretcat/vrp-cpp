@@ -11,6 +11,7 @@ namespace algorithms {
 /// Creates transition between customers.
 struct CreateTransition {
 
+  __host__ __device__
   explicit CreateTransition(const vrp::models::Problem::Shadow &problem,
                             const vrp::models::Tasks::Shadow tasks) :
     problem(problem), tasks(tasks) {}
