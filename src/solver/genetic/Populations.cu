@@ -1,15 +1,13 @@
 #include "algorithms/Costs.cu"
 #include "algorithms/Transitions.cu"
-#include "heuristics/NearestNeighbor.hpp"
 #include "models/Transition.hpp"
-#include "solver/genetic/PopulationFactory.hpp"
+#include "solver/genetic/Populations.hpp"
 
 #include <thrust/execution_policy.h>
 #include <thrust/for_each.h>
 #include <thrust/iterator/counting_iterator.h>
 
 using namespace vrp::algorithms;
-using namespace vrp::heuristics;
 using namespace vrp::models;
 using namespace vrp::genetic;
 
@@ -65,7 +63,8 @@ struct create_roots {
   perform_transition performTransition;
 };
 
-/// Completes solutions using fast heuristic (Nearest Neighbor).
+/// Completes solutions using heuristic specified.
+template <typename Heuristic>
 struct complete_solution {
   complete_solution(const Problem &problem, Tasks &tasks) :
       problem(problem.getShadow()),
@@ -74,9 +73,20 @@ struct complete_solution {
 
   __host__ __device__
   void operator()(int individuum) {
-    auto heuristic = NearestNeighbor(problem, tasks);
+    auto heuristic = Heuristic(problem, tasks);
     auto begin = individuum * problem.size + 1;
     auto end = begin + problem.size - 2;
+
+    do {
+      auto transitionCost = heuristic(begin);
+      if (transitionCost.first.isValid()) {
+        performTransition(transitionCost.first, transitionCost.second);
+        ++begin;
+      } else {
+        // TODO use a new vehicle or exit
+        break;
+      }
+    } while(begin < end);
   }
 
   const Problem::Shadow problem;
@@ -89,8 +99,8 @@ struct complete_solution {
 namespace vrp {
 namespace genetic {
 
-Tasks createPopulation(const Problem &problem,
-                       const Settings &settings) {
+template<typename Heuristic>
+Tasks create_population<Heuristic>::operator()(const Settings &settings) {
   if (settings.populationSize > problem.size()) {
     throw std::invalid_argument("Population size is bigger than problem size.");
   }
@@ -107,10 +117,14 @@ Tasks createPopulation(const Problem &problem,
   thrust::for_each(thrust::device,
                    thrust::make_counting_iterator(0),
                    thrust::make_counting_iterator(settings.populationSize),
-                   complete_solution(problem, population));
+                   complete_solution<Heuristic>(problem, population));
 
   return std::move(population);
 }
+
+// NOTE explicit specialization to make linker happy.
+template class create_population<vrp::heuristics::NoTransition>;
+template class create_population<vrp::heuristics::NearestNeighbor>;
 
 }
 }

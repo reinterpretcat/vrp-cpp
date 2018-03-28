@@ -11,6 +11,7 @@ set(HEADER_FILES
         algorithms/Transitions.cu
 
         heuristics/NearestNeighbor.hpp
+        heuristics/NoTransition.cu
 
         models/Customers.hpp
         models/Problem.hpp
@@ -19,7 +20,7 @@ set(HEADER_FILES
         models/Tasks.hpp
         models/Transition.hpp
 
-        solver/genetic/PopulationFactory.hpp
+        solver/genetic/Populations.hpp
         solver/genetic/Settings.hpp
 
         streams/input/SolomonReader.cu
@@ -28,7 +29,7 @@ set(HEADER_FILES
 
 set(SOURCE_FILES
         heuristics/NearestNeighbor.cu
-        solver/genetic/PopulationFactory.cu
+        solver/genetic/Populations.cu
         )
 
 add_library(${LIBRARY_NAME} STATIC
