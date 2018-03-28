@@ -12,8 +12,13 @@ namespace heuristics {
 struct NearestNeighbor final {
   using TransitionCost = thrust::pair<vrp::models::Transition, float>;
 
-  vrp::models::Problem::Shadow problem;
+  const vrp::models::Problem::Shadow problem;
   vrp::models::Tasks::Shadow tasks;
+
+  __host__ __device__
+  NearestNeighbor(const vrp::models::Problem::Shadow problem,
+                  vrp::models::Tasks::Shadow tasks) :
+    problem(problem), tasks(tasks) {}
 
   /// Finds the "nearest" transition for given task
   __host__ __device__

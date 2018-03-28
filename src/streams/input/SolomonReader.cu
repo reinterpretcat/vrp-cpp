@@ -4,7 +4,6 @@
 #include "models/Problem.hpp"
 #include "models/Resources.hpp"
 #include "algorithms/CartesianProduct.cu"
-#include "streams/output/VectorWriter.hpp"
 
 #include <thrust/fill.h>
 #include <thrust/execution_policy.h>

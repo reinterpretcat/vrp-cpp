@@ -32,7 +32,7 @@ struct create_transition {
     int serving = problem.customers.services[toCustomer];
     int departure = arrivalTime + waiting + serving;
 
-    return canReturn(vehicle, toCustomer, departure)
+    return noReturn(vehicle, toCustomer, departure)
            ? vrp::models::Transition::createInvalid()
            : vrp::models::Transition { toCustomer, vehicle, distance, traveling,
                                        serving, waiting, demand, task + 1 };
@@ -57,9 +57,9 @@ struct create_transition {
     return arrivalTime < startTime ? startTime - arrivalTime : 0;
   }
 
-  /// Checks whether vehicle can return to depot.
+  /// Checks whether vehicle can NOT return to depot.
   __host__ __device__
-  inline bool canReturn(int vehicle, int toCustomer, int departure) const {
+  inline bool noReturn(int vehicle, int toCustomer, int departure) const {
     return departure + problem.routing.durations[toCustomer * problem.size] >
         problem.resources.timeLimits[vehicle];
   }

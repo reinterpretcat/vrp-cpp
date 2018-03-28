@@ -17,6 +17,7 @@ add_executable(${LIBRARY_TEST}
         streams/input/SolomonReaderTest.cu
         solver/genetic/PopulationFactoryTest.cu
 
+        test_utils/TaskUtils.hpp
         test_utils/VectorUtils.hpp
         )
 

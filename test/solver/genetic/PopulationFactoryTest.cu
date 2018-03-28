@@ -5,7 +5,7 @@
 #include "algorithms/CartesianDistance.cu"
 #include "solver/genetic/PopulationFactory.hpp"
 #include "streams/input/SolomonReader.cu"
-#include "streams/output/VectorWriter.hpp"
+#include "streams/output/ContainerWriter.hpp"
 
 #include "test_utils/VectorUtils.hpp"
 

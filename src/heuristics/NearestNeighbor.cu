@@ -57,6 +57,7 @@ struct compare_transition_costs {
 TransitionCost NearestNeighbor::operator()(int task) {
   int base = (task / tasks.customers) * tasks.customers;
   return thrust::transform_reduce(
+      thrust::device,
       thrust::make_zip_iterator(thrust::make_tuple(
           thrust::make_counting_iterator(0),
           tasks.plan + base

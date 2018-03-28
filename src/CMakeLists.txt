@@ -23,7 +23,7 @@ set(HEADER_FILES
         solver/genetic/Settings.hpp
 
         streams/input/SolomonReader.cu
-        streams/output/VectorWriter.hpp
+        streams/output/ContainerWriter.hpp
         )
 
 set(SOURCE_FILES
