@@ -5,18 +5,15 @@
 #include "algorithms/CartesianDistance.cu"
 #include "heuristics/NearestNeighbor.hpp"
 #include "streams/input/SolomonReader.cu"
-#include "streams/output/ContainerWriter.hpp"
 
 #include "test_utils/TaskUtils.hpp"
 
 #include <fstream>
 
-
 using namespace vrp::algorithms;
 using namespace vrp::heuristics;
 using namespace vrp::models;
 using namespace vrp::streams;
-
 
 SCENARIO("Can find best transition after depot.", "[heuristics][construction][nearest_neighbor][T3]") {
   std::fstream input(SOLOMON_TESTS_PATH "T3.txt");
@@ -24,10 +21,8 @@ SCENARIO("Can find best transition after depot.", "[heuristics][construction][ne
   Tasks tasks {problem.size()};
   vrp::test::createDepotTask(problem, tasks);
 
-  auto transitionCost = NearestNeighbor (problem.getShadow(), tasks.getShadow())(0);
+  auto transitionCost = NearestNeighbor (problem.getShadow(), tasks.getShadow())(0, 0);
 
-  vrp::streams::write(std::cout, tasks.ids, ",");
-
-  REQUIRE(transitionCost.first.customer == 3);
-  REQUIRE(transitionCost.second == 1);
+  REQUIRE(thrust::get<0>(transitionCost).details.customer == 3);
+  REQUIRE(thrust::get<1>(transitionCost) == 1);
 }

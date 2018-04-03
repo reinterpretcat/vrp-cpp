@@ -10,7 +10,6 @@ namespace heuristics {
 
 /// Implements algorithm of cheapest insertion heuristic.
 struct NearestNeighbor final {
-  using TransitionCost = thrust::pair<vrp::models::Transition, float>;
 
   const vrp::models::Problem::Shadow problem;
   vrp::models::Tasks::Shadow tasks;
@@ -20,9 +19,9 @@ struct NearestNeighbor final {
                   vrp::models::Tasks::Shadow tasks) :
     problem(problem), tasks(tasks) {}
 
-  /// Finds the "nearest" transition for given task
+  /// Finds the "nearest" transition for given task and vehicle
   __host__ __device__
-  TransitionCost operator()(int task);
+  vrp::models::TransitionCost operator()(int task, int vehicle);
 };
 
 }

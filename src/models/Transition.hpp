@@ -6,43 +6,48 @@
 namespace vrp {
 namespace models {
 
-/// Represents transition between customers.
+/// Represents transition from task to a customer.
 struct Transition {
-  /// Customer.
-  int customer;
-  /// Vehicle.
-  int vehicle;
 
-  /// Distance
-  float distance;
+  /// Details about transition.
+  struct Details {
+    /// Customer which is being served by transition
+    int customer;
+    /// Vehicle used in transition.
+    int vehicle;
+  };
 
-  /// Traveling time.
-  int traveling;
-  /// Serving time.
-  int serving;
-  /// Waiting time.
-  int waiting;
-  /// Demand.
-  int demand;
+  /// Delta change of transition.
+  struct Delta {
+    /// Travelling distance.
+    float distance;
+    /// Traveling time.
+    int traveling;
+    /// Serving time.
+    int serving;
+    /// Waiting time.
+    int waiting;
+    /// Demand change.
+    int demand;
 
-  /// Task from which transition is performed.
-  int task;
+    /// Returns total delta's duration.
+    __host__ __device__
+    int duration() const {
+      return traveling + serving + waiting;
+    }
+  };
+
+  /// Details about transition.
+  Details details;
+  /// Delta change of transition.
+  Delta delta;
 
   __host__ __device__
-  Transition(int customer,
-             int vehicle,
-             float distance,
-             int traveling,
-             int serving,
-             int waiting,
-             int demand,
-             int task) :
-      customer(customer), vehicle(vehicle),  distance(distance),
-      traveling(traveling), serving(serving), waiting(waiting),
-      demand(demand), task(task) { }
+  Transition() : Transition({ -1, -1} , {-1, -1, -1, -1, -1 }) {}
 
   __host__ __device__
-  Transition() : Transition(-1, -1, -1, -1, -1, -1, -1, -1) {}
+  Transition(const Details &details, const Delta &delta) :
+    details(details), delta(delta) {}
 
   __host__ __device__
   Transition(const Transition&) = default;
@@ -50,24 +55,20 @@ struct Transition {
   __host__ __device__
   Transition& operator=(const Transition&) = default;
 
-  /// Returns duration of transition.
-  __host__ __device__
-  int duration() const {
-    return traveling + serving + waiting;
-  }
-
   /// Flag whether transition is valid.
   __host__ __device__
   bool isValid() const {
-    return task > 0;
-  }
-
-  /// Creates invalid transition.
-  __host__ __device__
-  static Transition createInvalid() {
-    return Transition();
+    return details.customer > 0;
   }
 };
+
+/// Stores transition details and associated task.
+using TransitionTask = thrust::tuple<vrp::models::Transition::Details, int>;
+/// Stores transition and its cost.
+using TransitionCost = thrust::tuple<vrp::models::Transition, float>;
+/// Stores all information needed to complete transition, e.g.
+/// transition, its cost, and task information.
+using TransitionComplete = thrust::tuple<TransitionCost, int, int>;
 
 }
 }

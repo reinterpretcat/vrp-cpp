@@ -14,17 +14,15 @@ using namespace vrp::models;
 
 namespace {
 
-using TransitionCost = NearestNeighbor::TransitionCost;
-
-/// Creates invalid transition-cost pair.
 __host__ __device__
 TransitionCost createInvalid() {
-  return thrust::make_pair(vrp::models::Transition(), -1);
+  return thrust::make_tuple(vrp::models::Transition(), -1);
 }
 
 /// Creates transition and calculates cost to given customer if it is not handled.
 struct create_transition {
   int task;
+  int vehicle;
 
   vrp::algorithms::create_transition transitionFactory;
   vrp::algorithms::calculate_cost costCalculator;
@@ -34,10 +32,10 @@ struct create_transition {
     if (thrust::get<1>(customer))
       return createInvalid();
 
-    auto transition = transitionFactory(task, thrust::get<0>(customer));
+    auto transition = transitionFactory({ {thrust::get<0>(customer), vehicle }, task });
     auto cost = costCalculator(transition);
 
-    return thrust::make_pair(transition, cost);
+    return thrust::make_tuple(transition, cost);
   }
 };
 
@@ -45,7 +43,8 @@ struct create_transition {
 struct compare_transition_costs {
   __host__ __device__
   TransitionCost& operator()(TransitionCost &result, const TransitionCost &left) {
-    if (left.first.isValid() && (left.second < result.second || !result.first.isValid())) {
+    if (thrust::get<0>(left).isValid() &&
+        (thrust::get<1>(left) < thrust::get<1>(result) || !thrust::get<0>(result).isValid())) {
       result = left;
     }
     return result;
@@ -54,7 +53,7 @@ struct compare_transition_costs {
 
 }
 
-TransitionCost NearestNeighbor::operator()(int task) {
+TransitionCost NearestNeighbor::operator()(int task, int vehicle) {
   int base = (task / tasks.customers) * tasks.customers;
   return thrust::transform_reduce(
       thrust::device,
@@ -67,8 +66,9 @@ TransitionCost NearestNeighbor::operator()(int task) {
           tasks.plan + base + problem.size
       )),
       create_transition {task,
-                        vrp::algorithms::create_transition {problem, tasks},
-                        vrp::algorithms::calculate_cost {problem.resources}},
+                         vehicle,
+                         vrp::algorithms::create_transition {problem, tasks},
+                         vrp::algorithms::calculate_cost {problem.resources}},
       createInvalid(),
       compare_transition_costs()
   );

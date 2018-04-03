@@ -1,0 +1,15 @@
+T4: Exceeded time
+
+VEHICLE
+NUMBER     CAPACITY
+  2          10
+
+CUSTOMER
+CUST NO.  XCOORD.   YCOORD.    DEMAND   READY TIME  DUE DATE   SERVICE   TIME
+
+    0       0          0          0          0        1000         0
+    1       1          0          1          0        1000         10
+    2       2          0          1          0        1000         10
+    3       3          0          1          0        1000         10
+    4       4          0          1          0        1000         10
+    5       100        0          2          0        101          10

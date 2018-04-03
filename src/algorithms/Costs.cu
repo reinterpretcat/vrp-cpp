@@ -18,12 +18,12 @@ struct calculate_cost {
 
   __host__ __device__
   float operator()(const vrp::models::Transition &transition) const {
-    int vehicle = transition.vehicle;
+    int vehicle = transition.details.vehicle;
 
-    auto distance = transition.distance * resources.distanceCosts[vehicle];
-    auto traveling = transition.traveling * resources.timeCosts[vehicle];
-    auto waiting = transition.waiting * resources.waitingCosts[vehicle];
-    auto serving = transition.serving * resources.timeCosts[vehicle];
+    auto distance = transition.delta.distance * resources.distanceCosts[vehicle];
+    auto traveling = transition.delta.traveling * resources.timeCosts[vehicle];
+    auto waiting = transition.delta.waiting * resources.waitingCosts[vehicle];
+    auto serving = transition.delta.serving * resources.timeCosts[vehicle];
 
     return distance + traveling + waiting + serving;
   }

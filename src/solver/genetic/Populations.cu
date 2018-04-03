@@ -26,14 +26,18 @@ struct create_roots {
   __host__ __device__
   void operator()(int individuum) {
     int customer = individuum + 1;
-    int task = individuum * problem.size;
+    int vehicle = 0;
 
-    createDepotTask(task);
+    int fromTask = individuum * problem.size;
+    int toTask = fromTask + 1;
+
+    createDepotTask(fromTask, vehicle);
 
     while(customer != 0) {
-      auto transition = createTransition(task, customer);
+      auto details = vrp::models::Transition::Details { customer, vehicle };
+      auto transition = createTransition(details);
       if (transition.isValid()) {
-        performTransition(transition, getCost(transition));
+        performTransition({ { transition, getCost(transition) }, fromTask, toTask });
         break;
       }
       // TODO try to pick another vehicle in case of heterogeneous fleet.
@@ -43,8 +47,7 @@ struct create_roots {
  private:
 
   __host__ __device__
-  void createDepotTask(int task) {
-    const int vehicle = 0;
+  void createDepotTask(int task, int vehicle) {
     const int depot = 0;
 
     tasks.ids[task] = depot;
@@ -73,20 +76,39 @@ struct complete_solution {
 
   __host__ __device__
   void operator()(int individuum) {
+    const auto begin = individuum * problem.size;
+    const auto end = begin + problem.size;
+
     auto heuristic = Heuristic(problem, tasks);
-    auto begin = individuum * problem.size + 1;
-    auto end = begin + problem.size - 2;
+    int vehicle = 0;
+    int from = begin + 1;
+    int to = from + 1;
 
     do {
-      auto transitionCost = heuristic(begin);
-      if (transitionCost.first.isValid()) {
-        performTransition(transitionCost.first, transitionCost.second);
-        ++begin;
+      auto transitionCost = heuristic(from, vehicle);
+      if (thrust::get<0>(transitionCost).isValid()) {
+        performTransition({transitionCost, from, to});
+        from = to++;
       } else {
-        // TODO use a new vehicle or exit
-        break;
+        // NOTE cannot find any further customer to serve within vehicle
+        if (from == begin) break;
+
+        from = begin;
+        spawnNewVehicle(from, ++vehicle);
       }
-    } while(begin < end);
+
+    } while(to < end);
+  }
+
+ private:
+  /// Picks the next vehicle and assigns it to the task.
+  __host__ __device__
+  void spawnNewVehicle(int task, int vehicle) {
+    // TODO check that vehicle count is not exceeded
+
+    tasks.times[task] = problem.customers.starts[0];
+    tasks.capacities[task] = problem.resources.capacities[vehicle];
+    tasks.costs[task] = problem.resources.fixedCosts[vehicle];
   }
 
   const Problem::Shadow problem;
