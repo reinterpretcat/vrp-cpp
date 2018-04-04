@@ -16,7 +16,7 @@ class SolomonBuilder final {
  public:
   /// Customer data.
   struct Customer {
-    int x, y, demand, start, end, service;
+    int id, x, y, demand, start, end, service;
   };
 
   /// Sets problem title.
@@ -38,25 +38,28 @@ class SolomonBuilder final {
     return *this;
   }
 
-  std::istream&& build() {
+  std::stringstream build() {
     // TODO check that all needed parameters are set.
     std::stringstream ss;
 
     ss << title_ << std::endl << std::endl;
 
     ss << "VEHICLE" << std::endl << "NUMBER     CAPACITY" << std::endl;
-    ss << "  " << vehicle_.first <<"          " << vehicle_.second << std::endl;
+    ss << "  " << vehicle_.first <<"          " << vehicle_.second << std::endl
+       << std::endl;
 
     ss << "CUSTOMER" << std::endl
        << "CUST NO.  XCOORD.   YCOORD.    DEMAND   READY TIME   DUE DATE   SERVICE TIME" << std::endl
        << std::endl;
 
     std::for_each(customers_.begin(), customers_.end(), [&](const Customer& customer) {
-      ss << "0"  << customer.x << " " << customer.y << " " << customer.demand << " "
-         << customer.start << " " << customer.end << " " << customer.service << std::endl;
+      ss << customer.id << " "  << customer.x << " " << customer.y << " " << customer.demand << " "
+         << customer.start << " " << customer.end << " " << customer.service << " " << std::endl;
     });
 
-    return std::move(ss);
+    ss << std::endl;
+
+    return ss;
   }
 
  private:

@@ -8,6 +8,7 @@
 #include "streams/input/SolomonReader.cu"
 #include "streams/output/ContainerWriter.hpp"
 
+#include "test_utils/SolomonBuilder.hpp"
 #include "test_utils/VectorUtils.hpp"
 
 #include <fstream>
@@ -17,17 +18,37 @@ using namespace vrp::heuristics;
 using namespace vrp::genetic;
 using namespace vrp::models;
 using namespace vrp::streams;
+using namespace vrp::test;
 
-template <typename Heuristic>
-Tasks createPopulation(const char *problemFile, int populationSize = 3) {
-  std::fstream input(problemFile);
-  Settings settings{populationSize};
-  auto problem = SolomonReader<CartesianDistance>::read(input);
-  return create_population<Heuristic>(problem)(settings);
+namespace {
+
+struct WithSequentialCustomers {
+  std::stringstream operator()() {
+    return SolomonBuilder()
+        .setTitle("Sequential customers")
+        .setVehicle(1, 10)
+        .addCustomer({0, 0, 0, 0, 0, 1000, 0})
+        .addCustomer({1, 1, 0, 1, 0, 1000, 10})
+        .addCustomer({2, 2, 0, 1, 0, 1000, 10})
+        .addCustomer({3, 3, 0, 1, 0, 1000, 10})
+        .addCustomer({4, 4, 0, 1, 0, 1000, 10})
+        .addCustomer({5, 5, 0, 1, 0, 1000, 10})
+        .build();
+  }
+};
+
+template<typename Heuristic>
+Tasks createPopulation(std::istream &stream, int populationSize = 3) {
+  auto problem = SolomonReader<CartesianDistance>::read(stream);
+  return create_population<Heuristic>(problem)({populationSize});
+}
 }
 
-SCENARIO("Can create roots of initial population.", "[genetic][initial][roots][T2]") {
-  auto population = createPopulation<NoTransition>(SOLOMON_TESTS_PATH "T2.txt");
+SCENARIO("Can create roots of initial population.",
+         "[genetic][population][initial][roots]") {
+  auto stream = WithSequentialCustomers()();
+
+  auto population = createPopulation<NoTransition>(stream);
 
   CHECK_THAT(vrp::test::copy(population.ids), Catch::Matchers::Equals(std::vector<int>{
       0, 1, -1, -1, -1, -1,
@@ -62,8 +83,11 @@ SCENARIO("Can create roots of initial population.", "[genetic][initial][roots][T
   }));
 }
 
-SCENARIO("Can create a full initial population.", "[genetic][initial][solution][T2]") {
-  auto population = createPopulation<NearestNeighbor>(SOLOMON_TESTS_PATH "T2.txt");
+SCENARIO("Can create a full initial population.",
+         "[genetic][population][initial][solution]") {
+  auto stream = WithSequentialCustomers()();
+
+  auto population = createPopulation<NearestNeighbor>(stream);
 
   CHECK_THAT(vrp::test::copy(population.ids), Catch::Matchers::Equals(std::vector<int>{
       0, 1, 2, 3, 4, 5,
@@ -99,8 +123,19 @@ SCENARIO("Can create a full initial population.", "[genetic][initial][solution][
 }
 
 SCENARIO("Can use second vehicle within initial population in case of demand violation.",
-         "[genetic][initial][two_vehicles][capacity_check][T4]") {
-  auto population = createPopulation<NearestNeighbor>(SOLOMON_TESTS_PATH "T4.txt", 1);
+         "[genetic][population][initial][two_vehicles]") {
+  auto stream = SolomonBuilder()
+      .setTitle("Exceeded capacity and two vehicles")
+      .setVehicle(2, 10)
+      .addCustomer({0, 0, 0, 0, 0, 1000, 0})
+      .addCustomer({1, 1, 0, 3, 0, 1000, 10})
+      .addCustomer({2, 2, 0, 3, 0, 1000, 10})
+      .addCustomer({3, 3, 0, 3, 0, 1000, 10})
+      .addCustomer({4, 4, 0, 2, 0, 1000, 10})
+      .addCustomer({5, 5, 0, 2, 0, 1000, 10})
+      .build();
+
+  auto population = createPopulation<NearestNeighbor>(stream, 1);
 
   CHECK_THAT(vrp::test::copy(population.vehicles), Catch::Matchers::Equals(std::vector<int>{
       0, 0, 0, 0, 1, 1,
@@ -111,8 +146,19 @@ SCENARIO("Can use second vehicle within initial population in case of demand vio
 }
 
 SCENARIO("Can use second vehicle within initial population in case of time violation.",
-         "[genetic][initial][two_vehicles][time_check][T4]") {
-  auto population = createPopulation<NearestNeighbor>(SOLOMON_TESTS_PATH "T5.txt", 1);
+         "[genetic][initial][two_vehicles]") {
+  auto stream = SolomonBuilder()
+      .setTitle("Exceeded time and two vehicles")
+      .setVehicle(2, 10)
+      .addCustomer({0, 0,   0, 0, 0, 1000, 0})
+      .addCustomer({1, 1,   0, 1, 0, 1000, 10})
+      .addCustomer({2, 2,   0, 1, 0, 1000, 10})
+      .addCustomer({3, 3,   0, 1, 0, 1000, 10})
+      .addCustomer({4, 4,   0, 1, 0, 1000, 10})
+      .addCustomer({5, 100, 0, 2, 0, 101,  10})
+      .build();
+
+  auto population = createPopulation<NearestNeighbor>(stream, 1);
 
   CHECK_THAT(vrp::test::copy(population.vehicles), Catch::Matchers::Equals(std::vector<int>{
       0, 0, 0, 0, 0, 1,

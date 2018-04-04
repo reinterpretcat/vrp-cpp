@@ -7,18 +7,33 @@
 #include "models/Resources.hpp"
 #include "streams/input/SolomonReader.cu"
 
+#include "test_utils/SolomonBuilder.hpp"
 #include "test_utils/VectorUtils.hpp"
-
-#include <fstream>
 
 using namespace vrp::algorithms;
 using namespace vrp::models;
 using namespace vrp::streams;
+using namespace vrp::test;
 
-SCENARIO("Can create customers data.", "[streams][solomon][T1]") {
-  std::fstream input(SOLOMON_TESTS_PATH "T1.txt");
+namespace {
+struct WithSimplifiedCoordinates {
+  std::stringstream operator()() {
+    return SolomonBuilder()
+        .setTitle("Customers with simplified coordinates")
+        .setVehicle(1, 10)
+        .addCustomer({0, 0, 0, 0, 0, 1000, 1})
+        .addCustomer({1, 1, 0, 1, 0, 1000, 1})
+        .addCustomer({2, 3, 0, 1, 0, 1000, 1})
+        .addCustomer({3, 7, 0, 1, 0, 1000, 1})
+        .build();
+  }
+};
+}
 
-  auto problem = SolomonReader<CartesianDistance>::read(input);
+SCENARIO("Can create customers data.", "[streams][solomon]") {
+  auto stream = WithSimplifiedCoordinates()();
+
+  auto problem = SolomonReader<CartesianDistance>::read(stream);
 
   CHECK_THAT(vrp::test::copy(problem.customers.demands),
              Catch::Matchers::Equals(std::vector<int>{0, 1, 1, 1}));
@@ -30,10 +45,10 @@ SCENARIO("Can create customers data.", "[streams][solomon][T1]") {
              Catch::Matchers::Equals(std::vector<int>(4, 1000)));
 }
 
-SCENARIO("Can create routing data.", "[streams][solomon][T1]") {
-  std::fstream input(SOLOMON_TESTS_PATH "T1.txt");
+SCENARIO("Can create routing data.", "[streams][solomon]") {
+  auto stream = WithSimplifiedCoordinates()();
 
-  auto problem = SolomonReader<CartesianDistance>::read(input);
+  auto problem = SolomonReader<CartesianDistance>::read(stream);
 
   CHECK_THAT(vrp::test::copy(problem.routing.distances),
              Catch::Matchers::Equals(std::vector<float>{0, 1, 3, 7, 1, 0, 2, 6, 3, 2, 0, 4, 7, 6, 4, 0}));
@@ -41,10 +56,10 @@ SCENARIO("Can create routing data.", "[streams][solomon][T1]") {
              Catch::Matchers::Equals(std::vector<int>{0, 1, 3, 7, 1, 0, 2, 6, 3, 2, 0, 4, 7, 6, 4, 0}));
 }
 
-SCENARIO("Can create resources data.", "[streams][solomon][T1]") {
-  std::fstream input(SOLOMON_TESTS_PATH "T1.txt");
+SCENARIO("Can create resources data.", "[streams][solomon]") {
+  auto stream = WithSimplifiedCoordinates()();
 
-  auto problem = SolomonReader<CartesianDistance>::read(input);
+  auto problem = SolomonReader<CartesianDistance>::read(stream);
 
   CHECK_THAT(vrp::test::copy(problem.resources.capacities),
              Catch::Matchers::Equals(std::vector<int>{ 10 }));
