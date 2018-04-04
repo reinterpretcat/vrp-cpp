@@ -11,6 +11,7 @@ namespace models {
 struct Resources final {
   /// Stores device pointers to data.
   struct Shadow final {
+    int vehicles;
     thrust::device_ptr<const int> capacities;
     thrust::device_ptr<const float> distanceCosts;
     thrust::device_ptr<const float> timeCosts;
@@ -49,7 +50,8 @@ struct Resources final {
 
   /// Returns shadow object.
   Shadow getShadow() const {
-    return {capacities.data(),
+    return {static_cast<int>(capacities.size()),
+            capacities.data(),
             distanceCosts.data(),
             timeCosts.data(),
             waitingCosts.data(),

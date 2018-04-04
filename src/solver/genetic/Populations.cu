@@ -91,7 +91,7 @@ struct complete_solution {
         from = to++;
       } else {
         // NOTE cannot find any further customer to serve within vehicle
-        if (from == begin) break;
+        if (from == begin || vehicle == problem.resources.vehicles - 1) break;
 
         from = begin;
         spawnNewVehicle(from, ++vehicle);
@@ -104,8 +104,6 @@ struct complete_solution {
   /// Picks the next vehicle and assigns it to the task.
   __host__ __device__
   void spawnNewVehicle(int task, int vehicle) {
-    // TODO check that vehicle count is not exceeded
-
     tasks.times[task] = problem.customers.starts[0];
     tasks.capacities[task] = problem.resources.capacities[vehicle];
     tasks.costs[task] = problem.resources.fixedCosts[vehicle];
