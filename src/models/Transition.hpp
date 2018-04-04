@@ -11,6 +11,10 @@ struct Transition {
 
   /// Details about transition.
   struct Details {
+    /// Task from which transition should happen.
+    int from;
+    /// Task to which transition should happen.
+    int to;
     /// Customer which is being served by transition
     int customer;
     /// Vehicle used in transition.
@@ -62,13 +66,8 @@ struct Transition {
   }
 };
 
-/// Stores transition details and associated task.
-using TransitionTask = thrust::tuple<vrp::models::Transition::Details, int>;
 /// Stores transition and its cost.
 using TransitionCost = thrust::tuple<vrp::models::Transition, float>;
-/// Stores all information needed to complete transition, e.g.
-/// transition, its cost, and task information.
-using TransitionComplete = thrust::tuple<TransitionCost, int, int>;
 
 }
 }

@@ -21,7 +21,7 @@ struct NearestNeighbor final {
 
   /// Finds the "nearest" transition for given task and vehicle
   __host__ __device__
-  vrp::models::TransitionCost operator()(int task, int vehicle);
+  vrp::models::TransitionCost operator()(int fromTask, int toTask, int vehicle);
 };
 
 }

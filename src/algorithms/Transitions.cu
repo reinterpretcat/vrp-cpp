@@ -17,9 +17,8 @@ struct create_transition {
     problem(problem), tasks(tasks) {}
 
   __host__ __device__
-  vrp::models::Transition operator()(const vrp::models::TransitionTask &transition) const {
-    const auto &details = thrust::get<0>(transition);
-    const int task = thrust::get<1>(transition);
+  vrp::models::Transition operator()(const vrp::models::Transition::Details &details) const {
+    int task = details.from;
 
     int matrix = tasks.ids[task] * problem.size + details.customer;
     float distance = problem.routing.distances[matrix];
@@ -77,22 +76,18 @@ struct perform_transition {
     tasks(tasks) {}
 
   __host__ __device__
-  void operator()(const vrp::models::TransitionComplete &complete) const {
-    const auto fromTask = thrust::get<1>(complete);
-    const auto toTask = thrust::get<2>(complete);
+  void operator()(const vrp::models::TransitionCost &transitionCost) const {
+    const auto &transition = thrust::get<0>(transitionCost);
+    const auto &details = transition.details;
+    const auto &delta = transition.delta;
 
-    const auto &transition = thrust::get<0>(complete);
-    const auto &details = thrust::get<0>(transition).details;
-    const auto &delta = thrust::get<0>(transition).delta;
-    const auto cost = thrust::get<1>(transition);
+    tasks.ids[details.to] = details.customer;
+    tasks.times[details.to] = delta.duration();
+    tasks.capacities[details.to] = tasks.capacities[details.from] - delta.demand;
+    tasks.vehicles[details.to] = details.vehicle;
 
-    tasks.ids[toTask] = details.customer;
-    tasks.times[toTask] = delta.duration();
-    tasks.capacities[toTask] = tasks.capacities[fromTask] - delta.demand;
-    tasks.vehicles[toTask] = details.vehicle;
-
-    tasks.costs[toTask] = cost;
-    tasks.plan[base(toTask) + details.customer] = true;
+    tasks.costs[details.to] = thrust::get<1>(transitionCost);
+    tasks.plan[base(details.to) + details.customer] = true;
   }
 
  private:

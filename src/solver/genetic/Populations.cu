@@ -34,10 +34,10 @@ struct create_roots {
     createDepotTask(fromTask, vehicle);
 
     while(customer != 0) {
-      auto details = vrp::models::Transition::Details { customer, vehicle };
+      auto details = vrp::models::Transition::Details { fromTask, toTask, customer, vehicle };
       auto transition = createTransition(details);
       if (transition.isValid()) {
-        performTransition({ { transition, getCost(transition) }, fromTask, toTask });
+        performTransition({transition, getCost(transition) });
         break;
       }
       // TODO try to pick another vehicle in case of heterogeneous fleet.
@@ -85,9 +85,9 @@ struct complete_solution {
     int to = from + 1;
 
     do {
-      auto transitionCost = heuristic(from, vehicle);
+      auto transitionCost = heuristic(from, to, vehicle);
       if (thrust::get<0>(transitionCost).isValid()) {
-        performTransition({transitionCost, from, to});
+        performTransition(transitionCost);
         from = to++;
       } else {
         // NOTE cannot find any further customer to serve within vehicle

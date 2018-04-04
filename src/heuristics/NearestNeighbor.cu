@@ -21,7 +21,8 @@ TransitionCost createInvalid() {
 
 /// Creates transition and calculates cost to given customer if it is not handled.
 struct create_transition {
-  int task;
+  int fromTask;
+  int toTask;
   int vehicle;
 
   vrp::algorithms::create_transition transitionFactory;
@@ -32,7 +33,7 @@ struct create_transition {
     if (thrust::get<1>(customer))
       return createInvalid();
 
-    auto transition = transitionFactory({ {thrust::get<0>(customer), vehicle }, task });
+    auto transition = transitionFactory({fromTask, toTask, thrust::get<0>(customer), vehicle });
     auto cost = costCalculator(transition);
 
     return thrust::make_tuple(transition, cost);
@@ -53,8 +54,8 @@ struct compare_transition_costs {
 
 }
 
-TransitionCost NearestNeighbor::operator()(int task, int vehicle) {
-  int base = (task / tasks.customers) * tasks.customers;
+TransitionCost NearestNeighbor::operator()(int fromTask, int toTask, int vehicle) {
+  int base = (fromTask / tasks.customers) * tasks.customers;
   return thrust::transform_reduce(
       thrust::device,
       thrust::make_zip_iterator(thrust::make_tuple(
@@ -65,7 +66,8 @@ TransitionCost NearestNeighbor::operator()(int task, int vehicle) {
           thrust::make_counting_iterator(problem.size),
           tasks.plan + base + problem.size
       )),
-      create_transition {task,
+      create_transition {fromTask,
+                         toTask,
                          vehicle,
                          vrp::algorithms::create_transition {problem, tasks},
                          vrp::algorithms::calculate_cost {problem.resources}},

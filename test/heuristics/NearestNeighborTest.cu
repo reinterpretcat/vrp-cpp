@@ -38,7 +38,7 @@ SCENARIO("Can find best transition after depot.", "[heuristics][construction][ne
   Tasks tasks {problem.size()};
   vrp::test::createDepotTask(problem, tasks);
 
-  auto transitionCost = NearestNeighbor (problem.getShadow(), tasks.getShadow())(0, 0);
+  auto transitionCost = NearestNeighbor (problem.getShadow(), tasks.getShadow())(0, 0, 0);
 
   REQUIRE(thrust::get<0>(transitionCost).details.customer == 3);
   REQUIRE(thrust::get<1>(transitionCost) == 1);

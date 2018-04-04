@@ -18,7 +18,7 @@ struct NoTransition {
                vrp::models::Tasks::Shadow tasks) {}
 
   __host__ __device__
-  vrp::models::TransitionCost operator()(int task, int vehicle) {
+  vrp::models::TransitionCost operator()(int fromTask, int toTask, int vehicle) {
     return thrust::make_tuple(vrp::models::Transition(), -1);
   };
 };
