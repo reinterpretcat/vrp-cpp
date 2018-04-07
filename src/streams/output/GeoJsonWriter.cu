@@ -27,6 +27,7 @@ class GeoJsonWriter final {
     using Tours = std::map<int, std::vector<int>>;
 
     const vrp::models::Tasks &tasks;
+    const LocationResolver &resolver;
 
     json11::Json operator()(int solution) {
       auto jobs = getJobs(solution);
@@ -37,10 +38,23 @@ class GeoJsonWriter final {
           thrust::counting_iterator<int>(0),
           thrust::counting_iterator<int>(static_cast<int>(tours.size())),
           [&](int tour) {
-            // TODO create tour json
             return json11::Json::object {
               {"solution", solution},
-              {"tour", tour}
+              {"tour", tour},
+              {"geometry", thrust::transform_reduce(
+                  thrust::host,
+                  tours[tour].begin(),
+                  tours[tour].end(),
+                  [&](int id) {
+                    auto coord = resolver(id);
+                    return json11::Json::array { coord.first, coord.second };
+                  },
+                  json11::Json::array(),
+                  [](json11::Json::array &result, const json11::Json::array &item) {
+                    result.push_back(item);
+                    return result;
+                  }
+              )}
             };
           },
           json11::Json(),
@@ -107,32 +121,29 @@ class GeoJsonWriter final {
     }
   };
 
+  /// Writes geo json to stream.
   void write(std::ostream &out,
              const vrp::models::Tasks &tasks,
              const LocationResolver &resolver) {
 
-    auto json = createJson(tasks, resolver);
-
-    out << json.dump();
+    out << createJson(tasks, resolver).dump();
   }
- private:
-  static json11::Json createJson(const vrp::models::Tasks &tasks,
-                                 const LocationResolver &resolver) {
+
+  /// Creates geo json for given tasks using location resolver provided.
+  json11::Json createJson(const vrp::models::Tasks &tasks,
+                          const LocationResolver &resolver) {
     int solutions = static_cast<int>(tasks.ids.size() / tasks.customers);
+    json11::Json json = json11::Json::object {
+        {"type", "FeatureCollection"},
+        {"features", json11::Json::array()}
+    };
     return thrust::transform_reduce(
         thrust::host,
         thrust::counting_iterator<int>(0),
         thrust::counting_iterator<int>(solutions),
-        materialize_solution { tasks },
-        createFeatureCollection(),
+        materialize_solution { tasks, resolver },
+        json,
         merge_solution());
-  }
-
-  static json11::Json createFeatureCollection() {
-    return json11::Json::object {
-      {"type", "FeatureCollection"},
-      {"features", json11::Json::array()}
-    };
   }
 };
 

@@ -19,7 +19,9 @@ Tasks createSolution() {
 }
 
 struct LocationResolver {
-
+  std::pair<double,double> operator()(int customer) const {
+    return std::make_pair(customer, 0);
+  }
 };
 
 SCENARIO("Can write solution as geojson.", "[streams][geojson]") {
