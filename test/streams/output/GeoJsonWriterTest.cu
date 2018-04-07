@@ -1,7 +1,10 @@
 #include <catch/catch.hpp>
 
+#include <json/json11.hpp>
+
 #include "streams/output/GeoJsonWriter.cu"
 
+#include <sstream>
 #include <thrust/fill.h>
 #include <thrust/sequence.h>
 
@@ -12,8 +15,8 @@ Tasks createSolution() {
   auto tasks = Tasks(6);
 
   thrust::sequence(tasks.ids.begin(), tasks.ids.end());
-  thrust::fill(tasks.ids.begin(), tasks.ids.begin() + 3, 0);
-  thrust::fill(tasks.ids.begin() + 3, tasks.ids.end(), 1);
+  thrust::fill(tasks.vehicles.begin(), tasks.vehicles.begin() + 3, 0);
+  thrust::fill(tasks.vehicles.begin() + 3, tasks.vehicles.end(), 1);
 
   return tasks;
 }
@@ -27,8 +30,12 @@ struct LocationResolver {
 SCENARIO("Can write solution as geojson.", "[streams][geojson]") {
   LocationResolver resolver;
   GeoJsonWriter<LocationResolver> writer;
+  std::stringstream ss;
 
-  writer.write(std::cout, createSolution(), resolver);
+  writer.write(ss, createSolution(), resolver);
 
-  // TODO
+  std::string err;
+  auto json = json11::Json::parse(ss.str(), err, json11::JsonParse::STANDARD);
+  REQUIRE(json["features"][0]["geometry"]["coordinates"].array_items().size() == 5);
+  REQUIRE(json["features"][1]["geometry"]["coordinates"].array_items().size() == 4);
 }

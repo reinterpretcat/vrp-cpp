@@ -18,7 +18,6 @@ namespace streams {
 template <typename LocationResolver>
 class GeoJsonWriter final {
  public:
-
   /// Materializes single solution as geo json.
   struct materialize_solution final {
     /// Represents a job defined by customer and vehicle.
@@ -38,23 +37,27 @@ class GeoJsonWriter final {
           thrust::counting_iterator<int>(0),
           thrust::counting_iterator<int>(static_cast<int>(tours.size())),
           [&](int tour) {
+            auto toCoordinate = [&](int id) {
+              auto coord = resolver(id);
+              return json11::Json::array { coord.first, coord.second };
+            };
             return json11::Json::object {
               {"solution", solution},
               {"tour", tour},
-              {"geometry", thrust::transform_reduce(
-                  thrust::host,
-                  tours[tour].begin(),
-                  tours[tour].end(),
-                  [&](int id) {
-                    auto coord = resolver(id);
-                    return json11::Json::array { coord.first, coord.second };
-                  },
-                  json11::Json::array(),
-                  [](json11::Json::array &result, const json11::Json::array &item) {
-                    result.push_back(item);
-                    return result;
-                  }
-              )}
+              {"geometry", json11::Json::object {
+                  {"type", "LineString"},
+                  {"coordinates", thrust::transform_reduce(
+                      thrust::host,
+                      tours[tour].begin(),
+                      tours[tour].end(),
+                      toCoordinate,
+                      json11::Json::array {toCoordinate(0), toCoordinate(0)},
+                      [](json11::Json::array &result, const json11::Json::array &item) {
+                        result.insert(result.end() - 1, item);
+                        return result;
+                      }
+                  )}
+              }}
             };
           },
           json11::Json(),
@@ -75,7 +78,7 @@ class GeoJsonWriter final {
           jobs.begin(),
           jobs.end(),
           [&](const Job &job) {
-            tours[thrust::get<0>(job)].push_back(thrust::get<1>(job));
+            tours[thrust::get<1>(job)].push_back(thrust::get<0>(job));
           });
 
       return tours;
@@ -85,12 +88,12 @@ class GeoJsonWriter final {
     thrust::host_vector<Job> getJobs(int solution) {
       int start = tasks.customers * solution;
       int end = start + tasks.customers;
-      thrust::device_vector<Job> jobs(static_cast<std::size_t>(tasks.customers));
+      thrust::device_vector<Job> jobs(static_cast<std::size_t>(tasks.customers - 1));
 
-      // get all jobs with their vehicles
+      // get all jobs with their vehicles (except depot)
       thrust::transform(
           thrust::make_zip_iterator(thrust::make_tuple(
-              tasks.ids.data() + start,
+              tasks.ids.data() + start + 1,
               tasks.vehicles.data() + start)),
           thrust::make_zip_iterator(thrust::make_tuple(
               tasks.ids.data() + end,
@@ -129,6 +132,7 @@ class GeoJsonWriter final {
     out << createJson(tasks, resolver).dump();
   }
 
+ private:
   /// Creates geo json for given tasks using location resolver provided.
   json11::Json createJson(const vrp::models::Tasks &tasks,
                           const LocationResolver &resolver) {
