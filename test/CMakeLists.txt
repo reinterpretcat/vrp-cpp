@@ -15,6 +15,7 @@ add_executable(${LIBRARY_TEST}
 
         heuristics/NearestNeighborTest.cu
         streams/input/SolomonReaderTest.cu
+        streams/output/GeoJsonWriterTest.cu
         solver/genetic/PopulationFactoryTest.cu
 
         test_utils/SolomonBuilder.hpp

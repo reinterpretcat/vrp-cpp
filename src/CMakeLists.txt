@@ -5,7 +5,7 @@ find_package(Thrust REQUIRED)
 set(LIBRARY_NAME Solver)
 
 set(HEADER_FILES
-        algorithms/CartesianProduct.cu
+        iterators/CartesianProduct.cu
         algorithms/CartesianDistance.cu
         algorithms/Costs.cu
         algorithms/Transitions.cu
@@ -25,9 +25,12 @@ set(HEADER_FILES
 
         streams/input/SolomonReader.cu
         streams/output/ContainerWriter.hpp
+        streams/output/GeoJsonWriter.cu
         )
 
 set(SOURCE_FILES
+        ../external/json/json11.cpp
+
         heuristics/NearestNeighbor.cu
         solver/genetic/Populations.cu
         )

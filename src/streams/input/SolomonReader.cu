@@ -3,7 +3,7 @@
 
 #include "models/Problem.hpp"
 #include "models/Resources.hpp"
-#include "algorithms/CartesianProduct.cu"
+#include "iterators/CartesianProduct.cu"
 
 #include <thrust/fill.h>
 #include <thrust/execution_policy.h>
@@ -129,8 +129,8 @@ class SolomonReader final {
                            thrust::device_vector<float> &distances) {
     // TODO move calculations on GPU
     typedef thrust::host_vector<CustomerData>::const_iterator Iterator;
-    vrp::algorithms::repeated_range<Iterator> repeated(data.begin(), data.end(), data.size());
-    vrp::algorithms::tiled_range<Iterator> tiled(data.begin(), data.end(), data.size());
+    vrp::iterators::repeated_range<Iterator> repeated(data.begin(), data.end(), data.size());
+    vrp::iterators::tiled_range<Iterator> tiled(data.begin(), data.end(), data.size());
 
     thrust::host_vector<float> hostDist(data.size() * data.size());
 
