@@ -38,12 +38,18 @@ class GeoJsonWriter final {
           thrust::counting_iterator<int>(static_cast<int>(tours.size())),
           [&](int tour) {
             // TODO create tour json
-            return json11::Json();
+            return json11::Json::object {
+              {"solution", solution},
+              {"tour", tour}
+            };
           },
           json11::Json(),
-          [](json11::Json &result, const json11::Json &tour) -> json11::Json& {
-            // TODO merge tour into result
-            return result;
+          [](json11::Json &result, const json11::Json &tour) {
+            auto obj = result.object_items();
+            auto features = obj["features"].array_items();
+            features.push_back(tour);
+            obj["features"] = features;
+            return obj;
           });
     }
 
@@ -93,8 +99,11 @@ class GeoJsonWriter final {
 
   /// Merges solution into json result.
   struct merge_solution final {
-    json11::Json& operator()(json11::Json &result, const json11::Json &solution) {
-      return result;
+    json11::Json operator()(json11::Json &result, const json11::Json &solution) {
+      auto obj = result.object_items();
+      auto features = solution["features"].array_items();
+      obj["features"] = features;
+      return obj;
     }
   };
 
@@ -120,7 +129,10 @@ class GeoJsonWriter final {
   }
 
   static json11::Json createFeatureCollection() {
-    return json11::Json::object { {"type", "FeatureCollection"} };
+    return json11::Json::object {
+      {"type", "FeatureCollection"},
+      {"features", json11::Json::array()}
+    };
   }
 };
 

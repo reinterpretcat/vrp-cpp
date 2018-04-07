@@ -8,7 +8,6 @@
 using namespace vrp::models;
 using namespace vrp::streams;
 
-__host__ __device__
 Tasks createSolution() {
   auto tasks = Tasks(6);
 
