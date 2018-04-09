@@ -3,6 +3,7 @@ project(Solver LANGUAGES CXX CUDA)
 find_package(Thrust REQUIRED)
 
 set(LIBRARY_NAME Solver)
+set(EXE_NAME SolverRunner)
 
 set(HEADER_FILES
         iterators/CartesianProduct.cu
@@ -53,3 +54,6 @@ include_directories(${MAIN_SOURCE}
         ${EXTERNAL_SOURCE}
         ${CMAKE_CURRENT_BINARY_DIR}
         )
+
+add_executable(${EXE_NAME} Runner.cpp)
+target_link_libraries(${EXE_NAME} ${LIBRARY_NAME})
