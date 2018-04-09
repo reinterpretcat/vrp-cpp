@@ -13,7 +13,7 @@ namespace vrp {
 namespace iterators {
 
 template<typename Iterator>
-class repeated_range {
+class repeated_range final {
  public:
 
   typedef typename thrust::iterator_difference<Iterator>::type difference_type;
@@ -56,7 +56,7 @@ class repeated_range {
 };
 
 template<typename Iterator>
-class tiled_range {
+class tiled_range final {
  public:
 
   typedef typename thrust::iterator_difference<Iterator>::type difference_type;

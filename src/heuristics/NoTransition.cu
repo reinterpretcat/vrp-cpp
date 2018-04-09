@@ -12,7 +12,7 @@ namespace heuristics {
 
 /// A dummy implementation of heuristic which returns
 /// an invalid transition and cost.
-struct NoTransition {
+struct NoTransition final {
   __host__ __device__
   NoTransition(const vrp::models::Problem::Shadow problem,
                vrp::models::Tasks::Shadow tasks) {}

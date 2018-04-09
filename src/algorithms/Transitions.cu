@@ -9,7 +9,7 @@ namespace vrp {
 namespace algorithms {
 
 /// Creates transition between customers.
-struct create_transition {
+struct create_transition final {
 
   __host__ __device__
   explicit create_transition(const vrp::models::Problem::Shadow &problem,
@@ -70,7 +70,7 @@ struct create_transition {
 };
 
 /// Performs transition with a cost.
-struct perform_transition {
+struct perform_transition final {
 
   explicit perform_transition(const vrp::models::Tasks::Shadow &tasks) :
     tasks(tasks) {}

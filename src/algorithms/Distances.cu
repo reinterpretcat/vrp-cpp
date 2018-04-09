@@ -12,7 +12,7 @@ namespace algorithms {
 using Coordinate = thrust::tuple<int, int>;
 
 /// Calculates cartesian distance between two points on plane in 2D.
-struct CartesianDistance {
+struct cartesian_distance final {
   __host__ __device__
   float operator()(const Coordinate &left, const Coordinate &right) {
     auto x = thrust::get<0>(left) - thrust::get<0>(right);
@@ -23,7 +23,7 @@ struct CartesianDistance {
 
 /// Calculates geo distance between two coordinates.
 template <unsigned int ScaleDown = static_cast<unsigned int>(1E8)>
-struct GeoDistance {
+struct geographic_distance final {
   __host__ __device__
   float operator()(const Coordinate &left, const Coordinate &right) {
     double leftLon = thrust::get<0>(left) / ScaleDown;

@@ -13,7 +13,7 @@ namespace genetic {
 /// Creates initial population based on problem definition
 /// and settings using fast heuristic provided.
 template <typename Heuristic>
-struct create_population {
+struct create_population final {
   const vrp::models::Problem &problem;
 
   explicit create_population(const vrp::models::Problem &problem) :

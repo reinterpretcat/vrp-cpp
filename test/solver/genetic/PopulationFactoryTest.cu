@@ -39,7 +39,7 @@ struct WithSequentialCustomers {
 
 template<typename Heuristic>
 Tasks createPopulation(std::istream &stream, int populationSize = 3) {
-  auto problem = SolomonReader<CartesianDistance>::read(stream);
+  auto problem = SolomonReader<cartesian_distance>::read(stream);
   return create_population<Heuristic>(problem)({populationSize});
 }
 }

@@ -9,7 +9,7 @@ namespace vrp {
 namespace algorithms {
 
 /// Calculates costs for transition.
-struct calculate_cost {
+struct calculate_cost final {
   const vrp::models::Resources::Shadow resources;
 
   __host__ __device__
