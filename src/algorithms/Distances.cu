@@ -8,11 +8,13 @@
 namespace vrp {
 namespace algorithms {
 
+/// Represents coordinate.
+using Coordinate = thrust::tuple<int, int>;
+
 /// Calculates cartesian distance between two points on plane in 2D.
 struct CartesianDistance {
   __host__ __device__
-  float operator()(const thrust::tuple<int, int> &left,
-                   const thrust::tuple<int, int> &right) {
+  float operator()(const Coordinate &left, const Coordinate &right) {
     auto x = thrust::get<0>(left) - thrust::get<0>(right);
     auto y = thrust::get<1>(left) - thrust::get<1>(right);
     return static_cast<float>(sqrt(x * x + y * y));
@@ -20,14 +22,14 @@ struct CartesianDistance {
 };
 
 /// Calculates geo distance between two coordinates.
+template <unsigned int ScaleDown = static_cast<unsigned int>(1E8)>
 struct GeoDistance {
   __host__ __device__
-  float operator()(const thrust::tuple<int, int> &left,
-                   const thrust::tuple<int, int> &right) {
-    auto leftLon = thrust::get<0>(left);
-    auto leftLat = thrust::get<1>(left);
-    auto rightLon = thrust::get<0>(right);
-    auto rightLat = thrust::get<1>(right);
+  float operator()(const Coordinate &left, const Coordinate &right) {
+    double leftLon = thrust::get<0>(left) / ScaleDown;
+    double leftLat = thrust::get<1>(left) / ScaleDown;
+    double rightLon = thrust::get<0>(right) / ScaleDown;
+    double rightLat = thrust::get<1>(right) / ScaleDown;
 
     double dLat = deg2Rad(leftLat - rightLat);
     double dLon = deg2Rad(leftLon - rightLon);
@@ -45,11 +47,6 @@ struct GeoDistance {
     return static_cast<float>(radius*c);
   }
  private:
-  /// The circumference at the equator (latitude 0)
-  const int LatitudeEquator = 40075160;
-  /// Distance of full circle around the earth through the poles.
-  const int CircleDistance = 40008000;
-
   /// Earth radius at a given latitude, according to the WGS-84 ellipsoid [m].
   __host__ __device__
   double wgs84EarthRadius(double lat) {
@@ -65,7 +62,7 @@ struct GeoDistance {
     return std::sqrt((an*an + bn*bn)/(ad*ad + bd*bd));
   }
 
-  /// converts degrees to radians.
+  /// Converts degrees to radians.
   __host__ __device__
   inline double deg2Rad(double degrees) {
     return M_PI*degrees/180.0;
