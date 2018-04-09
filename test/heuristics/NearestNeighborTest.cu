@@ -2,7 +2,7 @@
 
 #include "config.hpp"
 
-#include "algorithms/CartesianDistance.cu"
+#include "algorithms/Distances.cu"
 #include "heuristics/NearestNeighbor.hpp"
 #include "streams/input/SolomonReader.cu"
 
@@ -34,7 +34,7 @@ struct WithShuffledCoordinates {
 
 SCENARIO("Can find best transition after depot.", "[heuristics][construction][nearest_neighbor]") {
   auto stream =  WithShuffledCoordinates()();
-  auto problem = SolomonReader<CartesianDistance>::read(stream);
+  auto problem = SolomonReader<CartesianDistances>::read(stream);
   Tasks tasks {problem.size()};
   vrp::test::createDepotTask(problem, tasks);
 

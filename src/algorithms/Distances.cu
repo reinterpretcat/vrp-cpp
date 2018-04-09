@@ -1,5 +1,5 @@
-#ifndef VRP_ALGORITHMS_CARTESIANDISTANCE_HPP
-#define VRP_ALGORITHMS_CARTESIANDISTANCE_HPP
+#ifndef VRP_ALGORITHMS_DISTANCES_HPP
+#define VRP_ALGORITHMS_DISTANCES_HPP
 
 #include <thrust/execution_policy.h>
 #include <thrust/tuple.h>
@@ -9,7 +9,7 @@ namespace vrp {
 namespace algorithms {
 
 /// Calculates cartesian distance between two points on plane in 2D.
-struct CartesianDistance {
+struct CartesianDistances {
   __host__ __device__
   float operator()(const thrust::tuple<int, int> &left,
                    const thrust::tuple<int, int> &right) {
@@ -22,4 +22,4 @@ struct CartesianDistance {
 }
 }
 
-#endif //VRP_ALGORITHMS_CARTESIANDISTANCE_HPP
+#endif //VRP_ALGORITHMS_DISTANCES_HPP

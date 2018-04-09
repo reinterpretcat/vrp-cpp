@@ -2,7 +2,7 @@
 
 #include "config.hpp"
 
-#include "algorithms/CartesianDistance.cu"
+#include "algorithms/Distances.cu"
 #include "heuristics/NoTransition.cu"
 #include "solver/genetic/Populations.hpp"
 #include "streams/input/SolomonReader.cu"
@@ -39,7 +39,7 @@ struct WithSequentialCustomers {
 
 template<typename Heuristic>
 Tasks createPopulation(std::istream &stream, int populationSize = 3) {
-  auto problem = SolomonReader<CartesianDistance>::read(stream);
+  auto problem = SolomonReader<CartesianDistances>::read(stream);
   return create_population<Heuristic>(problem)({populationSize});
 }
 }
