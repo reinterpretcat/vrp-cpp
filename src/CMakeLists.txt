@@ -55,5 +55,5 @@ include_directories(${MAIN_SOURCE}
         ${CMAKE_CURRENT_BINARY_DIR}
         )
 
-add_executable(${EXE_NAME} Runner.cpp)
+add_executable(${EXE_NAME} Runner.cu)
 target_link_libraries(${EXE_NAME} ${LIBRARY_NAME})
