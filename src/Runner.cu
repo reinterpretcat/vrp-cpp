@@ -3,6 +3,7 @@
 #include "streams/output/GeoJsonWriter.cu"
 #include "heuristics/NearestNeighbor.hpp"
 #include "solver/genetic/Populations.hpp"
+#include "../../../../../../usr/include/c++/7/fstream"
 
 #include <algorithm>
 #include <fstream>
@@ -33,7 +34,7 @@ struct DefaultMapper final {
 ///// Maps int coordinate as geo coordinate inside the bounding box.
 struct BoundingBoxMapper final {
   explicit BoundingBoxMapper(const std::pair<GeoCoord,GeoCoord> &boundingBox) :
-    geoBoundingBox(geoBoundingBox) {}
+    geoBoundingBox(boundingBox) {}
 
   GeoCoord operator()(const std::pair<IntCoord,IntCoord> intBoundingBox,
                       const GeoCoord &coordinate) const {
@@ -49,7 +50,7 @@ struct BoundingBoxMapper final {
         geoBoundingBox.first.second + (geoBoundingBox.second.second - geoBoundingBox.first.second) * ratioY);
   }
  private:
-  std::pair<GeoCoord,GeoCoord> geoBoundingBox;
+  const std::pair<GeoCoord,GeoCoord> geoBoundingBox;
 };
 
 /// Resolves locations as geo coordinates.
@@ -69,13 +70,13 @@ struct LocationResolver final {
     in.clear();
     in.seekg(0, std::ios::beg);
 
-    for (int i = 0; i < 10; ++i)
+    for (int i = 0; i < 9; ++i)
       in.ignore(std::numeric_limits<std::streamsize>::max(), in.widen('\n'));
 
-    int id;
+    int skip;
     std::pair<int, int> location;
     while (in) {
-      in >> id >> location.first >> location.second;
+      in >> skip >> location.first >> location.second >> skip >> skip >> skip >> skip;
       locations.emplace_back(location);
     }
   }
@@ -106,13 +107,13 @@ int main(int argc, char* argv[]) {
   if (argc != 3)
     throw std::invalid_argument("Missing input or output argument.");
 
-  std::fstream in(argv[1]);
-  std::fstream out(argv[2]);
+  std::fstream in(argv[1], std::fstream::in);
+  std::fstream out(argv[2], std::fstream::out);
 
   auto problem = SolomonReader<geographic_distance<>>().read(in);
   auto solution = create_population<NearestNeighbor>(problem)({ 1 });
 
-  auto mapper = DefaultMapper(1.);
+  auto mapper = BoundingBoxMapper({ {13.3285, 52.4915}, {13.4663, 52.5553} });
   auto resolver = LocationResolver<decltype(mapper)>(in, mapper);
   GeoJsonWriter<decltype(resolver)>().write(out, solution, resolver);
 

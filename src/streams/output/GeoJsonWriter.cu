@@ -128,7 +128,6 @@ class GeoJsonWriter final {
   void write(std::ostream &out,
              const vrp::models::Tasks &tasks,
              const LocationResolver &resolver) {
-
     out << createJson(tasks, resolver).dump();
   }
 
