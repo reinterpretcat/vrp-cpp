@@ -42,8 +42,11 @@ class GeoJsonWriter final {
               return json11::Json::array { coord.first, coord.second };
             };
             return json11::Json::object {
-              {"solution", solution},
-              {"tour", tour},
+              {"type", "Feature"},
+              {"properties", json11::Json::object{
+                  {"solution", solution},
+                  {"tour", tour}
+              }},
               {"geometry", json11::Json::object {
                   {"type", "LineString"},
                   {"coordinates", thrust::transform_reduce(
