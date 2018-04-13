@@ -1,15 +1,15 @@
-#ifndef VRP_UTILS_LOCATIONS_HPP
-#define VRP_UTILS_LOCATIONS_HPP
+#ifndef VRP_UTILS_RESOLVERS_HPP
+#define VRP_UTILS_RESOLVERS_HPP
+
+#include "models/Locations.hpp"
 
 #include <algorithm>
 #include <fstream>
+#include <vector>
 #include <utility>
 
 namespace vrp {
 namespace utils {
-
-using IntCoord = std::pair<int,int>;
-using GeoCoord = std::pair<double,double>;
 
 /// Resolves locations as geo coordinates.
 template <typename Mapper>
@@ -19,7 +19,7 @@ struct LocationResolver final {
     intBoundingBox = getBoundingBox();
   }
 
-  GeoCoord operator()(int customer) const {
+  vrp::models::HostGeoCoord operator()(int customer) const {
     return mapper(intBoundingBox, locations.at(static_cast<unsigned long>(customer)));
   }
 
@@ -39,27 +39,29 @@ struct LocationResolver final {
     }
   }
 
-  std::pair<IntCoord,IntCoord> getBoundingBox() const {
+  vrp::models::HostIntBox getBoundingBox() const {
     auto minMaxX = std::minmax_element(locations.begin(), locations.end(),
-                                       [](const IntCoord &left, const IntCoord &right) {
+                                       [](const vrp::models::HostIntCoord &left,
+                                          const vrp::models::HostIntCoord &right) {
                                          return left.first < right.first;
                                        });
     auto minMaxY = std::minmax_element(locations.begin(), locations.end(),
-                                       [](const IntCoord &left, const IntCoord &right) {
+                                       [](const vrp::models::HostIntCoord &left,
+                                          const vrp::models::HostIntCoord &right) {
                                          return left.second < right.second;
                                        });
 
     return std::make_pair(
-        IntCoord {minMaxX.first->first, minMaxY.first->second },
-        IntCoord {minMaxX.second->first, minMaxY.second->second });
+        vrp::models::HostIntCoord {minMaxX.first->first, minMaxY.first->second },
+        vrp::models::HostIntCoord {minMaxX.second->first, minMaxY.second->second });
   };
 
   const Mapper &mapper;
-  std::vector<IntCoord> locations;
-  std::pair<IntCoord,IntCoord> intBoundingBox;
+  std::vector<vrp::models::HostIntCoord> locations;
+  vrp::models::HostIntBox intBoundingBox;
 };
 
 }
 }
 
-#endif //VRP_UTILS_LOCATIONS_HPP
+#endif //VRP_UTILS_RESOLVERS_HPP

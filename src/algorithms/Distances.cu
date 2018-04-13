@@ -1,6 +1,8 @@
 #ifndef VRP_ALGORITHMS_DISTANCES_HPP
 #define VRP_ALGORITHMS_DISTANCES_HPP
 
+#include "models/Locations.hpp"
+
 #include <thrust/execution_policy.h>
 #include <thrust/tuple.h>
 #include <cmath>
@@ -8,13 +10,11 @@
 namespace vrp {
 namespace algorithms {
 
-/// Represents coordinate.
-using Coordinate = thrust::tuple<int, int>;
-
 /// Calculates cartesian distance between two points on plane in 2D.
 struct cartesian_distance final {
   __host__ __device__
-  float operator()(const Coordinate &left, const Coordinate &right) {
+  float operator()(const vrp::models::DeviceGeoCoord &left,
+                   const vrp::models::DeviceGeoCoord &right) {
     auto x = thrust::get<0>(left) - thrust::get<0>(right);
     auto y = thrust::get<1>(left) - thrust::get<1>(right);
     return static_cast<float>(sqrt(x * x + y * y));
@@ -25,7 +25,8 @@ struct cartesian_distance final {
 template <unsigned int ScaleDown = static_cast<unsigned int>(1E8)>
 struct geographic_distance final {
   __host__ __device__
-  float operator()(const Coordinate &left, const Coordinate &right) {
+  float operator()(const vrp::models::DeviceGeoCoord &left,
+                   const vrp::models::DeviceGeoCoord &right) {
     double leftLon = thrust::get<0>(left) / ScaleDown;
     double leftLat = thrust::get<1>(left) / ScaleDown;
     double rightLon = thrust::get<0>(right) / ScaleDown;
