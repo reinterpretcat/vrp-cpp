@@ -1,24 +1,17 @@
 #include "algorithms/Distances.cu"
 #include "streams/input/SolomonReader.cu"
-#include "streams/output/GeoJsonWriter.cu"
+#include "streams/output/GeoJsonWriter.hpp"
 #include "heuristics/NearestNeighbor.hpp"
 #include "solver/genetic/Populations.hpp"
-#include "../../../../../../usr/include/c++/7/fstream"
-
-#include <algorithm>
-#include <fstream>
-#include <utility>
+#include "utils/Locations.hpp"
 
 using namespace vrp::algorithms;
 using namespace vrp::heuristics;
 using namespace vrp::genetic;
 using namespace vrp::streams;
+using namespace vrp::utils;
 
 namespace {
-
-using IntCoord = std::pair<int,int>;
-using GeoCoord = std::pair<double,double>;
-
 /// Maps int coordinate as double without changes.
 struct DefaultMapper final {
   explicit DefaultMapper(double scale) : scale(scale) {}
@@ -31,7 +24,7 @@ struct DefaultMapper final {
   double scale;
 };
 
-///// Maps int coordinate as geo coordinate inside the bounding box.
+/// Maps int coordinate as geo coordinate inside the bounding box.
 struct BoundingBoxMapper final {
   explicit BoundingBoxMapper(const std::pair<GeoCoord,GeoCoord> &boundingBox) :
     geoBoundingBox(boundingBox) {}
@@ -53,55 +46,7 @@ struct BoundingBoxMapper final {
   const std::pair<GeoCoord,GeoCoord> geoBoundingBox;
 };
 
-/// Resolves locations as geo coordinates.
-template <typename Mapper = DefaultMapper>
-struct LocationResolver final {
-  explicit LocationResolver(std::fstream &in, const Mapper &mapper) : mapper(mapper) {
-    initLocations(in);
-    intBoundingBox = getBoundingBox();
-  }
-
-  GeoCoord operator()(int customer) const {
-    return mapper(intBoundingBox, locations.at(static_cast<unsigned long>(customer)));
-  }
-
- private:
-  void initLocations(std::fstream &in) {
-    in.clear();
-    in.seekg(0, std::ios::beg);
-
-    for (int i = 0; i < 9; ++i)
-      in.ignore(std::numeric_limits<std::streamsize>::max(), in.widen('\n'));
-
-    int skip;
-    std::pair<int, int> location;
-    while (in) {
-      in >> skip >> location.first >> location.second >> skip >> skip >> skip >> skip;
-      locations.emplace_back(location);
-    }
-  }
-
-  std::pair<IntCoord,IntCoord> getBoundingBox() const {
-    auto minMaxX = std::minmax_element(locations.begin(), locations.end(),
-                                       [](const IntCoord &left, const IntCoord &right) {
-                                         return left.first < right.first;
-                                       });
-    auto minMaxY = std::minmax_element(locations.begin(), locations.end(),
-                                       [](const IntCoord &left, const IntCoord &right) {
-                                         return left.second < right.second;
-                                       });
-
-    return std::make_pair(
-        IntCoord {minMaxX.first->first, minMaxY.first->second },
-        IntCoord {minMaxX.second->first, minMaxY.second->second });
-  };
-
-  const Mapper &mapper;
-  std::vector<IntCoord> locations;
-  std::pair<IntCoord,IntCoord> intBoundingBox;
-};
-
-};
+}
 
 int main(int argc, char* argv[]) {
   if (argc != 3)

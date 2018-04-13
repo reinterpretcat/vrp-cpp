@@ -6,7 +6,6 @@
 #include "heuristics/NoTransition.cu"
 #include "solver/genetic/Populations.hpp"
 #include "streams/input/SolomonReader.cu"
-#include "streams/output/ContainerWriter.hpp"
 
 #include "test_utils/SolomonBuilder.hpp"
 #include "test_utils/VectorUtils.hpp"

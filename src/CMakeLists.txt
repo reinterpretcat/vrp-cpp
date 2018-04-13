@@ -25,8 +25,9 @@ set(HEADER_FILES
         solver/genetic/Settings.hpp
 
         streams/input/SolomonReader.cu
-        streams/output/ContainerWriter.hpp
-        streams/output/GeoJsonWriter.cu
+        streams/output/GeoJsonWriter.hpp
+
+        utils/Locations.hpp
         )
 
 set(SOURCE_FILES
@@ -34,7 +35,7 @@ set(SOURCE_FILES
 
         heuristics/NearestNeighbor.cu
         solver/genetic/Populations.cu
-        )
+        streams/output/GeoJsonWriter.cu)
 
 add_library(${LIBRARY_NAME} STATIC
         ${HEADER_FILES}
@@ -55,5 +56,5 @@ include_directories(${MAIN_SOURCE}
         ${CMAKE_CURRENT_BINARY_DIR}
         )
 
-add_executable(${EXE_NAME} Runner.cu)
-target_link_libraries(${EXE_NAME} ${LIBRARY_NAME})
+#add_executable(${EXE_NAME} Runner.cu)
+#target_link_libraries(${EXE_NAME} ${LIBRARY_NAME})

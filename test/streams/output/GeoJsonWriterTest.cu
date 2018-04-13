@@ -2,7 +2,7 @@
 
 #include <json/json11.hpp>
 
-#include "streams/output/GeoJsonWriter.cu"
+#include "streams/output/GeoJsonWriter.hpp"
 
 #include <sstream>
 #include <thrust/fill.h>
@@ -21,18 +21,13 @@ Tasks createSolution() {
   return tasks;
 }
 
-struct LocationResolver {
-  std::pair<double,double> operator()(int customer) const {
-    return std::make_pair(customer, 0);
-  }
-};
-
 SCENARIO("Can write solution as geojson.", "[streams][geojson]") {
-  LocationResolver resolver;
-  GeoJsonWriter<LocationResolver> writer;
+  GeoJsonWriter writer;
   std::stringstream ss;
 
-  writer.write(ss, createSolution(), resolver);
+  writer.write(ss, createSolution(), [](int customer) {
+    return std::make_pair(customer, 0);
+  });
 
   std::string err;
   auto json = json11::Json::parse(ss.str(), err, json11::JsonParse::STANDARD);

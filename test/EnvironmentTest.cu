@@ -1,6 +1,5 @@
 #include <catch/catch.hpp>
 
-#include "streams/output/ContainerWriter.hpp"
 #include "test_utils/VectorUtils.hpp"
 
 #include <thrust/host_vector.h>
