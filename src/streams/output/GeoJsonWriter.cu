@@ -18,8 +18,10 @@ namespace {
 
 /// Represents a job defined by customer and vehicle.
 using Job = thrust::tuple<int,int>;
+/// Represents a single tour.
+using Tour = std::vector<int>;
 /// Represents tours defined by tour's vehicle and its customers.
-using Tours = std::map<int, std::vector<int>>;
+using Tours = std::map<int, Tour>;
 /// Represents location resolver.
 using LocationResolver = GeoJsonWriter::LocationResolver;
 
@@ -30,19 +32,19 @@ Json::array createCoordinate(const LocationResolver &resolver, int id) {
 }
 
 /// Creates geo json with line string for given tour.
-Json createLineString(const LocationResolver &resolver, Tours &tours, int solution, int tour) {
+Json createLineString(const LocationResolver &resolver, int solutionId, int tourId, Tour &tour) {
   return Json::object {
       {"type", "Feature"},
       {"properties", Json::object{
-          {"solution", solution},
-          {"tour", tour}
+          {"solution", solutionId},
+          {"tour", tourId}
       }},
       {"geometry", Json::object {
           {"type", "LineString"},
           {"coordinates", thrust::transform_reduce(
               thrust::host,
-              tours[tour].begin(),
-              tours[tour].end(),
+              tour.begin(),
+              tour.end(),
               [&](int id) { return createCoordinate(resolver, id); },
               Json::array {createCoordinate(resolver, 0), createCoordinate(resolver, 0)},
               [](Json::array &result, const Json::array &item) {
@@ -95,7 +97,7 @@ struct materialize_solution final {
         thrust::host,
         thrust::counting_iterator<int>(0),
         thrust::counting_iterator<int>(static_cast<int>(tours.size())),
-        [&](int tour) { return createLineString(resolver, tours, solution, tour); },
+        [&](int tour) { return createLineString(resolver, solution, tour, tours[tour]); },
         Json(),
         std::bind(&mergeTours, _1, _2));
   }
