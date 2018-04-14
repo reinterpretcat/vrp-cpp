@@ -12,76 +12,100 @@ using namespace json11;
 using namespace vrp::models;
 using namespace vrp::streams;
 
+using namespace std::placeholders;
+
 namespace {
+
+/// Represents a job defined by customer and vehicle.
+using Job = thrust::tuple<int,int>;
+/// Represents tours defined by tour's vehicle and its customers.
+using Tours = std::map<int, std::vector<int>>;
+/// Represents location resolver.
+using LocationResolver = GeoJsonWriter::LocationResolver;
+
+/// Creates coordinate from customer id.
+Json::array createCoordinate(const LocationResolver &resolver, int id) {
+  auto coord = resolver(id);
+  return Json::array { coord.first, coord.second };
+}
+
+/// Creates geo json with line string for given tour.
+Json createLineString(const LocationResolver &resolver, Tours &tours, int solution, int tour) {
+  return Json::object {
+      {"type", "Feature"},
+      {"properties", Json::object{
+          {"solution", solution},
+          {"tour", tour}
+      }},
+      {"geometry", Json::object {
+          {"type", "LineString"},
+          {"coordinates", thrust::transform_reduce(
+              thrust::host,
+              tours[tour].begin(),
+              tours[tour].end(),
+              [&](int id) { return createCoordinate(resolver, id); },
+              Json::array {createCoordinate(resolver, 0), createCoordinate(resolver, 0)},
+              [](Json::array &result, const Json::array &item) {
+                result.insert(result.end() - 1, item);
+                return result;
+              }
+          )}
+      }}
+  };
+}
+
+Json mergeTours(Json &result, const Json &tour) {
+  auto obj = result.object_items();
+  auto features = obj["features"].array_items();
+  features.push_back(tour);
+  obj["features"] = features;
+  return obj;
+}
+
+Json mergeSolutions(Json &result, const Json &solution) {
+  auto obj = result.object_items();
+  auto features = solution["features"].array_items();
+  obj["features"] = features;
+  return obj;
+}
+
+/// Gets tours created from sorted jobs.
+Tours getTours(const std::vector<Job> jobs) {
+  auto tours = Tours();
+  std::for_each(
+      jobs.begin(),
+      jobs.end(),
+      [&](const Job &job) {
+        tours[thrust::get<1>(job)].push_back(thrust::get<0>(job));
+      });
+
+  return tours;
+}
+
 /// Materializes single solution as geo json.
 struct materialize_solution final {
-  /// Represents a job defined by customer and vehicle.
-  using Job = thrust::tuple<int,int>;
-  /// Represents tours defined by tour's vehicle and its customers.
-  using Tours = std::map<int, std::vector<int>>;
-
   const Tasks &tasks;
-  const GeoJsonWriter::LocationResolver &resolver;
+  const LocationResolver &resolver;
 
   json11::Json operator()(int solution) {
     auto jobs = getJobs(solution);
     auto tours = getTours(std::vector<Job>(jobs.begin(), jobs.end()));
 
-    auto toCoordinate = [&](int id) {
-      auto coord = resolver(id);
-      return Json::array { coord.first, coord.second };
-    };
-
     return thrust::transform_reduce(
         thrust::host,
         thrust::counting_iterator<int>(0),
         thrust::counting_iterator<int>(static_cast<int>(tours.size())),
-        [&](int tour) {
-
-          return Json::object {
-              {"type", "Feature"},
-              {"properties", Json::object{
-                  {"solution", solution},
-                  {"tour", tour}
-              }},
-              {"geometry", Json::object {
-                  {"type", "LineString"},
-                  {"coordinates", thrust::transform_reduce(
-                      thrust::host,
-                      tours[tour].begin(),
-                      tours[tour].end(),
-                      toCoordinate,
-                      Json::array {toCoordinate(0), toCoordinate(0)},
-                      [](Json::array &result, const Json::array &item) {
-                        result.insert(result.end() - 1, item);
-                        return result;
-                      }
-                  )}
-              }}
-          };
-        },
+        [&](int tour) { return createLineString(resolver, tours, solution, tour); },
         Json(),
-        [](Json &result, const Json &tour) {
-          auto obj = result.object_items();
-          auto features = obj["features"].array_items();
-          features.push_back(tour);
-          obj["features"] = features;
-          return obj;
-        });
+        std::bind(&mergeTours, _1, _2));
   }
 
-  /// Gets tours created from sorted jobs.
-  Tours getTours(const std::vector<Job> jobs) {
-    auto tours = Tours();
+  __host__ __device__
+  Job operator()(const Job &item) { return item; }
 
-    std::for_each(
-        jobs.begin(),
-        jobs.end(),
-        [&](const Job &job) {
-          tours[thrust::get<1>(job)].push_back(thrust::get<0>(job));
-        });
-
-    return tours;
+  __host__ __device__
+  int operator()(const Job &left, const Job &right) {
+    return thrust::get<0>(left) < thrust::get<0>(right);
   }
 
   /// Gets all jobs in sorted by vehicle order.
@@ -104,26 +128,7 @@ struct materialize_solution final {
 
     return jobs;
   }
-
-  __host__ __device__
-  Job operator()(const Job &item) { return item; }
-
-  __host__ __device__
-  int operator()(const Job &left, const Job &right) {
-    return thrust::get<0>(left) < thrust::get<0>(right);
-  }
 };
-
-/// Merges solution into json result.
-struct merge_solution final {
-  Json operator()(Json &result, const Json &solution) {
-    auto obj = result.object_items();
-    auto features = solution["features"].array_items();
-    obj["features"] = features;
-    return obj;
-  }
-};
-
 }
 
 namespace vrp {
@@ -144,7 +149,7 @@ void GeoJsonWriter::write(std::ostream &out,
       thrust::counting_iterator<int>(solutions),
       materialize_solution{tasks, resolver},
       json,
-      merge_solution()).dump();
+      std::bind(&mergeSolutions, _1, _2)).dump();
 }
 
 }
