@@ -5,6 +5,11 @@
 #include "heuristics/NearestNeighbor.hpp"
 #include "solver/genetic/Populations.hpp"
 #include "utils/Resolvers.hpp"
+#include "models/Problem.hpp"
+#include "models/Tasks.hpp"
+
+#include <thrust/host_vector.h>
+#include <ostream>
 
 using namespace vrp::algorithms;
 using namespace vrp::heuristics;
@@ -48,6 +53,12 @@ struct BoundingBoxMapper final {
   const HostGeoBox geoBoundingBox;
 };
 
+template <typename T>
+std::ostream& operator<< (std::ostream& stream, const thrust::device_vector<T>& data) {
+  thrust::copy(data.begin(), data.end(), std::ostream_iterator<T>(stream, ","));
+  return stream;
+}
+
 }
 
 int main(int argc, char* argv[]) {
@@ -59,6 +70,9 @@ int main(int argc, char* argv[]) {
 
   auto problem = SolomonReader().read(in, geographic_distance<>());
   auto solution = create_population<NearestNeighbor>(problem)({ 1 });
+
+  std::cout << "\ncustomers: " << solution.ids
+            << "\nvehicles:  " << solution.vehicles;
 
   auto mapper = BoundingBoxMapper({ {13.3285, 52.4915}, {13.4663, 52.5553} });
   auto resolver = LocationResolver<decltype(mapper)>(in, mapper);
