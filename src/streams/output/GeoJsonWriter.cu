@@ -1,7 +1,7 @@
 #include "streams/output/GeoJsonWriter.hpp"
 
-#include <thrust/transform_reduce.h>
 #include <thrust/execution_policy.h>
+#include <thrust/transform_reduce.h>
 #include <thrust/transform.h>
 #include <json/json11.hpp>
 
@@ -31,8 +31,8 @@ Json::array createCoordinate(const LocationResolver &resolver, int id) {
   return Json::array { coord.first, coord.second };
 }
 
-/// Creates geo json with line string for given tour.
-Json createLineString(const LocationResolver &resolver, int solutionId, int tourId, Tour &tour) {
+/// Creates geo json of given route as line string.
+Json createRoute(const LocationResolver &resolver, int solutionId, int tourId, Tour &tour) {
   return Json::object {
       {"type", "Feature"},
       {"properties", Json::object{
@@ -56,15 +56,49 @@ Json createLineString(const LocationResolver &resolver, int solutionId, int tour
   };
 }
 
-Json mergeTours(Json &result, const Json &tour) {
+/// Creates geojson of given job as point.
+Json createJob(const LocationResolver &resolver, int solutionId, int vehicleId, int customerId) {
+  return Json::object {
+      {"type", "Feature"},
+      {"properties", Json::object{
+          {"solution", solutionId},
+          {"customer", customerId},
+          {"vehicle", vehicleId},
+      }},
+      {"geometry", Json::object{
+          {"type", "Point"},
+          {"coordinates", createCoordinate(resolver, customerId)}
+      }}
+  };
+}
+
+/// Creates tour as collection of geojson features.
+Json createTour(const LocationResolver &resolver, int solutionId, int tourId, Tour &tour) {
+  Json::array features { createRoute(resolver, solutionId, tourId, tour) };
+
+  std::transform(
+      tour.begin(), tour.end(),
+      std::back_inserter(features),
+      [&](int customerId) { return createJob(resolver, solutionId, tourId, customerId); }
+      );
+
+  return features;
+};
+
+/// Merges tour into result.
+Json mergeTour(Json &result, const Json &tour) {
   auto obj = result.object_items();
   auto features = obj["features"].array_items();
-  features.push_back(tour);
+  auto tourFeatures = tour.array_items();
+
+  features.insert(features.end(), tourFeatures.begin(), tourFeatures.end());
+
   obj["features"] = features;
   return obj;
 }
 
-Json mergeSolutions(Json &result, const Json &solution) {
+/// Merges solution into result.
+Json mergeSolution(Json &result, const Json &solution) {
   auto obj = result.object_items();
   auto features = solution["features"].array_items();
   obj["features"] = features;
@@ -97,18 +131,13 @@ struct materialize_solution final {
         thrust::host,
         thrust::counting_iterator<int>(0),
         thrust::counting_iterator<int>(static_cast<int>(tours.size())),
-        [&](int tour) { return createLineString(resolver, solution, tour, tours[tour]); },
+        [&](int tour) { return createTour(resolver, solution, tour, tours[tour]); },
         Json(),
-        std::bind(&mergeTours, _1, _2));
+        std::bind(&mergeTour, _1, _2));
   }
 
   __host__ __device__
   Job operator()(const Job &item) { return item; }
-
-  __host__ __device__
-  int operator()(const Job &left, const Job &right) {
-    return thrust::get<0>(left) < thrust::get<0>(right);
-  }
 
   /// Gets all jobs in sorted by vehicle order.
   thrust::host_vector<Job> getJobs(int solution) {
@@ -151,7 +180,7 @@ void GeoJsonWriter::write(std::ostream &out,
       thrust::counting_iterator<int>(solutions),
       materialize_solution{tasks, resolver},
       json,
-      std::bind(&mergeSolutions, _1, _2)).dump();
+      std::bind(&mergeSolution, _1, _2)).dump();
 }
 
 }
