@@ -82,11 +82,11 @@ struct perform_transition final {
     const auto &delta = transition.delta;
 
     tasks.ids[details.to] = details.customer;
-    tasks.times[details.to] = delta.duration();
+    tasks.times[details.to] = tasks.times[details.from] + delta.duration();
     tasks.capacities[details.to] = tasks.capacities[details.from] - delta.demand;
     tasks.vehicles[details.to] = details.vehicle;
 
-    tasks.costs[details.to] = thrust::get<1>(transitionCost);
+    tasks.costs[details.to] = tasks.costs[details.from] + thrust::get<1>(transitionCost);
     tasks.plan[base(details.to) + details.customer] = true;
   }
 

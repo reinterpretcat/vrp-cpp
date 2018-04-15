@@ -32,5 +32,5 @@ SCENARIO("Can write solution as geojson.", "[streams][geojson]") {
   std::string err;
   auto json = json11::Json::parse(ss.str(), err, json11::JsonParse::STANDARD);
   REQUIRE(json["features"][0]["geometry"]["coordinates"].array_items().size() == 5);
-  REQUIRE(json["features"][1]["geometry"]["coordinates"].array_items().size() == 4);
+  REQUIRE(json["features"][4]["geometry"]["coordinates"].array_items().size() == 4);
 }
