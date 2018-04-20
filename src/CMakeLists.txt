@@ -29,6 +29,7 @@ set(HEADER_FILES
         streams/input/SolomonReader.hpp
         streams/output/GeoJsonWriter.hpp
 
+        utils/Memory.hpp
         utils/Resolvers.hpp
         )
 

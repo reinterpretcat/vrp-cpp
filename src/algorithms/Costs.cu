@@ -5,9 +5,8 @@
 #include "models/Resources.hpp"
 #include "models/Tasks.hpp"
 #include "models/Transition.hpp"
+#include "utils/Memory.hpp"
 
-#include <thrust/device_malloc.h>
-#include <thrust/device_free.h>
 #include <thrust/iterator/discard_iterator.h>
 #include <thrust/iterator/transform_output_iterator.h>
 #include <thrust/unique.h>
@@ -41,7 +40,6 @@ struct calculate_total_cost final {
 
   /// Calculates total cost.
   struct RouteCost final {
-
     float *total;
 
      template<class Tuple>
@@ -52,6 +50,7 @@ struct calculate_total_cost final {
       const float cost = thrust::get<2>(tuple);
       // TODO calculate return to depot cost
 
+      // NOTE to use atomicAdd, variable has to be allocated in memory.
       atomicAdd(total, cost);
 
       // NOTE ignored
@@ -62,11 +61,8 @@ struct calculate_total_cost final {
   float operator()(const vrp::models::Tasks &tasks, int solution = 0) const {
     int rbegin = tasks.size() - tasks.customers * (solution + 1);
     int rend = rbegin + tasks.customers;
+    auto total = vrp::utils::allocate<float>(0);
     auto count = static_cast<std::size_t >(tasks.vehicles.back() + 1);
-
-    // NOTE to use atomicAdd, variable has to be allocated in memory.
-    thrust::device_ptr<float> total = thrust::device_malloc<float>(1);
-    *total = 0;
 
     thrust::unique_by_key_copy(
         thrust::device,
@@ -84,10 +80,7 @@ struct calculate_total_cost final {
         )
     );
 
-    float result = *total;
-    thrust::device_free(total);
-
-    return result;
+    return vrp::utils::release(total);
   }
 };
 
