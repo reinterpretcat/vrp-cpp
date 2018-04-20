@@ -6,7 +6,6 @@ set(LIBRARY_NAME Solver)
 set(EXE_NAME SolverRunner)
 
 set(HEADER_FILES
-        iterators/CartesianProduct.cu
         algorithms/Distances.cu
         algorithms/Costs.cu
         algorithms/Transitions.cu
@@ -14,12 +13,15 @@ set(HEADER_FILES
         heuristics/NearestNeighbor.hpp
         heuristics/NoTransition.cu
 
+        iterators/CartesianProduct.cu
+
         models/Customers.hpp
         models/Problem.hpp
         models/Resources.hpp
         models/RoutingMatrix.hpp
         models/Tasks.hpp
         models/Transition.hpp
+        models/Locations.hpp
 
         solver/genetic/Populations.hpp
         solver/genetic/Settings.hpp
@@ -36,7 +38,8 @@ set(SOURCE_FILES
         heuristics/NearestNeighbor.cu
         solver/genetic/Populations.cu
         streams/input/SolomonReader.cu
-        streams/output/GeoJsonWriter.cu models/Locations.hpp)
+        streams/output/GeoJsonWriter.cu
+        )
 
 add_library(${LIBRARY_NAME} STATIC
         ${HEADER_FILES}
