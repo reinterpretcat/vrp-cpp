@@ -10,7 +10,7 @@
 using namespace vrp::algorithms;
 using namespace vrp::test;
 
-SCENARIO("Can calculate total cost from solution.", "[algorithm][costs]") {
+SCENARIO("Can calculate vehicles cost from solution.", "[algorithm][costs]") {
   auto stream = SolomonBuilder()
       .setTitle("Exceeded capacity and two vehicles")
       .setVehicle(3, 10)
@@ -22,15 +22,11 @@ SCENARIO("Can calculate total cost from solution.", "[algorithm][costs]") {
       .addCustomer({5, 5, 0, 3, 0, 1000, 0})
       .build();
 
-  auto population = createPopulation<>(stream, 1);
-  auto cost = calculate_total_cost()(population);
+  auto costs = calculate_vehicles_cost()(createPopulation<>(stream, 1));
 
-  REQUIRE(cost == 16);
-//  // TODO
-//  CHECK_THAT(vrp::test::copy(population.vehicles), Catch::Matchers::Equals(std::vector<int>{
-//      0, 0, 1, 2, 2, 2,
-//  }));
-//  CHECK_THAT(vrp::test::copy(population.costs), Catch::Matchers::Equals(std::vector<float>{
-//      0, 1, 2, 3, 4, 5,
-//  }));
+  // vehicles: 0, 0, 1, 2, 2, 2
+  // costs   : 0, 1, 2, 3, 4, 5
+  CHECK_THAT(vrp::test::copy(costs), Catch::Matchers::Equals(std::vector<float>{
+      1, 2, 5
+  }));
 }
