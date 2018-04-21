@@ -1,3 +1,4 @@
+#include "algorithms/Costs.cu"
 #include "algorithms/Distances.cu"
 #include "models/Locations.hpp"
 #include "streams/input/SolomonReader.hpp"
@@ -59,6 +60,20 @@ std::ostream& operator<< (std::ostream& stream, const thrust::device_vector<T>& 
   return stream;
 }
 
+template<typename Distance, typename Mapper>
+void solve(std::fstream &in, std::fstream &out,
+           const Distance &distance, const Mapper &mapper) {
+  auto problem = SolomonReader().read(in, distance);
+  auto solution = create_population<NearestNeighbor>(problem)({ 1 });
+
+  std::cout << "\ntotal cost: " << calculate_total_cost()(problem, solution)
+            << "\ncustomers : " << solution.ids
+            << "\nvehicles  : " << solution.vehicles;
+
+  auto resolver = LocationResolver<decltype(mapper)>(in, mapper);
+  GeoJsonWriter().write(out, solution, resolver);
+}
+
 }
 
 int main(int argc, char* argv[]) {
@@ -67,16 +82,16 @@ int main(int argc, char* argv[]) {
 
   std::fstream in(argv[1], std::fstream::in);
   std::fstream out(argv[2], std::fstream::out);
-
-  auto problem = SolomonReader().read(in, geographic_distance<>());
-  auto solution = create_population<NearestNeighbor>(problem)({ 1 });
-
-  std::cout << "\ncustomers: " << solution.ids
-            << "\nvehicles:  " << solution.vehicles;
-
-  auto mapper = BoundingBoxMapper({ {13.3285, 52.4915}, {13.4663, 52.5553} });
-  auto resolver = LocationResolver<decltype(mapper)>(in, mapper);
-  GeoJsonWriter().write(out, solution, resolver);
+  auto isGeo = false;
+  if (isGeo) {
+    solve(in, out,
+          geographic_distance<>(),
+          BoundingBoxMapper({ {13.3285, 52.4915}, {13.4663, 52.5553} }));
+  } else {
+    solve(in, out,
+          cartesian_distance(),
+          DefaultMapper(1));
+  }
 
   return 0;
 }
