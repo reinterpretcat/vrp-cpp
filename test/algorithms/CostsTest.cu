@@ -21,10 +21,12 @@ SCENARIO("Can calculate total cost from solution.", "[algorithm][costs]") {
       .addCustomer({4, 4, 0, 3, 0, 1000, 0})
       .addCustomer({5, 5, 0, 3, 0, 1000, 0})
       .build();
+  auto solution = createPopulation<>(stream, 1);
 
-  auto cost = calculate_total_cost()(createPopulation<>(stream, 1));
+  auto cost = calculate_total_cost()(solution.first, solution.second);
 
-  // vehicles: 0, 0, 1, 2, 2, 2
-  // costs   : 0, 1, 2, 3, 4, 5
-  REQUIRE(cost == 8);
+  // locations : 0, 1, 2, 3, 4, 5
+  // vehicles  : 0, 0, 1, 2, 2, 2
+  // costs     : 0, 1, 2, 3, 4, 5
+  REQUIRE(cost == 16);
 }

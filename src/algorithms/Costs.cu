@@ -1,6 +1,7 @@
 #ifndef VRP_ALGORITHMS_COSTS_HPP
 #define VRP_ALGORITHMS_COSTS_HPP
 
+#include "algorithms/Transitions.cu"
 #include "models/Problem.hpp"
 #include "models/Resources.hpp"
 #include "models/Tasks.hpp"
@@ -37,32 +38,45 @@ struct calculate_cost final {
 
 /// Calculates cost of all used vehicles separately.
 struct calculate_total_cost final {
-
-  /// Calculates total cost.
-  struct RouteCost final {
+  /// Aggregates all costs.
+  struct AggregateCost final {
     float *total;
+    vrp::models::Problem::Shadow *problem;
+    vrp::models::Tasks::Shadow *tasks;
+    const int maxTask;
 
-     template<class Tuple>
+    template<class Tuple>
     __device__
     float operator()(const Tuple &tuple) {
-      const int task = thrust::get<0>(tuple);
+      const int task = maxTask - thrust::get<0>(tuple);
       const int vehicle = thrust::get<1>(tuple);
+      const int depot = 0;
       const float cost = thrust::get<2>(tuple);
-      // TODO calculate return to depot cost
 
-      // NOTE to use atomicAdd, variable has to be allocated in memory.
-      atomicAdd(total, cost);
+      auto details = vrp::models::Transition::Details{task, -1, depot, vehicle};
+      auto transition = create_transition(*problem, *tasks)(details);
+      auto returnCost = calculate_cost(problem->resources)(transition);
 
-      // NOTE ignored
-      return 0;
+      auto routeCost = cost + returnCost;
+
+      // NOTE to use atomicAdd, variable has to be allocated in memory
+      atomicAdd(total, routeCost);
+
+      return routeCost;
     }
   };
 
-  float operator()(const vrp::models::Tasks &tasks, int solution = 0) const {
+  __host__
+  float operator()(const vrp::models::Problem &problem,
+                   vrp::models::Tasks &tasks,
+                   int solution = 0) const {
     int rbegin = tasks.size() - tasks.customers * (solution + 1);
     int rend = rbegin + tasks.customers;
-    auto total = vrp::utils::allocate<float>(0);
     auto count = static_cast<std::size_t >(tasks.vehicles.back() + 1);
+
+    auto total = vrp::utils::allocate<float>(0);
+    auto sProblem = vrp::utils::allocate(problem.getShadow());
+    auto sTasks = vrp::utils::allocate(tasks.getShadow());
 
     thrust::unique_by_key_copy(
         thrust::device,
@@ -76,9 +90,12 @@ struct calculate_total_cost final {
         thrust::make_discard_iterator(),
         thrust::make_transform_output_iterator(
             thrust::make_discard_iterator(),
-            RouteCost { total.get() }
+            AggregateCost{total.get(), sProblem.get(), sTasks.get(), tasks.customers - 1}
         )
     );
+
+    thrust::device_free(sProblem);
+    thrust::device_free(sTasks);
 
     return vrp::utils::release(total);
   }
