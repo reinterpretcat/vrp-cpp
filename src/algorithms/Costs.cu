@@ -15,12 +15,12 @@
 namespace vrp {
 namespace algorithms {
 
-/// Calculates costs for transition.
-struct calculate_cost final {
+/// Calculates cost of transition.
+struct calculate_transition_cost final {
   const vrp::models::Resources::Shadow resources;
 
   __host__ __device__
-  explicit calculate_cost(const vrp::models::Resources::Shadow &resources) :
+  explicit calculate_transition_cost(const vrp::models::Resources::Shadow &resources) :
       resources(resources) {}
 
   __host__ __device__
@@ -36,7 +36,7 @@ struct calculate_cost final {
   }
 };
 
-/// Calculates cost of all used vehicles separately.
+/// Calculates total cost of solution.
 struct calculate_total_cost final {
   /// Aggregates all costs.
   struct AggregateCost final {
@@ -55,7 +55,7 @@ struct calculate_total_cost final {
 
       auto details = vrp::models::Transition::Details{task, -1, depot, vehicle};
       auto transition = create_transition(*problem, *tasks)(details);
-      auto returnCost = calculate_cost(problem->resources)(transition);
+      auto returnCost = calculate_transition_cost(problem->resources)(transition);
 
       auto routeCost = cost + returnCost;
 

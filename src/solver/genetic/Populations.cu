@@ -61,7 +61,7 @@ struct create_roots {
   const Problem::Shadow problem;
   Tasks::Shadow tasks;
 
-  calculate_cost getCost;
+  calculate_transition_cost getCost;
   create_transition createTransition;
   perform_transition performTransition;
 };

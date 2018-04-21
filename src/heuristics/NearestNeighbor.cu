@@ -26,7 +26,7 @@ struct create_transition {
   int vehicle;
 
   vrp::algorithms::create_transition transitionFactory;
-  vrp::algorithms::calculate_cost costCalculator;
+  vrp::algorithms::calculate_transition_cost costCalculator;
 
   __host__ __device__
   TransitionCost operator()(const thrust::tuple<int, bool> &customer) {
@@ -70,7 +70,7 @@ TransitionCost NearestNeighbor::operator()(int fromTask, int toTask, int vehicle
                          toTask,
                          vehicle,
                          vrp::algorithms::create_transition {problem, tasks},
-                         vrp::algorithms::calculate_cost {problem.resources}},
+                         vrp::algorithms::calculate_transition_cost {problem.resources}},
       createInvalid(),
       compare_transition_costs()
   );
