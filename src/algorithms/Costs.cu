@@ -70,9 +70,10 @@ struct calculate_total_cost final {
   float operator()(const vrp::models::Problem &problem,
                    vrp::models::Tasks &tasks,
                    int solution = 0) const {
-    int rbegin = tasks.size() - tasks.customers * (solution + 1);
+    int end = tasks.customers * (solution + 1);
+    int rbegin = tasks.size() - end;
     int rend = rbegin + tasks.customers;
-    auto count = static_cast<std::size_t >(tasks.vehicles.back() + 1);
+    auto count = static_cast<std::size_t >(tasks.vehicles[end - 1] + 1);
 
     auto total = vrp::utils::allocate<float>(0);
     auto sProblem = vrp::utils::allocate(problem.getShadow());
