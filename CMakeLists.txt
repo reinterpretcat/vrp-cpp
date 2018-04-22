@@ -9,3 +9,4 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${EXTERNAL_SOURCE}/cmake/")
 
 add_subdirectory(src)
 add_subdirectory(test)
+add_subdirectory(tools)
