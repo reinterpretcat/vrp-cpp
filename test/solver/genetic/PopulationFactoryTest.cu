@@ -42,7 +42,7 @@ SCENARIO("Can create roots of initial population.",
          "[genetic][population][initial][roots]") {
   auto stream = WithSequentialCustomers()();
 
-  auto population = createPopulation<NoTransition>(stream).second;
+  auto population = createPopulation<no_transition>(stream).second;
 
   CHECK_THAT(vrp::test::copy(population.ids), Catch::Matchers::Equals(std::vector<int>{
       0, 1, -1, -1, -1, -1,
@@ -81,7 +81,7 @@ SCENARIO("Can create a full initial population.",
          "[genetic][population][initial][solution]") {
   auto stream = WithSequentialCustomers()();
 
-  auto population = createPopulation<NearestNeighbor>(stream).second;
+  auto population = createPopulation<nearest_neighbor>(stream).second;
 
   CHECK_THAT(vrp::test::copy(population.ids), Catch::Matchers::Equals(std::vector<int>{
       0, 1, 2, 3, 4, 5,
@@ -129,7 +129,7 @@ SCENARIO("Can use second vehicle within initial population in case of demand vio
       .addCustomer({5, 5, 0, 2, 0, 1000, 10})
       .build();
 
-  auto population = createPopulation<NearestNeighbor>(stream, 1).second;
+  auto population = createPopulation<nearest_neighbor>(stream, 1).second;
 
   CHECK_THAT(vrp::test::copy(population.vehicles), Catch::Matchers::Equals(std::vector<int>{
       0, 0, 0, 0, 1, 1,
@@ -152,7 +152,7 @@ SCENARIO("Can use second vehicle within initial population in case of time viola
       .addCustomer({5, 100, 0, 2, 0, 101,  10})
       .build();
 
-  auto population = createPopulation<NearestNeighbor>(stream, 1).second;
+  auto population = createPopulation<nearest_neighbor>(stream, 1).second;
 
   CHECK_THAT(vrp::test::copy(population.vehicles), Catch::Matchers::Equals(std::vector<int>{
       0, 0, 0, 0, 0, 1,

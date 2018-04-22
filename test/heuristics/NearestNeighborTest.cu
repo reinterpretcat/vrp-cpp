@@ -32,13 +32,13 @@ struct WithShuffledCoordinates {
 };
 }
 
-SCENARIO("Can find best transition after depot.", "[heuristics][construction][nearest_neighbor]") {
+SCENARIO("Can find best transition after depot.", "[heuristics][construction][NearestNeighbor]") {
   auto stream =  WithShuffledCoordinates()();
   auto problem = SolomonReader().read(stream, cartesian_distance());
   Tasks tasks {problem.size()};
   vrp::test::createDepotTask(problem, tasks);
 
-  auto transitionCost = NearestNeighbor (problem.getShadow(), tasks.getShadow())(0, 0, 0);
+  auto transitionCost = nearest_neighbor (problem.getShadow(), tasks.getShadow())(0, 0, 0);
 
   REQUIRE(thrust::get<0>(transitionCost).details.customer == 3);
   REQUIRE(thrust::get<1>(transitionCost) == 1);

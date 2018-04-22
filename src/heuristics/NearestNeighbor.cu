@@ -54,7 +54,7 @@ struct compare_transition_costs {
 
 }
 
-TransitionCost NearestNeighbor::operator()(int fromTask, int toTask, int vehicle) {
+TransitionCost nearest_neighbor::operator()(int fromTask, int toTask, int vehicle) {
   int base = (fromTask / tasks.customers) * tasks.customers;
   return thrust::transform_reduce(
       thrust::device,

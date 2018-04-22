@@ -13,8 +13,9 @@ namespace utils {
 
 /// Resolves locations as geo coordinates.
 template <typename Mapper>
-struct LocationResolver final {
-  explicit LocationResolver(std::fstream &in, const Mapper &mapper) : mapper(mapper) {
+struct location_resolver final {
+  explicit location_resolver(std::fstream &in,
+                             const Mapper &mapper) : mapper(mapper) {
     initLocations(in);
     intBoundingBox = getBoundingBox();
   }

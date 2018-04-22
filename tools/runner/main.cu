@@ -1,13 +1,13 @@
 #include "algorithms/Costs.cu"
 #include "algorithms/Distances.cu"
-#include "models/Locations.hpp"
-#include "streams/input/SolomonReader.hpp"
-#include "streams/output/GeoJsonWriter.hpp"
 #include "heuristics/NearestNeighbor.hpp"
-#include "solver/genetic/Populations.hpp"
-#include "utils/Resolvers.hpp"
+#include "models/Locations.hpp"
 #include "models/Problem.hpp"
 #include "models/Tasks.hpp"
+#include "streams/input/SolomonReader.hpp"
+#include "streams/output/GeoJsonWriter.hpp"
+#include "solver/genetic/Populations.hpp"
+#include "utils/Resolvers.hpp"
 
 #include <thrust/host_vector.h>
 #include <ostream>
@@ -64,13 +64,13 @@ template<typename Distance, typename Mapper>
 void solve(std::fstream &in, std::fstream &out,
            const Distance &distance, const Mapper &mapper) {
   auto problem = SolomonReader().read(in, distance);
-  auto solution = create_population<NearestNeighbor>(problem)({ 1 });
+  auto solution = create_population<nearest_neighbor>(problem)({ 1 });
 
   std::cout << "\ntotal cost: " << calculate_total_cost()(problem, solution)
             << "\ncustomers : " << solution.ids
             << "\nvehicles  : " << solution.vehicles;
 
-  auto resolver = LocationResolver<decltype(mapper)>(in, mapper);
+  auto resolver = location_resolver<decltype(mapper)>(in, mapper);
   GeoJsonWriter().write(out, solution, resolver);
 }
 

@@ -143,8 +143,8 @@ Tasks create_population<Heuristic>::operator()(const Settings &settings) {
 }
 
 // NOTE explicit specialization to make linker happy.
-template class create_population<vrp::heuristics::NoTransition>;
-template class create_population<vrp::heuristics::NearestNeighbor>;
+template class create_population<vrp::heuristics::no_transition>;
+template class create_population<vrp::heuristics::nearest_neighbor>;
 
 }
 }

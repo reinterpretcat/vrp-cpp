@@ -39,7 +39,7 @@ struct calculate_transition_cost final {
 /// Calculates total cost of solution.
 struct calculate_total_cost final {
   /// Aggregates all costs.
-  struct AggregateCost final {
+  struct aggregate_cost final {
     float *total;
     vrp::models::Problem::Shadow *problem;
     vrp::models::Tasks::Shadow *tasks;
@@ -91,7 +91,7 @@ struct calculate_total_cost final {
         thrust::make_discard_iterator(),
         thrust::make_transform_output_iterator(
             thrust::make_discard_iterator(),
-            AggregateCost{total.get(), sProblem.get(), sTasks.get(), tasks.customers - 1}
+            aggregate_cost{total.get(), sProblem.get(), sTasks.get(), tasks.customers - 1}
         )
     );
 

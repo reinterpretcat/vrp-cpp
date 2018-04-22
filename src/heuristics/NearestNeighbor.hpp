@@ -9,14 +9,14 @@ namespace vrp {
 namespace heuristics {
 
 /// Implements algorithm of cheapest insertion heuristic.
-struct NearestNeighbor final {
+struct nearest_neighbor final {
 
   const vrp::models::Problem::Shadow problem;
   vrp::models::Tasks::Shadow tasks;
 
   __host__ __device__
-  NearestNeighbor(const vrp::models::Problem::Shadow problem,
-                  vrp::models::Tasks::Shadow tasks) :
+  nearest_neighbor(const vrp::models::Problem::Shadow problem,
+                   vrp::models::Tasks::Shadow tasks) :
     problem(problem), tasks(tasks) {}
 
   /// Finds the "nearest" transition for given task and vehicle
