@@ -38,11 +38,16 @@ struct calculate_transition_cost final {
 
 /// Calculates total cost of solution.
 struct calculate_total_cost final {
+  /// Represents cost mode used in cost aggregator.
+  struct CostModel final {
+    float total;
+    vrp::models::Problem::Shadow problem;
+    vrp::models::Tasks::Shadow tasks;
+  };
+
   /// Aggregates all costs.
   struct aggregate_cost final {
-    float *total;
-    vrp::models::Problem::Shadow *problem;
-    vrp::models::Tasks::Shadow *tasks;
+    CostModel *costModel;
     const int maxTask;
 
     template<class Tuple>
@@ -54,13 +59,14 @@ struct calculate_total_cost final {
       const float cost = thrust::get<2>(tuple);
 
       auto details = vrp::models::Transition::Details{task, -1, depot, vehicle};
-      auto transition = create_transition(*problem, *tasks)(details);
-      auto returnCost = calculate_transition_cost(problem->resources)(transition);
+      auto transition = create_transition(costModel->problem, costModel->tasks)(details);
+      auto returnCost = calculate_transition_cost(costModel->problem.resources)(transition);
 
       auto routeCost = cost + returnCost;
 
-      // NOTE to use atomicAdd, variable has to be allocated in memory
-      atomicAdd(total, routeCost);
+      // NOTE to use atomicAdd, variable has to be allocated in device memory,
+      // not in registers
+      atomicAdd(&costModel->total, routeCost);
 
       return routeCost;
     }
@@ -75,9 +81,7 @@ struct calculate_total_cost final {
     int rend = rbegin + tasks.customers;
     auto count = static_cast<std::size_t >(tasks.vehicles[end - 1] + 1);
 
-    auto total = vrp::utils::allocate<float>(0);
-    auto sProblem = vrp::utils::allocate(problem.getShadow());
-    auto sTasks = vrp::utils::allocate(tasks.getShadow());
+    auto model = vrp::utils::allocate<CostModel>({0, problem.getShadow(), tasks.getShadow()});
 
     thrust::unique_by_key_copy(
         thrust::device,
@@ -91,14 +95,11 @@ struct calculate_total_cost final {
         thrust::make_discard_iterator(),
         thrust::make_transform_output_iterator(
             thrust::make_discard_iterator(),
-            aggregate_cost{total.get(), sProblem.get(), sTasks.get(), tasks.customers - 1}
+            aggregate_cost{model.get(), tasks.customers - 1}
         )
     );
 
-    thrust::device_free(sProblem);
-    thrust::device_free(sTasks);
-
-    return vrp::utils::release(total);
+    return vrp::utils::release(model).total;
   }
 };
 
