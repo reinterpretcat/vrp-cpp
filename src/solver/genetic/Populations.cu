@@ -2,6 +2,7 @@
 #include "algorithms/Transitions.cu"
 #include "models/Transition.hpp"
 #include "solver/genetic/Populations.hpp"
+#include "utils/Profiler.hpp"
 
 #include <thrust/execution_policy.h>
 #include <thrust/for_each.h>
@@ -125,19 +126,21 @@ Tasks create_population<Heuristic>::operator()(const Settings &settings) {
     throw std::invalid_argument("Population size is bigger than problem size.");
   }
 
-  Tasks population {problem.size(), settings.populationSize * problem.size()};
+  Tasks population{problem.size(), settings.populationSize * problem.size()};
 
-  // create roots
-  thrust::for_each(thrust::device,
-                   thrust::make_counting_iterator(0),
-                   thrust::make_counting_iterator(settings.populationSize),
-                   create_roots(problem, population));
+  vrp::utils::profile::execution("create roots", [&]() {
+    thrust::for_each(thrust::device,
+                     thrust::make_counting_iterator(0),
+                     thrust::make_counting_iterator(settings.populationSize),
+                     create_roots(problem, population));
+  });
 
-  // complete solutions
-  thrust::for_each(thrust::device,
-                   thrust::make_counting_iterator(0),
-                   thrust::make_counting_iterator(settings.populationSize),
-                   complete_solution<Heuristic>(problem, population));
+  vrp::utils::profile::execution("complete solutions", [&]() {
+    thrust::for_each(thrust::device,
+                     thrust::make_counting_iterator(0),
+                     thrust::make_counting_iterator(settings.populationSize),
+                     complete_solution<Heuristic>(problem, population));
+  });
 
   return std::move(population);
 }

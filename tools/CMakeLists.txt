@@ -11,4 +11,7 @@ include_directories(${MAIN_SOURCE}
 
 set(EXE_NAME SolverRunner)
 add_executable(${EXE_NAME} runner/main.cu)
-target_link_libraries(${EXE_NAME} ${LIBRARY_NAME})
+target_link_libraries(${EXE_NAME}
+        ${LIBRARY_NAME}
+        ${CUDA_NVTX_LIBRARY}
+        )

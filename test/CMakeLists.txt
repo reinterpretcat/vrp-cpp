@@ -32,7 +32,7 @@ set_target_properties(${LIBRARY_TEST} PROPERTIES
 
 target_link_libraries(${LIBRARY_TEST} PRIVATE
         ${LIBRARY_NAME}
-        ${CUDA_LIBRARY}
+        ${CUDA_NVTX_LIBRARY}
         )
 
 # Define test assets path

@@ -64,7 +64,7 @@ template<typename Distance, typename Mapper>
 void solve(std::fstream &in, std::fstream &out,
            const Distance &distance, const Mapper &mapper) {
   auto problem = SolomonReader().read(in, distance);
-  auto solution = create_population<nearest_neighbor>(problem)({ 1 });
+  auto solution = create_population<nearest_neighbor>(problem)({ 10 });
 
   std::cout << "\ntotal cost: " << calculate_total_cost()(problem, solution)
             << "\ncustomers : " << solution.ids
