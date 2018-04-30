@@ -1,4 +1,3 @@
-#include "algorithms/Costs.cu"
 #include "algorithms/Distances.cu"
 #include "heuristics/NearestNeighbor.hpp"
 #include "models/Locations.hpp"
@@ -6,10 +5,12 @@
 #include "models/Tasks.hpp"
 #include "streams/input/SolomonReader.hpp"
 #include "streams/output/GeoJsonWriter.hpp"
+#include "streams/output/MatrixTextWriter.hpp"
 #include "solver/genetic/Populations.hpp"
 #include "utils/Resolvers.hpp"
 
 #include <thrust/host_vector.h>
+
 #include <ostream>
 
 using namespace vrp::algorithms;
@@ -20,6 +21,8 @@ using namespace vrp::streams;
 using namespace vrp::utils;
 
 namespace {
+const int PopulationSize = 4;
+
 /// Maps int coordinate as double without changes.
 struct DefaultMapper final {
   explicit DefaultMapper(double scale) : scale(scale) {}
@@ -54,35 +57,27 @@ struct BoundingBoxMapper final {
   const HostGeoBox geoBoundingBox;
 };
 
-template <typename T>
-std::ostream& operator<< (std::ostream& stream, const thrust::device_vector<T>& data) {
-  thrust::copy(data.begin(), data.end(), std::ostream_iterator<T>(stream, ","));
-  return stream;
-}
-
 template<typename Distance, typename Mapper>
 void solve(std::fstream &in, std::fstream &out,
            const Distance &distance, const Mapper &mapper) {
+
   auto problem = SolomonReader().read(in, distance);
-  auto solution = create_population<nearest_neighbor>(problem)({ 10 });
+  auto population = create_population<nearest_neighbor>(problem)({ PopulationSize });
 
-  std::cout << "\ntotal cost: " << calculate_total_cost()(problem, solution)
-            << "\ncustomers : " << solution.ids
-            << "\nvehicles  : " << solution.vehicles;
+  TextWriter().write(std::cout, problem, population);
 
-  auto resolver = location_resolver<decltype(mapper)>(in, mapper);
-  GeoJsonWriter().write(out, solution, resolver);
+  GeoJsonWriter().write(out, population, location_resolver<decltype(mapper)>(in, mapper));
 }
 
 }
 
 int main(int argc, char* argv[]) {
-  if (argc != 3)
+  if (argc < 3)
     throw std::invalid_argument("Missing input or output argument.");
 
   std::fstream in(argv[1], std::fstream::in);
   std::fstream out(argv[2], std::fstream::out);
-  auto isGeo = false;
+  auto isGeo = argc > 3;
   if (isGeo) {
     solve(in, out,
           geographic_distance<>(),

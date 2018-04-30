@@ -25,7 +25,9 @@ struct Tasks final {
 
   explicit Tasks(int customers) : Tasks(customers, customers) {}
 
-  explicit Tasks(int customers, int taskSize) : customers(customers) {
+  explicit Tasks(int customers, int taskSize) :
+      customers(customers), ids(), costs(), times(),
+      capacities(),vehicles(), plan() {
     resize(static_cast<std::size_t>(taskSize));
   }
 
@@ -53,6 +55,11 @@ struct Tasks final {
   /// Returns size of tasks.
   int size() const {
     return static_cast<int>(ids.size());
+  }
+
+  /// Returns size of population.
+  int population() const {
+    return size() / customers;
   }
 
   /// Resizes tasks size.

@@ -28,6 +28,7 @@ set(HEADER_FILES
 
         streams/input/SolomonReader.hpp
         streams/output/GeoJsonWriter.hpp
+        streams/output/MatrixTextWriter.hpp
 
         utils/Memory.hpp
         utils/Profiler.hpp
@@ -41,6 +42,7 @@ set(SOURCE_FILES
         solver/genetic/Populations.cu
         streams/input/SolomonReader.cu
         streams/output/GeoJsonWriter.cu
+        streams/output/MatrixTextWriter.cu
         )
 
 add_library(${LIBRARY_NAME} STATIC

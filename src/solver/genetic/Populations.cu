@@ -1,6 +1,7 @@
 #include "algorithms/Costs.cu"
 #include "algorithms/Transitions.cu"
 #include "models/Transition.hpp"
+#include "solver/genetic/Settings.hpp"
 #include "solver/genetic/Populations.hpp"
 #include "utils/Profiler.hpp"
 
@@ -17,16 +18,17 @@ namespace {
 /// Creates roots in solutions. Root connects depot with exact
 /// one customer making feasible solution.
 struct create_roots {
-  create_roots(const Problem &problem, Tasks &tasks) :
+  create_roots(const Problem &problem, Tasks &tasks, const Settings &settings) :
       problem(problem.getShadow()),
       tasks(tasks.getShadow()),
+      populationSize(settings.populationSize),
       getCost(problem.resources.getShadow()),
       createTransition(problem.getShadow(), tasks.getShadow()),
       performTransition(tasks.getShadow()) {}
 
   __host__ __device__
   void operator()(int individuum) {
-    int customer = individuum + 1;
+    int customer = getCustomer(individuum);
     int vehicle = 0;
 
     int fromTask = individuum * problem.size;
@@ -59,8 +61,14 @@ struct create_roots {
     tasks.plan[task] = true;
   }
 
+  __host__ __device__
+  inline int getCustomer(int individuum) const {
+    return thrust::max(1, (individuum * tasks.customers / populationSize + 1) % tasks.customers);
+  }
+
   const Problem::Shadow problem;
   Tasks::Shadow tasks;
+  int populationSize;
 
   calculate_transition_cost getCost;
   create_transition createTransition;
@@ -126,13 +134,13 @@ Tasks create_population<Heuristic>::operator()(const Settings &settings) {
     throw std::invalid_argument("Population size is bigger than problem size.");
   }
 
-  Tasks population{problem.size(), settings.populationSize * problem.size()};
+  Tasks population(problem.size(), settings.populationSize * problem.size());
 
   vrp::utils::profile::execution("create roots", [&]() {
     thrust::for_each(thrust::device,
                      thrust::make_counting_iterator(0),
                      thrust::make_counting_iterator(settings.populationSize),
-                     create_roots(problem, population));
+                     create_roots(problem, population, settings));
   });
 
   vrp::utils::profile::execution("complete solutions", [&]() {
