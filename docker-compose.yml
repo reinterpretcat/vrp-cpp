@@ -1,0 +1,6 @@
+solver:
+  build: .
+  dockerfile: Dockerfile
+  volumes:
+    - ./:/repo
+  entrypoint: /bin/bash
