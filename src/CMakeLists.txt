@@ -1,7 +1,6 @@
 project(Solver LANGUAGES CXX CUDA)
 
 find_package(Thrust REQUIRED)
-find_package(NvtExt REQUIRED)
 
 set(LIBRARY_NAME Solver)
 
@@ -31,7 +30,6 @@ set(HEADER_FILES
         streams/output/MatrixTextWriter.hpp
 
         utils/Memory.hpp
-        utils/Profiler.hpp
         utils/Resolvers.hpp
         )
 
