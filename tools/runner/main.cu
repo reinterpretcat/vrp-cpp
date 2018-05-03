@@ -64,7 +64,7 @@ void solve(std::fstream &in, std::fstream &out,
   auto problem = SolomonReader().read(in, distance);
   auto population = create_population<nearest_neighbor>(problem)({ PopulationSize });
 
-  TextWriter().write(std::cout, problem, population);
+  MatrixTextWriter().write(std::cout, problem, population);
 
   GeoJsonWriter().write(out, population, location_resolver<decltype(mapper)>(in, mapper));
 }

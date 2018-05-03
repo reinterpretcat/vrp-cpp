@@ -46,19 +46,19 @@ SCENARIO("Can create roots of initial population.",
 
   CHECK_THAT(vrp::test::copy(population.ids), Catch::Matchers::Equals(std::vector<int>{
       0, 1, -1, -1, -1, -1,
-      0, 2, -1, -1, -1, -1,
       0, 3, -1, -1, -1, -1,
+      0, 5, -1, -1, -1, -1,
   }));
   CHECK_THAT(vrp::test::copy(population.costs), Catch::Matchers::Equals(std::vector<float>{
       0, 1, -1, -1, -1, -1,
-      0, 2, -1, -1, -1, -1,
       0, 3, -1, -1, -1, -1,
+      0, 5, -1, -1, -1, -1,
   }));
 
   CHECK_THAT(vrp::test::copy(population.times), Catch::Matchers::Equals(std::vector<int>{
       0, 11, -1, -1, -1, -1,
-      0, 12, -1, -1, -1, -1,
       0, 13, -1, -1, -1, -1,
+      0, 15, -1, -1, -1, -1,
   }));
   CHECK_THAT(vrp::test::copy(population.capacities), Catch::Matchers::Equals(std::vector<int>{
       10, 9, -1, -1, -1, -1,
@@ -72,8 +72,8 @@ SCENARIO("Can create roots of initial population.",
   }));
   CHECK_THAT(vrp::test::copy(population.plan), Catch::Matchers::Equals(std::vector<bool>{
       true, true, false, false, false, false,
-      true, false, true, false, false, false,
       true, false, false, true, false, false,
+      true, false, false, false, false, true,
   }));
 }
 
@@ -85,19 +85,19 @@ SCENARIO("Can create a full initial population.",
 
   CHECK_THAT(vrp::test::copy(population.ids), Catch::Matchers::Equals(std::vector<int>{
       0, 1, 2, 3, 4, 5,
-      0, 2, 1, 3, 4, 5,
       0, 3, 2, 1, 4, 5,
+      0, 5, 4, 3, 2, 1,
   }));
   CHECK_THAT(vrp::test::copy(population.costs), Catch::Matchers::Equals(std::vector<float>{
       0, 1, 2, 3, 4, 5,
-      0, 2, 3, 5, 6, 7,
       0, 3, 4, 5, 8, 9,
+      0, 5, 6, 7, 8, 9,
   }));
 
   CHECK_THAT(vrp::test::copy(population.times), Catch::Matchers::Equals(std::vector<int>{
       0, 11, 22, 33, 44, 55,
-      0, 12, 23, 35, 46, 57,
       0, 13, 24, 35, 48, 59,
+      0, 15, 26, 37, 48, 59,
   }));
   CHECK_THAT(vrp::test::copy(population.capacities), Catch::Matchers::Equals(std::vector<int>{
       10, 9, 8, 7, 6, 5,

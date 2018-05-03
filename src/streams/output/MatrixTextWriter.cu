@@ -69,7 +69,7 @@ void writeCosts(std::ostream& stream, const Problem &problem, Tasks &tasks) {
 
 }
 
-void TextWriter::write(std::ostream &out, const Problem &problem, const Tasks &tasks) {
+void MatrixTextWriter::write(std::ostream &out, const Problem &problem, const Tasks &tasks) {
   writeCosts( out << "\ntotal costs: ", problem, const_cast<Tasks&>(tasks));
   writeVector(out << "\ncustomers:   ", tasks.ids, tasks.population());
   writeVector(out << "\nvehicles:    ", tasks.vehicles, tasks.population());

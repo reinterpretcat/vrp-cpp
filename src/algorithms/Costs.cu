@@ -48,20 +48,20 @@ struct calculate_total_cost final {
   /// Aggregates all costs.
   struct aggregate_cost final {
     CostModel *costModel;
-    const int maxTask;
+    int lastCustomer;
+    int baseTask;
 
     template<class Tuple>
     __device__
     float operator()(const Tuple &tuple) {
-      const int task = maxTask - thrust::get<0>(tuple);
+      const int task = lastCustomer - thrust::get<0>(tuple);
       const int vehicle = thrust::get<1>(tuple);
       const int depot = 0;
       const float cost = thrust::get<2>(tuple);
 
-      auto details = vrp::models::Transition::Details{task, -1, depot, vehicle};
+      auto details = vrp::models::Transition::Details{baseTask + task, -1, depot, vehicle};
       auto transition = create_transition(costModel->problem, costModel->tasks)(details);
       auto returnCost = calculate_transition_cost(costModel->problem.resources)(transition);
-
       auto routeCost = cost + returnCost;
 
       // NOTE to use atomicAdd, variable has to be allocated in device memory,
@@ -79,7 +79,6 @@ struct calculate_total_cost final {
     int end = tasks.customers * (solution + 1);
     int rbegin = tasks.size() - end;
     int rend = rbegin + tasks.customers;
-    auto count = static_cast<std::size_t >(tasks.vehicles[end - 1] + 1);
 
     auto model = vrp::utils::allocate<CostModel>({0, problem.getShadow(), tasks.getShadow()});
 
@@ -95,7 +94,7 @@ struct calculate_total_cost final {
         thrust::make_discard_iterator(),
         thrust::make_transform_output_iterator(
             thrust::make_discard_iterator(),
-            aggregate_cost{model.get(), tasks.customers - 1}
+            aggregate_cost{model.get(), tasks.customers - 1, end - tasks.customers}
         )
     );
 

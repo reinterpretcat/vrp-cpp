@@ -37,13 +37,13 @@ SCENARIO("Can calculate total cost for single solution.", "[algorithm][costs]") 
   REQUIRE(cost == 16);
 }
 
-SCENARIO("Can calculate total cost for multiple solutions.", "[algorithm][costs]") {
+SCENARIO("Can calculate total cost for multiple solutions.", "[algorithm][costs][ggg]") {
   auto population = getPopulation(3);
 
   auto cost = calculate_total_cost()(population.first, population.second, 1);
 
-  // locations : 0, 2, 1, 3, 4, 5
-  // vehicles  : 0, 0, 1, 2, 2, 2
-  // costs     : 0, 2, 1, 3, 4, 5
+  // locations : 0, 3, 4, 5, 1, 2
+  // vehicles  : 0, 0, 0, 0, 1, 2
+  // costs     : 0, 3, 4, 5, 1, 2
   REQUIRE(cost == 16);
 }
