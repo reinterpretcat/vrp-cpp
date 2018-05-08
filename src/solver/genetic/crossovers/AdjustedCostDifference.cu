@@ -168,36 +168,35 @@ struct create_convolutions final {
 
       auto end = base + seq + 1;
       auto start = end - length;
-
-      // calculate total customers demand
-      auto demand = thrust::transform_reduce(
-          thrust::device,
-          tasks.ids + start, tasks.ids + end,
-          *this,
-          0,
-          thrust::plus<int>()
-      );
-
-      // calculate service time as total duration.
       auto firstCustomerService = + problem.customers.services[tasks.ids[start]];
-      int services = tasks.times[end - 1] - tasks.times[start] + firstCustomerService;
 
-      // get fist and last customer
-      auto customers = thrust::make_pair<int,int>(
-          tasks.ids[start],
-          tasks.ids[end - 1]
-      );
+      return Convolution {
+          // total customers demand
+          thrust::transform_reduce(
+              thrust::device,
+              tasks.ids + start, tasks.ids + end,
+              *this,
+              0,
+              thrust::plus<int>()
+          ),
+          // new service time from total duration
+          tasks.times[end - 1] - tasks.times[start] + firstCustomerService,
 
-      // get TW which is [first customer TW start, first customer ETA]
-      auto times = thrust::make_pair<int,int>(
-          problem.customers.starts[tasks.ids[start]],
-          tasks.times[start] - firstCustomerService
-      );
-
-      // calculate task range (all inclusive)
-      auto range = thrust::make_pair<int,int>(start - base, end - base - 1);
-
-      return Convolution { demand, services, customers, times, range };
+          // get fist and last customer
+          thrust::make_pair<int,int>(
+              tasks.ids[start],
+              tasks.ids[end - 1]
+          ),
+          // get TW which is [first customer TW start, first customer ETA]
+          thrust::make_pair<int,int>(
+              problem.customers.starts[tasks.ids[start]],
+              tasks.times[start] - firstCustomerService
+          ),
+          // calculate task range (all inclusive)
+          thrust::make_pair<int,int>(
+              start - base,
+              end - base - 1)
+      };
     };
   };
 
