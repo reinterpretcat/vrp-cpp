@@ -24,6 +24,7 @@ set(HEADER_FILES
 
         solver/genetic/Populations.hpp
         solver/genetic/Settings.hpp
+        solver/genetic/crossovers/AdjustedCostDifference.hpp
 
         streams/input/SolomonReader.hpp
         streams/output/GeoJsonWriter.hpp
@@ -37,7 +38,10 @@ set(SOURCE_FILES
         ../external/json/json11.cpp
 
         heuristics/NearestNeighbor.cu
+
         solver/genetic/Populations.cu
+        solver/genetic/crossovers/AdjustedCostDifference.cu
+
         streams/input/SolomonReader.cu
         streams/output/GeoJsonWriter.cu
         streams/output/MatrixTextWriter.cu
