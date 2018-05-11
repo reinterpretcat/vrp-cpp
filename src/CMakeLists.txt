@@ -31,6 +31,7 @@ set(HEADER_FILES
         streams/output/MatrixTextWriter.hpp
 
         utils/Memory.hpp
+        utils/Pool.hpp
         utils/Resolvers.hpp
         )
 

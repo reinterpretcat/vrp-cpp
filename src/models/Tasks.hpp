@@ -40,7 +40,7 @@ struct Tasks final {
   /// Cost of performing task.
   thrust::device_vector<float> costs;
 
-  /// Total time for performing task.
+  /// Departure time after serving task.
   thrust::device_vector<int> times;
 
   /// Remaining demand capacity.

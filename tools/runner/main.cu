@@ -7,6 +7,7 @@
 #include "streams/output/GeoJsonWriter.hpp"
 #include "streams/output/MatrixTextWriter.hpp"
 #include "solver/genetic/Populations.hpp"
+#include "solver/genetic/crossovers/AdjustedCostDifference.hpp"
 #include "utils/Resolvers.hpp"
 
 #include <thrust/host_vector.h>
@@ -21,7 +22,7 @@ using namespace vrp::streams;
 using namespace vrp::utils;
 
 namespace {
-const int PopulationSize = 4;
+const int PopulationSize = 1;
 
 /// Maps int coordinate as double without changes.
 struct DefaultMapper final {
@@ -61,12 +62,19 @@ template<typename Distance, typename Mapper>
 void solve(std::fstream &in, std::fstream &out,
            const Distance &distance, const Mapper &mapper) {
 
+  auto settings = Settings { PopulationSize };
   auto problem = SolomonReader().read(in, distance);
-  auto population = create_population<nearest_neighbor>(problem)({ PopulationSize });
+  auto solution = create_population<nearest_neighbor>(problem)(settings);
 
-  MatrixTextWriter().write(std::cout, problem, population);
+  auto pool = Pool();
 
-  GeoJsonWriter().write(out, population, location_resolver<decltype(mapper)>(in, mapper));
+  // TODO testing
+  //adjusted_cost_difference {}.operator()(problem, solution, settings,
+  //   {thrust::make_pair(0, 0), thrust::make_pair(0, 0)}, pool);
+
+  MatrixTextWriter().write(std::cout, problem, solution);
+
+  //GeoJsonWriter().write(out, solution, location_resolver<decltype(mapper)>(in, mapper));
 }
 
 }
