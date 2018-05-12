@@ -35,6 +35,7 @@ struct Resources final {
   /// Vehicle fixed cost.
   thrust::device_vector<float> fixedCosts;
 
+  /// TODO do we need it? Depot time window seems simulate it.
   /// Vehicle time limit.
   thrust::device_vector<int> timeLimits;
 
