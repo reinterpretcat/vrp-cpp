@@ -20,7 +20,6 @@ struct adjusted_cost_difference final {
     thrust::pair<int,int> offspring;
   };
 
-
   void operator()(const vrp::models::Problem &problem,
                   vrp::models::Tasks &tasks,
                   const vrp::genetic::Settings &settings,

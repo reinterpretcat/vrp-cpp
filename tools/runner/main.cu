@@ -22,7 +22,7 @@ using namespace vrp::streams;
 using namespace vrp::utils;
 
 namespace {
-const int PopulationSize = 1;
+const int PopulationSize = 4;
 
 /// Maps int coordinate as double without changes.
 struct DefaultMapper final {
@@ -68,13 +68,9 @@ void solve(std::fstream &in, std::fstream &out,
 
   auto pool = Pool();
 
-  // TODO testing
-  //adjusted_cost_difference {}.operator()(problem, solution, settings,
-  //   {thrust::make_pair(0, 0), thrust::make_pair(0, 0)}, pool);
-
   MatrixTextWriter().write(std::cout, problem, solution);
 
-  //GeoJsonWriter().write(out, solution, location_resolver<decltype(mapper)>(in, mapper));
+  GeoJsonWriter().write(out, solution, location_resolver<decltype(mapper)>(in, mapper));
 }
 
 }

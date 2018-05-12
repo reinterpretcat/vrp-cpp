@@ -5,8 +5,9 @@ find_package(Thrust REQUIRED)
 set(LIBRARY_NAME Solver)
 
 set(HEADER_FILES
-        algorithms/Distances.cu
+        algorithms/Convolutions.hpp
         algorithms/Costs.cu
+        algorithms/Distances.cu
         algorithms/Transitions.cu
 
         heuristics/NearestNeighbor.hpp
@@ -14,6 +15,7 @@ set(HEADER_FILES
 
         iterators/CartesianProduct.cu
 
+        models/Convolution.hpp
         models/Customers.hpp
         models/Problem.hpp
         models/Resources.hpp
@@ -37,6 +39,8 @@ set(HEADER_FILES
 
 set(SOURCE_FILES
         ../external/json/json11.cpp
+
+        algorithms/Convolutions.cu
 
         heuristics/NearestNeighbor.cu
 
