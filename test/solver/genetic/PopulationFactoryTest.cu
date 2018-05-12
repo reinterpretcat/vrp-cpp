@@ -10,8 +10,6 @@
 #include "test_utils/SolomonBuilder.hpp"
 #include "test_utils/VectorUtils.hpp"
 
-#include <fstream>
-
 using namespace vrp::algorithms;
 using namespace vrp::heuristics;
 using namespace vrp::genetic;

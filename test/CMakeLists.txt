@@ -13,6 +13,7 @@ add_executable(${LIBRARY_TEST}
         main.cpp
         EnvironmentTest.cu
 
+        algorithms/ConvolutionsTest.cu
         algorithms/CostsTest.cu
         heuristics/NearestNeighborTest.cu
         streams/input/SolomonReaderTest.cu

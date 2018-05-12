@@ -245,7 +245,7 @@ struct create_convolutions final {
 
 create_best_convolutions::Convolutions create_best_convolutions::operator()(const Problem &problem,
                                              Tasks &tasks,
-                                             Settings &settings,
+                                             const Settings &settings,
                                              vrp::utils::Pool &pool) {
   auto size = static_cast<size_t>(problem.size());
 

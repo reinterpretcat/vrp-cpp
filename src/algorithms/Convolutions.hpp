@@ -30,7 +30,7 @@ struct create_best_convolutions final {
 
   Convolutions operator()(const vrp::models::Problem &problem,
                           vrp::models::Tasks &tasks,
-                          Settings &settings,
+                          const Settings &settings,
                           vrp::utils::Pool &pool);
 };
 
