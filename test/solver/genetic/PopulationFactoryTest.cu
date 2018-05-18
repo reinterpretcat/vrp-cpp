@@ -2,16 +2,15 @@
 
 #include "config.hpp"
 
-#include "algorithms/Distances.cu"
-#include "heuristics/NoTransition.cu"
+#include "algorithms/heuristics/Dummy.hpp"
+#include "algorithms/heuristics/NearestNeighbor.hpp"
 #include "solver/genetic/Populations.hpp"
 
 #include "test_utils/PopulationFactory.hpp"
 #include "test_utils/SolomonBuilder.hpp"
 #include "test_utils/VectorUtils.hpp"
 
-using namespace vrp::algorithms;
-using namespace vrp::heuristics;
+using namespace vrp::algorithms::heuristics;
 using namespace vrp::genetic;
 using namespace vrp::models;
 using namespace vrp::streams;
@@ -40,7 +39,7 @@ SCENARIO("Can create roots of initial population.",
          "[genetic][population][initial][roots]") {
   auto stream = WithSequentialCustomers()();
 
-  auto population = createPopulation<no_transition>(stream).second;
+  auto population = createPopulation<dummy>(stream).second;
 
   CHECK_THAT(vrp::test::copy(population.ids), Catch::Matchers::Equals(std::vector<int>{
       0, 1, -1, -1, -1, -1,

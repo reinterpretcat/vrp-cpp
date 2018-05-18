@@ -1,13 +1,14 @@
 #include <catch/catch.hpp>
 
-#include "algorithms/Costs.cu"
+#include "algorithms/costs/SolutionCosts.hpp"
+#include "algorithms/costs/TransitionCosts.hpp"
 #include "models/Tasks.hpp"
 
 #include "test_utils/PopulationFactory.hpp"
 #include "test_utils/SolomonBuilder.hpp"
 #include "test_utils/VectorUtils.hpp"
 
-using namespace vrp::algorithms;
+using namespace vrp::algorithms::costs;
 using namespace vrp::test;
 
 namespace {

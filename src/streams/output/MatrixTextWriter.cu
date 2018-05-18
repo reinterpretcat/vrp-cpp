@@ -1,16 +1,19 @@
-#include "algorithms/Costs.cu"
+#include "algorithms/costs/SolutionCosts.hpp"
 #include "models/Problem.hpp"
 #include "streams/output/MatrixTextWriter.hpp"
 #include "../../models/Tasks.hpp"
 
+#include <thrust/execution_policy.h>
 #include <thrust/device_vector.h>
 #include <thrust/for_each.h>
+#include <thrust/transform_reduce.h>
 #include <thrust/tuple.h>
 #include <thrust/iterator/counting_iterator.h>
+#include <thrust/iterator/zip_iterator.h>
 
 #include <iomanip>
 
-using namespace vrp::algorithms;
+using namespace vrp::algorithms::costs;
 using namespace vrp::models;
 using namespace vrp::streams;
 

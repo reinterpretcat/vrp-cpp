@@ -1,4 +1,5 @@
-#include "algorithms/Convolutions.hpp"
+#include "algorithms/convolutions/BestConvolutions.hpp"
+#include "iterators/CartesianProduct.cu"
 #include "utils/Memory.hpp"
 
 #include <thrust/adjacent_difference.h>
@@ -6,29 +7,30 @@
 #include <thrust/remove.h>
 #include <thrust/reduce.h>
 #include <thrust/sort.h>
+#include <thrust/transform.h>
 #include <thrust/transform_reduce.h>
 #include <thrust/iterator/constant_iterator.h>
+#include <thrust/iterator/discard_iterator.h>
 #include <thrust/iterator/transform_output_iterator.h>
 #include <thrust/iterator/zip_iterator.h>
 
-using namespace vrp::algorithms;
+#include <cmath>
+
+using namespace vrp::algorithms::convolutions;
 using namespace vrp::models;
+using namespace vrp::iterators;
 using namespace vrp::utils;
 using namespace thrust::placeholders;
 
-using Settings = create_best_convolutions::Settings;
-
 namespace {
-
-/// Contains model shadows.
-struct Model final {
-  vrp::models::Problem::Shadow problem;
-  vrp::models::Tasks::Shadow tasks;
-};
 
 /// Creates cost differences (gradients) as cost change
 /// between two customers.
 struct create_cost_differences final {
+  /// Base index.
+  size_t begin;
+  /// Last index.
+  size_t end;
 
   /// Creates a gradient of costs between tasks.
   struct make_gradient final {
@@ -37,8 +39,8 @@ struct create_cost_differences final {
                                          const Tuple &right) const {
       return thrust::get<0>(left) == thrust::get<0>(right)
              ? thrust::make_tuple(
-              thrust::get<0>(left),
-              thrust::get<1>(left) - thrust::get<1>(right))
+                thrust::get<0>(left),
+                thrust::get<1>(left) - thrust::get<1>(right))
              : left;
     }
   };
@@ -56,12 +58,12 @@ struct create_cost_differences final {
     thrust::adjacent_difference(
         thrust::device,
         thrust::make_zip_iterator(thrust::make_tuple(
-            tasks.vehicles.begin(),
-            tasks.costs.begin()
+            tasks.vehicles.begin() + begin,
+            tasks.costs.begin() + begin
         )),
         thrust::make_zip_iterator(thrust::make_tuple(
-            tasks.vehicles.end(),
-            tasks.costs.end()
+            tasks.vehicles.begin() + end,
+            tasks.costs.end() + end
         )),
         thrust::make_transform_output_iterator(
             differences.begin(),
@@ -77,25 +79,17 @@ struct create_cost_differences final {
 /// is lower than median value.
 struct create_partial_plan final {
 
+  float medianRatio;
+
   void operator()(thrust::device_vector<float> &differences,
                   thrust::device_vector<float> &medians,
                   thrust::device_vector<bool> &plan) const {
     // initialize medians
-    thrust::copy(
-        thrust::device,
-        differences.begin(),
-        differences.end(),
-        medians.begin()
-    );
-
+    thrust::copy(thrust::device, differences.begin(), differences.end(), medians.begin());
     // sort to get median
-    thrust::sort(
-        thrust::device,
-        medians.begin(),
-        medians.end()
-    );
-    // TODO
-    auto median = medians[medians.size() * 0.5];//MedianRatio];
+    thrust::sort(thrust::device, medians.begin(), medians.end());
+
+    auto median = medians[medians.size() * medianRatio];
 
     // create plan using median
     thrust::transform(
@@ -141,14 +135,14 @@ struct estimate_convolutions final {
 
 /// Creates convolutions based on estimation.
 struct create_convolutions final {
-
+  float convolutionRatio;
   /// Filters group by plan and length.
   struct filter_group final {
+    int limit;
     template <typename Tuple>
     __host__ __device__ bool operator()(const Tuple &tuple) const {
-      // TODO use ConvolutionRatio constant to get proper value
       return !(thrust::get<0>(thrust::get<0>(tuple)) &&
-          thrust::get<1>(tuple) > 3);
+               thrust::get<1>(tuple) > limit);
     }
   };
 
@@ -175,6 +169,8 @@ struct create_convolutions final {
       auto firstCustomerService = + problem.customers.services[tasks.ids[start]];
 
       return Convolution {
+          // base index
+          base,
           // total customers demand
           thrust::transform_reduce(
               thrust::device,
@@ -204,8 +200,7 @@ struct create_convolutions final {
     };
   };
 
-  void operator()(const Problem &problem,
-                  Tasks &tasks,
+  void operator()(const Problem &problem, Tasks &tasks, int base,
                   const thrust::device_vector<thrust::tuple<bool, int>> &output,
                   const thrust::device_vector<int> &lengths,
                   thrust::device_vector<Convolution> &convolutions) const {
@@ -213,6 +208,7 @@ struct create_convolutions final {
     // forces to allocate shadows explicitly on device when it is used.
     // Otherwise it is crashing even data is not used (problems with copying?..)
     auto model = allocate<Model>({problem.getShadow(), tasks.getShadow()});
+    auto limit = static_cast<int>(std::round(problem.size() * convolutionRatio));
 
     auto newEnd = thrust::remove_copy_if(
         thrust::device,
@@ -226,9 +222,9 @@ struct create_convolutions final {
         ),
         thrust::make_transform_output_iterator(
             convolutions.begin(),
-            map_group { model.get(), 0 }
+            map_group { model.get(), base }
         ),
-        filter_group()
+        filter_group {limit}
     );
 
     release(model);
@@ -243,26 +239,27 @@ struct create_convolutions final {
 
 }
 
-create_best_convolutions::Convolutions create_best_convolutions::operator()(const Problem &problem,
-                                             Tasks &tasks,
-                                             const Settings &settings,
-                                             vrp::utils::Pool &pool) {
+Convolutions create_best_convolutions::operator()(const Problem &problem, Tasks &tasks,
+                                                  const Settings &settings) const {
   auto size = static_cast<size_t>(problem.size());
+  auto begin = (settings.solution - 1) * size;
+  auto end = begin + size;
 
-  auto differences = pool.acquire<thrust::device_vector<float>>(size);
-  auto medians = pool.acquire<thrust::device_vector<float>>(size);
-  auto plan = pool.acquire<thrust::device_vector<bool>>(size);
-  auto output = pool.acquire<thrust::device_vector<thrust::tuple<bool, int>>>(size);
-  auto lengths = pool.acquire<thrust::device_vector<int>>(size);
+  auto differences = settings.pool.acquire<thrust::device_vector<float>>(size);
+  auto medians = settings.pool.acquire<thrust::device_vector<float>>(size);
+  auto plan = settings.pool.acquire<thrust::device_vector<bool>>(size);
+  auto output = settings.pool.acquire<thrust::device_vector<thrust::tuple<bool, int>>>(size);
+  auto lengths = settings.pool.acquire<thrust::device_vector<int>>(size);
 
-  create_cost_differences{}.operator()(tasks, *differences);
+  create_cost_differences{begin, end}.operator()(tasks, *differences);
 
-  create_partial_plan{}.operator()(*differences, *medians, *plan);
+  create_partial_plan{settings.MedianRatio}.operator()(*differences, *medians, *plan);
 
   size_t groups = estimate_convolutions{}.operator()(*plan, *output, *lengths);
 
-  auto convolutions = pool.acquire<thrust::device_vector<Convolution>>(groups);
-  create_convolutions{}.operator()(problem, tasks, *output, *lengths, *convolutions);
+  auto convolutions = settings.pool.acquire<thrust::device_vector<Convolution>>(groups);
+  create_convolutions{settings.ConvolutionRatio}.operator()(problem, tasks, static_cast<int>(begin),
+                                                            *output, *lengths, *convolutions);
 
   return std::move(convolutions);
 }

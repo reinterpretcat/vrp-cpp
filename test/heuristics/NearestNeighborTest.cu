@@ -2,15 +2,15 @@
 
 #include "config.hpp"
 
-#include "algorithms/Distances.cu"
-#include "heuristics/NearestNeighbor.hpp"
+#include "algorithms/distances/Cartesian.hpp"
+#include "algorithms/heuristics/NearestNeighbor.hpp"
 #include "streams/input/SolomonReader.hpp"
 
 #include "test_utils/SolomonBuilder.hpp"
 #include "test_utils/TaskUtils.hpp"
 
-using namespace vrp::algorithms;
-using namespace vrp::heuristics;
+using namespace vrp::algorithms::distances;
+using namespace vrp::algorithms::heuristics;
 using namespace vrp::models;
 using namespace vrp::streams;
 using namespace vrp::test;

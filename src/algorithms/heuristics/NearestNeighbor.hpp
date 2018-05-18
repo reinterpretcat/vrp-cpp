@@ -6,9 +6,10 @@
 #include "models/Transition.hpp"
 
 namespace vrp {
+namespace algorithms {
 namespace heuristics {
 
-/// Implements algorithm of cheapest insertion heuristic.
+/// Implements algorithm of nearest neighbor heuristic.
 struct nearest_neighbor final {
 
   const vrp::models::Problem::Shadow problem;
@@ -17,13 +18,14 @@ struct nearest_neighbor final {
   __host__ __device__
   nearest_neighbor(const vrp::models::Problem::Shadow problem,
                    vrp::models::Tasks::Shadow tasks) :
-    problem(problem), tasks(tasks) {}
+      problem(problem), tasks(tasks) {}
 
   /// Finds the "nearest" transition for given task and vehicle
   __host__ __device__
   vrp::models::TransitionCost operator()(int fromTask, int toTask, int vehicle);
 };
 
+}
 }
 }
 

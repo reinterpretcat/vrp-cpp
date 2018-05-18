@@ -1,25 +1,16 @@
-#ifndef VRP_ALGORITHMS_DISTANCES_HPP
-#define VRP_ALGORITHMS_DISTANCES_HPP
+#ifndef VRP_ALGORITHMS_DISTANCES_GEOGRAPHIC_HPP
+#define VRP_ALGORITHMS_DISTANCES_GEOGRAPHIC_HPP
 
 #include "models/Locations.hpp"
 
 #include <thrust/execution_policy.h>
 #include <thrust/tuple.h>
+
 #include <cmath>
 
 namespace vrp {
 namespace algorithms {
-
-/// Calculates cartesian distance between two points on plane in 2D.
-struct cartesian_distance final {
-  __host__ __device__
-  float operator()(const vrp::models::DeviceGeoCoord &left,
-                   const vrp::models::DeviceGeoCoord &right) {
-    auto x = thrust::get<0>(left) - thrust::get<0>(right);
-    auto y = thrust::get<1>(left) - thrust::get<1>(right);
-    return static_cast<float>(sqrt(x * x + y * y));
-  }
-};
+namespace distances {
 
 /// Calculates geo distance between two coordinates.
 template <unsigned int ScaleDown = static_cast<unsigned int>(1E8)>
@@ -70,8 +61,8 @@ struct geographic_distance final {
   }
 };
 
-
 }
 }
+}
 
-#endif //VRP_ALGORITHMS_DISTANCES_HPP
+#endif //VRP_ALGORITHMS_DISTANCES_GEOGRAPHIC_HPP

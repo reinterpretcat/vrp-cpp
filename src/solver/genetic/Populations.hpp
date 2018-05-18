@@ -1,8 +1,6 @@
 #ifndef VRP_SOLVER_GENETIC_POPULATIONS_HPP
 #define VRP_SOLVER_GENETIC_POPULATIONS_HPP
 
-#include "heuristics/NoTransition.cu"
-#include "heuristics/NearestNeighbor.hpp"
 #include "models/Problem.hpp"
 #include "models/Tasks.hpp"
 #include "solver/genetic/Settings.hpp"

@@ -21,6 +21,7 @@ class repeated_range final {
   struct repeat_functor : public thrust::unary_function<difference_type, difference_type> {
     int repeats;
 
+    __host__ __device__
     repeat_functor(difference_type repeats) : repeats(repeats) {}
 
     __host__ __device__
@@ -37,19 +38,22 @@ class repeated_range final {
   typedef PermutationIterator iterator;
 
   // construct repeated_range for the range [first,last)
-  repeated_range(Iterator first, Iterator last, int repeats)
+  __host__ __device__
+  repeated_range(Iterator first, Iterator last, size_t repeats)
       : first(first), last(last), repeats(repeats) {}
 
+  __host__ __device__
   iterator begin(void) const {
     return PermutationIterator(first, TransformIterator(CountingIterator(0), repeat_functor(repeats)));
   }
 
+  __host__ __device__
   iterator end(void) const {
     return begin() + repeats * (last - first);
   }
 
  protected:
-  int repeats;
+  size_t repeats;
   Iterator first;
   Iterator last;
 
@@ -64,6 +68,7 @@ class tiled_range final {
   struct tile_functor : public thrust::unary_function<difference_type, difference_type> {
     difference_type tile_size;
 
+    __host__ __device__
     tile_functor(difference_type tile_size) : tile_size(tile_size) {}
 
     __host__ __device__
@@ -80,13 +85,16 @@ class tiled_range final {
   typedef PermutationIterator iterator;
 
   // construct repeated_range for the range [first,last)
+  __host__ __device__
   tiled_range(Iterator first, Iterator last, size_t tiles)
       : first(first), last(last), tiles(tiles) {}
 
+  __host__ __device__
   iterator begin(void) const {
     return PermutationIterator(first, TransformIterator(CountingIterator(0), tile_functor(last - first)));
   }
 
+  __host__ __device__
   iterator end(void) const {
     return begin() + tiles * (last - first);
   }

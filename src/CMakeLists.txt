@@ -5,13 +5,22 @@ find_package(Thrust REQUIRED)
 set(LIBRARY_NAME Solver)
 
 set(HEADER_FILES
-        algorithms/Convolutions.hpp
-        algorithms/Costs.cu
-        algorithms/Distances.cu
-        algorithms/Transitions.cu
+        algorithms/convolutions/BestConvolutions.hpp
+        algorithms/convolutions/JointConvolutions.hpp
+        algorithms/convolutions/Models.hpp
 
-        heuristics/NearestNeighbor.hpp
-        heuristics/NoTransition.cu
+        algorithms/costs/Models.hpp
+        algorithms/costs/SolutionCosts.hpp
+        algorithms/costs/TransitionCosts.hpp
+
+        algorithms/distances/Cartesian.hpp
+        algorithms/distances/Geographic.hpp
+
+        algorithms/heuristics/Dummy.hpp
+        algorithms/heuristics/NearestNeighbor.hpp
+
+        algorithms/transitions/Factories.hpp
+        algorithms/transitions/Executors.hpp
 
         iterators/CartesianProduct.cu
 
@@ -40,9 +49,17 @@ set(HEADER_FILES
 set(SOURCE_FILES
         ../external/json/json11.cpp
 
-        algorithms/Convolutions.cu
+        algorithms/convolutions/BestConvolutions.cu
+        algorithms/convolutions/JointConvolutions.cu
 
-        heuristics/NearestNeighbor.cu
+        algorithms/costs/SolutionCosts.cu
+        algorithms/costs/TransitionCosts.cu
+
+        algorithms/heuristics/Dummy.cu
+        algorithms/heuristics/NearestNeighbor.cu
+
+        algorithms/transitions/Factories.cu
+        algorithms/transitions/Executors.cu
 
         solver/genetic/Populations.cu
         solver/genetic/crossovers/AdjustedCostDifference.cu

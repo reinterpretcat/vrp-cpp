@@ -1,5 +1,8 @@
-#include "algorithms/Costs.cu"
-#include "algorithms/Transitions.cu"
+#include "algorithms/costs/TransitionCosts.hpp"
+#include "algorithms/heuristics/Dummy.hpp"
+#include "algorithms/heuristics/NearestNeighbor.hpp"
+#include "algorithms/transitions/Executors.hpp"
+#include "algorithms/transitions/Factories.hpp"
 #include "models/Transition.hpp"
 #include "solver/genetic/Settings.hpp"
 #include "solver/genetic/Populations.hpp"
@@ -8,7 +11,8 @@
 #include <thrust/for_each.h>
 #include <thrust/iterator/counting_iterator.h>
 
-using namespace vrp::algorithms;
+using namespace vrp::algorithms::transitions;
+using namespace vrp::algorithms::costs;
 using namespace vrp::models;
 using namespace vrp::genetic;
 
@@ -151,8 +155,8 @@ Tasks create_population<Heuristic>::operator()(const Settings &settings) {
 }
 
 // NOTE explicit specialization to make linker happy.
-template class create_population<vrp::heuristics::no_transition>;
-template class create_population<vrp::heuristics::nearest_neighbor>;
+template class create_population<vrp::algorithms::heuristics::dummy>;
+template class create_population<vrp::algorithms::heuristics::nearest_neighbor>;
 
 }
 }

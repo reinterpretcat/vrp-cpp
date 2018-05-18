@@ -2,7 +2,7 @@
 
 #include "config.hpp"
 
-#include "algorithms/Distances.cu"
+#include "algorithms/distances/Cartesian.hpp"
 #include "models/Problem.hpp"
 #include "models/Resources.hpp"
 #include "streams/input/SolomonReader.hpp"
@@ -10,7 +10,7 @@
 #include "test_utils/SolomonBuilder.hpp"
 #include "test_utils/VectorUtils.hpp"
 
-using namespace vrp::algorithms;
+using namespace vrp::algorithms::distances;
 using namespace vrp::models;
 using namespace vrp::streams;
 using namespace vrp::test;

@@ -1,7 +1,7 @@
-#include "heuristics/NearestNeighbor.hpp"
+#include "NearestNeighbor.hpp"
 
-#include "algorithms/Transitions.cu"
-#include "algorithms/Costs.cu"
+#include "algorithms/transitions/Factories.hpp"
+#include "algorithms/costs/TransitionCosts.hpp"
 
 #include <thrust/reduce.h>
 #include <thrust/tuple.h>
@@ -9,7 +9,9 @@
 #include <thrust/iterator/iterator_adaptor.h>
 #include <thrust/iterator/zip_iterator.h>
 
-using namespace vrp::heuristics;
+using namespace vrp::algorithms::costs;
+using namespace vrp::algorithms::heuristics;
+using namespace vrp::algorithms::transitions;
 using namespace vrp::models;
 
 namespace {
@@ -20,13 +22,13 @@ TransitionCost createInvalid() {
 }
 
 /// Creates transition and calculates cost to given customer if it is not handled.
-struct create_transition {
+struct create_cost_transition {
   int fromTask;
   int toTask;
   int vehicle;
 
-  vrp::algorithms::create_transition transitionFactory;
-  vrp::algorithms::calculate_transition_cost costCalculator;
+  create_transition transitionFactory;
+  calculate_transition_cost costCalculator;
 
   __host__ __device__
   TransitionCost operator()(const thrust::tuple<int, bool> &customer) {
@@ -66,11 +68,11 @@ TransitionCost nearest_neighbor::operator()(int fromTask, int toTask, int vehicl
           thrust::make_counting_iterator(problem.size),
           tasks.plan + base + problem.size
       )),
-      create_transition {fromTask,
-                         toTask,
-                         vehicle,
-                         vrp::algorithms::create_transition {problem, tasks},
-                         vrp::algorithms::calculate_transition_cost {problem.resources}},
+      create_cost_transition {fromTask,
+                              toTask,
+                              vehicle,
+                              create_transition {problem, tasks},
+                              calculate_transition_cost {problem.resources}},
       createInvalid(),
       compare_transition_costs()
   );
