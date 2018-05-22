@@ -8,9 +8,7 @@
 namespace vrp {
 namespace test {
 
-inline
-void createDepotTask(const vrp::models::Problem &problem,
-                     vrp::models::Tasks &tasks) {
+inline void createDepotTask(const vrp::models::Problem& problem, vrp::models::Tasks& tasks) {
   const int vehicle = 0;
   const int depot = 0;
   const int task = 0;
@@ -23,7 +21,7 @@ void createDepotTask(const vrp::models::Problem &problem,
   tasks.plan[task] = true;
 }
 
-}
-}
+}  // namespace test
+}  // namespace vrp
 
-#endif //VRP_UTILS_TASKUTILS_HPP
+#endif  // VRP_UTILS_TASKUTILS_HPP

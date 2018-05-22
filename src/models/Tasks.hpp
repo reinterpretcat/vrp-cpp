@@ -1,8 +1,8 @@
 #ifndef VRP_MODEL_TASKS_HPP
 #define VRP_MODEL_TASKS_HPP
 
-#include <thrust/device_vector.h>
 #include <thrust/device_ptr.h>
+#include <thrust/device_vector.h>
 
 namespace vrp {
 namespace models {
@@ -26,8 +26,7 @@ struct Tasks final {
   explicit Tasks(int customers) : Tasks(customers, customers) {}
 
   explicit Tasks(int customers, int taskSize) :
-      customers(customers), ids(), costs(), times(),
-      capacities(),vehicles(), plan() {
+    customers(customers), ids(), costs(), times(), capacities(), vehicles(), plan() {
     resize(static_cast<std::size_t>(taskSize));
   }
 
@@ -53,14 +52,10 @@ struct Tasks final {
   thrust::device_vector<bool> plan;
 
   /// Returns size of tasks.
-  int size() const {
-    return static_cast<int>(ids.size());
-  }
+  int size() const { return static_cast<int>(ids.size()); }
 
   /// Returns size of population.
-  int population() const {
-    return size() / customers;
-  }
+  int population() const { return size() / customers; }
 
   /// Resizes tasks size.
   void resize(std::size_t size) {
@@ -74,17 +69,12 @@ struct Tasks final {
 
   /// Returns shadow object.
   Shadow getShadow() {
-    return {customers,
-            ids.data(),
-            costs.data(),
-            times.data(),
-            capacities.data(),
-            vehicles.data(),
-            plan.data()};
+    return {customers,         ids.data(),      costs.data(), times.data(),
+            capacities.data(), vehicles.data(), plan.data()};
   }
 };
 
-}
-}
+}  // namespace models
+}  // namespace vrp
 
-#endif //VRP_TASKS_HPP
+#endif  // VRP_TASKS_HPP

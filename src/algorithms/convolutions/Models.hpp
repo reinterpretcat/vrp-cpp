@@ -21,7 +21,7 @@ struct Settings final {
   int solution;
 
   /// Object pool
-  vrp::utils::Pool &pool;
+  vrp::utils::Pool& pool;
 };
 
 /// Represents a convolution joint pair.
@@ -35,8 +35,7 @@ struct JointPair final {
 };
 
 /// Represent convolution joint pair collection retrieved from pool.
-using JointPairs = std::unique_ptr<thrust::device_vector<JointPair>,
-                                   vrp::utils::Pool::Deleter>;
+using JointPairs = std::unique_ptr<thrust::device_vector<JointPair>, vrp::utils::Pool::Deleter>;
 
 /// Contains model shadows.
 struct Model final {
@@ -44,8 +43,8 @@ struct Model final {
   vrp::models::Tasks::Shadow tasks;
 };
 
-}
-}
-}
+}  // namespace convolutions
+}  // namespace algorithms
+}  // namespace vrp
 
-#endif //VRP_ALGORITHMS_CONVOLUTIONS_MODELS_HPP
+#endif  // VRP_ALGORITHMS_CONVOLUTIONS_MODELS_HPP

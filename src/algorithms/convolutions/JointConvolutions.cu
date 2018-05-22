@@ -3,8 +3,8 @@
 #include "utils/Memory.hpp"
 
 #include <thrust/execution_policy.h>
-#include <thrust/transform.h>
 #include <thrust/iterator/discard_iterator.h>
+#include <thrust/transform.h>
 
 using namespace vrp::algorithms::convolutions;
 using namespace vrp::models;
@@ -26,8 +26,8 @@ struct create_joint_pair final {
     }
   };
 
-  __host__ __device__
-  JointPair operator()(const Convolution &left, const Convolution &right) const {
+  __host__ __device__ JointPair operator()(const Convolution& left,
+                                           const Convolution& right) const {
     // NOTE task range is inclusive, so +1 is required
     auto leftSize = static_cast<size_t>(left.tasks.second - left.tasks.first + 1);
     auto rightSize = static_cast<size_t>(right.tasks.second - right.tasks.first + 1);
@@ -39,44 +39,39 @@ struct create_joint_pair final {
     vrp::iterators::repeated_range<Iterator> repeated(leftBegin, leftBegin + leftSize, rightSize);
     vrp::iterators::tiled_range<Iterator> tiled(rightBegin, rightBegin + rightSize, rightSize);
 
-    int *total = (int*) malloc(sizeof(int)); *total = 0;
+    int* total = (int*) malloc(sizeof(int));
+    *total = 0;
 
-    thrust::transform(
-        thrust::device,
-        repeated.begin(), repeated.end(),
-        tiled.begin(),
-        thrust::make_discard_iterator(),
-        count_equal_pairs { total }
-    );
+    thrust::transform(thrust::device, repeated.begin(), repeated.end(), tiled.begin(),
+                      thrust::make_discard_iterator(), count_equal_pairs{total});
 
-    auto rank = *total; free(total);
+    auto rank = *total;
+    free(total);
     auto served = leftSize + rightSize - rank;
     auto completeness = static_cast<float>(served) / model.tasks.customers;
 
-    return JointPair {rank, completeness, {left, right}};
+    return JointPair{rank, completeness, {left, right}};
   }
 };
-}
+}  // namespace
 
-JointPairs create_joint_convolutions::operator()(const Problem &problem, Tasks &tasks,
-                                                 const Settings &settings,
-                                                 const Convolutions &left, const Convolutions &right) const {
+JointPairs create_joint_convolutions::operator()(const Problem& problem,
+                                                 Tasks& tasks,
+                                                 const Settings& settings,
+                                                 const Convolutions& left,
+                                                 const Convolutions& right) const {
   typedef thrust::device_vector<Convolution>::const_iterator Iterator;
   repeated_range<Iterator> repeated(left->begin(), left->end(), right->size());
   tiled_range<Iterator> tiled(right->begin(), right->end(), right->size());
 
   // theoretical max convolution size in each group
   auto size = static_cast<int>(1 / settings.ConvolutionRatio);
-  auto pairs = settings.pool.acquire<thrust::device_vector<JointPair>>(static_cast<size_t>(size * size));
+  auto pairs =
+    settings.pool.acquire<thrust::device_vector<JointPair>>(static_cast<size_t>(size * size));
 
   // create all possible combinations from two group
-  thrust::transform(
-      thrust::device,
-      repeated.begin(), repeated.end(),
-      tiled.begin(),
-      pairs->begin(),
-      create_joint_pair { {problem.getShadow(), tasks.getShadow() } }
-  );
+  thrust::transform(thrust::device, repeated.begin(), repeated.end(), tiled.begin(), pairs->begin(),
+                    create_joint_pair{{problem.getShadow(), tasks.getShadow()}});
 
   return pairs;
 }

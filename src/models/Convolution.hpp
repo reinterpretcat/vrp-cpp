@@ -4,8 +4,8 @@
 #include "models/Tasks.hpp"
 #include "utils/Pool.hpp"
 
-#include <thrust/pair.h>
 #include <thrust/device_vector.h>
+#include <thrust/pair.h>
 
 namespace vrp {
 namespace models {
@@ -19,17 +19,17 @@ struct Convolution final {
   /// Total service time needed to serve all customers in group.
   int service;
   /// First and last customer in group.
-  thrust::pair<int,int> customers;
+  thrust::pair<int, int> customers;
   /// Time window of group.
-  thrust::pair<int,int> times;
+  thrust::pair<int, int> times;
   /// Task range.
-  thrust::pair<int,int> tasks;
+  thrust::pair<int, int> tasks;
 };
 
 /// Represent convolution collection retrieved from pool.
-using Convolutions = std::unique_ptr<thrust::device_vector<vrp::models::Convolution>,
-                                     vrp::utils::Pool::Deleter>;
-}
-}
+using Convolutions =
+  std::unique_ptr<thrust::device_vector<vrp::models::Convolution>, vrp::utils::Pool::Deleter>;
+}  // namespace models
+}  // namespace vrp
 
-#endif //VRP_MODELS_CONVOLUTION_HPP
+#endif  // VRP_MODELS_CONVOLUTION_HPP

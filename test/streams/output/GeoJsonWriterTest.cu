@@ -1,9 +1,7 @@
-#include <catch/catch.hpp>
-
-#include <json/json11.hpp>
-
 #include "streams/output/GeoJsonWriter.hpp"
 
+#include <catch/catch.hpp>
+#include <json/json11.hpp>
 #include <sstream>
 #include <thrust/fill.h>
 #include <thrust/sequence.h>
@@ -25,9 +23,7 @@ SCENARIO("Can write solution as geojson.", "[streams][geojson]") {
   GeoJsonWriter writer;
   std::stringstream ss;
 
-  writer.write(ss, createSolution(), [](int customer) {
-    return std::make_pair(customer, 0);
-  });
+  writer.write(ss, createSolution(), [](int customer) { return std::make_pair(customer, 0); });
 
   std::string err;
   auto json = json11::Json::parse(ss.str(), err, json11::JsonParse::STANDARD);

@@ -10,16 +10,15 @@ namespace convolutions {
 /// Provides the way to create joint pairs of convolutions with
 /// additional characteristics.
 struct create_joint_convolutions final {
-
-  JointPairs operator()(const vrp::models::Problem &problem,
-                        vrp::models::Tasks &tasks,
-                        const Settings &settings,
-                        const vrp::models::Convolutions &left,
-                        const vrp::models::Convolutions &right) const;
+  JointPairs operator()(const vrp::models::Problem& problem,
+                        vrp::models::Tasks& tasks,
+                        const Settings& settings,
+                        const vrp::models::Convolutions& left,
+                        const vrp::models::Convolutions& right) const;
 };
 
-}
-}
-}
+}  // namespace convolutions
+}  // namespace algorithms
+}  // namespace vrp
 
-#endif //VRP_ALGORITHMS_CONVOLUTIONS_JOINTCONVOLUTIONS_HPP
+#endif  // VRP_ALGORITHMS_CONVOLUTIONS_JOINTCONVOLUTIONS_HPP

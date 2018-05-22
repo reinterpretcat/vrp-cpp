@@ -13,21 +13,21 @@ namespace transitions {
 
 /// Creates transition between customers.
 struct create_transition final {
-  __host__ __device__
-  explicit create_transition(const vrp::models::Problem::Shadow &problem,
-                             const vrp::models::Tasks::Shadow tasks) :
-      problem(problem), tasks(tasks) {}
+  __host__ __device__ explicit create_transition(const vrp::models::Problem::Shadow& problem,
+                                                 const vrp::models::Tasks::Shadow tasks) :
+    problem(problem),
+    tasks(tasks) {}
 
-  __host__ __device__
-  vrp::models::Transition operator()(const vrp::models::Transition::Details &details) const;
+  __host__ __device__ vrp::models::Transition operator()(
+    const vrp::models::Transition::Details& details) const;
 
- private:
+private:
   const vrp::models::Problem::Shadow problem;
   const vrp::models::Tasks::Shadow tasks;
 };
 
-}
-}
-}
+}  // namespace transitions
+}  // namespace algorithms
+}  // namespace vrp
 
-#endif //VRP_ALGORITHMS_TRANSITIONS_FACTORIES_HPP
+#endif  // VRP_ALGORITHMS_TRANSITIONS_FACTORIES_HPP

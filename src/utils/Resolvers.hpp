@@ -5,17 +5,16 @@
 
 #include <algorithm>
 #include <fstream>
-#include <vector>
 #include <utility>
+#include <vector>
 
 namespace vrp {
 namespace utils {
 
 /// Resolves locations as geo coordinates.
-template <typename Mapper>
+template<typename Mapper>
 struct location_resolver final {
-  explicit location_resolver(std::fstream &in,
-                             const Mapper &mapper) : mapper(mapper) {
+  explicit location_resolver(std::fstream& in, const Mapper& mapper) : mapper(mapper) {
     initLocations(in);
     intBoundingBox = getBoundingBox();
   }
@@ -24,8 +23,8 @@ struct location_resolver final {
     return mapper(intBoundingBox, locations.at(static_cast<unsigned long>(customer)));
   }
 
- private:
-  void initLocations(std::fstream &in) {
+private:
+  void initLocations(std::fstream& in) {
     in.clear();
     in.seekg(0, std::ios::beg);
 
@@ -41,28 +40,27 @@ struct location_resolver final {
   }
 
   vrp::models::HostIntBox getBoundingBox() const {
-    auto minMaxX = std::minmax_element(locations.begin(), locations.end(),
-                                       [](const vrp::models::HostIntCoord &left,
-                                          const vrp::models::HostIntCoord &right) {
-                                         return left.first < right.first;
-                                       });
-    auto minMaxY = std::minmax_element(locations.begin(), locations.end(),
-                                       [](const vrp::models::HostIntCoord &left,
-                                          const vrp::models::HostIntCoord &right) {
-                                         return left.second < right.second;
-                                       });
+    auto minMaxX = std::minmax_element(
+      locations.begin(), locations.end(),
+      [](const vrp::models::HostIntCoord& left, const vrp::models::HostIntCoord& right) {
+        return left.first < right.first;
+      });
+    auto minMaxY = std::minmax_element(
+      locations.begin(), locations.end(),
+      [](const vrp::models::HostIntCoord& left, const vrp::models::HostIntCoord& right) {
+        return left.second < right.second;
+      });
 
-    return std::make_pair(
-        vrp::models::HostIntCoord {minMaxX.first->first, minMaxY.first->second },
-        vrp::models::HostIntCoord {minMaxX.second->first, minMaxY.second->second });
+    return std::make_pair(vrp::models::HostIntCoord{minMaxX.first->first, minMaxY.first->second},
+                          vrp::models::HostIntCoord{minMaxX.second->first, minMaxY.second->second});
   };
 
-  const Mapper &mapper;
+  const Mapper& mapper;
   std::vector<vrp::models::HostIntCoord> locations;
   vrp::models::HostIntBox intBoundingBox;
 };
 
-}
-}
+}  // namespace utils
+}  // namespace vrp
 
-#endif //VRP_UTILS_RESOLVERS_HPP
+#endif  // VRP_UTILS_RESOLVERS_HPP

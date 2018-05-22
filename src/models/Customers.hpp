@@ -1,8 +1,8 @@
 #ifndef VRP_MODELS_CUSTOMERS_HPP
 #define VRP_MODELS_CUSTOMERS_HPP
 
-#include <thrust/device_vector.h>
 #include <thrust/device_ptr.h>
+#include <thrust/device_vector.h>
 
 namespace vrp {
 namespace models {
@@ -38,15 +38,10 @@ struct Customers final {
   }
 
   /// Returns shadow object.
-  Shadow getShadow() const {
-    return {demands.data(),
-            services.data(),
-            starts.data(),
-            ends.data()};
-  }
+  Shadow getShadow() const { return {demands.data(), services.data(), starts.data(), ends.data()}; }
 };
 
-}
-}
+}  // namespace models
+}  // namespace vrp
 
-#endif //VRP_MODELS_CUSTOMERS_HPP
+#endif  // VRP_MODELS_CUSTOMERS_HPP

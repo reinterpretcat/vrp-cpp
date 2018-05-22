@@ -8,7 +8,6 @@ namespace models {
 
 /// Represents transition from task to a customer.
 struct Transition {
-
   /// Details about transition.
   struct Details {
     /// Task from which transition should happen.
@@ -35,10 +34,7 @@ struct Transition {
     int demand;
 
     /// Returns total delta's duration.
-    __host__ __device__
-    int duration() const {
-      return traveling + serving + waiting;
-    }
+    __host__ __device__ int duration() const { return traveling + serving + waiting; }
   };
 
   /// Details about transition.
@@ -46,30 +42,23 @@ struct Transition {
   /// Delta change of transition.
   Delta delta;
 
-  __host__ __device__
-  Transition() : Transition({ -1, -1} , {-1, -1, -1, -1, -1 }) {}
+  __host__ __device__ Transition() : Transition({-1, -1}, {-1, -1, -1, -1, -1}) {}
 
-  __host__ __device__
-  Transition(const Details &details, const Delta &delta) :
+  __host__ __device__ Transition(const Details& details, const Delta& delta) :
     details(details), delta(delta) {}
 
-  __host__ __device__
-  Transition(const Transition&) = default;
+  __host__ __device__ Transition(const Transition&) = default;
 
-  __host__ __device__
-  Transition& operator=(const Transition&) = default;
+  __host__ __device__ Transition& operator=(const Transition&) = default;
 
   /// Flag whether transition is valid.
-  __host__ __device__
-  bool isValid() const {
-    return details.customer > 0;
-  }
+  __host__ __device__ bool isValid() const { return details.customer > 0; }
 };
 
 /// Stores transition and its cost.
 using TransitionCost = thrust::tuple<vrp::models::Transition, float>;
 
-}
-}
+}  // namespace models
+}  // namespace vrp
 
-#endif //VRP_MODELS_TRANSITION_HPP
+#endif  // VRP_MODELS_TRANSITION_HPP

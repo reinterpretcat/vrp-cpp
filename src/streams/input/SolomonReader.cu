@@ -1,16 +1,15 @@
-#include "streams/input/SolomonReader.hpp"
-#include "models/Resources.hpp"
 #include "iterators/CartesianProduct.cu"
+#include "models/Resources.hpp"
+#include "streams/input/SolomonReader.hpp"
 
-#include <thrust/fill.h>
+#include <istream>
+#include <sstream>
 #include <thrust/execution_policy.h>
+#include <thrust/fill.h>
 #include <thrust/host_vector.h>
 #include <thrust/iterator/zip_iterator.h>
 #include <thrust/transform.h>
 #include <thrust/tuple.h>
-
-#include <istream>
-#include <sstream>
 
 using namespace vrp::models;
 using namespace vrp::streams;
@@ -25,13 +24,13 @@ using VehicleType = thrust::tuple<int, int>;
 using DistanceCalculator = SolomonReader::DistanceCalculator;
 
 /// Skips selected amount of lines from stream.
-void skipLines(std::istream &input, int count) {
+void skipLines(std::istream& input, int count) {
   for (int i = 0; i < count; ++i)
     input.ignore(std::numeric_limits<std::streamsize>::max(), input.widen('\n'));
 }
 
 /// Read resources from stream.
-void readResources(std::istream &input, Resources &resources) {
+void readResources(std::istream& input, Resources& resources) {
   VehicleType type;
 
   std::string line;
@@ -53,18 +52,16 @@ void readResources(std::istream &input, Resources &resources) {
 
 
 /// Read customer data from stream.
-thrust::host_vector<CustomerData> readCustomerData(std::istream &input) {
+thrust::host_vector<CustomerData> readCustomerData(std::istream& input) {
   thrust::host_vector<CustomerData> data;
   CustomerData customer;
   while (input) {
-    input >> thrust::get<0>(customer) >> thrust::get<1>(customer)
-          >> thrust::get<2>(customer) >> thrust::get<3>(customer)
-          >> thrust::get<4>(customer) >> thrust::get<5>(customer)
-          >> thrust::get<6>(customer);
+    input >> thrust::get<0>(customer) >> thrust::get<1>(customer) >> thrust::get<2>(customer) >>
+      thrust::get<3>(customer) >> thrust::get<4>(customer) >> thrust::get<5>(customer) >>
+      thrust::get<6>(customer);
 
     // skip last newlines
-    if (!data.empty() && thrust::get<0>(customer) == thrust::get<0>(data[data.size() - 1]))
-      break;
+    if (!data.empty() && thrust::get<0>(customer) == thrust::get<0>(data[data.size() - 1])) break;
 
     data.push_back(customer);
   }
@@ -72,20 +69,19 @@ thrust::host_vector<CustomerData> readCustomerData(std::istream &input) {
 }
 
 /// Sets customers on GPU.
-void setCustomers(const thrust::host_vector<CustomerData> &data, Customers &customers) {
+void setCustomers(const thrust::host_vector<CustomerData>& data, Customers& customers) {
   customers.reserve(data.size());
-  thrust::for_each(data.begin(), data.end(),
-                   [&](const CustomerData &customer) {
-                     customers.demands.push_back(thrust::get<3>(customer));
-                     customers.starts.push_back(thrust::get<4>(customer));
-                     customers.ends.push_back(thrust::get<5>(customer));
-                     customers.services.push_back(thrust::get<6>(customer));
-                   });
+  thrust::for_each(data.begin(), data.end(), [&](const CustomerData& customer) {
+    customers.demands.push_back(thrust::get<3>(customer));
+    customers.starts.push_back(thrust::get<4>(customer));
+    customers.ends.push_back(thrust::get<5>(customer));
+    customers.services.push_back(thrust::get<6>(customer));
+  });
 }
 
 /// Creates distance matrix.
-void setDistances(const thrust::host_vector<CustomerData> &data,
-                  thrust::device_vector<float> &distances,
+void setDistances(const thrust::host_vector<CustomerData>& data,
+                  thrust::device_vector<float>& distances,
                   const DistanceCalculator& calculator) {
   // TODO move calculations on GPU
   typedef thrust::host_vector<CustomerData>::const_iterator Iterator;
@@ -94,30 +90,28 @@ void setDistances(const thrust::host_vector<CustomerData> &data,
 
   thrust::host_vector<float> hostDist(data.size() * data.size());
 
-  thrust::transform(repeated.begin(), repeated.end(),
-                    tiled.begin(),
-                    hostDist.begin(),
-                    [&](const CustomerData &left, const CustomerData &right) {
-                      return thrust::get<0>(left) == thrust::get<0>(right)
-                             ? 0
-                             : calculator(thrust::make_tuple(thrust::get<1>(left), thrust::get<2>(left)),
-                                          thrust::make_tuple(thrust::get<1>(right), thrust::get<2>(right)));
-                    });
+  thrust::transform(
+    repeated.begin(), repeated.end(), tiled.begin(), hostDist.begin(),
+    [&](const CustomerData& left, const CustomerData& right) {
+      return thrust::get<0>(left) == thrust::get<0>(right)
+               ? 0
+               : calculator(thrust::make_tuple(thrust::get<1>(left), thrust::get<2>(left)),
+                            thrust::make_tuple(thrust::get<1>(right), thrust::get<2>(right)));
+    });
 
   distances = hostDist;
 }
 
 /// Creates durations matrix.
-void setDurations(const thrust::host_vector<CustomerData> &data,
-                  const thrust::device_vector<float> &distances,
-                  thrust::device_vector<int> &durations) {
+void setDurations(const thrust::host_vector<CustomerData>& data,
+                  const thrust::device_vector<float>& distances,
+                  thrust::device_vector<int>& durations) {
   durations.resize(data.size() * data.size(), 0);
-  thrust::transform(distances.begin(), distances.end(),
-                    durations.begin(),
+  thrust::transform(distances.begin(), distances.end(), durations.begin(),
                     thrust::placeholders::_1);
 }
 
-void readProblem(std::istream &input, Problem &problem, const DistanceCalculator& calculator) {
+void readProblem(std::istream& input, Problem& problem, const DistanceCalculator& calculator) {
   auto data = readCustomerData(input);
 
   setCustomers(data, problem.customers);
@@ -125,12 +119,12 @@ void readProblem(std::istream &input, Problem &problem, const DistanceCalculator
   setDurations(data, problem.routing.distances, problem.routing.durations);
 }
 
-}
+}  // namespace
 
 namespace vrp {
 namespace streams {
 
-Problem SolomonReader::read(std::istream &input, const DistanceCalculator& calculator) {
+Problem SolomonReader::read(std::istream& input, const DistanceCalculator& calculator) {
   Problem problem;
 
   skipLines(input, 4);
@@ -144,6 +138,5 @@ Problem SolomonReader::read(std::istream &input, const DistanceCalculator& calcu
   return std::move(problem);
 }
 
-}
-}
-
+}  // namespace streams
+}  // namespace vrp

@@ -10,17 +10,16 @@ namespace genetic {
 
 /// Creates initial population based on problem definition
 /// and settings using fast heuristic provided.
-template <typename Heuristic>
+template<typename Heuristic>
 struct create_population final {
-  const vrp::models::Problem &problem;
+  const vrp::models::Problem& problem;
 
-  explicit create_population(const vrp::models::Problem &problem) :
-      problem(problem) {}
+  explicit create_population(const vrp::models::Problem& problem) : problem(problem) {}
 
-  vrp::models::Tasks operator()(const vrp::genetic::Settings &settings);
+  vrp::models::Tasks operator()(const vrp::genetic::Settings& settings);
 };
 
-}
-}
+}  // namespace genetic
+}  // namespace vrp
 
-#endif //VRP_SOLVER_GENETIC_POPULATIONS_HPP
+#endif  // VRP_SOLVER_GENETIC_POPULATIONS_HPP

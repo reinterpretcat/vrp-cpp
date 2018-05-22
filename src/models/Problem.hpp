@@ -5,8 +5,8 @@
 #include "models/Resources.hpp"
 #include "models/RoutingMatrix.hpp"
 
-#include <thrust/device_vector.h>
 #include <thrust/device_ptr.h>
+#include <thrust/device_vector.h>
 
 namespace vrp {
 namespace models {
@@ -31,20 +31,15 @@ struct Problem final {
   RoutingMatrix routing;
 
   /// Returns problem size.
-  int size() const {
-    return static_cast<int>(customers.demands.size());
-  }
+  int size() const { return static_cast<int>(customers.demands.size()); }
 
   /// Returns shadow object.
   Shadow getShadow() const {
-    return {size(),
-            customers.getShadow(),
-            resources.getShadow(),
-            routing.getShadow()};
+    return {size(), customers.getShadow(), resources.getShadow(), routing.getShadow()};
   }
 };
 
-}
-}
+}  // namespace models
+}  // namespace vrp
 
-#endif //VRP_MODELS_PROBLEM_HPP
+#endif  // VRP_MODELS_PROBLEM_HPP

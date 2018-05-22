@@ -15,8 +15,8 @@ struct Model final {
   vrp::models::Tasks::Shadow tasks;
 };
 
-}
-}
-}
+}  // namespace costs
+}  // namespace algorithms
+}  // namespace vrp
 
-#endif //VRP_ALGORITHMS_COSTS_MODELS_HPP
+#endif  // VRP_ALGORITHMS_COSTS_MODELS_HPP

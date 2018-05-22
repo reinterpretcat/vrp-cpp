@@ -10,14 +10,13 @@ namespace costs {
 
 /// Calculates total cost of solution.
 struct calculate_total_cost final {
-  __host__
-  float operator()(const vrp::models::Problem &problem,
-                   vrp::models::Tasks &tasks,
-                   int solution = 0) const;
+  __host__ float operator()(const vrp::models::Problem& problem,
+                            vrp::models::Tasks& tasks,
+                            int solution = 0) const;
 };
 
-}
-}
-}
+}  // namespace costs
+}  // namespace algorithms
+}  // namespace vrp
 
-#endif //VRP_ALGORITHMS_COSTS_SOLUTIONCOSTS_HPP
+#endif  // VRP_ALGORITHMS_COSTS_SOLUTIONCOSTS_HPP

@@ -1,8 +1,8 @@
 #ifndef VRP_MODELS_ROUTINGMATRIX_HPP
 #define VRP_MODELS_ROUTINGMATRIX_HPP
 
-#include <thrust/device_vector.h>
 #include <thrust/device_ptr.h>
+#include <thrust/device_vector.h>
 
 namespace vrp {
 namespace models {
@@ -28,12 +28,10 @@ struct RoutingMatrix final {
   }
 
   /// Returns shadow object.
-  Shadow getShadow() const {
-    return { distances.data(), durations.data() };
-  }
+  Shadow getShadow() const { return {distances.data(), durations.data()}; }
 };
 
-}
-}
+}  // namespace models
+}  // namespace vrp
 
-#endif //VRP_MODELS_ROUTINGMATRIX_HPP
+#endif  // VRP_MODELS_ROUTINGMATRIX_HPP

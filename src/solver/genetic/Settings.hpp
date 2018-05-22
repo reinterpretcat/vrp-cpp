@@ -10,7 +10,7 @@ struct Settings final {
   int populationSize;
 };
 
-}
-}
+}  // namespace genetic
+}  // namespace vrp
 
-#endif //VRP_GENETIC_SETTINGS_HPP
+#endif  // VRP_GENETIC_SETTINGS_HPP
