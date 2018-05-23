@@ -22,6 +22,7 @@ set(HEADER_FILES
         algorithms/transitions/Factories.hpp
         algorithms/transitions/Executors.hpp
 
+        iterators/Aggregates.hpp
         iterators/CartesianProduct.cu
 
         models/Convolution.hpp

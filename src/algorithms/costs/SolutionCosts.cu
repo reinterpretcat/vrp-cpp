@@ -3,14 +3,15 @@
 #include "algorithms/costs/TransitionCosts.hpp"
 #include "algorithms/transitions/Executors.hpp"
 #include "algorithms/transitions/Factories.hpp"
+#include "iterators/Aggregates.hpp"
 #include "utils/Memory.hpp"
 
 #include <thrust/iterator/discard_iterator.h>
-#include <thrust/iterator/transform_output_iterator.h>
 #include <thrust/unique.h>
 
 using namespace vrp::algorithms::transitions;
 using namespace vrp::algorithms::costs;
+using namespace vrp::iterators;
 using namespace vrp::models;
 
 namespace {
@@ -58,8 +59,7 @@ __host__ float calculate_total_cost::operator()(const vrp::models::Problem& prob
                                                  tasks.vehicles.rbegin() + rbegin,
                                                  tasks.costs.rbegin() + rbegin)),
     thrust::make_discard_iterator(),
-    thrust::make_transform_output_iterator(
-      thrust::make_discard_iterator(),
+    make_aggregate_output_iterator(
       aggregate_cost{model.get(), tasks.customers - 1, end - tasks.customers}));
 
   return vrp::utils::release(model).total;
