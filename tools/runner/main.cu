@@ -1,5 +1,6 @@
-#include "algorithms/Distances.cu"
-#include "heuristics/NearestNeighbor.hpp"
+#include "algorithms/distances/Cartesian.hpp"
+#include "algorithms/distances/Geographic.hpp"
+#include "algorithms/heuristics/NearestNeighbor.hpp"
 #include "models/Locations.hpp"
 #include "models/Problem.hpp"
 #include "models/Tasks.hpp"
@@ -13,8 +14,8 @@
 #include <ostream>
 #include <thrust/host_vector.h>
 
-using namespace vrp::algorithms;
-using namespace vrp::heuristics;
+using namespace vrp::algorithms::distances;
+using namespace vrp::algorithms::heuristics;
 using namespace vrp::genetic;
 using namespace vrp::models;
 using namespace vrp::streams;

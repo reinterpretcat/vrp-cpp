@@ -21,7 +21,7 @@ thrust::device_vector<T> create(const std::initializer_list<T>& list) {
 
 Convolutions map(const std::vector<Convolution> convolutions, Pool& pool) {
   auto data = pool.acquire<thrust::device_vector<Convolution>>(convolutions.size());
-  thrust::copy(thrust::device, convolutions.begin(), convolutions.end(), data->begin());
+  thrust::copy(convolutions.begin(), convolutions.end(), data->begin());
   return data;
 }
 
