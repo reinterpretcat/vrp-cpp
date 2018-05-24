@@ -22,7 +22,7 @@ struct aggregate_cost final {
   int baseTask;
 
   template<class Tuple>
-  __device__ float operator()(const Tuple& tuple) {
+  __device__ void operator()(const Tuple& tuple) {
     const int task = lastCustomer - thrust::get<0>(tuple);
     const int vehicle = thrust::get<1>(tuple);
     const int depot = 0;
@@ -36,8 +36,6 @@ struct aggregate_cost final {
     // NOTE to use atomicAdd, variable has to be allocated in device memory,
     // not in registers
     atomicAdd(&model->total, routeCost);
-
-    return routeCost;
   }
 };
 
@@ -52,15 +50,15 @@ __host__ float calculate_total_cost::operator()(const vrp::models::Problem& prob
   int rend = rbegin + tasks.customers;
 
   auto model = vrp::utils::allocate<Model>({0, problem.getShadow(), tasks.getShadow()});
+  auto iterator = thrust::make_zip_iterator(thrust::make_tuple(thrust::make_counting_iterator(0),
+                                                               tasks.vehicles.rbegin() + rbegin,
+                                                               tasks.costs.rbegin() + rbegin));
 
   thrust::unique_by_key_copy(
-    thrust::device, tasks.vehicles.rbegin() + rbegin, tasks.vehicles.rbegin() + rend,
-    thrust::make_zip_iterator(thrust::make_tuple(thrust::make_counting_iterator(0),
-                                                 tasks.vehicles.rbegin() + rbegin,
-                                                 tasks.costs.rbegin() + rbegin)),
+    thrust::device, tasks.vehicles.rbegin() + rbegin, tasks.vehicles.rbegin() + rend, iterator,
     thrust::make_discard_iterator(),
     make_aggregate_output_iterator(
-      aggregate_cost{model.get(), tasks.customers - 1, end - tasks.customers}));
+      iterator, aggregate_cost{model.get(), tasks.customers - 1, end - tasks.customers}));
 
   return vrp::utils::release(model).total;
 }

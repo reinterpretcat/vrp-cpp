@@ -13,16 +13,14 @@ namespace vrp {
 namespace utils {
 
 /// Implements object pool for arbitrary types.
-class Pool final
-{
+class Pool final {
 public:
   /// Specifies signature of unique_ptr deleter function.
   using Deleter = std::function<void(void*)>;
 
   /// Implements object pool for specific type.
   template<class T>
-  class TypedPool
-  {
+  class TypedPool {
   public:
     using ptr_type = std::unique_ptr<T, Deleter>;
 

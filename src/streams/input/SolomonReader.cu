@@ -1,4 +1,4 @@
-#include "iterators/CartesianProduct.cu"
+#include "iterators/CartesianProduct.hpp"
 #include "models/Resources.hpp"
 #include "streams/input/SolomonReader.hpp"
 

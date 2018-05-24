@@ -23,9 +23,16 @@ The main idea is to use genetic algorithm variation with original crossover oper
 In development. Not ready for use.
 
 
+# Docker
+
+You need to install nvidia docker runtime. See details here: https://github.com/nvidia/nvidia-docker/wiki
+Use the following command to launch container without docker-compose:
+
+        docker run -it --runtime=nvidia -v $(pwd):/repo --rm vrp_solver
+
+
 # Remarks
 
-* tested with cuda compilation tools, release 9.1, V9.1.85 and thrust 1.8.3
 * depot time window is not less than vehicles operating time limit.
 * no unfeasable customers while building initial solution.
 

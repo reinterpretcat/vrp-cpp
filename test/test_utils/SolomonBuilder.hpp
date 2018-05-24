@@ -12,8 +12,7 @@ namespace vrp {
 namespace test {
 
 /// Provides the way to build solomon input stream programmatically.
-class SolomonBuilder final
-{
+class SolomonBuilder final {
 public:
   /// Customer data.
   struct Customer {

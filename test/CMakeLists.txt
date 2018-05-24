@@ -13,12 +13,12 @@ add_executable(${LIBRARY_TEST}
         main.cpp
         EnvironmentTest.cu
 
-        algorithms/ConvolutionsTest.cu
-        algorithms/CostsTest.cu
+        algorithms/convolutions/ConvolutionsTest.cu
+        algorithms/costs/CostsTest.cu
         heuristics/NearestNeighborTest.cu
         streams/input/SolomonReaderTest.cu
         streams/output/GeoJsonWriterTest.cu
-        solver/genetic/PopulationFactoryTest.cu
+        algorithms/genetic/PopulationFactoryTest.cu
 
         test_utils/PopulationFactory.hpp
         test_utils/SolomonBuilder.hpp

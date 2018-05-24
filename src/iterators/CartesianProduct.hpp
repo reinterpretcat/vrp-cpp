@@ -1,5 +1,5 @@
-#ifndef VRP_ITERATORS_CARTESIANPRODUCTITERATOR_CU
-#define VRP_ITERATORS_CARTESIANPRODUCTITERATOR_CU
+#ifndef VRP_ITERATORS_CARTESIANPRODUCTITERATOR_HPP
+#define VRP_ITERATORS_CARTESIANPRODUCTITERATOR_HPP
 
 #include <thrust/device_vector.h>
 #include <thrust/fill.h>
@@ -12,8 +12,7 @@ namespace vrp {
 namespace iterators {
 
 template<typename Iterator>
-class repeated_range final
-{
+class repeated_range final {
 public:
   typedef typename thrust::iterator_difference<Iterator>::type difference_type;
 
@@ -52,8 +51,7 @@ protected:
 };
 
 template<typename Iterator>
-class tiled_range final
-{
+class tiled_range final {
 public:
   typedef typename thrust::iterator_difference<Iterator>::type difference_type;
 
@@ -94,4 +92,4 @@ protected:
 }  // namespace iterators
 }  // namespace vrp
 
-#endif  // VRP_ITERATORS_CARTESIANPRODUCTITERATOR_CU
+#endif  // VRP_ITERATORS_CARTESIANPRODUCTITERATOR_HPP

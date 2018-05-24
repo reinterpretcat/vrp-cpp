@@ -5,36 +5,37 @@
 #include <thrust/iterator/iterator_adaptor.h>
 
 namespace vrp {
-
 namespace iterators {
-template<typename UnaryFunction>
+
+template<typename OutputIterator, typename UnaryFunction>
 class aggregate_output_iterator;
 }
 
 namespace detail {
 
 template<typename UnaryFunction>
-class aggregate_output_iterator_proxy
-{
+class aggregate_output_iterator_proxy {
   UnaryFunction& fun;
 
 public:
-  __host__ __device__ aggregate_output_iterator_proxy(UnaryFunction& fun) : fun(fun) {}
+  __host__ __device__ aggregate_output_iterator_proxy(UnaryFunction fun) : fun(fun) {}
 
   template<typename T>
   __host__ __device__ aggregate_output_iterator_proxy operator=(const T& x) const {
+    fun(x);
     return *this;
   }
 };
 
-template<typename UnaryFunction>
+template<typename UnaryFunction, typename OutputIterator>
 struct aggregate_output_iterator_base {
-  typedef thrust::iterator_adaptor<vrp::iterators::aggregate_output_iterator<UnaryFunction>,
-                                   thrust::detail::discard_iterator_base<thrust::use_default>::type,
-                                   thrust::use_default,
-                                   thrust::use_default,
-                                   thrust::use_default,
-                                   aggregate_output_iterator_proxy<const UnaryFunction>>
+  typedef thrust::iterator_adaptor<
+    vrp::iterators::aggregate_output_iterator<UnaryFunction, OutputIterator>,
+    OutputIterator,
+    thrust::use_default,
+    thrust::use_default,
+    thrust::use_default,
+    aggregate_output_iterator_proxy<UnaryFunction>>
     type;
 };
 

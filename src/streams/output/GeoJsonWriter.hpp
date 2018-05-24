@@ -10,8 +10,7 @@ namespace vrp {
 namespace streams {
 
 /// Writes solution into output stream  in geojson format.
-class GeoJsonWriter final
-{
+class GeoJsonWriter final {
 public:
   /// Defines resolver func type.
   using LocationResolver = std::function<vrp::models::HostGeoCoord(int)>;

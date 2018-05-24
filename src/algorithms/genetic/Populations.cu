@@ -1,20 +1,20 @@
+#include "Populations.hpp"
+#include "Settings.hpp"
 #include "algorithms/costs/TransitionCosts.hpp"
 #include "algorithms/heuristics/Dummy.hpp"
 #include "algorithms/heuristics/NearestNeighbor.hpp"
 #include "algorithms/transitions/Executors.hpp"
 #include "algorithms/transitions/Factories.hpp"
 #include "models/Transition.hpp"
-#include "solver/genetic/Populations.hpp"
-#include "solver/genetic/Settings.hpp"
 
 #include <thrust/execution_policy.h>
 #include <thrust/for_each.h>
 #include <thrust/iterator/counting_iterator.h>
 
-using namespace vrp::algorithms::transitions;
 using namespace vrp::algorithms::costs;
+using namespace vrp::algorithms::genetic;
+using namespace vrp::algorithms::transitions;
 using namespace vrp::models;
-using namespace vrp::genetic;
 
 namespace {
 
@@ -120,6 +120,7 @@ private:
 }  // namespace
 
 namespace vrp {
+namespace algorithms {
 namespace genetic {
 
 template<typename Heuristic>
@@ -148,4 +149,5 @@ template class create_population<vrp::algorithms::heuristics::dummy>;
 template class create_population<vrp::algorithms::heuristics::nearest_neighbor>;
 
 }  // namespace genetic
+}  // namespace algorithms
 }  // namespace vrp

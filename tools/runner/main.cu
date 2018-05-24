@@ -1,11 +1,11 @@
 #include "algorithms/distances/Cartesian.hpp"
 #include "algorithms/distances/Geographic.hpp"
+#include "algorithms/genetic/Populations.hpp"
+#include "algorithms/genetic/crossovers/AdjustedCostDifference.hpp"
 #include "algorithms/heuristics/NearestNeighbor.hpp"
 #include "models/Locations.hpp"
 #include "models/Problem.hpp"
 #include "models/Tasks.hpp"
-#include "solver/genetic/Populations.hpp"
-#include "solver/genetic/crossovers/AdjustedCostDifference.hpp"
 #include "streams/input/SolomonReader.hpp"
 #include "streams/output/GeoJsonWriter.hpp"
 #include "streams/output/MatrixTextWriter.hpp"
@@ -16,7 +16,7 @@
 
 using namespace vrp::algorithms::distances;
 using namespace vrp::algorithms::heuristics;
-using namespace vrp::genetic;
+using namespace vrp::algorithms::genetic;
 using namespace vrp::models;
 using namespace vrp::streams;
 using namespace vrp::utils;

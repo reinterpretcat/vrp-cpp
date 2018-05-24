@@ -8,8 +8,7 @@ namespace vrp {
 namespace streams {
 
 /// Writes solution into output stream as a text in matrix format.
-class MatrixTextWriter final
-{
+class MatrixTextWriter final {
 public:
   /// Writes text to stream.
   void write(std::ostream& out,

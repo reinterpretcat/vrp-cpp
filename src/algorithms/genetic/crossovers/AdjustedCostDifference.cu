@@ -1,6 +1,6 @@
-#include "solver/genetic/crossovers/AdjustedCostDifference.hpp"
+#include "AdjustedCostDifference.hpp"
 
-using namespace vrp::genetic;
+using namespace vrp::algorithms::genetic;
 using namespace vrp::models;
 using namespace vrp::utils;
 

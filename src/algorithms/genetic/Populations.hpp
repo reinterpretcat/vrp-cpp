@@ -1,11 +1,12 @@
 #ifndef VRP_SOLVER_GENETIC_POPULATIONS_HPP
 #define VRP_SOLVER_GENETIC_POPULATIONS_HPP
 
+#include "Settings.hpp"
 #include "models/Problem.hpp"
 #include "models/Tasks.hpp"
-#include "solver/genetic/Settings.hpp"
 
 namespace vrp {
+namespace algorithms {
 namespace genetic {
 
 /// Creates initial population based on problem definition
@@ -16,10 +17,11 @@ struct create_population final {
 
   explicit create_population(const vrp::models::Problem& problem) : problem(problem) {}
 
-  vrp::models::Tasks operator()(const vrp::genetic::Settings& settings);
+  vrp::models::Tasks operator()(const Settings& settings);
 };
 
 }  // namespace genetic
+}  // namespace algorithms
 }  // namespace vrp
 
 #endif  // VRP_SOLVER_GENETIC_POPULATIONS_HPP

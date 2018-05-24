@@ -1,5 +1,5 @@
 #include "algorithms/convolutions/JointConvolutions.hpp"
-#include "iterators/CartesianProduct.cu"
+#include "iterators/CartesianProduct.hpp"
 #include "utils/Memory.hpp"
 
 #include <thrust/execution_policy.h>

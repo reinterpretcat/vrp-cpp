@@ -23,7 +23,7 @@ set(HEADER_FILES
         algorithms/transitions/Executors.hpp
 
         iterators/Aggregates.hpp
-        iterators/CartesianProduct.cu
+        iterators/CartesianProduct.hpp
 
         models/Convolution.hpp
         models/Customers.hpp
@@ -34,9 +34,9 @@ set(HEADER_FILES
         models/Transition.hpp
         models/Locations.hpp
 
-        solver/genetic/Populations.hpp
-        solver/genetic/Settings.hpp
-        solver/genetic/crossovers/AdjustedCostDifference.hpp
+        algorithms/genetic/Populations.hpp
+        algorithms/genetic/Settings.hpp
+        algorithms/genetic/crossovers/AdjustedCostDifference.hpp
 
         streams/input/SolomonReader.hpp
         streams/output/GeoJsonWriter.hpp
@@ -62,8 +62,8 @@ set(SOURCE_FILES
         algorithms/transitions/Factories.cu
         algorithms/transitions/Executors.cu
 
-        solver/genetic/Populations.cu
-        solver/genetic/crossovers/AdjustedCostDifference.cu
+        algorithms/genetic/Populations.cu
+        algorithms/genetic/crossovers/AdjustedCostDifference.cu
 
         streams/input/SolomonReader.cu
         streams/output/GeoJsonWriter.cu

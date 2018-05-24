@@ -10,8 +10,7 @@ namespace vrp {
 namespace streams {
 
 /// Reads classical VRP instances in classical format defined by Solomon.
-class SolomonReader final
-{
+class SolomonReader final {
 public:
   /// Calculates distance between two coordinates.
   using DistanceCalculator =
