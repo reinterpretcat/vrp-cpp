@@ -1,7 +1,7 @@
 #include "algorithms/distances/Cartesian.hpp"
 #include "algorithms/distances/Geographic.hpp"
+#include "algorithms/genetic/Crossovers.hpp"
 #include "algorithms/genetic/Populations.hpp"
-#include "algorithms/genetic/crossovers/AdjustedCostDifference.hpp"
 #include "algorithms/heuristics/NearestNeighbor.hpp"
 #include "models/Locations.hpp"
 #include "models/Problem.hpp"
@@ -59,11 +59,10 @@ private:
 
 template<typename Distance, typename Mapper>
 void solve(std::fstream& in, std::fstream& out, const Distance& distance, const Mapper& mapper) {
-  auto settings = Settings{PopulationSize};
+  auto pool = Pool();
+  auto settings = Settings{PopulationSize, vrp::algorithms::convolutions::Settings{0, 0, 0, pool}};
   auto problem = SolomonReader().read(in, distance);
   auto solution = create_population<nearest_neighbor>(problem)(settings);
-
-  auto pool = Pool();
 
   MatrixTextWriter().write(std::cout, problem, solution);
 

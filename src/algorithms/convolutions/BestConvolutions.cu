@@ -190,9 +190,10 @@ struct create_convolutions final {
 
 Convolutions create_best_convolutions::operator()(const Problem& problem,
                                                   Tasks& tasks,
-                                                  const Settings& settings) const {
+                                                  const Settings& settings,
+                                                  int solution) const {
   auto size = static_cast<size_t>(problem.size());
-  auto begin = (settings.solution - 1) * size;
+  auto begin = (solution - 1) * size;
   auto end = begin + size;
 
   auto differences = settings.pool.acquire<thrust::device_vector<float>>(size);

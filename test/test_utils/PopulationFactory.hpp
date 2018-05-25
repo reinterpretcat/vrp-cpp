@@ -5,6 +5,7 @@
 #include "algorithms/genetic/Populations.hpp"
 #include "algorithms/heuristics/NearestNeighbor.hpp"
 #include "streams/input/SolomonReader.hpp"
+#include "test_utils/SettingsFactory.hpp"
 #include "test_utils/SolomonBuilder.hpp"
 
 namespace vrp {
@@ -16,8 +17,8 @@ std::pair<vrp::models::Problem, vrp::models::Tasks> createPopulation(std::istrea
                                                                      int populationSize = 3) {
   auto problem =
     vrp::streams::SolomonReader().read(stream, vrp::algorithms::distances::cartesian_distance());
-  return std::make_pair(
-    problem, vrp::algorithms::genetic::create_population<Heuristic>(problem)({populationSize}));
+  return std::make_pair(problem, vrp::algorithms::genetic::create_population<Heuristic>(problem)(
+                                   createGeneticSettings(populationSize)));
 }
 
 }  // namespace test

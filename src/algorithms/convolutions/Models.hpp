@@ -15,11 +15,6 @@ struct Settings final {
   float MedianRatio;
   /// Specifies ratio which controls threshold for grouping tasks.
   float ConvolutionRatio;
-
-  // TODO to be excluded
-  /// Solution in tasks to be processed.
-  int solution;
-
   /// Object pool
   vrp::utils::Pool& pool;
 };

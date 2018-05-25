@@ -1,7 +1,7 @@
-#ifndef VRP_SOLVER_GENETIC_POPULATIONS_HPP
-#define VRP_SOLVER_GENETIC_POPULATIONS_HPP
+#ifndef VRP_ALGORITHMS_GENETIC_POPULATIONS_HPP
+#define VRP_ALGORITHMS_GENETIC_POPULATIONS_HPP
 
-#include "Settings.hpp"
+#include "algorithms/genetic/Models.hpp"
 #include "models/Problem.hpp"
 #include "models/Tasks.hpp"
 
@@ -24,4 +24,4 @@ struct create_population final {
 }  // namespace algorithms
 }  // namespace vrp
 
-#endif  // VRP_SOLVER_GENETIC_POPULATIONS_HPP
+#endif  // VRP_ALGORITHMS_GENETIC_POPULATIONS_HPP

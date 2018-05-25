@@ -1,6 +1,5 @@
-#include "Populations.hpp"
-#include "Settings.hpp"
 #include "algorithms/costs/TransitionCosts.hpp"
+#include "algorithms/genetic/Populations.hpp"
 #include "algorithms/heuristics/Dummy.hpp"
 #include "algorithms/heuristics/NearestNeighbor.hpp"
 #include "algorithms/transitions/Executors.hpp"

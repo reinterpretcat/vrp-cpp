@@ -70,7 +70,7 @@ SCENARIO("Can create best convolution with 25 customers.", "[convolution][C101]"
                         817, 105,  196, 288,  380, 742, 120, 214, 307, 402, 497, 592, 684});
   Pool pool;
 
-  auto convolutions = create_best_convolutions{}(problem, tasks, {0.5, 0.1, 1, pool});
+  auto convolutions = create_best_convolutions{}(problem, tasks, {0.5, 0.1, pool}, 1);
 
   REQUIRE(convolutions->size() == 2);
   compare(convolutions->operator[](0), {0, 50, 367, {11, 4}, {448, 450}, {10, 13}});
@@ -90,7 +90,7 @@ SCENARIO("Can create joint convolution pair from two convolutions", "[convolutio
   std::vector<Convolution> right{{21, 4, 4, {1, 6}, {}, {1, 6}}, {21, 5, 5, {6, 11}, {}, {6, 11}}};
 
 
-  auto result = create_joint_convolutions{}(problem, tasks, {0.2, 0.2, 1, pool}, map(left, pool),
+  auto result = create_joint_convolutions{}(problem, tasks, {0.2, 0.2, pool}, map(left, pool),
                                             map(right, pool));
 
 

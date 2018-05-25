@@ -16,6 +16,10 @@ set(HEADER_FILES
         algorithms/distances/Cartesian.hpp
         algorithms/distances/Geographic.hpp
 
+        algorithms/genetic/Crossovers.hpp
+        algorithms/genetic/Models.hpp
+        algorithms/genetic/Populations.hpp
+
         algorithms/heuristics/Dummy.hpp
         algorithms/heuristics/NearestNeighbor.hpp
 
@@ -33,10 +37,6 @@ set(HEADER_FILES
         models/Tasks.hpp
         models/Transition.hpp
         models/Locations.hpp
-
-        algorithms/genetic/Populations.hpp
-        algorithms/genetic/Settings.hpp
-        algorithms/genetic/crossovers/AdjustedCostDifference.hpp
 
         streams/input/SolomonReader.hpp
         streams/output/GeoJsonWriter.hpp
@@ -56,14 +56,14 @@ set(SOURCE_FILES
         algorithms/costs/SolutionCosts.cu
         algorithms/costs/TransitionCosts.cu
 
+        algorithms/genetic/Populations.cu
+        algorithms/genetic/Crossovers.cu
+
         algorithms/heuristics/Dummy.cu
         algorithms/heuristics/NearestNeighbor.cu
 
         algorithms/transitions/Factories.cu
         algorithms/transitions/Executors.cu
-
-        algorithms/genetic/Populations.cu
-        algorithms/genetic/crossovers/AdjustedCostDifference.cu
 
         streams/input/SolomonReader.cu
         streams/output/GeoJsonWriter.cu
