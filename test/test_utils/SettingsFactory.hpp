@@ -20,6 +20,13 @@ inline vrp::algorithms::genetic::Settings createGeneticSettings(int populationSi
   return {populationSize, createConvolutionSettings(0, 0)};
 }
 
+/// Creates genetic settings with user-defined convolution settings.
+inline vrp::algorithms::genetic::Settings createGeneticSettings(
+  int populationSize,
+  const vrp::algorithms::convolutions::Settings& settings) {
+  return {populationSize, settings};
+}
+
 }  // namespace test
 }  // namespace vrp
 

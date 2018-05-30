@@ -7,6 +7,7 @@ set(LIBRARY_NAME Solver)
 set(HEADER_FILES
         algorithms/convolutions/BestConvolutions.hpp
         algorithms/convolutions/JointConvolutions.hpp
+        algorithms/convolutions/SlicedConvolutions.hpp
         algorithms/convolutions/Models.hpp
 
         algorithms/costs/Models.hpp
@@ -52,6 +53,7 @@ set(SOURCE_FILES
 
         algorithms/convolutions/BestConvolutions.cu
         algorithms/convolutions/JointConvolutions.cu
+        algorithms/convolutions/SlicedConvolutions.cu
 
         algorithms/costs/SolutionCosts.cu
         algorithms/costs/TransitionCosts.cu

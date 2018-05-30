@@ -193,7 +193,7 @@ Convolutions create_best_convolutions::operator()(const Problem& problem,
                                                   const Settings& settings,
                                                   int solution) const {
   auto size = static_cast<size_t>(problem.size());
-  auto begin = (solution - 1) * size;
+  auto begin = solution * size;
   auto end = begin + size;
 
   auto differences = settings.pool.acquire<thrust::device_vector<float>>(size);

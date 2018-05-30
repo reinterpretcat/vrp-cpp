@@ -70,7 +70,7 @@ SCENARIO("Can create best convolution with 25 customers.", "[convolution][C101]"
                         817, 105,  196, 288,  380, 742, 120, 214, 307, 402, 497, 592, 684});
   Pool pool;
 
-  auto convolutions = create_best_convolutions{}(problem, tasks, {0.5, 0.1, pool}, 1);
+  auto convolutions = create_best_convolutions{}(problem, tasks, {0.5, 0.1, pool}, 0);
 
   REQUIRE(convolutions->size() == 2);
   compare(convolutions->operator[](0), {0, 50, 367, {11, 4}, {448, 450}, {10, 13}});

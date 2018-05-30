@@ -13,10 +13,10 @@ namespace genetic {
 
 /// Implements Adjusted Cost Difference Convolution crossover.
 struct adjusted_cost_difference final {
-  void operator()(const vrp::models::Problem& problem,
-                  vrp::models::Tasks& tasks,
-                  const Settings& settings,
-                  const Generation& generation) const;
+  vrp::models::Convolutions operator()(const vrp::models::Problem& problem,
+                                       vrp::models::Tasks& tasks,
+                                       const Settings& settings,
+                                       const Generation& generation) const;
 };
 
 }  // namespace genetic
