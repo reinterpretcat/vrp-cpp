@@ -126,5 +126,11 @@ SCENARIO("Can create sliced convolutions from joint pairs", "[convolution][slice
     create_joint_convolutions{}(problem, tasks, settings, map(left, pool), map(right, pool));
 
   auto result = create_sliced_convolutions{}(problem, tasks, settings, pairs);
-}
 
+  REQUIRE(result->size() == (left.size() + right.size()));
+  compare(result->operator[](0), left.at(0));
+  compare(result->operator[](1), right.at(1));
+  compare(result->operator[](2), left.at(1));
+  compare(result->operator[](3), right.at(0));
+  compare(result->operator[](4), left.at(2));
+}

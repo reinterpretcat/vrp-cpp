@@ -126,14 +126,14 @@ Convolutions create_sliced_convolutions::operator()(const Problem& problem,
                                                     Tasks& tasks,
                                                     const Settings& settings,
                                                     const JointPairs& pairs) const {
-  auto size = thrust::max(pairs.dimens.first, pairs.dimens.second);
+  auto& dimens = pairs.dimens;
+  auto size = thrust::max(dimens.first, dimens.second);
   auto keys =
     settings.pool.acquire<thrust::device_vector<int>>(static_cast<size_t>(tasks.customers));
-  thrust::sequence(thrust::device, keys->begin(), keys->begin() + size, 0, 1);
+  auto convolutions =
+    settings.pool.acquire<thrust::device_vector<Convolution>>(dimens.first + dimens.second);
 
-  auto convolutionSize = thrust::min(pairs.dimens.first, pairs.dimens.second) * 2 +
-                         std::abs(pairs.dimens.first - pairs.dimens.second);
-  auto convolutions = settings.pool.acquire<thrust::device_vector<Convolution>>(convolutionSize);
+  thrust::sequence(thrust::device, keys->begin(), keys->begin() + size, 0, 1);
 
   setBestSlice<<<1, 1>>>(pairs.pairs->data(), keys->data(), pairs.dimens, convolutions->data());
 
