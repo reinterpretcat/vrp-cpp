@@ -10,10 +10,10 @@ namespace convolutions {
 /// Returns a "slice" from convolution pairs which can be used
 /// to create a new solution.
 struct create_sliced_convolutions final {
-  vrp::models::Convolutions operator()(/*const vrp::models::Problem& problem,
+  vrp::models::Convolutions operator()(const vrp::models::Problem& problem,
                                        vrp::models::Tasks& tasks,
                                        const Settings& settings,
-                                       const JointPairs& pairs*/) const;
+                                       const JointPairs& pairs) const;
 };
 
 }  // namespace convolutions

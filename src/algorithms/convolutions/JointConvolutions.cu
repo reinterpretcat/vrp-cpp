@@ -45,12 +45,11 @@ struct create_joint_pair final {
     thrust::transform(thrust::device, repeated.begin(), repeated.end(), tiled.begin(),
                       thrust::make_discard_iterator(), count_equal_pairs{total});
 
-    auto rank = *total;
+    auto shared = *total;
     free(total);
-    auto served = leftSize + rightSize - rank;
-    auto completeness = static_cast<float>(served) / model.tasks.customers;
+    auto served = static_cast<int>(leftSize + rightSize - shared);
 
-    return JointPair{rank, completeness, {left, right}};
+    return JointPair{shared, served, {left, right}};
   }
 };
 }  // namespace
@@ -73,5 +72,5 @@ JointPairs create_joint_convolutions::operator()(const Problem& problem,
   thrust::transform(thrust::device, repeated.begin(), repeated.end(), tiled.begin(), pairs->begin(),
                     create_joint_pair{{problem.getShadow(), tasks.getShadow()}});
 
-  return pairs;
+  return {{left->size(), right->size()}, std::move(pairs)};
 }

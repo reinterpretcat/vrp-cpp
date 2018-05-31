@@ -1,5 +1,6 @@
 #include "algorithms/convolutions/BestConvolutions.hpp"
 #include "algorithms/convolutions/JointConvolutions.hpp"
+#include "algorithms/convolutions/SlicedConvolutions.hpp"
 #include "test_utils/TaskUtils.hpp"
 #include "test_utils/VectorUtils.hpp"
 
@@ -40,7 +41,7 @@ void compare(const Convolution& left, const Convolution& right) {
 }
 
 void compare(const JointPair& left, const JointPair& right) {
-  REQUIRE(left.rank == right.rank);
+  REQUIRE(left.similarity == right.similarity);
   REQUIRE(left.completeness == right.completeness);
 
   compare(left.pair.first, right.pair.first);
@@ -78,7 +79,7 @@ SCENARIO("Can create best convolution with 25 customers.", "[convolution][C101]"
 }
 
 SCENARIO("Can create joint convolution pair from two convolutions", "[convolution][join_pairs]") {
-  int customers = 20 + 1;  // NOTE must be in sync with "right" definition below
+  int customers = 20 + 1;
   auto problem = Problem();
   auto tasks = Tasks(customers, 2);
   tasks.ids = create({0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
@@ -87,23 +88,43 @@ SCENARIO("Can create joint convolution pair from two convolutions", "[convolutio
   std::vector<Convolution> left = {{0, 1, 1, {1, 4}, {}, {1, 4}},
                                    {0, 2, 2, {7, 13}, {}, {7, 13}},
                                    {0, 3, 3, {15, 19}, {}, {15, 19}}};
-  std::vector<Convolution> right{{21, 4, 4, {1, 6}, {}, {1, 6}}, {21, 5, 5, {6, 11}, {}, {6, 11}}};
+  std::vector<Convolution> right{{customers, 4, 4, {1, 6}, {}, {1, 6}},
+                                 {customers, 5, 5, {6, 11}, {}, {6, 11}}};
 
 
   auto result = create_joint_convolutions{}(problem, tasks, {0.2, 0.2, pool}, map(left, pool),
                                             map(right, pool));
 
 
-  compare(result->operator[](0), {4, static_cast<float>(6) / customers, {left.at(0), right.at(0)}});
-  compare(result->operator[](1),
-          {0, static_cast<float>(10) / customers, {left.at(0), right.at(1)}});
+  REQUIRE(result.dimens.first == 3);
+  REQUIRE(result.dimens.second == 2);
 
-  compare(result->operator[](2),
-          {0, static_cast<float>(13) / customers, {left.at(1), right.at(0)}});
-  compare(result->operator[](3), {5, static_cast<float>(8) / customers, {left.at(1), right.at(1)}});
+  compare(result.pairs->operator[](0), {4, 6, {left.at(0), right.at(0)}});
+  compare(result.pairs->operator[](1), {0, 10, {left.at(0), right.at(1)}});
 
-  compare(result->operator[](4),
-          {0, static_cast<float>(11) / customers, {left.at(2), right.at(0)}});
-  compare(result->operator[](5),
-          {0, static_cast<float>(11) / customers, {left.at(2), right.at(1)}});
+  compare(result.pairs->operator[](2), {0, 13, {left.at(1), right.at(0)}});
+  compare(result.pairs->operator[](3), {5, 8, {left.at(1), right.at(1)}});
+
+  compare(result.pairs->operator[](4), {0, 11, {left.at(2), right.at(0)}});
+  compare(result.pairs->operator[](5), {0, 11, {left.at(2), right.at(1)}});
 }
+
+SCENARIO("Can create sliced convolutions from joint pairs", "[convolution][sliced]") {
+  Pool pool;
+  int customers = 20 + 1;
+  auto problem = Problem();
+  auto tasks = Tasks(customers, 2);
+  auto settings = Settings{0.2, 0.2, pool};
+  tasks.ids = create({0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+                      0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20});
+  std::vector<Convolution> left = {{0, 1, 1, {1, 4}, {}, {1, 4}},
+                                   {0, 2, 2, {7, 13}, {}, {7, 13}},
+                                   {0, 3, 3, {15, 19}, {}, {15, 19}}};
+  std::vector<Convolution> right{{customers, 4, 4, {1, 6}, {}, {1, 6}},
+                                 {customers, 5, 5, {6, 11}, {}, {6, 11}}};
+  auto pairs =
+    create_joint_convolutions{}(problem, tasks, settings, map(left, pool), map(right, pool));
+
+  auto result = create_sliced_convolutions{}(problem, tasks, settings, pairs);
+}
+

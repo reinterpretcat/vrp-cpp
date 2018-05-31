@@ -2,9 +2,7 @@
 #include "iterators/CartesianProduct.hpp"
 
 #include <thrust/execution_policy.h>
-#include <thrust/reverse.h>
 #include <thrust/sequence.h>
-#include <thrust/transform.h>
 
 using namespace vrp::models;
 using namespace vrp::algorithms::convolutions;
@@ -13,17 +11,24 @@ namespace {
 
 /// Swaps iterator values.
 template<typename Iterator>
-__host__ __device__ inline void swap_iter_values(Iterator a, Iterator b) {
+__device__ inline void swap_values(Iterator a, Iterator b) {
   auto tmp = *a;
   *a = *b;
   *b = tmp;
 }
 
+/// Reverses iterator values.
+template<typename Iterator>
+__device__ void reverse_values(Iterator first, Iterator last) {
+  for (; first != last && first != --last; ++first)
+    swap_values(first, last);
+}
+
 /// Implements permutation generator (code is mostly taken from STL).
 template<typename BidirectionalIterator, typename Compare>
-__host__ __device__ bool next_permutation(BidirectionalIterator first,
-                                          BidirectionalIterator last,
-                                          Compare comp) {
+__device__ bool next_permutation(BidirectionalIterator first,
+                                 BidirectionalIterator last,
+                                 Compare comp) {
   if (first == last) return false;
   BidirectionalIterator next = first;
   ++next;
@@ -37,131 +42,100 @@ __host__ __device__ bool next_permutation(BidirectionalIterator first,
     if (comp(*next, *ii)) {
       BidirectionalIterator mid = last;
       while (!comp(*next, *--mid)) {}
-      swap_iter_values(next, mid);
-      // TODO device policy
-      thrust::reverse(ii, last);
+      swap_values(next, mid);
+      reverse_values(ii, last);
       return true;
     }
     if (next == first) {
-      // TODO device policy
-      thrust::reverse(first, last);
+      reverse_values(first, last);
       return false;
     }
   }
 }
 
-struct Pair {
-  int l;
-  int r;
+/// Calculates rank of the pair.
+struct rank_pair final {
+  __device__ inline int operator()(const JointPair& pair) const {
+    return pair.completeness - pair.similarity;
+  }
 };
 
-struct create_pairs final {
-  __host__ __device__ Pair operator()(int l, int r) { return {l, r}; }
-};
+/// Copies pair to convolution list.
+struct copy_pair final {
+  thrust::device_ptr<Convolution> convolutions;
+  int current;
 
-thrust::host_vector<Pair> makePairs(thrust::host_vector<int>& left,
-                                    thrust::host_vector<int>& right) {
-  typedef typename thrust::host_vector<int>::iterator Iterator;
-  vrp::iterators::repeated_range<Iterator> repeated(left.begin(), left.end(), right.size());
-  vrp::iterators::tiled_range<Iterator> tiled(right.begin(), right.end(), right.size());
-
-  thrust::host_vector<Pair> pairs(right.size() * left.size());
-
-  thrust::transform(thrust::host, repeated.begin(), repeated.end(), tiled.begin(), pairs.begin(),
-                    create_pairs{});
-
-  return pairs;
-}
-
-struct rank_slice_pairs final {
-  size_t rows;
-  size_t columns;
-
-  template<typename KeyIterator, typename ValueIterator>
-  __host__ __device__ int operator()(const KeyIterator keyBegin,
-                                     const KeyIterator keyEnd,
-                                     const ValueIterator valueBegin) {
-    int row = 0;
-    for (auto it = keyBegin; it != keyEnd; ++it, ++row) {
-      auto column = *it;
-      if (row >= rows) {
-        auto value = *(valueBegin + (column % columns));
-        printf("(%d)", value.r);
-        continue;
-      }
-
-      if (column >= columns) {
-        auto value = *(valueBegin + row * columns);
-        printf("(%d)", value.l);
-        continue;
-      }
-
-      auto index = row * columns + column;
-      auto value = *(valueBegin + index);
-      printf("(%d,%d)", value.l, value.r);
-    }
-    printf("\n");
+  __device__ inline int operator()(const JointPair& pair) {
+    *(convolutions + current++) = pair.pair.first;
+    *(convolutions + current++) = pair.pair.second;
     return 0;
   }
 };
 
-void generatePermutations(const thrust::host_vector<Pair>& pairs,
-                          size_t rows, size_t columns) {
-  thrust::host_vector<int> keys(thrust::max(rows, columns));
-  thrust::sequence(keys.begin(), keys.end(), 0, 1);
+/// Calculates rank of the sliced pairs.
+struct rank_sliced_pairs final {
+  thrust::pair<size_t, size_t> dimens;
 
-  // expected:
-  // (1,4) (1,5) (1,6)   (2,4) (2,5) (2,6)   (3,4) (3,5) (3,6)   (x,4) (x,5) (x,6)
-  std::cout << "pairs:\n";
-   // thrust::for_each(pairs.begin(), pairs.end(), [](const Pair &pair) {
-   //   std::cout << "(" << pair.l << "," << pair.r << ")";
-   // });
-  for(auto i = 0; i < pairs.size(); ++i) {
-    auto& pair = pairs[i];
-    if (i % columns == 0) {
-      std::cout << "\t";
+  template<typename KeyIterator, typename ValueIterator, typename RankOp>
+  __device__ int operator()(const KeyIterator keyBegin,
+                            const KeyIterator keyEnd,
+                            const ValueIterator valueBegin,
+                            RankOp rankOp) {
+    int row = 0, rank = 0;
+    for (auto it = keyBegin; it != keyEnd; ++it, ++row) {
+      auto column = *it;
+      if (row >= dimens.first) {
+        rank += rankOp(*(valueBegin + (column % dimens.second)));
+        continue;
+      }
+
+      if (column >= dimens.second) {
+        rank += rankOp(*(valueBegin + row * dimens.second));
+        continue;
+      }
+
+      auto index = row * dimens.second + column;
+      rank += rankOp(*(valueBegin + index));
     }
-    std::cout << "(" << pair.l << "," << pair.r << ")";
+    return rank;
   }
-  std::cout << "\n";
+};
 
-  // iterate through all permutations to get a best slice
+/// Finds and sets the best pairs slice to convolution container.
+__global__ void setBestSlice(const thrust::device_ptr<JointPair> pairs,
+                             const thrust::device_ptr<int> keys,
+                             const thrust::pair<size_t, size_t> dimens,
+                             thrust::device_ptr<Convolution> convolutions) {
+  auto size = thrust::max(dimens.first, dimens.second);
+  auto keyBegin = keys;
+  auto keyEnd = keys + size;
+
   int maxRank = -1;
-  //Convolutions convolutions(size);
   do {
-    std::cout << "=>";
-    thrust::copy(keys.begin(), keys.end(), std::ostream_iterator<int>(std::cout, " "));
-    std::cout << std::endl;
-
-    auto rank = rank_slice_pairs{rows,columns}(keys.begin(), keys.end(), pairs.begin());
-    //if (rank > maxRank) {
-    //  // TODO copy slice
-    //}
-
-  } while (next_permutation(keys.begin(), keys.end(), thrust::less<int>()));
-
-  //return convolutions;
+    auto rank = rank_sliced_pairs{dimens}(keyBegin, keyEnd, pairs, rank_pair{});
+    if (rank > maxRank) {
+      maxRank = rank;
+      rank_sliced_pairs{dimens}(keyBegin, keyEnd, pairs, copy_pair{convolutions, 0});
+    }
+  } while (next_permutation(keyBegin, keyEnd, thrust::less<int>()));
 }
 
 }  // namespace
 
-Convolutions create_sliced_convolutions::operator()(/*const Problem& problem,
+Convolutions create_sliced_convolutions::operator()(const Problem& problem,
                                                     Tasks& tasks,
                                                     const Settings& settings,
-                                                    const JointPairs&*/) const {
-  std::vector<int> vecLeft = {1, 2, 3, 4};
-  std::vector<int> vecRight = {5, 6};
+                                                    const JointPairs& pairs) const {
+  auto size = thrust::max(pairs.dimens.first, pairs.dimens.second);
+  auto keys =
+    settings.pool.acquire<thrust::device_vector<int>>(static_cast<size_t>(tasks.customers));
+  thrust::sequence(thrust::device, keys->begin(), keys->begin() + size, 0, 1);
 
-//  std::vector<int> vecLeft = {1, 2, 3};
-//  std::vector<int> vecRight = {4, 5, 6, 7};
+  auto convolutionSize = thrust::min(pairs.dimens.first, pairs.dimens.second) * 2 +
+                         std::abs(pairs.dimens.first - pairs.dimens.second);
+  auto convolutions = settings.pool.acquire<thrust::device_vector<Convolution>>(convolutionSize);
 
-  thrust::host_vector<int> left(vecLeft.begin(), vecLeft.end());
-  thrust::host_vector<int> right(vecRight.begin(), vecRight.end());
+  setBestSlice<<<1, 1>>>(pairs.pairs->data(), keys->data(), pairs.dimens, convolutions->data());
 
-  auto pairs = makePairs(left, right);
-
-  generatePermutations(pairs, left.size(), right.size());
-
-  // TODO
-  return Convolutions();
+  return std::move(convolutions);
 }

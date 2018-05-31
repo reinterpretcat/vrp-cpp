@@ -3,7 +3,6 @@
 #include "test_utils/PopulationFactory.hpp"
 #include "test_utils/SolomonBuilder.hpp"
 
-#include <algorithms/convolutions/SlicedConvolutions.hpp>
 #include <catch/catch.hpp>
 
 using namespace vrp::algorithms::convolutions;
@@ -49,16 +48,12 @@ std::pair<vrp::models::Problem, vrp::models::Tasks> getPopulation(int population
 }  // namespace
 
 SCENARIO("Can create offsprings", "[genetic][crossover][acdc]") {
-  //  int populationSize = 4;
-  //  auto population = getPopulation(populationSize);
-  //
-  //  auto result = adjusted_cost_difference{}.operator()(
-  //    population.first, population.second,
-  //    createGeneticSettings(populationSize, createConvolutionSettings(0.5, 0.05)), {{0, 1}, {2,
-  //    3}});
+  int populationSize = 4;
+  auto population = getPopulation(populationSize);
 
-  create_sliced_convolutions{}.operator()(/*problem, tasks, settings.convolution, pairs*/);
-
+  auto result = adjusted_cost_difference{}.operator()(
+    population.first, population.second,
+    createGeneticSettings(populationSize, createConvolutionSettings(0.5, 0.05)), {{0, 1}, {2, 3}});
 
   // TODO
   // MatrixTextWriter().write(std::cout, population.first, population.second);

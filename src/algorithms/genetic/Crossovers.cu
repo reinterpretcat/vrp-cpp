@@ -21,5 +21,5 @@ vrp::models::Convolutions adjusted_cost_difference::operator()(const Problem& pr
   auto pairs = create_joint_convolutions{}.operator()(problem, tasks, settings.convolution,
                                                       convolutionsLeft, convolutionsRight);
 
-  return create_sliced_convolutions{}.operator()(/*problem, tasks, settings.convolution, pairs*/);
+  return create_sliced_convolutions{}.operator()(problem, tasks, settings.convolution, pairs);
 }
