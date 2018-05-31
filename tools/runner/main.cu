@@ -60,7 +60,7 @@ private:
 template<typename Distance, typename Mapper>
 void solve(std::fstream& in, std::fstream& out, const Distance& distance, const Mapper& mapper) {
   auto pool = Pool();
-  auto settings = Settings{PopulationSize, vrp::algorithms::convolutions::Settings{0, 0, 0, pool}};
+  auto settings = Settings{PopulationSize, vrp::algorithms::convolutions::Settings{0, 0, pool}};
   auto problem = SolomonReader().read(in, distance);
   auto solution = create_population<nearest_neighbor>(problem)(settings);
 
