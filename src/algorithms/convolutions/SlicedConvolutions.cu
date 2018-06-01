@@ -11,8 +11,9 @@ namespace {
 
 /// Swaps iterator values.
 template<typename Iterator>
-__device__ inline void swap_values(Iterator a, Iterator b) {
-  auto tmp = *a;
+__device__ void swap_values(Iterator a, Iterator b) {
+  // TODO why I cannot simply use Iterator::value_type or auto?
+  thrust::device_ptr<int>::value_type tmp = *a;
   *a = *b;
   *b = tmp;
 }
@@ -55,19 +56,19 @@ __device__ bool next_permutation(BidirectionalIterator first,
 
 /// Calculates rank of the pair.
 struct rank_pair final {
-  __device__ inline int operator()(const JointPair& pair) const {
+  __device__ inline int operator()(const JointPair& pair, const thrust::pair<bool, bool>&) const {
     return pair.completeness - pair.similarity;
   }
 };
 
 /// Copies pair to convolution list.
 struct copy_pair final {
-  thrust::device_ptr<Convolution> convolutions;
+  thrust::device_ptr<Convolution>& convolutions;
   int current;
 
-  __device__ inline int operator()(const JointPair& pair) {
-    *(convolutions + current++) = pair.pair.first;
-    *(convolutions + current++) = pair.pair.second;
+  __device__ inline int operator()(const JointPair& pair, const thrust::pair<bool, bool>& copyMap) {
+    if (copyMap.first) *(convolutions + current++) = pair.pair.first;
+    if (copyMap.second) *(convolutions + current++) = pair.pair.second;
     return 0;
   }
 };
@@ -85,17 +86,17 @@ struct rank_sliced_pairs final {
     for (auto it = keyBegin; it != keyEnd; ++it, ++row) {
       auto column = *it;
       if (row >= dimens.first) {
-        rank += rankOp(*(valueBegin + (column % dimens.second)));
+        rank += rankOp(*(valueBegin + (column % dimens.second)), thrust::make_pair(false, true));
         continue;
       }
 
       if (column >= dimens.second) {
-        rank += rankOp(*(valueBegin + row * dimens.second));
+        rank += rankOp(*(valueBegin + row * dimens.second), thrust::make_pair(true, false));
         continue;
       }
 
       auto index = row * dimens.second + column;
-      rank += rankOp(*(valueBegin + index));
+      rank += rankOp(*(valueBegin + index), thrust::make_pair(true, true));
     }
     return rank;
   }
@@ -135,7 +136,9 @@ Convolutions create_sliced_convolutions::operator()(const Problem& problem,
 
   thrust::sequence(thrust::device, keys->begin(), keys->begin() + size, 0, 1);
 
-  setBestSlice<<<1, 1>>>(pairs.pairs->data(), keys->data(), pairs.dimens, convolutions->data());
+  // TODO avoid raw kernels
+  setBestSlice<<<1, 1, 0>>>(pairs.pairs->data(), keys->data(), pairs.dimens, convolutions->data());
+  cudaStreamSynchronize(0);
 
-  return std::move(convolutions);
+  return convolutions;
 }
