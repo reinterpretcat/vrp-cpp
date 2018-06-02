@@ -15,6 +15,13 @@ using namespace vrp::iterators;
 using namespace vrp::models;
 
 namespace {
+
+/// Contains total cost and solution shadow.
+struct Model final {
+  float total;
+  vrp::models::Solution::Shadow solution;
+};
+
 /// Aggregates all costs.
 struct aggregate_cost final {
   Model* model;
@@ -29,8 +36,8 @@ struct aggregate_cost final {
     const float cost = thrust::get<2>(tuple);
 
     auto details = Transition::Details{baseTask + task, -1, depot, vehicle};
-    auto transition = create_transition(model->problem, model->tasks)(details);
-    auto returnCost = calculate_transition_cost(model->problem.resources)(transition);
+    auto transition = create_transition(model->solution.problem, model->solution.tasks)(details);
+    auto returnCost = calculate_transition_cost(model->solution.problem.resources)(transition);
     auto routeCost = cost + returnCost;
 
     // NOTE to use atomicAdd, variable has to be allocated in device memory,
@@ -42,23 +49,22 @@ struct aggregate_cost final {
 }  // namespace
 
 
-__host__ float calculate_total_cost::operator()(const vrp::models::Problem& problem,
-                                                vrp::models::Tasks& tasks,
-                                                int solution) const {
-  int end = tasks.customers * (solution + 1);
-  int rbegin = tasks.size() - end;
-  int rend = rbegin + tasks.customers;
+__host__ float calculate_total_cost::operator()(Solution& solution, int index) const {
+  int end = solution.tasks.customers * (index + 1);
+  int rbegin = solution.tasks.size() - end;
+  int rend = rbegin + solution.tasks.customers;
 
-  auto model = vrp::utils::allocate<Model>({0, problem.getShadow(), tasks.getShadow()});
-  auto iterator = thrust::make_zip_iterator(thrust::make_tuple(thrust::make_counting_iterator(0),
-                                                               tasks.vehicles.rbegin() + rbegin,
-                                                               tasks.costs.rbegin() + rbegin));
+  auto model = vrp::utils::allocate<Model>({0, solution.getShadow()});
+  auto iterator = thrust::make_zip_iterator(
+    thrust::make_tuple(thrust::make_counting_iterator(0), solution.tasks.vehicles.rbegin() + rbegin,
+                       solution.tasks.costs.rbegin() + rbegin));
 
   thrust::unique_by_key_copy(
-    thrust::device, tasks.vehicles.rbegin() + rbegin, tasks.vehicles.rbegin() + rend, iterator,
-    thrust::make_discard_iterator(),
+    thrust::device, solution.tasks.vehicles.rbegin() + rbegin,
+    solution.tasks.vehicles.rbegin() + rend, iterator, thrust::make_discard_iterator(),
     make_aggregate_output_iterator(
-      iterator, aggregate_cost{model.get(), tasks.customers - 1, end - tasks.customers}));
+      iterator,
+      aggregate_cost{model.get(), solution.tasks.customers - 1, end - solution.tasks.customers}));
 
   return vrp::utils::release(model).total;
 }

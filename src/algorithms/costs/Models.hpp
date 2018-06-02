@@ -1,21 +1,11 @@
 #ifndef VRP_ALGORITHMS_COSTS_MODELS_HPP
 #define VRP_ALGORITHMS_COSTS_MODELS_HPP
 
-#include "models/Problem.hpp"
-#include "models/Tasks.hpp"
+#include "models/Solution.hpp"
 
 namespace vrp {
 namespace algorithms {
-namespace costs {
-
-/// Contains model shadows.
-struct Model final {
-  float total;
-  vrp::models::Problem::Shadow problem;
-  vrp::models::Tasks::Shadow tasks;
-};
-
-}  // namespace costs
+namespace costs {}  // namespace costs
 }  // namespace algorithms
 }  // namespace vrp
 

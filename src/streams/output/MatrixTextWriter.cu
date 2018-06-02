@@ -20,7 +20,7 @@ namespace {
 const int ItemSize = 4;
 
 /// Prints item with additional formatting.
-struct PrintOne final {
+struct print_one final {
   std::ostream& stream;
   int customers;
 
@@ -39,17 +39,16 @@ void writeVector(std::ostream& stream, const thrust::device_vector<T>& data, int
     thrust::make_zip_iterator(thrust::make_tuple(thrust::make_counting_iterator(0), hData.begin())),
     thrust::make_zip_iterator(thrust::make_tuple(
       thrust::make_counting_iterator(static_cast<int>(data.size())), hData.end())),
-    PrintOne{stream, static_cast<int>(data.size() / populationSize)});
-  // thrust::copy(data.begin(), data.end(), std::ostream_iterator<T>(stream, ","));
+    print_one{stream, static_cast<int>(data.size() / populationSize)});
 }
 
 /// Writes total costs.
-void writeCosts(std::ostream& stream, const Problem& problem, Tasks& tasks) {
+void writeCosts(std::ostream& stream, Solution& solution) {
   stream << thrust::transform_reduce(
     thrust::host, thrust::make_counting_iterator(0),
-    thrust::make_counting_iterator(tasks.population()),
+    thrust::make_counting_iterator(solution.tasks.population()),
     [&](const int i) {
-      return std::to_string(static_cast<int>(calculate_total_cost()(problem, tasks, i)));
+      return std::to_string(static_cast<int>(calculate_total_cost()(solution, i)));
     },
     std::string(""),
     [](const std::string& result, const std::string& item) {
@@ -59,11 +58,11 @@ void writeCosts(std::ostream& stream, const Problem& problem, Tasks& tasks) {
 
 }  // namespace
 
-void MatrixTextWriter::write(std::ostream& out, const Problem& problem, const Tasks& tasks) {
-  writeCosts(out << "\ntotal costs: ", problem, const_cast<Tasks&>(tasks));
-  writeVector(out << "\ncustomers:   ", tasks.ids, tasks.population());
-  writeVector(out << "\nvehicles:    ", tasks.vehicles, tasks.population());
-  writeVector(out << "\ncosts:       ", tasks.costs, tasks.population());
-  writeVector(out << "\ncapacities:  ", tasks.capacities, tasks.population());
-  writeVector(out << "\ntimes:       ", tasks.times, tasks.population());
+void MatrixTextWriter::write(std::ostream& out, const vrp::models::Solution& solution) {
+  writeCosts(out << "\ntotal costs: ", const_cast<Solution&>(solution));
+  writeVector(out << "\ncustomers:   ", solution.tasks.ids, solution.tasks.population());
+  writeVector(out << "\nvehicles:    ", solution.tasks.vehicles, solution.tasks.population());
+  writeVector(out << "\ncosts:       ", solution.tasks.costs, solution.tasks.population());
+  writeVector(out << "\ncapacities:  ", solution.tasks.capacities, solution.tasks.population());
+  writeVector(out << "\ntimes:       ", solution.tasks.times, solution.tasks.population());
 }

@@ -2,8 +2,7 @@
 #define VRP_ALGORITHMS_GENETIC_CROSSOVERS_HPP
 
 #include "algorithms/genetic/Models.hpp"
-#include "models/Problem.hpp"
-#include "models/Tasks.hpp"
+#include "models/Solution.hpp"
 
 #include <thrust/pair.h>
 
@@ -13,8 +12,7 @@ namespace genetic {
 
 /// Implements Adjusted Cost Difference Convolution crossover.
 struct adjusted_cost_difference final {
-  vrp::models::Convolutions operator()(const vrp::models::Problem& problem,
-                                       vrp::models::Tasks& tasks,
+  vrp::models::Convolutions operator()(vrp::models::Solution& solution,
                                        const Settings& settings,
                                        const Generation& generation) const;
 };

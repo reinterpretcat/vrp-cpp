@@ -7,12 +7,13 @@
 
 using namespace vrp::algorithms::convolutions;
 using namespace vrp::algorithms::genetic;
+using namespace vrp::models;
 using namespace vrp::streams;
 using namespace vrp::utils;
 using namespace vrp::test;
 
 namespace {
-std::pair<vrp::models::Problem, vrp::models::Tasks> getPopulation(int populationSize) {
+Solution getPopulation(int populationSize) {
   auto stream = SolomonBuilder()
                   .setTitle("Exceeded capacity and two vehicles")
                   .setVehicle(25, 200)
@@ -49,11 +50,11 @@ std::pair<vrp::models::Problem, vrp::models::Tasks> getPopulation(int population
 
 SCENARIO("Can create offsprings", "[genetic][crossover][acdc]") {
   int populationSize = 4;
-  auto population = getPopulation(populationSize);
+  auto solution = getPopulation(populationSize);
 
   auto result = adjusted_cost_difference{}.operator()(
-    population.first, population.second,
-    createGeneticSettings(populationSize, createConvolutionSettings(0.5, 0.05)), {{0, 1}, {2, 3}});
+    solution, createGeneticSettings(populationSize, createConvolutionSettings(0.5, 0.05)),
+    {{0, 1}, {2, 3}});
 
   // TODO
   // MatrixTextWriter().write(std::cout, population.first, population.second);

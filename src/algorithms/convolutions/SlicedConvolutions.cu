@@ -123,14 +123,13 @@ __global__ void setBestSlice(const thrust::device_ptr<JointPair> pairs,
 
 }  // namespace
 
-Convolutions create_sliced_convolutions::operator()(const Problem& problem,
-                                                    Tasks& tasks,
+Convolutions create_sliced_convolutions::operator()(vrp::models::Solution& solution,
                                                     const Settings& settings,
                                                     const JointPairs& pairs) const {
   auto& dimens = pairs.dimens;
   auto size = thrust::max(dimens.first, dimens.second);
-  auto keys =
-    settings.pool.acquire<thrust::device_vector<int>>(static_cast<size_t>(tasks.customers));
+  auto keys = settings.pool.acquire<thrust::device_vector<int>>(
+    static_cast<size_t>(solution.tasks.customers));
   auto convolutions =
     settings.pool.acquire<thrust::device_vector<Convolution>>(dimens.first + dimens.second);
 

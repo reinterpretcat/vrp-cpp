@@ -121,17 +121,17 @@ struct create_convolutions final {
 
   /// Maps group to its convolution representation.
   struct map_group final {
-    Model* model;
+    Solution::Shadow* solution;
     int base;
 
     __host__ __device__ int operator()(int id) const {
-      return *(model->problem.customers.demands + id);
+      return *(solution->problem.customers.demands + id);
     }
 
     __host__ __device__ Convolution
     operator()(const thrust::tuple<thrust::tuple<bool, int>, int>& tuple) {
-      auto problem = model->problem;
-      auto tasks = model->tasks;
+      auto problem = solution->problem;
+      auto tasks = solution->tasks;
 
       int seq = thrust::get<1>(thrust::get<0>(tuple));
       int length = thrust::get<1>(tuple);
@@ -158,8 +158,7 @@ struct create_convolutions final {
     };
   };
 
-  void operator()(const Problem& problem,
-                  Tasks& tasks,
+  void operator()(Solution& solution,
                   int base,
                   const thrust::device_vector<thrust::tuple<bool, int>>& output,
                   const thrust::device_vector<int>& lengths,
@@ -167,8 +166,8 @@ struct create_convolutions final {
     // NOTE there is something weird with transform_output_iterator which
     // forces to allocate shadows explicitly on device when it is used.
     // Otherwise it is crashing even data is not used (problems with copying?..)
-    auto model = allocate<Model>({problem.getShadow(), tasks.getShadow()});
-    auto limit = static_cast<int>(std::round(problem.size() * convolutionRatio));
+    auto model = allocate<Solution::Shadow>(solution.getShadow());
+    auto limit = static_cast<int>(std::round(solution.problem.size() * convolutionRatio));
 
     auto newEnd = thrust::remove_copy_if(
       thrust::device,
@@ -188,12 +187,11 @@ struct create_convolutions final {
 
 }  // namespace
 
-Convolutions create_best_convolutions::operator()(const Problem& problem,
-                                                  Tasks& tasks,
+Convolutions create_best_convolutions::operator()(Solution& solution,
                                                   const Settings& settings,
-                                                  int solution) const {
-  auto size = static_cast<size_t>(problem.size());
-  auto begin = solution * size;
+                                                  int index) const {
+  auto size = static_cast<size_t>(solution.problem.size());
+  auto begin = index * size;
   auto end = begin + size;
 
   auto differences = settings.pool.acquire<thrust::device_vector<float>>(size);
@@ -202,14 +200,14 @@ Convolutions create_best_convolutions::operator()(const Problem& problem,
   auto output = settings.pool.acquire<thrust::device_vector<thrust::tuple<bool, int>>>(size);
   auto lengths = settings.pool.acquire<thrust::device_vector<int>>(size);
 
-  create_cost_differences{begin, end}.operator()(tasks, *differences);
+  create_cost_differences{begin, end}.operator()(solution.tasks, *differences);
 
   create_partial_plan{settings.MedianRatio}.operator()(*differences, *medians, *plan);
 
   size_t groups = estimate_convolutions{}.operator()(*plan, *output, *lengths);
 
   auto convolutions = settings.pool.acquire<thrust::device_vector<Convolution>>(groups);
-  create_convolutions{settings.ConvolutionRatio}.operator()(problem, tasks, static_cast<int>(begin),
+  create_convolutions{settings.ConvolutionRatio}.operator()(solution, static_cast<int>(begin),
                                                             *output, *lengths, *convolutions);
 
   return std::move(convolutions);

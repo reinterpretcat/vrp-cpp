@@ -35,26 +35,25 @@ struct WithSequentialCustomers {
 
 SCENARIO("Can create roots of initial population.", "[genetic][population][initial][roots]") {
   auto stream = WithSequentialCustomers()();
+  auto solution = createPopulation<dummy>(stream);
 
-  auto population = createPopulation<dummy>(stream).second;
-
-  CHECK_THAT(vrp::test::copy(population.ids),
+  CHECK_THAT(vrp::test::copy(solution.tasks.ids),
              Catch::Matchers::Equals(
                std::vector<int>{0, 1, -1, -1, -1, -1, 0, 3, -1, -1, -1, -1, 0, 5, -1, -1, -1, -1}));
-  CHECK_THAT(vrp::test::copy(population.costs),
+  CHECK_THAT(vrp::test::copy(solution.tasks.costs),
              Catch::Matchers::Equals(std::vector<float>{0, 1, -1, -1, -1, -1, 0, 3, -1, -1, -1, -1,
                                                         0, 5, -1, -1, -1, -1}));
 
-  CHECK_THAT(vrp::test::copy(population.times),
+  CHECK_THAT(vrp::test::copy(solution.tasks.times),
              Catch::Matchers::Equals(std::vector<int>{0, 11, -1, -1, -1, -1, 0, 13, -1, -1, -1, -1,
                                                       0, 15, -1, -1, -1, -1}));
-  CHECK_THAT(vrp::test::copy(population.capacities),
+  CHECK_THAT(vrp::test::copy(solution.tasks.capacities),
              Catch::Matchers::Equals(std::vector<int>{10, 9, -1, -1, -1, -1, 10, 9, -1, -1, -1, -1,
                                                       10, 9, -1, -1, -1, -1}));
-  CHECK_THAT(vrp::test::copy(population.vehicles),
+  CHECK_THAT(vrp::test::copy(solution.tasks.vehicles),
              Catch::Matchers::Equals(
                std::vector<int>{0, 0, -1, -1, -1, -1, 0, 0, -1, -1, -1, -1, 0, 0, -1, -1, -1, -1}));
-  CHECK_THAT(vrp::test::copy(population.plan),
+  CHECK_THAT(vrp::test::copy(solution.tasks.plan),
              Catch::Matchers::Equals(std::vector<bool>{true, true, false, false, false, false, true,
                                                        false, false, true, false, false, true,
                                                        false, false, false, false, true}));
@@ -62,26 +61,25 @@ SCENARIO("Can create roots of initial population.", "[genetic][population][initi
 
 SCENARIO("Can create a full initial population.", "[genetic][population][initial][solution]") {
   auto stream = WithSequentialCustomers()();
+  auto solution = createPopulation<nearest_neighbor>(stream);
 
-  auto population = createPopulation<nearest_neighbor>(stream).second;
-
-  CHECK_THAT(vrp::test::copy(population.ids),
+  CHECK_THAT(vrp::test::copy(solution.tasks.ids),
              Catch::Matchers::Equals(
                std::vector<int>{0, 1, 2, 3, 4, 5, 0, 3, 2, 1, 4, 5, 0, 5, 4, 3, 2, 1}));
-  CHECK_THAT(vrp::test::copy(population.costs),
+  CHECK_THAT(vrp::test::copy(solution.tasks.costs),
              Catch::Matchers::Equals(
                std::vector<float>{0, 1, 2, 3, 4, 5, 0, 3, 4, 5, 8, 9, 0, 5, 6, 7, 8, 9}));
 
-  CHECK_THAT(vrp::test::copy(population.times),
+  CHECK_THAT(vrp::test::copy(solution.tasks.times),
              Catch::Matchers::Equals(std::vector<int>{0, 11, 22, 33, 44, 55, 0, 13, 24, 35, 48, 59,
                                                       0, 15, 26, 37, 48, 59}));
-  CHECK_THAT(vrp::test::copy(population.capacities),
+  CHECK_THAT(vrp::test::copy(solution.tasks.capacities),
              Catch::Matchers::Equals(
                std::vector<int>{10, 9, 8, 7, 6, 5, 10, 9, 8, 7, 6, 5, 10, 9, 8, 7, 6, 5}));
-  CHECK_THAT(vrp::test::copy(population.vehicles),
+  CHECK_THAT(vrp::test::copy(solution.tasks.vehicles),
              Catch::Matchers::Equals(
                std::vector<int>{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}));
-  CHECK_THAT(vrp::test::copy(population.plan),
+  CHECK_THAT(vrp::test::copy(solution.tasks.plan),
              Catch::Matchers::Equals(std::vector<bool>{true, true, true, true, true, true, true,
                                                        true, true, true, true, true, true, true,
                                                        true, true, true, true}));
@@ -100,11 +98,11 @@ SCENARIO("Can use second vehicle within initial population in case of demand vio
                   .addCustomer({5, 5, 0, 2, 0, 1000, 10})
                   .build();
 
-  auto population = createPopulation<nearest_neighbor>(stream, 1).second;
+  auto solution = createPopulation<nearest_neighbor>(stream, 1);
 
-  CHECK_THAT(vrp::test::copy(population.vehicles),
+  CHECK_THAT(vrp::test::copy(solution.tasks.vehicles),
              Catch::Matchers::Equals(std::vector<int>{0, 0, 0, 0, 1, 1}));
-  CHECK_THAT(vrp::test::copy(population.capacities),
+  CHECK_THAT(vrp::test::copy(solution.tasks.capacities),
              Catch::Matchers::Equals(std::vector<int>{10, 7, 4, 1, 8, 6}));
 }
 
@@ -121,10 +119,10 @@ SCENARIO("Can use second vehicle within initial population in case of time viola
                   .addCustomer({5, 100, 0, 2, 0, 101, 10})
                   .build();
 
-  auto population = createPopulation<nearest_neighbor>(stream, 1).second;
+  auto solution = createPopulation<nearest_neighbor>(stream, 1);
 
-  CHECK_THAT(vrp::test::copy(population.vehicles),
+  CHECK_THAT(vrp::test::copy(solution.tasks.vehicles),
              Catch::Matchers::Equals(std::vector<int>{0, 0, 0, 0, 0, 1}));
-  CHECK_THAT(vrp::test::copy(population.capacities),
+  CHECK_THAT(vrp::test::copy(solution.tasks.capacities),
              Catch::Matchers::Equals(std::vector<int>{10, 9, 8, 7, 6, 8}));
 }

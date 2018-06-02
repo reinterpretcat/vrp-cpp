@@ -62,11 +62,12 @@ void solve(std::fstream& in, std::fstream& out, const Distance& distance, const 
   auto pool = Pool();
   auto settings = Settings{PopulationSize, vrp::algorithms::convolutions::Settings{0, 0, pool}};
   auto problem = SolomonReader().read(in, distance);
-  auto solution = create_population<nearest_neighbor>(problem)(settings);
+  auto tasks = create_population<nearest_neighbor>(problem)(settings);
+  auto solution = Solution(std::move(problem), std::move(tasks));
 
-  MatrixTextWriter().write(std::cout, problem, solution);
+  MatrixTextWriter().write(std::cout, solution);
 
-  GeoJsonWriter().write(out, solution, location_resolver<decltype(mapper)>(in, mapper));
+  GeoJsonWriter().write(out, solution.tasks, location_resolver<decltype(mapper)>(in, mapper));
 }
 
 }  // namespace

@@ -79,8 +79,9 @@ SCENARIO("Can create best convolution with 25 customers.", "[convolution][C101]"
   tasks.times = create({0,   1002, 100, 1004, 902, 822, 934, 155, 259, 447, 540, 633, 725,
                         817, 105,  196, 288,  380, 742, 120, 214, 307, 402, 497, 592, 684});
   Pool pool;
+  Solution solution(std::move(problem), std::move(tasks));
 
-  auto convolutions = create_best_convolutions{}(problem, tasks, {0.5, 0.1, pool}, 0);
+  auto convolutions = create_best_convolutions{}(solution, {0.5, 0.1, pool}, 0);
 
   REQUIRE(convolutions->size() == 2);
   compare(convolutions->operator[](0), {0, 50, 367, {11, 4}, {448, 450}, {10, 13}});
@@ -99,10 +100,11 @@ SCENARIO("Can create joint convolution pair from two convolutions", "[convolutio
                                    {0, 3, 3, {15, 19}, {}, {15, 19}}};
   std::vector<Convolution> right{{customers, 4, 4, {1, 6}, {}, {1, 6}},
                                  {customers, 5, 5, {6, 11}, {}, {6, 11}}};
+  Solution solution(std::move(problem), std::move(tasks));
 
 
-  auto result = create_joint_convolutions{}(problem, tasks, {0.2, 0.2, pool}, map(left, pool),
-                                            map(right, pool));
+  auto result =
+    create_joint_convolutions{}(solution, {0.2, 0.2, pool}, map(left, pool), map(right, pool));
 
 
   REQUIRE(result.dimens.first == 3);
@@ -139,8 +141,9 @@ SCENARIO("Can create sliced convolutions from joint pairs", "[convolution][slice
                             {5, 8, {left.at(1), right.at(1)}},
                             {0, 11, {left.at(2), right.at(0)}},
                             {0, 11, {left.at(2), right.at(1)}}});
+  Solution solution(std::move(problem), std::move(tasks));
 
-  auto result = create_sliced_convolutions{}(problem, tasks, settings, pairs);
+  auto result = create_sliced_convolutions{}(solution, settings, pairs);
 
   REQUIRE(result->size() == (left.size() + right.size()));
   compare(result->operator[](0), left.at(0));

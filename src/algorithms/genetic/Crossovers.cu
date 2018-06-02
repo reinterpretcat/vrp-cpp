@@ -8,18 +8,17 @@ using namespace vrp::algorithms::genetic;
 using namespace vrp::models;
 using namespace vrp::utils;
 
-vrp::models::Convolutions adjusted_cost_difference::operator()(const Problem& problem,
-                                                               Tasks& tasks,
+vrp::models::Convolutions adjusted_cost_difference::operator()(vrp::models::Solution& solution,
                                                                const Settings& settings,
                                                                const Generation& generation) const {
-  auto convolutionsLeft = create_best_convolutions{}.operator()(
-    problem, tasks, settings.convolution, generation.parents.first);
+  auto convolutionsLeft =
+    create_best_convolutions{}.operator()(solution, settings.convolution, generation.parents.first);
 
-  auto convolutionsRight = create_best_convolutions{}.operator()(
-    problem, tasks, settings.convolution, generation.parents.second);
+  auto convolutionsRight = create_best_convolutions{}.operator()(solution, settings.convolution,
+                                                                 generation.parents.second);
 
-  auto pairs = create_joint_convolutions{}.operator()(problem, tasks, settings.convolution,
+  auto pairs = create_joint_convolutions{}.operator()(solution, settings.convolution,
                                                       convolutionsLeft, convolutionsRight);
 
-  return create_sliced_convolutions{}.operator()(problem, tasks, settings.convolution, pairs);
+  return create_sliced_convolutions{}.operator()(solution, settings.convolution, pairs);
 }

@@ -35,6 +35,7 @@ set(HEADER_FILES
         models/Problem.hpp
         models/Resources.hpp
         models/RoutingMatrix.hpp
+        models/Solution.hpp
         models/Tasks.hpp
         models/Transition.hpp
         models/Locations.hpp

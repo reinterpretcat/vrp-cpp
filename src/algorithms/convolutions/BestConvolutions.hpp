@@ -2,6 +2,7 @@
 #define VRP_ALGORITHMS_CONVOLUTIONS_BESTCONVOLUTIONS_HPP
 
 #include "algorithms/convolutions/Models.hpp"
+#include "models/Solution.hpp"
 
 namespace vrp {
 namespace algorithms {
@@ -9,10 +10,9 @@ namespace convolutions {
 
 /// Creates a group of customers (convolution) which can be served virtually as one.
 struct create_best_convolutions final {
-  vrp::models::Convolutions operator()(const vrp::models::Problem& problem,
-                                       vrp::models::Tasks& tasks,
+  vrp::models::Convolutions operator()(vrp::models::Solution& solution,
                                        const Settings& settings,
-                                       int solution) const;
+                                       int index) const;
 };
 
 }  // namespace convolutions

@@ -37,12 +37,6 @@ struct JointPairs final {
   std::unique_ptr<thrust::device_vector<JointPair>, vrp::utils::Pool::Deleter> pairs;
 };
 
-/// Contains model shadows.
-struct Model final {
-  vrp::models::Problem::Shadow problem;
-  vrp::models::Tasks::Shadow tasks;
-};
-
 }  // namespace convolutions
 }  // namespace algorithms
 }  // namespace vrp

@@ -15,7 +15,7 @@ using namespace thrust::placeholders;
 namespace {
 /// Joins two convolutions into pair.
 struct create_joint_pair final {
-  Model model;
+  Solution::Shadow solution;
 
   /// Counts equal pairs of ints.
   struct count_equal_pairs final {
@@ -32,8 +32,8 @@ struct create_joint_pair final {
     auto leftSize = static_cast<size_t>(left.tasks.second - left.tasks.first + 1);
     auto rightSize = static_cast<size_t>(right.tasks.second - right.tasks.first + 1);
 
-    auto leftBegin = model.tasks.ids + left.base + left.tasks.first;
-    auto rightBegin = model.tasks.ids + right.base + right.tasks.first;
+    auto leftBegin = solution.tasks.ids + left.base + left.tasks.first;
+    auto rightBegin = solution.tasks.ids + right.base + right.tasks.first;
 
     typedef thrust::device_ptr<int> Iterator;
     vrp::iterators::repeated_range<Iterator> repeated(leftBegin, leftBegin + leftSize, rightSize);
@@ -54,8 +54,7 @@ struct create_joint_pair final {
 };
 }  // namespace
 
-JointPairs create_joint_convolutions::operator()(const Problem& problem,
-                                                 Tasks& tasks,
+JointPairs create_joint_convolutions::operator()(vrp::models::Solution& solution,
                                                  const Settings& settings,
                                                  const Convolutions& left,
                                                  const Convolutions& right) const {
@@ -70,7 +69,7 @@ JointPairs create_joint_convolutions::operator()(const Problem& problem,
 
   // create all possible combinations from two group
   thrust::transform(thrust::device, repeated.begin(), repeated.end(), tiled.begin(), pairs->begin(),
-                    create_joint_pair{{problem.getShadow(), tasks.getShadow()}});
+                    create_joint_pair{solution.getShadow()});
 
   return {{left->size(), right->size()}, std::move(pairs)};
 }

@@ -1,6 +1,6 @@
 #include "algorithms/costs/SolutionCosts.hpp"
 #include "algorithms/costs/TransitionCosts.hpp"
-#include "models/Tasks.hpp"
+#include "models/Solution.hpp"
 #include "test_utils/PopulationFactory.hpp"
 #include "test_utils/SolomonBuilder.hpp"
 #include "test_utils/VectorUtils.hpp"
@@ -8,10 +8,11 @@
 #include <catch/catch.hpp>
 
 using namespace vrp::algorithms::costs;
+using namespace vrp::models;
 using namespace vrp::test;
 
 namespace {
-std::pair<vrp::models::Problem, vrp::models::Tasks> getPopulation(int populationSize) {
+Solution&& getPopulation(int populationSize) {
   auto stream = SolomonBuilder()
                   .setTitle("Exceeded capacity and two vehicles")
                   .setVehicle(3, 10)
@@ -27,9 +28,9 @@ std::pair<vrp::models::Problem, vrp::models::Tasks> getPopulation(int population
 }  // namespace
 
 SCENARIO("Can calculate total cost for single solution.", "[algorithm][costs]") {
-  auto population = getPopulation(1);
+  auto solution = std::move(getPopulation(1));
 
-  auto cost = calculate_total_cost()(population.first, population.second);
+  auto cost = calculate_total_cost()(solution);
 
   // locations : 0, 1, 2, 3, 4, 5
   // vehicles  : 0, 0, 1, 2, 2, 2
@@ -38,9 +39,9 @@ SCENARIO("Can calculate total cost for single solution.", "[algorithm][costs]") 
 }
 
 SCENARIO("Can calculate total cost for multiple solutions.", "[algorithm][costs][ggg]") {
-  auto population = getPopulation(3);
+  auto solution = getPopulation(3);
 
-  auto cost = calculate_total_cost()(population.first, population.second, 1);
+  auto cost = calculate_total_cost()(solution, 1);
 
   // locations : 0, 3, 4, 5, 1, 2
   // vehicles  : 0, 0, 0, 0, 1, 2
