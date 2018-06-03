@@ -12,7 +12,7 @@ using namespace vrp::models;
 using namespace vrp::test;
 
 namespace {
-Solution&& getPopulation(int populationSize) {
+Solution getPopulation(int populationSize) {
   auto stream = SolomonBuilder()
                   .setTitle("Exceeded capacity and two vehicles")
                   .setVehicle(3, 10)
@@ -28,7 +28,7 @@ Solution&& getPopulation(int populationSize) {
 }  // namespace
 
 SCENARIO("Can calculate total cost for single solution.", "[algorithm][costs]") {
-  auto solution = std::move(getPopulation(1));
+  auto solution = getPopulation(1);
 
   auto cost = calculate_total_cost()(solution);
 
