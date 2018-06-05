@@ -2,8 +2,8 @@
 #define VRP_ALGORITHMS_CONVOLUTIONS_MODELS_HPP
 
 #include "models/Convolution.hpp"
-#include "models/Problem.hpp"
-#include "models/Tasks.hpp"
+#include "utils/memory/DevicePool.hpp"
+#include "utils/memory/DeviceUnique.hpp"
 
 namespace vrp {
 namespace algorithms {
@@ -15,27 +15,32 @@ struct Settings final {
   float MedianRatio;
   /// Specifies ratio which controls threshold for grouping tasks.
   float ConvolutionRatio;
-  /// Object pool
-  vrp::utils::Pool& pool;
 };
 
-/// Represents a convolution joint pair.
-struct JointPair final {
-  /// Amount of shared customers.
-  int similarity;
-  /// Amount of unique customers served by convolution pair.
-  int completeness;
-  /// A pair constructed from two different convolutions.
-  thrust::pair<vrp::models::Convolution, vrp::models::Convolution> pair;
+/// Specifies convolutions collection acquired from pool with its real size.
+struct Convolutions {
+  using ConvolutionsPtr = thrust::device_ptr<vrp::models::Convolution>;
+  using Deleter = vrp::utils::DevicePool::TypedPool<vrp::models::Convolution>::pool_vector_deleter;
+
+  /// Convolutions size
+  size_t size;
+  /// Convolutions data.
+  vrp::utils::device_unique_ptr<ConvolutionsPtr, Deleter> data;
 };
 
 /// Represents collection of join pairs with some meta information.
 struct JointPairs final {
+  using JointPairPtr = thrust::device_ptr<vrp::models::JointPair>;
+  using Deleter = vrp::utils::DevicePool::TypedPool<vrp::models::JointPair>::pool_vector_deleter;
+
   /// Dimensions of the sets.
   thrust::pair<size_t, size_t> dimens;
   /// Represent convolution joint pair collection retrieved from pool.
-  std::unique_ptr<thrust::device_vector<JointPair>, vrp::utils::Pool::Deleter> pairs;
+  vrp::utils::device_unique_ptr<JointPairPtr, Deleter> data;
 };
+
+///// Convolution candidates.
+// using JointConvolutions = thrust::pair<Convolutions, Convolutions>;
 
 }  // namespace convolutions
 }  // namespace algorithms

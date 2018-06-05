@@ -52,9 +52,10 @@ SCENARIO("Can create offsprings", "[genetic][crossover][acdc]") {
   int populationSize = 4;
   auto solution = getPopulation(populationSize);
 
-  auto result = adjusted_cost_difference{}.operator()(
-    solution, createGeneticSettings(populationSize, createConvolutionSettings(0.5, 0.05)),
-    {{0, 1}, {2, 3}});
+  // TODO
+  //  auto result = adjusted_cost_difference{}.operator()(
+  //    solution, createGeneticSettings(populationSize, createConvolutionSettings(0.5, 0.05)),
+  //    {{0, 1}, {2, 3}});
 
   // TODO
   // MatrixTextWriter().write(std::cout, population.first, population.second);

@@ -11,9 +11,12 @@ namespace convolutions {
 /// Returns a "slice" from convolution pairs which can be used
 /// to create a new solution.
 struct create_sliced_convolutions final {
-  vrp::models::Convolutions operator()(vrp::models::Solution& solution,
-                                       const Settings& settings,
-                                       const JointPairs& pairs) const;
+  /// Solution shadow.
+  vrp::models::Solution::Shadow solution;
+  /// Object pool
+  thrust::device_ptr<vrp::utils::DevicePool> pool;
+
+  __device__ Convolutions operator()(const Settings& settings, const JointPairs& pairs) const;
 };
 
 }  // namespace convolutions

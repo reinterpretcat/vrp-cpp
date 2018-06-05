@@ -25,11 +25,14 @@ add_executable(${LIBRARY_TEST}
         streams/input/SolomonReaderTest.cu
         streams/output/GeoJsonWriterTest.cu
 
+        test_utils/MemoryUtils.hpp
         test_utils/PopulationFactory.hpp
         test_utils/SettingsFactory.hpp
         test_utils/SolomonBuilder.hpp
         test_utils/TaskUtils.hpp
         test_utils/VectorUtils.hpp
+
+        utils/Memory.cu
         )
 
 set_target_properties(${LIBRARY_TEST} PROPERTIES

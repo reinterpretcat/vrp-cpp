@@ -2,9 +2,7 @@
 #define VRP_MODELS_CONVOLUTION_HPP
 
 #include "models/Tasks.hpp"
-#include "utils/Pool.hpp"
 
-#include <thrust/device_vector.h>
 #include <thrust/pair.h>
 
 namespace vrp {
@@ -26,9 +24,16 @@ struct Convolution final {
   thrust::pair<int, int> tasks;
 };
 
-/// Represent convolution collection retrieved from pool.
-using Convolutions =
-  std::unique_ptr<thrust::device_vector<vrp::models::Convolution>, vrp::utils::Pool::Deleter>;
+/// Represents a convolution joint pair.
+struct JointPair final {
+  /// Amount of shared customers.
+  int similarity;
+  /// Amount of unique customers served by convolution pair.
+  int completeness;
+  /// A pair constructed from two different convolutions.
+  thrust::pair<vrp::models::Convolution, vrp::models::Convolution> pair;
+};
+
 }  // namespace models
 }  // namespace vrp
 

@@ -103,7 +103,7 @@ struct rank_sliced_pairs final {
 };
 
 /// Finds and sets the best pairs slice to convolution container.
-__global__ void setBestSlice(const thrust::device_ptr<JointPair> pairs,
+__device__ void setBestSlice(const thrust::device_ptr<JointPair> pairs,
                              const thrust::device_ptr<int> keys,
                              const thrust::pair<size_t, size_t> dimens,
                              thrust::device_ptr<Convolution> convolutions) {
@@ -123,21 +123,15 @@ __global__ void setBestSlice(const thrust::device_ptr<JointPair> pairs,
 
 }  // namespace
 
-Convolutions create_sliced_convolutions::operator()(vrp::models::Solution& solution,
-                                                    const Settings& settings,
-                                                    const JointPairs& pairs) const {
-  auto& dimens = pairs.dimens;
-  auto size = thrust::max(dimens.first, dimens.second);
-  auto keys = settings.pool.acquire<thrust::device_vector<int>>(
-    static_cast<size_t>(solution.tasks.customers));
-  auto convolutions =
-    settings.pool.acquire<thrust::device_vector<Convolution>>(dimens.first + dimens.second);
+__device__ Convolutions create_sliced_convolutions::operator()(const Settings& settings,
+                                                               const JointPairs& pairs) const {
+  auto size = thrust::max(pairs.dimens.first, pairs.dimens.second);
+  auto keys = pool.get()->ints(static_cast<size_t>(solution.problem.size));
+  auto convolutions = pool.get()->convolutions(pairs.dimens.first + pairs.dimens.second);
 
-  thrust::sequence(thrust::device, keys->begin(), keys->begin() + size, 0, 1);
+  thrust::sequence(thrust::device, *keys, *keys + size, 0, 1);
 
-  // TODO avoid raw kernels
-  setBestSlice<<<1, 1, 0>>>(pairs.pairs->data(), keys->data(), pairs.dimens, convolutions->data());
-  cudaStreamSynchronize(0);
+  setBestSlice(*pairs.data, *keys, pairs.dimens, *convolutions);
 
-  return convolutions;
+  return {pairs.dimens.first + pairs.dimens.second, std::move(convolutions)};
 }

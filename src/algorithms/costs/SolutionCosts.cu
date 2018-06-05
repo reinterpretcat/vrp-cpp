@@ -4,7 +4,7 @@
 #include "algorithms/transitions/Executors.hpp"
 #include "algorithms/transitions/Factories.hpp"
 #include "iterators/Aggregates.hpp"
-#include "utils/Memory.hpp"
+#include "utils/memory/Allocations.hpp"
 
 #include <thrust/iterator/discard_iterator.h>
 #include <thrust/unique.h>

@@ -44,9 +44,10 @@ set(HEADER_FILES
         streams/output/GeoJsonWriter.hpp
         streams/output/MatrixTextWriter.hpp
 
-        utils/Memory.hpp
-        utils/Pool.hpp
         utils/Resolvers.hpp
+        utils/memory/Allocations.hpp
+        utils/memory/DevicePool.hpp
+        utils/memory/DeviceUnique.hpp
         )
 
 set(SOURCE_FILES
@@ -71,6 +72,7 @@ set(SOURCE_FILES
         streams/input/SolomonReader.cu
         streams/output/GeoJsonWriter.cu
         streams/output/MatrixTextWriter.cu
+
         )
 
 add_library(${LIBRARY_NAME} STATIC

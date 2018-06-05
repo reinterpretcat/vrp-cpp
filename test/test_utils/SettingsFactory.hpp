@@ -3,7 +3,6 @@
 
 #include "algorithms/convolutions/Models.hpp"
 #include "algorithms/genetic/Models.hpp"
-#include "utils/Pool.hpp"
 
 namespace vrp {
 namespace test {
@@ -11,8 +10,7 @@ namespace test {
 /// Creates convolution settings.
 inline vrp::algorithms::convolutions::Settings createConvolutionSettings(float median,
                                                                          float convolution) {
-  static vrp::utils::Pool pool;
-  return {median, convolution, pool};
+  return {median, convolution};
 }
 
 /// Creates genetic settings.

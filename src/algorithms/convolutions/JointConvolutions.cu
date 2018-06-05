@@ -1,6 +1,5 @@
 #include "algorithms/convolutions/JointConvolutions.hpp"
 #include "iterators/CartesianProduct.hpp"
-#include "utils/Memory.hpp"
 
 #include <thrust/execution_policy.h>
 #include <thrust/iterator/discard_iterator.h>
@@ -26,8 +25,7 @@ struct create_joint_pair final {
     }
   };
 
-  __host__ __device__ JointPair operator()(const Convolution& left,
-                                           const Convolution& right) const {
+  __device__ JointPair operator()(const Convolution& left, const Convolution& right) const {
     // NOTE task range is inclusive, so +1 is required
     auto leftSize = static_cast<size_t>(left.tasks.second - left.tasks.first + 1);
     auto rightSize = static_cast<size_t>(right.tasks.second - right.tasks.first + 1);
@@ -54,22 +52,24 @@ struct create_joint_pair final {
 };
 }  // namespace
 
-JointPairs create_joint_convolutions::operator()(vrp::models::Solution& solution,
-                                                 const Settings& settings,
-                                                 const Convolutions& left,
-                                                 const Convolutions& right) const {
-  typedef thrust::device_vector<Convolution>::const_iterator Iterator;
-  repeated_range<Iterator> repeated(left->begin(), left->end(), right->size());
-  tiled_range<Iterator> tiled(right->begin(), right->end(), right->size());
+__device__ JointPairs create_joint_convolutions::operator()(const Settings& settings,
+                                                            const Convolutions& left,
+                                                            const Convolutions& right) const {
+  auto leftData = *left.data;
+  auto leftSize = left.size;
+  auto rightData = *right.data;
+  auto rightSize = right.size;
+
+  repeated_range<decltype(leftData)> repeated(leftData, leftData + leftSize, rightSize);
+  tiled_range<decltype(leftData)> tiled(rightData, rightData + rightSize, rightSize);
 
   // theoretical max convolution size in each group
   auto size = static_cast<int>(1 / settings.ConvolutionRatio);
-  auto pairs =
-    settings.pool.acquire<thrust::device_vector<JointPair>>(static_cast<size_t>(size * size));
+  auto pairs = pool.get()->jointPairs(static_cast<size_t>(size * size));
 
   // create all possible combinations from two group
-  thrust::transform(thrust::device, repeated.begin(), repeated.end(), tiled.begin(), pairs->begin(),
-                    create_joint_pair{solution.getShadow()});
+  thrust::transform(thrust::device, repeated.begin(), repeated.end(), tiled.begin(), *pairs,
+                    create_joint_pair{solution});
 
-  return {{left->size(), right->size()}, std::move(pairs)};
+  return JointPairs{{leftSize, rightSize}, std::move(pairs)};
 }

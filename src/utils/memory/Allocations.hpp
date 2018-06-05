@@ -1,5 +1,5 @@
-#ifndef VRP_UTILS_MEMORY_HPP
-#define VRP_UTILS_MEMORY_HPP
+#ifndef VRP_UTILS_MEMORY_ALLOCATIONS_HPP
+#define VRP_UTILS_MEMORY_ALLOCATIONS_HPP
 
 #include <thrust/device_free.h>
 #include <thrust/device_malloc.h>
@@ -26,4 +26,4 @@ inline T release(thrust::device_ptr<T>& buffer) {
 }  // namespace utils
 }  // namespace vrp
 
-#endif  // VRP_UTILS_MEMORY_HPP
+#endif  // VRP_UTILS_MEMORY_ALLOCATIONS_HPP
