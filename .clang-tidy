@@ -1,0 +1,10 @@
+Checks: >
+  -*,
+  clang-diagnostic-*,
+  llvm-*,
+  misc-*
+
+FormatStyle: none
+HeaderFilterRegex: '*.hpp'
+AnalyzeTemporaryDtors: false
+User: reinterpretcat

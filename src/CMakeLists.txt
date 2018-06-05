@@ -1,6 +1,7 @@
 project(Solver LANGUAGES CXX CUDA)
 
 find_package(Thrust REQUIRED)
+find_package(ClangTidy)
 
 set(LIBRARY_NAME Solver)
 
@@ -93,3 +94,11 @@ include_directories(${MAIN_SOURCE}
         ${EXTERNAL_SOURCE}
         ${CMAKE_CURRENT_BINARY_DIR}
         )
+
+if (CLANG_TIDY)
+    add_custom_target(${LIBRARY_NAME}Tidy
+        COMMAND ${CLANG_TIDY} -p ${CMAKE_CACHEFILE_DIR}/compile_commands.json
+        ${SOURCE_FILES}
+        WORKING_DIRECTORY ${MAIN_SOURCE}/
+        )
+endif()
