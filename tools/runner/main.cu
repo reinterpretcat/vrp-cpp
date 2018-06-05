@@ -9,7 +9,7 @@
 #include "streams/input/SolomonReader.hpp"
 #include "streams/output/GeoJsonWriter.hpp"
 #include "streams/output/MatrixTextWriter.hpp"
-#include "utils/Resolvers.hpp"
+#include "utils/geo/Resolvers.hpp"
 
 #include <ostream>
 #include <thrust/host_vector.h>

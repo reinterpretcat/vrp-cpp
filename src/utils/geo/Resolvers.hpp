@@ -1,5 +1,5 @@
-#ifndef VRP_UTILS_RESOLVERS_HPP
-#define VRP_UTILS_RESOLVERS_HPP
+#ifndef VRP_UTILS_GEO_RESOLVERS_HPP
+#define VRP_UTILS_GEO_RESOLVERS_HPP
 
 #include "models/Locations.hpp"
 
@@ -63,4 +63,4 @@ private:
 }  // namespace utils
 }  // namespace vrp
 
-#endif  // VRP_UTILS_RESOLVERS_HPP
+#endif  // VRP_UTILS_GEO_RESOLVERS_HPP
