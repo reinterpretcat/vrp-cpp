@@ -92,8 +92,8 @@ struct estimate_convolutions final {
   };
 
   __device__ void operator()(const thrust::device_ptr<bool> plan,
-                               thrust::device_ptr<thrust::tuple<bool, int>> output,
-                               thrust::device_ptr<int> lengths) const {
+                             thrust::device_ptr<thrust::tuple<bool, int>> output,
+                             thrust::device_ptr<int> lengths) const {
     thrust::reduce_by_key(
       thrust::device,
       thrust::make_zip_iterator(thrust::make_tuple(plan, thrust::make_counting_iterator(0))),
@@ -192,9 +192,8 @@ __device__ Convolutions create_best_convolutions::operator()(const Settings& set
   estimate_convolutions{size}.operator()(*plan, *output, *lengths);
 
   auto convolutions = pool.get()->convolutions(size);
-  auto resultSize =
-    create_convolutions{solution, settings.ConvolutionRatio, size}.operator()(
-      static_cast<int>(begin), *output, *lengths, *convolutions);
+  auto resultSize = create_convolutions{solution, settings.ConvolutionRatio, size}.operator()(
+    static_cast<int>(begin), *output, *lengths, *convolutions);
 
   return {resultSize, std::move(convolutions)};
 }

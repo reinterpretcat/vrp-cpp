@@ -33,9 +33,7 @@ struct run_best_convolutions final {
   }
 };
 
-}  // namespace
-
-SCENARIO("Can create best convolution with 25 customers.", "[convolution][C101]") {
+Solution createBasicSolution() {
   int customers = 25 + 1;
   auto problem = Problem();
   auto tasks = Tasks(customers);
@@ -44,18 +42,24 @@ SCENARIO("Can create best convolution with 25 customers.", "[convolution][C101]"
   problem.customers.services = create({0,  90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90,
                                        90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90});
   problem.customers.starts =
-      create({0,  912, 825, 65,  727, 15,  621, 170, 255, 534, 357, 448, 652,
-              30, 567, 384, 475, 99,  179, 278, 10,  914, 812, 732, 65,  169});
+    create({0,  912, 825, 65,  727, 15,  621, 170, 255, 534, 357, 448, 652,
+            30, 567, 384, 475, 99,  179, 278, 10,  914, 812, 732, 65,  169});
   tasks.ids = create(
-      {0, 1, 20, 21, 22, 23, 2, 24, 25, 10, 11, 9, 6, 4, 5, 3, 7, 8, 12, 13, 17, 18, 19, 15, 16, 14});
+    {0, 1, 20, 21, 22, 23, 2, 24, 25, 10, 11, 9, 6, 4, 5, 3, 7, 8, 12, 13, 17, 18, 19, 15, 16, 14});
   tasks.vehicles =
-      create({0, 0, 1, 1, 2, 3, 3, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6});
+    create({0, 0, 1, 1, 2, 3, 3, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6});
   tasks.costs = create<float>({0,  19, 10, 12, 12, 13, 36, 15, 17, 34, 37, 40, 43,
                                45, 15, 16, 18, 21, 42, 31, 35, 38, 43, 48, 53, 55});
   tasks.times = create({0,   1002, 100, 1004, 902, 822, 934, 155, 259, 447, 540, 633, 725,
                         817, 105,  196, 288,  380, 742, 120, 214, 307, 402, 497, 592, 684});
-  auto pool = DevicePool::create(1, 4, static_cast<size_t>(customers));
-  Solution solution(std::move(problem), std::move(tasks));
+
+  return {std::move(problem), std::move(tasks)};
+}
+
+}  // namespace
+
+SCENARIO("Can create best convolutions with 25 customers with convolution ratio 0.1", "[convolution][C101]") {
+  auto solution = createBasicSolution();
 
   auto runner = run_best_convolutions{solution.getShadow(), getPool(), {0.5, 0.1}};
   auto result = thrust::transform_reduce(thrust::device, thrust::make_counting_iterator(0),

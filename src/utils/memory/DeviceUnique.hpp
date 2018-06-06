@@ -75,7 +75,7 @@ public:
 
   __device__ void reset() {
     if (data != nullptr) {
-      T * tmp = release();
+      T* tmp = release();
       deleter(tmp);
     }
   }

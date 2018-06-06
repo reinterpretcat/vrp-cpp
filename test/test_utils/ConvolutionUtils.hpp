@@ -14,9 +14,7 @@ inline thrust::device_vector<T> create(const std::initializer_list<T>& list) {
   return std::move(data);
 }
 
-inline
-void compare(const vrp::models::Convolution& left,
-             const vrp::models::Convolution& right) {
+inline void compare(const vrp::models::Convolution& left, const vrp::models::Convolution& right) {
   REQUIRE(left.demand == right.demand);
   REQUIRE(left.service == right.service);
 
@@ -30,9 +28,7 @@ void compare(const vrp::models::Convolution& left,
   REQUIRE(left.tasks.second == right.tasks.second);
 }
 
-inline
-void compare(const vrp::models::JointPair& left,
-             const vrp::models::JointPair& right) {
+inline void compare(const vrp::models::JointPair& left, const vrp::models::JointPair& right) {
   REQUIRE(left.similarity == right.similarity);
   REQUIRE(left.completeness == right.completeness);
 
