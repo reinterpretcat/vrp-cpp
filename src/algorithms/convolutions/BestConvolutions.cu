@@ -91,16 +91,15 @@ struct estimate_convolutions final {
     }
   };
 
-  __device__ size_t operator()(const thrust::device_ptr<bool> plan,
+  __device__ void operator()(const thrust::device_ptr<bool> plan,
                                thrust::device_ptr<thrust::tuple<bool, int>> output,
                                thrust::device_ptr<int> lengths) const {
-    auto result = thrust::reduce_by_key(
+    thrust::reduce_by_key(
       thrust::device,
       thrust::make_zip_iterator(thrust::make_tuple(plan, thrust::make_counting_iterator(0))),
       thrust::make_zip_iterator(
         thrust::make_tuple(plan + size, thrust::make_counting_iterator(static_cast<int>(size)))),
       thrust::constant_iterator<int>(1), output, lengths, compare_plan());
-    return static_cast<size_t>(result.first - output);
   }
 };
 
@@ -109,7 +108,6 @@ struct create_convolutions final {
   Solution::Shadow solution;
   float convolutionRatio;
   size_t size;
-  size_t groups;
 
   /// Filters group by plan and length.
   struct filter_group final {
@@ -160,11 +158,11 @@ struct create_convolutions final {
                                const thrust::device_ptr<thrust::tuple<bool, int>> output,
                                const thrust::device_ptr<int> lengths,
                                thrust::device_ptr<Convolution> convolutions) const {
-    auto limit = static_cast<int>(solution.problem.size * convolutionRatio);
+    auto limit = __float2int_rn(solution.problem.size * convolutionRatio);
 
     auto newEnd = thrust::remove_copy_if(
       thrust::device, thrust::make_zip_iterator(thrust::make_tuple(output, lengths)),
-      thrust::make_zip_iterator(thrust::make_tuple(output + groups, lengths + groups)),
+      thrust::make_zip_iterator(thrust::make_tuple(output + size, lengths + size)),
       thrust::make_transform_output_iterator(convolutions, map_group{solution, base}),
       filter_group{limit});
 
@@ -191,11 +189,11 @@ __device__ Convolutions create_best_convolutions::operator()(const Settings& set
 
   auto output = pool.get()->boolInts(size);
   auto lengths = pool.get()->ints(size);
-  size_t groups = estimate_convolutions{size}.operator()(*plan, *output, *lengths);
+  estimate_convolutions{size}.operator()(*plan, *output, *lengths);
 
-  auto convolutions = pool.get()->convolutions(groups);
+  auto convolutions = pool.get()->convolutions(size);
   auto resultSize =
-    create_convolutions{solution, settings.ConvolutionRatio, size, groups}.operator()(
+    create_convolutions{solution, settings.ConvolutionRatio, size}.operator()(
       static_cast<int>(begin), *output, *lengths, *convolutions);
 
   return {resultSize, std::move(convolutions)};

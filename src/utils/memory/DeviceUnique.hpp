@@ -74,8 +74,10 @@ public:
   }
 
   __device__ void reset() {
-    T* tmp = release();
-    deleter(tmp);
+    if (data != nullptr) {
+      T * tmp = release();
+      deleter(tmp);
+    }
   }
 };
 
