@@ -58,7 +58,7 @@ Solution createBasicSolution() {
 
 }  // namespace
 
-SCENARIO("Can create best convolutions with 25 customers with convolution ratio 0.1", "[convolution][C101]") {
+SCENARIO("Can create best convolutions with 25 customers with two convolutions", "[convolution][C101]") {
   auto solution = createBasicSolution();
 
   auto runner = run_best_convolutions{solution.getShadow(), getPool(), {0.5, 0.1}};
@@ -68,4 +68,17 @@ SCENARIO("Can create best convolutions with 25 customers with convolution ratio 
   REQUIRE(result.first == 2);
   // compare(convolutions->operator[](0), {0, 50, 367, {11, 4}, {448, 450}, {10, 13}});
   // compare(convolutions->operator[](1), {0, 140, 560, {17, 14}, {99, 124}, {20, 25}});
+}
+
+SCENARIO("Can create best convolutions with 25 customers with three convolutions", "[convolution][C101]") {
+  auto solution = createBasicSolution();
+
+  auto runner = run_best_convolutions{solution.getShadow(), getPool(), {0.75, 0.1}};
+  auto result = thrust::transform_reduce(thrust::device, thrust::make_counting_iterator(0),
+                                         thrust::make_counting_iterator(1), runner,
+                                         ConvolutionResult{}, runner);
+  REQUIRE(result.first == 3);
+  // compare(convolutions->operator[](0), {0, 50, 367, {11, 4}, {448, 450}, {7, 13}});
+  // compare(convolutions->operator[](1), {0, 140, 560, {17, 14}, {99, 124}, {14, 18}});
+  // compare(convolutions->operator[](2), {0, 140, 560, {17, 14}, {99, 124}, {20, 25}});
 }
