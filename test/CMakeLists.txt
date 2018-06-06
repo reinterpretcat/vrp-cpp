@@ -13,7 +13,9 @@ add_executable(${LIBRARY_TEST}
         main.cpp
         EnvironmentTest.cu
 
-        algorithms/convolutions/ConvolutionsTest.cu
+        algorithms/convolutions/BestConvolutionsTest.cu
+        algorithms/convolutions/JointConvolutionsTest.cu
+        algorithms/convolutions/SlicedConvolutionsTest.cu
 
         algorithms/costs/CostsTest.cu
 
@@ -25,6 +27,7 @@ add_executable(${LIBRARY_TEST}
         streams/input/SolomonReaderTest.cu
         streams/output/GeoJsonWriterTest.cu
 
+        test_utils/ConvolutionUtils.hpp
         test_utils/MemoryUtils.hpp
         test_utils/PopulationFactory.hpp
         test_utils/SettingsFactory.hpp
