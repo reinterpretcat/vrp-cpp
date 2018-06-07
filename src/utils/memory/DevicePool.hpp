@@ -61,10 +61,7 @@ public:
     }
 
   private:
-    __device__ void release(DataType ptr) {
-      printf("top is %d\n", top);
-      data[top++] = ptr;
-    }
+    __device__ void release(DataType ptr) { data[top++] = ptr; }
 
     size_t top, capacity, elements;
     thrust::device_ptr<DataType> data;

@@ -14,6 +14,13 @@ inline thrust::device_vector<T> create(const std::initializer_list<T>& list) {
   return std::move(data);
 }
 
+/// Copies convolution array to host.
+inline thrust::host_vector<vrp::models::Convolution> copy(
+  const thrust::device_ptr<vrp::models::Convolution> data,
+  size_t size) {
+  return thrust::host_vector<vrp::models::Convolution>(data, data + size);
+}
+
 inline void compare(const vrp::models::Convolution& left, const vrp::models::Convolution& right) {
   REQUIRE(left.demand == right.demand);
   REQUIRE(left.service == right.service);
