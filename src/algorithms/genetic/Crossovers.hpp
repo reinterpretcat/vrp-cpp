@@ -18,9 +18,7 @@ struct adjusted_cost_difference final {
   /// Object pool
   thrust::device_ptr<vrp::utils::DevicePool> pool;
 
-  __device__ vrp::algorithms::convolutions::Convolutions operator()(
-    const Settings& settings,
-    const Generation& generation) const;
+  void operator()(const Settings& settings, const Generation& generation) const;
 };
 
 }  // namespace genetic

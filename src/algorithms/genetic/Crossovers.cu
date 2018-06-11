@@ -8,8 +8,8 @@ using namespace vrp::algorithms::genetic;
 using namespace vrp::models;
 using namespace vrp::utils;
 
-__device__ Convolutions adjusted_cost_difference::operator()(const Settings& settings,
-                                                             const Generation& generation) const {
+__device__ void adjusted_cost_difference::operator()(const Settings& settings,
+                                                     const Generation& generation) const {
   auto left = create_best_convolutions{solution, pool}.operator()(settings.convolution,
                                                                   generation.parents.first);
   auto right = create_best_convolutions{solution, pool}.operator()(settings.convolution,
@@ -17,5 +17,6 @@ __device__ Convolutions adjusted_cost_difference::operator()(const Settings& set
   auto pairs =
     create_joint_convolutions{solution, pool}.operator()(settings.convolution, left, right);
 
-  return create_sliced_convolutions{solution, pool}.operator()(settings.convolution, pairs);
+  auto convolutions =
+    create_sliced_convolutions{solution, pool}.operator()(settings.convolution, pairs);
 }
