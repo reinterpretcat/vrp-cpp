@@ -19,4 +19,6 @@ __device__ void adjusted_cost_difference::operator()(const Settings& settings,
 
   auto convolutions =
     create_sliced_convolutions{solution, pool}.operator()(settings.convolution, pairs);
+
+  // TODO
 }
