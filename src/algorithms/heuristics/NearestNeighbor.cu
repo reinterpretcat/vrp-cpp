@@ -1,5 +1,5 @@
-#include "NearestNeighbor.hpp"
 #include "algorithms/costs/TransitionCosts.hpp"
+#include "algorithms/heuristics/NearestNeighbor.hpp"
 #include "algorithms/transitions/Factories.hpp"
 
 #include <thrust/iterator/counting_iterator.h>

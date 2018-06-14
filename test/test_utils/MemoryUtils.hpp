@@ -8,7 +8,7 @@ namespace test {
 
 /// Returns device pool.
 inline vrp::utils::DevicePool::Pointer getPool() {
-  static auto pool = vrp::utils::DevicePool::create(1, 4, 100);
+  static auto pool = vrp::utils::DevicePool::create(1, 4, 1000);
   return *pool;
 }
 

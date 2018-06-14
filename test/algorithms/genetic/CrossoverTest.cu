@@ -1,4 +1,5 @@
 #include "algorithms/genetic/Crossovers.hpp"
+#include "algorithms/heuristics/NearestNeighbor.hpp"
 #include "streams/output/MatrixTextWriter.hpp"
 #include "test_utils/MemoryUtils.hpp"
 #include "test_utils/PopulationFactory.hpp"
@@ -7,6 +8,7 @@
 #include <catch/catch.hpp>
 
 using namespace vrp::algorithms::genetic;
+using namespace vrp::algorithms::heuristics;
 using namespace vrp::models;
 using namespace vrp::streams;
 using namespace vrp::utils;
@@ -54,7 +56,7 @@ struct run_crossover final {
   const Settings settings;
   const Generation generation;
   __device__ void operator()(int index) {
-    adjusted_cost_difference{solution, pool}(settings, generation);
+    adjusted_cost_difference<nearest_neighbor>{solution, pool}(settings, generation);
   }
 };
 
@@ -63,15 +65,15 @@ struct run_crossover final {
 SCENARIO("Can create offsprings", "[genetic][crossover][acdc]") {
   int populationSize = 4;
   auto solution = getPopulation(populationSize);
-  auto settings = Settings{populationSize, {0.5, 0.05}};
+  auto settings = Settings{populationSize, {0.75, 0.05}};
   auto generation = Generation{{0, 1}, {2, 3}};
 
-  // MatrixTextWriter().write(std::cout, population.first, population.second);
+  MatrixTextWriter().write(std::cout, solution);
 
   thrust::for_each(thrust::device, thrust::make_counting_iterator(0),
                    thrust::make_counting_iterator(1),
                    run_crossover{solution.getShadow(), getPool(), settings, generation});
 
   // TODO
-  // MatrixTextWriter().write(std::cout, population.first, population.second);
+  MatrixTextWriter().write(std::cout, solution);
 }

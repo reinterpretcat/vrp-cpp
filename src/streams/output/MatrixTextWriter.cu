@@ -65,4 +65,6 @@ void MatrixTextWriter::write(std::ostream& out, const vrp::models::Solution& sol
   writeVector(out << "\ncosts:       ", solution.tasks.costs, solution.tasks.population());
   writeVector(out << "\ncapacities:  ", solution.tasks.capacities, solution.tasks.population());
   writeVector(out << "\ntimes:       ", solution.tasks.times, solution.tasks.population());
+  writeVector(out << "\nplan:        ", solution.tasks.plan, solution.tasks.population());
+  out << "\n";
 }
