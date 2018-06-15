@@ -12,6 +12,7 @@ using namespace vrp::algorithms::costs;
 using namespace vrp::algorithms::heuristics;
 using namespace vrp::algorithms::transitions;
 using namespace vrp::models;
+using namespace vrp::utils;
 
 namespace {
 
@@ -31,7 +32,9 @@ struct create_cost_transition {
   __host__ __device__ TransitionCost operator()(const thrust::tuple<int, Plan>& customer) {
     if (thrust::get<1>(customer).isAssigned()) return createInvalid();
 
-    auto transition = transitionFactory({fromTask, toTask, thrust::get<0>(customer), vehicle});
+    auto wrapped = device_variant<int, Convolution>();
+    wrapped.set<int>(thrust::get<0>(customer));
+    auto transition = transitionFactory({fromTask, toTask, wrapped, vehicle});
     auto cost = costCalculator(transition);
 
     return thrust::make_tuple(transition, cost);
@@ -46,6 +49,7 @@ struct compare_transition_costs {
         (thrust::get<1>(left) < thrust::get<1>(result) || !thrust::get<0>(result).isValid())) {
       result = left;
     }
+
     return result;
   }
 };

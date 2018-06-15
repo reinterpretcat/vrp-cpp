@@ -36,6 +36,7 @@ add_executable(${LIBRARY_TEST}
         test_utils/VectorUtils.hpp
 
         utils/Memory.cu
+        utils/Types.cu
         )
 
 set_target_properties(${LIBRARY_TEST} PROPERTIES

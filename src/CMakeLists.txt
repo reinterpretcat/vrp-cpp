@@ -50,6 +50,7 @@ set(HEADER_FILES
         utils/memory/Allocations.hpp
         utils/memory/DevicePool.hpp
         utils/memory/DeviceUnique.hpp
+        utils/types/DeviceVariant.hpp
         )
 
 set(SOURCE_FILES

@@ -14,6 +14,7 @@ using namespace vrp::algorithms::costs;
 using namespace vrp::algorithms::genetic;
 using namespace vrp::algorithms::transitions;
 using namespace vrp::models;
+using namespace vrp::utils;
 
 namespace {
 
@@ -36,7 +37,8 @@ struct create_roots {
     createDepotTask(fromTask, vehicle);
 
     while (customer != 0) {
-      auto details = vrp::models::Transition::Details{fromTask, toTask, customer, vehicle};
+      auto details =
+        vrp::models::Transition::Details{fromTask, toTask, wrapCustomer(customer), vehicle};
       auto transition = createTransition(details);
       if (transition.isValid()) {
         performTransition({transition, getCost(transition)});
@@ -62,6 +64,12 @@ private:
   __host__ __device__ inline int getCustomer(int individuum) const {
     return thrust::max(1, (individuum * tasks.customers / populationSize + 1) % tasks.customers);
   }
+
+  __host__ __device__ inline device_variant<int, Convolution> wrapCustomer(int customer) const {
+    device_variant<int, Convolution> wrapped;
+    wrapped.set<int>(customer);
+    return wrapped;
+  };
 
   const Problem::Shadow problem;
   Tasks::Shadow tasks;

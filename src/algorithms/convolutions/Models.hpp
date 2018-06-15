@@ -39,9 +39,6 @@ struct JointPairs final {
   vrp::utils::device_unique_ptr<JointPairPtr, Deleter> data;
 };
 
-///// Convolution candidates.
-// using JointConvolutions = thrust::pair<Convolutions, Convolutions>;
-
 }  // namespace convolutions
 }  // namespace algorithms
 }  // namespace vrp

@@ -38,6 +38,6 @@ SCENARIO("Can find best transition after depot.", "[heuristics][construction][Ne
 
   auto transitionCost = nearest_neighbor(problem.getShadow(), tasks.getShadow())(0, 0, 0);
 
-  REQUIRE(thrust::get<0>(transitionCost).details.customer == 3);
   REQUIRE(thrust::get<1>(transitionCost) == 1);
+  REQUIRE(thrust::get<0>(transitionCost).details.customer.get<int>() == 3);
 }

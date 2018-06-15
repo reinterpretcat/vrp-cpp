@@ -9,7 +9,8 @@ namespace {
 __host__ __device__ inline bool isTooLate(const Problem::Shadow& problem,
                                           const Transition::Details& details,
                                           int arrivalTime) {
-  return arrivalTime > problem.customers.ends[details.customer];
+  auto customer = details.customer.get<int>();
+  return arrivalTime > problem.customers.ends[customer];
 }
 
 /// Checks whether vehicle can carry requested demand.
@@ -21,7 +22,8 @@ __host__ __device__ inline bool isTooMuch(const Tasks::Shadow& tasks, int task, 
 __host__ __device__ inline int getWaitingTime(const Problem::Shadow& problem,
                                               const Transition::Details& details,
                                               int arrivalTime) {
-  int startTime = problem.customers.starts[details.customer];
+  auto customer = details.customer.get<int>();
+  int startTime = problem.customers.starts[customer];
   return arrivalTime < startTime ? startTime - arrivalTime : 0;
 }
 
@@ -29,7 +31,8 @@ __host__ __device__ inline int getWaitingTime(const Problem::Shadow& problem,
 __host__ __device__ inline bool noReturn(const Problem::Shadow& problem,
                                          const Transition::Details& details,
                                          int departure) {
-  return departure + problem.routing.durations[details.customer * problem.size] >
+  auto customer = details.customer.get<int>();
+  return departure + problem.routing.durations[customer * problem.size] >
          problem.resources.timeLimits[details.vehicle];
 }
 
@@ -38,19 +41,21 @@ __host__ __device__ inline bool noReturn(const Problem::Shadow& problem,
 __host__ __device__ Transition
 create_transition::operator()(const Transition::Details& details) const {
   int task = details.from;
+  int customer = details.customer.get<int>();
+  ;
 
-  int matrix = tasks.ids[task] * problem.size + details.customer;
+  int matrix = tasks.ids[task] * problem.size + customer;
   float distance = problem.routing.distances[matrix];
   int traveling = problem.routing.durations[matrix];
   int arrivalTime = tasks.times[task] + traveling;
-  int demand = problem.customers.demands[details.customer];
+  int demand = problem.customers.demands[customer];
 
   if (isTooLate(problem, details, arrivalTime) || isTooMuch(tasks, task, demand)) {
     return vrp::models::Transition();
   }
 
   int waiting = getWaitingTime(problem, details, arrivalTime);
-  int serving = problem.customers.services[details.customer];
+  int serving = problem.customers.services[customer];
   int departure = arrivalTime + waiting + serving;
 
   return noReturn(problem, details, departure)

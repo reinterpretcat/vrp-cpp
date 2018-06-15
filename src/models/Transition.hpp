@@ -1,6 +1,9 @@
 #ifndef VRP_MODELS_TRANSITION_HPP
 #define VRP_MODELS_TRANSITION_HPP
 
+#include "models/Convolution.hpp"
+#include "utils/types/DeviceVariant.hpp"
+
 #include <thrust/execution_policy.h>
 
 namespace vrp {
@@ -15,7 +18,8 @@ struct Transition {
     /// Task to which transition should happen.
     int to;
     /// Customer which is being served by transition
-    int customer;
+    /// represented by their id or convolution.
+    vrp::utils::device_variant<int, Convolution> customer;
     /// Vehicle used in transition.
     int vehicle;
   };
@@ -52,7 +56,7 @@ struct Transition {
   __host__ __device__ Transition& operator=(const Transition&) = default;
 
   /// Flag whether transition is valid.
-  __host__ __device__ bool isValid() const { return details.customer > 0; }
+  __host__ __device__ bool isValid() const { return details.from >= 0; }
 };
 
 /// Stores transition and its cost.

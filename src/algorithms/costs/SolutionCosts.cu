@@ -13,6 +13,7 @@ using namespace vrp::algorithms::transitions;
 using namespace vrp::algorithms::costs;
 using namespace vrp::iterators;
 using namespace vrp::models;
+using namespace vrp::utils;
 
 namespace {
 
@@ -32,8 +33,10 @@ struct aggregate_cost final {
   __device__ void operator()(const Tuple& tuple) {
     const int task = lastCustomer - thrust::get<0>(tuple);
     const int vehicle = thrust::get<1>(tuple);
-    const int depot = 0;
     const float cost = thrust::get<2>(tuple);
+
+    auto depot = device_variant<int, Convolution>();
+    depot.set<int>(0);
 
     auto details = Transition::Details{baseTask + task, -1, depot, vehicle};
     auto transition = create_transition(model->solution.problem, model->solution.tasks)(details);
