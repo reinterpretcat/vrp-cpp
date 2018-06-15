@@ -33,6 +33,7 @@ set(HEADER_FILES
 
         models/Convolution.hpp
         models/Customers.hpp
+        models/Plan.hpp
         models/Problem.hpp
         models/Resources.hpp
         models/RoutingMatrix.hpp

@@ -28,8 +28,8 @@ struct create_cost_transition {
   create_transition transitionFactory;
   calculate_transition_cost costCalculator;
 
-  __host__ __device__ TransitionCost operator()(const thrust::tuple<int, bool>& customer) {
-    if (thrust::get<1>(customer)) return createInvalid();
+  __host__ __device__ TransitionCost operator()(const thrust::tuple<int, Plan>& customer) {
+    if (thrust::get<1>(customer).isAssigned()) return createInvalid();
 
     auto transition = transitionFactory({fromTask, toTask, thrust::get<0>(customer), vehicle});
     auto cost = costCalculator(transition);

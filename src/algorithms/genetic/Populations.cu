@@ -56,7 +56,7 @@ private:
     tasks.capacities[task] = problem.resources.capacities[vehicle];
     tasks.vehicles[task] = vehicle;
     tasks.costs[task] = problem.resources.fixedCosts[vehicle];
-    tasks.plan[task] = true;
+    tasks.plan[task] = Plan::assign();
   }
 
   __host__ __device__ inline int getCustomer(int individuum) const {

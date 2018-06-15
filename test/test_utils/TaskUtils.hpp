@@ -18,7 +18,7 @@ inline void createDepotTask(const vrp::models::Problem& problem, vrp::models::Ta
   tasks.capacities[task] = problem.resources.capacities[vehicle];
   tasks.vehicles[task] = vehicle;
   tasks.costs[task] = problem.resources.fixedCosts[vehicle];
-  tasks.plan[task] = true;
+  tasks.plan[task] = vrp::models::Plan::assign();
 }
 
 }  // namespace test

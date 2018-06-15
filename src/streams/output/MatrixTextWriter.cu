@@ -19,17 +19,35 @@ using namespace vrp::streams;
 namespace {
 const int ItemSize = 4;
 
+template<typename T>
+void write(std::ostream& stream, const T& value) {
+  stream << value;
+}
+
+template<>
+void write(std::ostream& stream, const Plan& plan) {
+  stream << plan.isAssigned();
+}
+
 /// Prints item with additional formatting.
 struct print_one final {
   std::ostream& stream;
   int customers;
 
+
   template<typename T>
   __host__ void operator()(const thrust::tuple<int, T> item) {
     stream << (thrust::get<0>(item) % customers == 0 ? '\n' : ',') << std::setfill(' ')
-           << std::setw(ItemSize) << std::fixed << std::setprecision(0) << thrust::get<1>(item);
+           << std::setw(ItemSize) << std::fixed << std::setprecision(0);
+    write(stream, thrust::get<1>(item));
   }
 };
+
+// template<>
+//__host__ void print_one::operator()(const thrust::tuple<int, thrust::pair<bool, int>> item) {
+//  auto pair = thrust::get<1>(item);
+//  prepare(thrust::get<0>(item)) << '(' << pair.first << ',' << pair.second << ')';
+//}
 
 /// Writes vectorized data into stream.
 template<typename T>

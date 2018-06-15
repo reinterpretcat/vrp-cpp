@@ -19,7 +19,8 @@ struct prepare_convolution final {
 
   __device__ void operator()(const int task) {
     auto customer = solution.tasks.ids[task];
-    solution.tasks.plan[base + customer] = true;
+    // TODO use index of convolution
+    solution.tasks.plan[base + customer] = Plan::assign();
   }
 
   __device__ void operator()(const Convolution& convolution) {
@@ -41,7 +42,8 @@ struct prepare_plan final {
     printf("offspring: %d, size: %d\n", index, static_cast<int>(convolutions.first));
 
     // reset whole plan
-    thrust::fill(thrust::device, solution.tasks.plan + begin, solution.tasks.plan + end, false);
+    thrust::fill(thrust::device, solution.tasks.plan + begin, solution.tasks.plan + end,
+                 Plan::empty());
 
     // mark convolution's customers as assigned
     thrust::for_each(thrust::device, convolutions.second, convolutions.second + convolutions.first,
@@ -72,7 +74,6 @@ template<typename Heuristic>
 __device__ void adjusted_cost_difference<Heuristic>::operator()(
   const Settings& settings,
   const Generation& generation) const {
-
   // find convolutions
   auto left = create_best_convolutions{solution, pool}.operator()(settings.convolution,
                                                                   generation.parents.first);

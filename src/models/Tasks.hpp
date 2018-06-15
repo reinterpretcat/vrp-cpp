@@ -1,8 +1,11 @@
 #ifndef VRP_MODEL_TASKS_HPP
 #define VRP_MODEL_TASKS_HPP
 
+#include "models/Plan.hpp"
+
 #include <thrust/device_ptr.h>
 #include <thrust/device_vector.h>
+#include <thrust/pair.h>
 
 namespace vrp {
 namespace models {
@@ -18,7 +21,7 @@ struct Tasks final {
     thrust::device_ptr<int> times;
     thrust::device_ptr<int> capacities;
     thrust::device_ptr<int> vehicles;
-    thrust::device_ptr<bool> plan;
+    thrust::device_ptr<Plan> plan;
   };
 
   explicit Tasks() = default;
@@ -49,7 +52,7 @@ struct Tasks final {
   thrust::device_vector<int> vehicles;
 
   /// Keeps state of customer's state.
-  thrust::device_vector<bool> plan;
+  thrust::device_vector<Plan> plan;
 
   /// Returns size of tasks.
   int size() const { return static_cast<int>(ids.size()); }
@@ -64,7 +67,7 @@ struct Tasks final {
     times.resize(size, -1);
     capacities.resize(size, -1);
     vehicles.resize(size, -1);
-    plan.resize(size, false);
+    plan.resize(size, Plan::empty());
   }
 
   /// Returns shadow object.

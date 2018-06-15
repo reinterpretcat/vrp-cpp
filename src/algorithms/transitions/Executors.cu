@@ -23,5 +23,5 @@ __host__ __device__ void perform_transition::operator()(
   tasks.vehicles[details.to] = details.vehicle;
 
   tasks.costs[details.to] = tasks.costs[details.from] + thrust::get<1>(transitionCost);
-  tasks.plan[base(tasks, details.to) + details.customer] = true;
+  tasks.plan[base(tasks, details.to) + details.customer] = Plan::assign();
 }

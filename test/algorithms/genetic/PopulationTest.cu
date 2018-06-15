@@ -31,6 +31,9 @@ struct WithSequentialCustomers {
   }
 };
 
+const auto T = Plan::assign();
+const auto F = Plan::empty();
+
 }  // namespace
 
 SCENARIO("Can create roots of initial population.", "[genetic][population][initial][roots]") {
@@ -54,9 +57,8 @@ SCENARIO("Can create roots of initial population.", "[genetic][population][initi
              Catch::Matchers::Equals(
                std::vector<int>{0, 0, -1, -1, -1, -1, 0, 0, -1, -1, -1, -1, 0, 0, -1, -1, -1, -1}));
   CHECK_THAT(vrp::test::copy(solution.tasks.plan),
-             Catch::Matchers::Equals(std::vector<bool>{true, true, false, false, false, false, true,
-                                                       false, false, true, false, false, true,
-                                                       false, false, false, false, true}));
+             Catch::Matchers::Equals(
+               std::vector<Plan>{T, T, F, F, F, F, T, F, F, T, F, F, T, F, F, F, F, T}));
 }
 
 SCENARIO("Can create a full initial population.", "[genetic][population][initial][solution]") {
@@ -80,9 +82,8 @@ SCENARIO("Can create a full initial population.", "[genetic][population][initial
              Catch::Matchers::Equals(
                std::vector<int>{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}));
   CHECK_THAT(vrp::test::copy(solution.tasks.plan),
-             Catch::Matchers::Equals(std::vector<bool>{true, true, true, true, true, true, true,
-                                                       true, true, true, true, true, true, true,
-                                                       true, true, true, true}));
+             Catch::Matchers::Equals(
+               std::vector<Plan>{T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T}));
 }
 
 SCENARIO("Can use second vehicle within initial population in case of demand violation.",
