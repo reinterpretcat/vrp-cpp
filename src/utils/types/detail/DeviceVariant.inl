@@ -111,6 +111,7 @@ template<class... Ts>
 template<class T, class>
 const T& device_variant<Ts...>::get() const {
   assert(valid() && "device_variant is not initialized.");
+  assert(is<T>() && "wrong type requested.");
   return *reinterpret_cast<const T*>(&data);
 }
 
@@ -118,6 +119,7 @@ template<class... Ts>
 template<class T, class>
 T& device_variant<Ts...>::get() {
   assert(valid() && "device_variant is not initialized.");
+  assert(is<T>() && "wrong type requested.");
   return *reinterpret_cast<T*>(&data);
 }
 
