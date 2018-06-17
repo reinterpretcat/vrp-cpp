@@ -26,14 +26,22 @@ struct create_cost_transition {
   int toTask;
   int vehicle;
 
+  thrust::device_ptr<Convolution> convolutions;
+
   create_transition transitionFactory;
   calculate_transition_cost costCalculator;
 
   __host__ __device__ TransitionCost operator()(const thrust::tuple<int, Plan>& customer) {
-    if (thrust::get<1>(customer).isAssigned()) return createInvalid();
+    auto plan = thrust::get<1>(customer);
+
+    if (plan.isAssigned()) return createInvalid();
 
     auto wrapped = device_variant<int, Convolution>();
-    wrapped.set<int>(thrust::get<0>(customer));
+    if (plan.hasConvolution())
+      wrapped.set<Convolution>(*(convolutions + plan.convolution()));
+    else
+      wrapped.set<int>(thrust::get<0>(customer));
+
     auto transition = transitionFactory({fromTask, toTask, wrapped, vehicle});
     auto cost = costCalculator(transition);
 
@@ -64,7 +72,8 @@ TransitionCost nearest_neighbor::operator()(int fromTask, int toTask, int vehicl
       thrust::make_tuple(thrust::make_counting_iterator(0), tasks.plan + base)),
     thrust::make_zip_iterator(thrust::make_tuple(thrust::make_counting_iterator(problem.size),
                                                  tasks.plan + base + problem.size)),
-    create_cost_transition{fromTask, toTask, vehicle, create_transition{problem, tasks},
+    create_cost_transition{fromTask, toTask, vehicle, convolutions,
+                           create_transition{problem, tasks},
                            calculate_transition_cost{problem.resources}},
     createInvalid(), compare_transition_costs());
 }
