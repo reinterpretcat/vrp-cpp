@@ -14,7 +14,7 @@ struct dummy final {
   __host__ __device__ dummy(const vrp::models::Problem::Shadow problem,
                             vrp::models::Tasks::Shadow tasks) {}
 
-  __host__ __device__ vrp::models::TransitionCost operator()(int fromTask, int toTask, int vehicle);
+  __host__ __device__ vrp::models::Transition operator()(int fromTask, int toTask, int vehicle);
 };
 
 }  // namespace heuristics

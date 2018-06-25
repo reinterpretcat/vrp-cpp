@@ -30,7 +30,7 @@ struct nearest_neighbor final {
     tasks(tasks), convolutions(convolutions) {}
 
   /// Finds the "nearest" transition for given task and vehicle
-  __host__ __device__ vrp::models::TransitionCost operator()(int fromTask, int toTask, int vehicle);
+  __host__ __device__ vrp::models::Transition operator()(int fromTask, int toTask, int vehicle);
 };
 
 }  // namespace heuristics

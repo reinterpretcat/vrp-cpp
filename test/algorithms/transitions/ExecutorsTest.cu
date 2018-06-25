@@ -53,7 +53,7 @@ SCENARIO("Can execute transition with convolution.", "[transitions][executors][c
   variant.set<Convolution>(convolution);
   auto transition = Transition{Transition::Details{2, 3, variant, 0}, {}};
 
-  perform_transition(solution.problem.getShadow(), solution.tasks.getShadow())(transition);
+  perform_transition(solution.problem.getShadow(), solution.tasks.getShadow())(transition, 0);
 
   CHECK_THAT(vrp::test::copy(solution.tasks.ids), Catch::Matchers::Equals(expectedIds));
   CHECK_THAT(vrp::test::copy(solution.tasks.vehicles), Catch::Matchers::Equals(expectedVehicles));

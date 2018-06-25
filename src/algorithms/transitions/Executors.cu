@@ -13,9 +13,9 @@ __host__ __device__ inline int base(const Tasks::Shadow& tasks, int task) {
   return (task / tasks.customers) * tasks.customers;
 }
 
-__host__ __device__ inline void moveToCustomer(const TransitionCost& transitionCost,
+__host__ __device__ inline void moveToCustomer(const Transition& transition,
+                                               float cost,
                                                const Tasks::Shadow& tasks) {
-  const auto& transition = thrust::get<0>(transitionCost);
   const auto& details = transition.details;
   const auto& delta = transition.delta;
   int customer = details.customer.get<int>();
@@ -25,7 +25,7 @@ __host__ __device__ inline void moveToCustomer(const TransitionCost& transitionC
   tasks.capacities[details.to] = tasks.capacities[details.from] - delta.demand;
   tasks.vehicles[details.to] = details.vehicle;
 
-  tasks.costs[details.to] = tasks.costs[details.from] + thrust::get<1>(transitionCost);
+  tasks.costs[details.to] = tasks.costs[details.from] + cost;
   tasks.plan[base(tasks, details.to) + customer] = Plan::assign();
 }
 
@@ -51,7 +51,7 @@ struct process_task final {
 
     auto cost = calculate_transition_cost{problem.resources}(transition);
 
-    moveToCustomer(thrust::make_tuple(transition, cost), tasks);
+    moveToCustomer(transition, cost, tasks);
   }
 };
 
@@ -74,10 +74,10 @@ __host__ __device__ inline void moveToConvolution(const Transition& transition,
 
 }  // namespace
 
-__host__ __device__ void perform_transition::operator()(
-  const TransitionCost& transitionCost) const {
-  if (thrust::get<0>(transitionCost).details.customer.is<Convolution>())
-    moveToConvolution(thrust::get<0>(transitionCost), problem, tasks);
+__host__ __device__ void perform_transition::operator()(const Transition& transition,
+                                                        float cost) const {
+  if (transition.details.customer.is<Convolution>())
+    moveToConvolution(transition, problem, tasks);
   else
-    moveToCustomer(transitionCost, tasks);
+    moveToCustomer(transition, cost, tasks);
 }

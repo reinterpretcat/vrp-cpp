@@ -41,7 +41,7 @@ struct create_roots {
         vrp::models::Transition::Details{fromTask, toTask, wrapCustomer(customer), vehicle};
       auto transition = createTransition(details);
       if (transition.isValid()) {
-        performTransition({transition, getCost(transition)});
+        performTransition(transition, getCost(transition));
         break;
       }
       // TODO try to pick another vehicle in case of heterogeneous fleet.
@@ -84,7 +84,7 @@ private:
 template<typename Heuristic>
 struct complete_solution {
   complete_solution(const Problem& problem, Tasks& tasks) :
-    problem(problem.getShadow()), tasks(tasks.getShadow()),
+    problem(problem.getShadow()), tasks(tasks.getShadow()), getCost(problem.resources.getShadow()),
     performTransition(problem.getShadow(), tasks.getShadow()) {}
 
   __host__ __device__ void operator()(int individuum) {
@@ -97,9 +97,9 @@ struct complete_solution {
     int to = from + 1;
 
     do {
-      auto transitionCost = heuristic(from, to, vehicle);
-      if (thrust::get<0>(transitionCost).isValid()) {
-        performTransition(transitionCost);
+      auto transition = heuristic(from, to, vehicle);
+      if (transition.isValid()) {
+        performTransition(transition, getCost(transition));
         from = to++;
       } else {
         // NOTE cannot find any further customer to serve within vehicle
@@ -122,6 +122,7 @@ private:
 
   const Problem::Shadow problem;
   Tasks::Shadow tasks;
+  calculate_transition_cost getCost;
   perform_transition performTransition;
 };
 

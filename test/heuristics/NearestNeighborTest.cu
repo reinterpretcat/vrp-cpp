@@ -41,10 +41,9 @@ SCENARIO("Can find best transition after depot.",
   Tasks tasks{problem.size()};
   vrp::test::createDepotTask(problem, tasks);
 
-  auto transitionCost = nearest_neighbor(problem.getShadow(), tasks.getShadow())(0, 1, 0);
+  auto transition = nearest_neighbor(problem.getShadow(), tasks.getShadow())(0, 1, 0);
 
-  REQUIRE(thrust::get<1>(transitionCost) == 1);
-  REQUIRE(thrust::get<0>(transitionCost).details.customer.get<int>() == 3);
+  REQUIRE(transition.details.customer.get<int>() == 3);
 }
 
 SCENARIO("Can find best transition on solution using convolutions.",
@@ -57,11 +56,11 @@ SCENARIO("Can find best transition on solution using convolutions.",
   auto convolution = Convolution{0, 3, 30, {5, 4}, {0, 35}, {3, 5}};
   auto convolutions = create({convolution});
 
-  auto transitionCost = nearest_neighbor(solution.problem.getShadow(), solution.tasks.getShadow(),
-                                         convolutions.data())(0, 1, 0);
+  auto transition = nearest_neighbor(solution.problem.getShadow(), solution.tasks.getShadow(),
+                                     convolutions.data())(0, 1, 0);
 
   // TODO consider cost without service time
-  REQUIRE(thrust::get<0>(transitionCost).isValid());
-  REQUIRE(thrust::get<0>(transitionCost).details.customer.is<Convolution>());
-  compare(thrust::get<0>(transitionCost).details.customer.get<Convolution>(), convolution);
+  REQUIRE(transition.isValid());
+  REQUIRE(transition.details.customer.is<Convolution>());
+  compare(transition.details.customer.get<Convolution>(), convolution);
 }

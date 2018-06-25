@@ -59,9 +59,6 @@ struct Transition {
   __host__ __device__ bool isValid() const { return details.from >= 0; }
 };
 
-/// Stores transition and its cost.
-using TransitionCost = thrust::tuple<vrp::models::Transition, float>;
-
 }  // namespace models
 }  // namespace vrp
 

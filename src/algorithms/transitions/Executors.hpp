@@ -16,7 +16,7 @@ struct perform_transition final {
     problem(problem),
     tasks(tasks) {}
 
-  __host__ __device__ void operator()(const vrp::models::TransitionCost& transitionCost) const;
+  __host__ __device__ void operator()(const vrp::models::Transition& transition, float cost) const;
 
 private:
   const vrp::models::Problem::Shadow problem;
