@@ -1,4 +1,3 @@
-#include "algorithms/costs/Models.hpp"
 #include "algorithms/costs/SolutionCosts.hpp"
 #include "algorithms/costs/TransitionCosts.hpp"
 #include "algorithms/transitions/Executors.hpp"

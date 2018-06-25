@@ -11,7 +11,6 @@ set(HEADER_FILES
         algorithms/convolutions/SlicedConvolutions.hpp
         algorithms/convolutions/Models.hpp
 
-        algorithms/costs/Models.hpp
         algorithms/costs/SolutionCosts.hpp
         algorithms/costs/TransitionCosts.hpp
 
