@@ -4,6 +4,8 @@ using namespace vrp::algorithms::costs;
 using namespace vrp::models;
 
 float calculate_transition_cost::operator()(const Transition& transition) const {
+  assert(transition.isValid());
+
   int vehicle = transition.details.vehicle;
 
   auto distance = transition.delta.distance * resources.distanceCosts[vehicle];

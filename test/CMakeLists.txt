@@ -16,6 +16,8 @@ add_executable(${LIBRARY_TEST}
         algorithms/convolutions/BestConvolutionsTest.cu
         algorithms/convolutions/JointConvolutionsTest.cu
         algorithms/convolutions/SlicedConvolutionsTest.cu
+
+        algorithms/transitions/ExecutorsTest.cu
         algorithms/transitions/FactoriesTest.cu
 
         algorithms/costs/CostsTest.cu

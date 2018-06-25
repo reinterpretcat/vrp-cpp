@@ -24,8 +24,8 @@ struct create_roots {
   create_roots(const Problem& problem, Tasks& tasks, const Settings& settings) :
     problem(problem.getShadow()), tasks(tasks.getShadow()), populationSize(settings.populationSize),
     getCost(problem.resources.getShadow()),
-    createTransition(problem.getShadow(), tasks.getShadow()), performTransition(tasks.getShadow()) {
-  }
+    createTransition(problem.getShadow(), tasks.getShadow()),
+    performTransition(problem.getShadow(), tasks.getShadow()) {}
 
   __host__ __device__ void operator()(int individuum) {
     int customer = getCustomer(individuum);
@@ -84,7 +84,8 @@ private:
 template<typename Heuristic>
 struct complete_solution {
   complete_solution(const Problem& problem, Tasks& tasks) :
-    problem(problem.getShadow()), tasks(tasks.getShadow()), performTransition(tasks.getShadow()) {}
+    problem(problem.getShadow()), tasks(tasks.getShadow()),
+    performTransition(problem.getShadow(), tasks.getShadow()) {}
 
   __host__ __device__ void operator()(int individuum) {
     const auto begin = individuum * problem.size;

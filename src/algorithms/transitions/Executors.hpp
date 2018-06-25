@@ -11,12 +11,16 @@ namespace transitions {
 
 /// Performs transition with a cost.
 struct perform_transition final {
-  explicit perform_transition(const vrp::models::Tasks::Shadow& tasks) : tasks(tasks) {}
+  __host__ __device__ perform_transition(const vrp::models::Problem::Shadow& problem,
+                                         const vrp::models::Tasks::Shadow tasks) :
+    problem(problem),
+    tasks(tasks) {}
 
   __host__ __device__ void operator()(const vrp::models::TransitionCost& transitionCost) const;
 
 private:
-  vrp::models::Tasks::Shadow tasks;
+  const vrp::models::Problem::Shadow problem;
+  const vrp::models::Tasks::Shadow tasks;
 };
 
 }  // namespace transitions
