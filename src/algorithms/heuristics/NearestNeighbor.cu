@@ -18,8 +18,16 @@ namespace {
 
 using TransitionCost = thrust::pair<Transition, float>;
 
-__host__ __device__ TransitionCost createInvalid() {
+__host__ __device__ inline TransitionCost createInvalid() {
   return thrust::make_pair(vrp::models::Transition(), -1);
+}
+
+/// Returns cost without service time.
+__host__ __device__ inline float getCost(const Transition& transition,
+                                         calculate_transition_cost& costFunc) {
+  auto newTransition = transition;
+  newTransition.delta.serving = 0;
+  return costFunc(transition);
 }
 
 /// Creates transition and calculates cost to given customer if it is not handled.
@@ -31,7 +39,7 @@ struct create_cost_transition {
   thrust::device_ptr<Convolution> convolutions;
 
   create_transition transitionFactory;
-  calculate_transition_cost costCalculator;
+  calculate_transition_cost costFunc;
 
   __host__ __device__ TransitionCost operator()(const thrust::tuple<int, Plan>& customer) {
     auto plan = thrust::get<1>(customer);
@@ -46,7 +54,7 @@ struct create_cost_transition {
 
     auto transition = transitionFactory({fromTask, toTask, wrapped, vehicle});
 
-    float cost = transition.isValid() ? costCalculator(transition) : -1;
+    float cost = transition.isValid() ? getCost(transition, costFunc) : -1;
 
     return thrust::make_pair(transition, cost);
   }
