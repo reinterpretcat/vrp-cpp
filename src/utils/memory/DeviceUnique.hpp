@@ -47,7 +47,9 @@ public:
   }
 
   __device__ device_unique_ptr(device_unique_ptr<T, Deleter>&& moving) noexcept :
-    data(std::move(moving.data)), deleter(std::move(moving.deleter)) {}
+    data(std::move(moving.data)), deleter(std::move(moving.deleter)) {
+    moving.data = nullptr;
+  }
 
   __device__ device_unique_ptr& operator=(device_unique_ptr<T, Deleter>&& moving) noexcept {
     moving.swap(*this);
