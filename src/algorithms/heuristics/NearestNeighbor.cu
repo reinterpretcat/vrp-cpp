@@ -47,8 +47,6 @@ struct create_cost_transition {
 
     if (plan.isAssigned()) return createInvalid();
 
-    printf("base=%d [%d,%d]\n", base, fromTask, toTask);
-
     auto wrapped = device_variant<int, Convolution>();
     if (plan.hasConvolution()) {
       wrapped.set<Convolution>(*(convolutions + plan.convolution()));

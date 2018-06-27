@@ -44,11 +44,6 @@ struct process_convolution_task final {
     auto transition = create_transition{problem, tasks}(
       {details.base, details.from + index, details.to + index, variant, details.vehicle});
 
-    if (!transition.isValid()) {
-      printf("Invalid transition for tasks:[%d,%d], index=%d vehicle=%d\n", details.from,
-             details.to, index, details.vehicle);
-    }
-
     auto cost = calculate_transition_cost{problem.resources}(transition);
 
     moveToCustomer(transition, cost, tasks);
@@ -77,12 +72,8 @@ __host__ __device__ inline void moveToConvolution(const Transition& transition,
 __host__ __device__ void perform_transition::operator()(const Transition& transition,
                                                         float cost) const {
   if (transition.details.customer.is<Convolution>()) {
-    const auto& convolution = transition.details.customer.get<Convolution>();
-    printf("execute: convolution [%d, %d]\n", convolution.tasks.first, convolution.tasks.second);
     moveToConvolution(transition, problem, tasks);
   } else {
-    int customer = transition.details.customer.get<int>();
-    printf("execute: customer %d\n", customer);
     moveToCustomer(transition, cost, tasks);
   }
 }

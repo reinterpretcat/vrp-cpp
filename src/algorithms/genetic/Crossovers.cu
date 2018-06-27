@@ -39,10 +39,6 @@ struct assign_convolution {
 
     int customer = solution.tasks.ids[convolution.base + task];
 
-    auto plan = getOptimalPlan(convolution, solution.tasks.plan[base + customer], task, index);
-    printf("Assign convolution: cust=%d, task=%d index=%d, result=%d\n", customer, task, index,
-           plan.convolution());
-
     solution.tasks.plan[base + customer] =
       getOptimalPlan(convolution, solution.tasks.plan[base + customer], task, index);
   }
@@ -56,9 +52,6 @@ struct prepare_convolution final {
   __device__ void operator()(const thrust::tuple<int, Convolution>& tuple) {
     const auto index = thrust::get<0>(tuple);
     const auto& convolution = thrust::get<1>(tuple);
-
-    printf("Prepare convolution: %d [%d,%d]\n", index, convolution.tasks.first,
-           convolution.tasks.second);
 
     thrust::for_each(thrust::device,
                      thrust::make_zip_iterator(
@@ -119,7 +112,6 @@ struct improve_individuum final {
   __device__ void operator()(int order) {
     if (order != 0) return;
     int index = order == 0 ? offspring.first : offspring.second;
-    printf("-----------------------------------------------------------------------\n");
     create_individuum<Heuristic>{solution.problem, solution.tasks, convolutions, 0}.operator()(
       index);
   }

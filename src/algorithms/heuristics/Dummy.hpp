@@ -15,7 +15,10 @@ struct dummy final {
                             vrp::models::Tasks::Shadow tasks,
                             const thrust::device_ptr<vrp::models::Convolution> convolutions) {}
 
-  __host__ __device__ vrp::models::Transition operator()(int base, int fromTask, int toTask, int vehicle);
+  __host__ __device__ vrp::models::Transition operator()(int base,
+                                                         int fromTask,
+                                                         int toTask,
+                                                         int vehicle);
 };
 
 }  // namespace heuristics
