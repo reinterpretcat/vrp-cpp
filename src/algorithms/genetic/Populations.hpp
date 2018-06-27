@@ -20,6 +20,17 @@ struct create_population final {
   vrp::models::Tasks operator()(const Settings& settings);
 };
 
+/// Modifies a single individuum using fast heuristic provided.
+template<typename Heuristic>
+struct create_individuum final {
+  const vrp::models::Problem::Shadow problem;
+  vrp::models::Tasks::Shadow tasks;
+  const thrust::device_ptr<vrp::models::Convolution> convolutions;
+  int shift;
+
+  __host__ __device__ void operator()(int index);
+};
+
 }  // namespace genetic
 }  // namespace algorithms
 }  // namespace vrp

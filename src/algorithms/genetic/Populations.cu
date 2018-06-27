@@ -31,14 +31,15 @@ struct create_roots {
     int customer = getCustomer(individuum);
     int vehicle = 0;
 
-    int fromTask = individuum * problem.size;
+    int base = individuum * problem.size;
+    int fromTask = 0;
     int toTask = fromTask + 1;
 
-    createDepotTask(fromTask, vehicle);
+    createDepotTask(base + fromTask, vehicle);
 
     while (customer != 0) {
       auto details =
-        vrp::models::Transition::Details{fromTask, toTask, wrapCustomer(customer), vehicle};
+        vrp::models::Transition::Details{base, fromTask, toTask, wrapCustomer(customer), vehicle};
       auto transition = createTransition(details);
       if (transition.isValid()) {
         performTransition(transition, getCost(transition));
@@ -80,52 +81,15 @@ private:
   perform_transition performTransition;
 };
 
-/// Completes solutions using heuristic specified.
-template<typename Heuristic>
-struct complete_solution {
-  complete_solution(const Problem& problem, Tasks& tasks) :
-    problem(problem.getShadow()), tasks(tasks.getShadow()), getCost(problem.resources.getShadow()),
-    performTransition(problem.getShadow(), tasks.getShadow()) {}
-
-  __host__ __device__ void operator()(int individuum) {
-    const auto begin = individuum * problem.size;
-    const auto end = begin + problem.size;
-
-    auto heuristic = Heuristic(problem, tasks);
-    int vehicle = 0;
-    int from = begin + 1;
-    int to = from + 1;
-
-    do {
-      auto transition = heuristic(from, to, vehicle);
-      if (transition.isValid()) {
-        performTransition(transition, getCost(transition));
-        from = to++;
-      } else {
-        // NOTE cannot find any further customer to serve within vehicle
-        if (from == begin || vehicle == problem.resources.vehicles - 1) break;
-
-        from = begin;
-        spawnNewVehicle(from, ++vehicle);
-      }
-
-    } while (to < end);
-  }
-
-private:
-  /// Picks the next vehicle and assigns it to the task.
-  __host__ __device__ void spawnNewVehicle(int task, int vehicle) {
-    tasks.times[task] = problem.customers.starts[0];
-    tasks.capacities[task] = problem.resources.capacities[vehicle];
-    tasks.costs[task] = problem.resources.fixedCosts[vehicle];
-  }
-
-  const Problem::Shadow problem;
-  Tasks::Shadow tasks;
-  calculate_transition_cost getCost;
-  perform_transition performTransition;
-};
-
+/// Picks the next vehicle and assigns it to the task.
+__host__ __device__ void spawnNewVehicle(const Problem::Shadow& problem,
+                                         Tasks::Shadow& tasks,
+                                         int task,
+                                         int vehicle) {
+  tasks.times[task] = problem.customers.starts[0];
+  tasks.capacities[task] = problem.resources.capacities[vehicle];
+  tasks.costs[task] = problem.resources.fixedCosts[vehicle];
+}
 }  // namespace
 
 namespace vrp {
@@ -146,16 +110,49 @@ Tasks create_population<Heuristic>::operator()(const Settings& settings) {
                    create_roots(problem, population, settings));
 
   // complete solutions
-  thrust::for_each(thrust::device, thrust::make_counting_iterator(0),
-                   thrust::make_counting_iterator(settings.populationSize),
-                   complete_solution<Heuristic>(problem, population));
+  thrust::for_each(
+    thrust::device, thrust::make_counting_iterator(0),
+    thrust::make_counting_iterator(settings.populationSize),
+    create_individuum<Heuristic>{problem.getShadow(), population.getShadow(), {}, 1});
 
   return std::move(population);
+}
+
+template<typename Heuristic>
+void create_individuum<Heuristic>::operator()(int index) {
+  const auto begin = index * problem.size;
+  const auto end = begin + problem.size;
+
+  auto getCost = calculate_transition_cost{problem.resources};
+  auto performTransition = perform_transition{problem, tasks};
+  auto heuristic = Heuristic(problem, tasks, convolutions);
+
+  int vehicle = 0;
+  int from = shift;
+  int to = from + 1;
+
+  do {
+    auto transition = heuristic(begin, from, to, vehicle);
+    if (transition.isValid()) {
+      performTransition(transition, getCost(transition));
+      from = to++;
+    } else {
+      // NOTE cannot find any further customer to serve within vehicle
+      if (from == 0 || vehicle == problem.resources.vehicles - 1) break;
+
+      from = 0;
+      spawnNewVehicle(problem, tasks, from, ++vehicle);
+    }
+
+  } while (to < end);
 }
 
 // NOTE explicit specialization to make linker happy.
 template class create_population<vrp::algorithms::heuristics::dummy>;
 template class create_population<vrp::algorithms::heuristics::nearest_neighbor>;
+
+template class create_individuum<vrp::algorithms::heuristics::dummy>;
+template class create_individuum<vrp::algorithms::heuristics::nearest_neighbor>;
 
 }  // namespace genetic
 }  // namespace algorithms

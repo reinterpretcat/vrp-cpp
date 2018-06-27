@@ -172,7 +172,7 @@ struct create_convolutions final {
 
     // TODO simplify this
     return static_cast<size_t>(thrust::distance(
-      thrust::make_transform_output_iterator(convolutions, map_group{solution, 0}), newEnd));
+      thrust::make_transform_output_iterator(convolutions, map_group{solution, base}), newEnd));
   }
 };
 

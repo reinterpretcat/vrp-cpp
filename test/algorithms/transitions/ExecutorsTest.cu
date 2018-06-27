@@ -51,7 +51,7 @@ SCENARIO("Can execute transition with convolution.", "[transitions][executors][c
   auto convolution = Convolution{0, 3, 30, {3, 5}, {30, 1000}, {3, 5}};
   vrp::utils::device_variant<int, Convolution> variant;
   variant.set<Convolution>(convolution);
-  auto transition = Transition{Transition::Details{2, 3, variant, 0}, {}};
+  auto transition = Transition{Transition::Details{0, 2, 3, variant, 0}, {}};
 
   perform_transition(solution.problem.getShadow(), solution.tasks.getShadow())(transition, 0);
 

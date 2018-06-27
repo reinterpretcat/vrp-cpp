@@ -65,7 +65,7 @@ __host__ __device__ inline bool noReturn(const Problem::Shadow& problem,
 
 __host__ __device__ Transition
 create_transition::operator()(const Transition::Details& details) const {
-  int task = details.from;
+  int task = details.base + details.from;
   int customer = getCustomerId(details.customer);
 
   int matrix = tasks.ids[task] * problem.size + customer;

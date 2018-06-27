@@ -13,6 +13,8 @@ namespace models {
 struct Transition {
   /// Details about transition.
   struct Details {
+    /// Base index.
+    int base;
     /// Task from which transition should happen.
     int from;
     /// Task to which transition should happen.

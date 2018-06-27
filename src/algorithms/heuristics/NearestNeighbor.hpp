@@ -18,10 +18,6 @@ struct nearest_neighbor final {
   vrp::models::Tasks::Shadow tasks;
   const thrust::device_ptr<vrp::models::Convolution> convolutions;
 
-  __host__ __device__ nearest_neighbor(const vrp::models::Problem::Shadow problem,
-                                       vrp::models::Tasks::Shadow tasks) :
-    nearest_neighbor(problem, tasks, {}) {}
-
   __host__ __device__
   nearest_neighbor(const vrp::models::Problem::Shadow problem,
                    vrp::models::Tasks::Shadow tasks,
@@ -30,7 +26,10 @@ struct nearest_neighbor final {
     tasks(tasks), convolutions(convolutions) {}
 
   /// Finds the "nearest" transition for given task and vehicle
-  __host__ __device__ vrp::models::Transition operator()(int fromTask, int toTask, int vehicle);
+  __host__ __device__ vrp::models::Transition operator()(int base,
+                                                         int fromTask,
+                                                         int toTask,
+                                                         int vehicle);
 };
 
 }  // namespace heuristics

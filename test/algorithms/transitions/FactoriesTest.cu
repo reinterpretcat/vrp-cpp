@@ -41,7 +41,7 @@ SCENARIO("Can create transition from convolution.", "[transitions][convolutions]
                Plan::reserve(0));
   vrp::utils::device_variant<int, Convolution> variant;
   variant.set<Convolution>(Convolution{0, 3, 30, {3, 5}, {30, 1000}, {3, 5}});
-  auto details = Transition::Details{2, 3, variant, 0};
+  auto details = Transition::Details{0, 2, 3, variant, 0};
 
   auto transition =
     create_transition(solution.problem.getShadow(), solution.tasks.getShadow())(details);

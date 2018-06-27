@@ -32,6 +32,7 @@ __host__ __device__ inline float getCost(const Transition& transition,
 
 /// Creates transition and calculates cost to given customer if it is not handled.
 struct create_cost_transition {
+  int base;
   int fromTask;
   int toTask;
   int vehicle;
@@ -46,13 +47,15 @@ struct create_cost_transition {
 
     if (plan.isAssigned()) return createInvalid();
 
+    printf("base=%d [%d,%d]\n", base, fromTask, toTask);
+
     auto wrapped = device_variant<int, Convolution>();
-    if (plan.hasConvolution())
+    if (plan.hasConvolution()) {
       wrapped.set<Convolution>(*(convolutions + plan.convolution()));
-    else
+    } else
       wrapped.set<int>(thrust::get<0>(customer));
 
-    auto transition = transitionFactory({fromTask, toTask, wrapped, vehicle});
+    auto transition = transitionFactory({base, fromTask, toTask, wrapped, vehicle});
 
     float cost = transition.isValid() ? getCost(transition, costFunc) : -1;
 
@@ -74,15 +77,14 @@ struct compare_transition_costs {
 
 }  // namespace
 
-Transition nearest_neighbor::operator()(int fromTask, int toTask, int vehicle) {
-  int base = (fromTask / tasks.customers) * tasks.customers;
+Transition nearest_neighbor::operator()(int base, int fromTask, int toTask, int vehicle) {
   return thrust::transform_reduce(
            thrust::device,
            thrust::make_zip_iterator(
              thrust::make_tuple(thrust::make_counting_iterator(0), tasks.plan + base)),
            thrust::make_zip_iterator(thrust::make_tuple(
              thrust::make_counting_iterator(problem.size), tasks.plan + base + problem.size)),
-           create_cost_transition{fromTask, toTask, vehicle, convolutions,
+           create_cost_transition{base, fromTask, toTask, vehicle, convolutions,
                                   create_transition{problem, tasks},
                                   calculate_transition_cost{problem.resources}},
            createInvalid(), compare_transition_costs())

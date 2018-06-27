@@ -26,7 +26,7 @@ struct Model final {
 struct aggregate_cost final {
   Model* model;
   int lastCustomer;
-  int baseTask;
+  int base;
 
   template<class Tuple>
   __device__ void operator()(const Tuple& tuple) {
@@ -37,7 +37,7 @@ struct aggregate_cost final {
     auto depot = device_variant<int, Convolution>();
     depot.set<int>(0);
 
-    auto details = Transition::Details{baseTask + task, -1, depot, vehicle};
+    auto details = Transition::Details{base, task, -1, depot, vehicle};
     auto transition = create_transition(model->solution.problem, model->solution.tasks)(details);
     auto returnCost = calculate_transition_cost(model->solution.problem.resources)(transition);
     auto routeCost = cost + returnCost;

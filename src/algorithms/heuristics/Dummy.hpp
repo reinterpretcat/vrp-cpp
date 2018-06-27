@@ -12,9 +12,10 @@ namespace heuristics {
 /// A dummy implementation of heuristic which returns an invalid transition and cost.
 struct dummy final {
   __host__ __device__ dummy(const vrp::models::Problem::Shadow problem,
-                            vrp::models::Tasks::Shadow tasks) {}
+                            vrp::models::Tasks::Shadow tasks,
+                            const thrust::device_ptr<vrp::models::Convolution> convolutions) {}
 
-  __host__ __device__ vrp::models::Transition operator()(int fromTask, int toTask, int vehicle);
+  __host__ __device__ vrp::models::Transition operator()(int base, int fromTask, int toTask, int vehicle);
 };
 
 }  // namespace heuristics
