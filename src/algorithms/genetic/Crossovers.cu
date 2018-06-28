@@ -16,17 +16,6 @@ using namespace vrp::models;
 using namespace vrp::utils;
 
 namespace {
-/// Gets optimal plan taking into account convolution intersections.
-__device__ inline Plan getOptimalPlan(const Convolution& convolution,
-                                      const Plan& current,
-                                      int task,
-                                      int index) {
-  if (task == convolution.tasks.first)
-    return Plan::reserve(current.hasConvolution() ? current.convolution() : index);
-
-  return current.hasConvolution() ? Plan::reserve(current.convolution()) : Plan::assign();
-}
-
 /// Reserves convolution in plan.
 struct assign_convolution {
   Solution::Shadow solution;
@@ -38,9 +27,10 @@ struct assign_convolution {
     auto index = thrust::get<1>(tuple);
 
     int customer = solution.tasks.ids[convolution.base + task];
+    Plan current = solution.tasks.plan[base + customer];
 
     solution.tasks.plan[base + customer] =
-      getOptimalPlan(convolution, solution.tasks.plan[base + customer], task, index);
+      Plan::reserve(current.hasConvolution() ? current.convolution() : index);
   }
 };
 
@@ -71,6 +61,7 @@ struct prepare_plan final {
   thrust::pair<int, int> offspring;
 
   __device__ void operator()(int order) {
+    if (order != 0) return;
     auto index = order == 0 ? offspring.first : offspring.second;
     auto begin = static_cast<size_t>(solution.problem.size * index);
     auto end = begin + static_cast<size_t>(solution.problem.size);
@@ -78,6 +69,7 @@ struct prepare_plan final {
     // reset whole plan except depot
     thrust::fill(thrust::device, solution.tasks.plan + begin + 1, solution.tasks.plan + end,
                  Plan::empty());
+    thrust::fill(thrust::device, solution.tasks.ids + begin + 1, solution.tasks.ids + end, -1);
 
     // mark convolution's customers as assigned
     thrust::for_each(thrust::device,
@@ -109,6 +101,7 @@ struct improve_individuum final {
   thrust::pair<int, int> offspring;
 
   __device__ void operator()(int order) {
+    if (order != 0) return;
     int index = order == 0 ? offspring.first : offspring.second;
     create_individuum<Heuristic>{solution.problem, solution.tasks, convolutions, 0}.operator()(
       index);

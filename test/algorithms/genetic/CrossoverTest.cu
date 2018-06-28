@@ -68,12 +68,9 @@ SCENARIO("Can create offsprings", "[genetic][crossover][acdc]") {
   auto settings = Settings{populationSize, {0.75, 0.05}};
   auto generation = Generation{{0, 1}, {2, 3}};
 
-  MatrixTextWriter().write(std::cout, solution);
-
   thrust::for_each(thrust::device, thrust::make_counting_iterator(0),
                    thrust::make_counting_iterator(1),
                    run_crossover{solution.getShadow(), getPool(), settings, generation});
 
-  // TODO
   MatrixTextWriter().write(std::cout, solution);
 }

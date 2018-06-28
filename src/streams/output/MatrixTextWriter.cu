@@ -26,7 +26,10 @@ void write(std::ostream& stream, const T& value) {
 
 template<>
 void write(std::ostream& stream, const Plan& plan) {
-  stream << plan.isAssigned();
+  if (plan.hasConvolution())
+    stream << std::setw(ItemSize - 1) << 'c' << plan.convolution();
+  else
+    stream << plan.isAssigned();
 }
 
 /// Prints item with additional formatting.
@@ -42,12 +45,6 @@ struct print_one final {
     write(stream, thrust::get<1>(item));
   }
 };
-
-// template<>
-//__host__ void print_one::operator()(const thrust::tuple<int, thrust::pair<bool, int>> item) {
-//  auto pair = thrust::get<1>(item);
-//  prepare(thrust::get<0>(item)) << '(' << pair.first << ',' << pair.second << ')';
-//}
 
 /// Writes vectorized data into stream.
 template<typename T>
