@@ -50,6 +50,7 @@ set(HEADER_FILES
         utils/memory/DevicePool.hpp
         utils/memory/DeviceUnique.hpp
         utils/types/DeviceVariant.hpp
+        utils/validation/SolutionChecker.hpp
         )
 
 set(SOURCE_FILES
@@ -75,6 +76,7 @@ set(SOURCE_FILES
         streams/output/GeoJsonWriter.cu
         streams/output/MatrixTextWriter.cu
 
+        utils/validation/SolutionChecker.cu
         )
 
 add_library(${LIBRARY_NAME} STATIC

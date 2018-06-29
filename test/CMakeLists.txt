@@ -40,6 +40,7 @@ add_executable(${LIBRARY_TEST}
 
         utils/Memory.cu
         utils/Types.cu
+        utils/Validations.cu
         )
 
 set_target_properties(${LIBRARY_TEST} PROPERTIES
