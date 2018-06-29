@@ -134,10 +134,8 @@ void create_individuum<Heuristic>::operator()(int index) {
   do {
     auto transition = heuristic(begin, from, to, vehicle);
     if (transition.isValid()) {
-      printf("transition: tasks %d-%d \n", from, to);
       from = performTransition(transition, getCost(transition));
       to = from + 1;
-      printf("from: %d\n", from);
     } else {
       // NOTE cannot find any further customer to serve within vehicle
       if (from == 0 || vehicle == problem.resources.vehicles - 1) break;

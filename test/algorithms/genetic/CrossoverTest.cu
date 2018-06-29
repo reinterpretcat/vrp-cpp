@@ -1,9 +1,9 @@
 #include "algorithms/genetic/Crossovers.hpp"
 #include "algorithms/heuristics/NearestNeighbor.hpp"
-#include "streams/output/MatrixTextWriter.hpp"
 #include "test_utils/MemoryUtils.hpp"
 #include "test_utils/PopulationFactory.hpp"
 #include "test_utils/SolomonBuilder.hpp"
+#include "test_utils/VectorUtils.hpp"
 
 #include <catch/catch.hpp>
 
@@ -72,5 +72,17 @@ SCENARIO("Can create offsprings", "[genetic][crossover][acdc]") {
                    thrust::make_counting_iterator(1),
                    run_crossover{solution.getShadow(), getPool(), settings, generation});
 
-  MatrixTextWriter().write(std::cout, solution);
+  CHECK_THAT(
+    vrp::test::copy(solution.tasks.ids),
+    Catch::Matchers::Equals(std::vector<int>{0, 1,  20, 21, 22, 23, 2,  24, 25, 10, 11, 9,  6,
+                                             4, 5,  3,  7,  8,  12, 13, 17, 18, 19, 15, 16, 14,
+
+                                             0, 7,  4,  1,  20, 21, 22, 23, 2,  24, 25, 10, 11,
+                                             9, 6,  5,  3,  8,  12, 13, 17, 18, 19, 15, 16, 14,
+
+                                             0, 20, 21, 22, 23, 2,  24, 25, 10, 11, 9,  6,  4,
+                                             5, 3,  8,  1,  7,  12, 13, 17, 18, 19, 15, 16, 14,
+
+                                             0, 20, 21, 22, 23, 2,  24, 25, 10, 11, 9,  6,  4,
+                                             5, 3,  8,  1,  7,  12, 13, 17, 18, 19, 15, 16, 14}));
 }

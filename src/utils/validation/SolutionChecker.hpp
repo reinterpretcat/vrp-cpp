@@ -11,7 +11,7 @@ namespace utils {
 
 /// Checks whether solution is valid.
 class SolutionChecker final {
- public:
+public:
   /// Represents checker result.
   struct Result final {
     /// Contains string representation of errors.
@@ -24,7 +24,7 @@ class SolutionChecker final {
   Result check(const vrp::models::Solution& solution) const;
 };
 
-}
-}
+}  // namespace utils
+}  // namespace vrp
 
-#endif //VRP_SOLUTIONCHECKER_HPP
+#endif  // VRP_SOLUTIONCHECKER_HPP
