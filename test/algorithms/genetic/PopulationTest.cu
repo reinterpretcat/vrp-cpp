@@ -3,7 +3,7 @@
 #include "algorithms/heuristics/NearestNeighbor.hpp"
 #include "config.hpp"
 #include "test_utils/PopulationFactory.hpp"
-#include "test_utils/SolomonBuilder.hpp"
+#include "test_utils/ProblemStreams.hpp"
 #include "test_utils/VectorUtils.hpp"
 
 #include <catch/catch.hpp>
@@ -16,28 +16,13 @@ using namespace vrp::test;
 
 namespace {
 
-struct WithSequentialCustomers {
-  std::stringstream operator()() {
-    return SolomonBuilder()
-      .setTitle("Sequential customers")
-      .setVehicle(1, 10)
-      .addCustomer({0, 0, 0, 0, 0, 1000, 0})
-      .addCustomer({1, 1, 0, 1, 0, 1000, 10})
-      .addCustomer({2, 2, 0, 1, 0, 1000, 10})
-      .addCustomer({3, 3, 0, 1, 0, 1000, 10})
-      .addCustomer({4, 4, 0, 1, 0, 1000, 10})
-      .addCustomer({5, 5, 0, 1, 0, 1000, 10})
-      .build();
-  }
-};
-
 const auto T = Plan::assign();
 const auto F = Plan::empty();
 
 }  // namespace
 
 SCENARIO("Can create roots of initial population.", "[genetic][population][initial][roots]") {
-  auto stream = WithSequentialCustomers()();
+  auto stream = create_sequential_problem_stream{}();
   auto solution = createPopulation<dummy>(stream);
 
   CHECK_THAT(vrp::test::copy(solution.tasks.ids),
@@ -62,7 +47,7 @@ SCENARIO("Can create roots of initial population.", "[genetic][population][initi
 }
 
 SCENARIO("Can create a full initial population.", "[genetic][population][initial][solution]") {
-  auto stream = WithSequentialCustomers()();
+  auto stream = create_sequential_problem_stream{}();
   auto solution = createPopulation<nearest_neighbor>(stream);
 
   CHECK_THAT(vrp::test::copy(solution.tasks.ids),
@@ -88,16 +73,7 @@ SCENARIO("Can create a full initial population.", "[genetic][population][initial
 
 SCENARIO("Can use second vehicle within initial population in case of demand violation.",
          "[genetic][population][initial][two_vehicles]") {
-  auto stream = SolomonBuilder()
-                  .setTitle("Exceeded capacity and two vehicles")
-                  .setVehicle(2, 10)
-                  .addCustomer({0, 0, 0, 0, 0, 1000, 0})
-                  .addCustomer({1, 1, 0, 3, 0, 1000, 10})
-                  .addCustomer({2, 2, 0, 3, 0, 1000, 10})
-                  .addCustomer({3, 3, 0, 3, 0, 1000, 10})
-                  .addCustomer({4, 4, 0, 2, 0, 1000, 10})
-                  .addCustomer({5, 5, 0, 2, 0, 1000, 10})
-                  .build();
+  auto stream = create_exceeded_capacity_variant_2_problem_stream{}();
 
   auto solution = createPopulation<nearest_neighbor>(stream, 1);
 
@@ -109,16 +85,7 @@ SCENARIO("Can use second vehicle within initial population in case of demand vio
 
 SCENARIO("Can use second vehicle within initial population in case of time violation.",
          "[genetic][initial][two_vehicles]") {
-  auto stream = SolomonBuilder()
-                  .setTitle("Exceeded time and two vehicles")
-                  .setVehicle(2, 10)
-                  .addCustomer({0, 0, 0, 0, 0, 1000, 0})
-                  .addCustomer({1, 1, 0, 1, 0, 1000, 10})
-                  .addCustomer({2, 2, 0, 1, 0, 1000, 10})
-                  .addCustomer({3, 3, 0, 1, 0, 1000, 10})
-                  .addCustomer({4, 4, 0, 1, 0, 1000, 10})
-                  .addCustomer({5, 100, 0, 2, 0, 101, 10})
-                  .build();
+  auto stream = create_exceeded_time_problem_stream{}();
 
   auto solution = createPopulation<nearest_neighbor>(stream, 1);
 

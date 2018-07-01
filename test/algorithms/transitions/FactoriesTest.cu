@@ -4,7 +4,7 @@
 #include "streams/input/SolomonReader.hpp"
 #include "test_utils/ConvolutionUtils.hpp"
 #include "test_utils/PopulationFactory.hpp"
-#include "test_utils/SolomonBuilder.hpp"
+#include "test_utils/ProblemStreams.hpp"
 #include "test_utils/TaskUtils.hpp"
 
 #include <catch/catch.hpp>
@@ -16,26 +16,8 @@ using namespace vrp::models;
 using namespace vrp::streams;
 using namespace vrp::test;
 
-namespace {
-struct create_shuffled_coordinates {
-  std::stringstream operator()(int capacity) {
-    return SolomonBuilder()
-      .setTitle("Customers with sequential coordinates")
-      .setVehicle(1, capacity)
-      .addCustomer({0, 0, 0, 0, 0, 1000, 0})
-      .addCustomer({1, 1, 0, 1, 0, 1000, 10})
-      .addCustomer({2, 2, 0, 1, 0, 1000, 10})
-      .addCustomer({3, 3, 0, 1, 0, 1000, 10})
-      .addCustomer({4, 4, 0, 1, 0, 1000, 10})
-      .addCustomer({5, 5, 0, 1, 0, 1000, 10})
-      .build();
-  }
-};
-}  // namespace
-
 SCENARIO("Can create transition from convolution.", "[transitions][convolutions]") {
-  int capacity = 10;
-  auto stream = create_shuffled_coordinates()(capacity);
+  auto stream = create_sequential_problem_stream{}();
   auto solution = createPopulation<nearest_neighbor>(stream, 1);
   thrust::fill(thrust::device, solution.tasks.plan.begin() + 3, solution.tasks.plan.end(),
                Plan::reserve(0));
