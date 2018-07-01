@@ -21,7 +21,7 @@ public:
   };
 
   /// Preforms solution check.
-  Result check(const vrp::models::Solution& solution) const;
+  static Result check(const vrp::models::Solution& solution);
 };
 
 }  // namespace utils

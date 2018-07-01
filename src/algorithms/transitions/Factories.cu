@@ -57,8 +57,9 @@ __host__ __device__ inline bool noReturn(const Problem::Shadow& problem,
   int index =
     customer.is<Convolution>() ? customer.get<Convolution>().customers.second : customer.get<int>();
 
-  return departure + problem.routing.durations[index * problem.size] >
-         problem.resources.timeLimits[vehicle];
+  auto returnTime = departure + problem.routing.durations[index * problem.size];
+  return returnTime > problem.resources.timeLimits[vehicle] ||
+         returnTime > problem.customers.ends[0];
 }
 
 }  // namespace
