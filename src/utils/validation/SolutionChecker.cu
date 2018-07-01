@@ -1,6 +1,7 @@
 #include "algorithms/costs/TransitionCosts.hpp"
 #include "algorithms/transitions/Executors.hpp"
 #include "algorithms/transitions/Factories.hpp"
+#include "streams/output/MatrixTextWriter.hpp"
 #include "utils/validation/SolutionChecker.hpp"
 
 #include <algorithm>
@@ -12,6 +13,7 @@
 using namespace vrp::algorithms::costs;
 using namespace vrp::algorithms::transitions;
 using namespace vrp::models;
+using namespace vrp::streams;
 using namespace vrp::utils;
 
 namespace {
@@ -83,25 +85,29 @@ struct check_vehicles final {
 struct verify_tasks final {
   SolutionChecker::Result& result;
 
-  void operator()(const Tasks& left, const Tasks& right) const {
-    if (!thrust::equal(thrust::device, left.ids.begin(), left.ids.end(), right.ids.begin()))
+  void operator()(const Tasks& left, const Tasks& right, int begin, int end) const {
+    if (!thrust::equal(thrust::device, left.ids.begin() + begin, left.ids.begin() + end,
+                       right.ids.begin() + begin))
       addError(result, "unexpected ids!");
 
-    if (!thrust::equal(thrust::device, left.vehicles.begin(), left.vehicles.end(),
-                       right.vehicles.begin()))
+    if (!thrust::equal(thrust::device, left.vehicles.begin() + begin, left.vehicles.begin() + end,
+                       right.vehicles.begin() + begin))
       addError(result, "unexpected vehicles!");
 
-    if (!thrust::equal(thrust::device, left.costs.begin(), left.costs.end(), right.costs.begin()))
+    if (!thrust::equal(thrust::device, left.costs.begin() + begin, left.costs.begin() + end,
+                       right.costs.begin() + begin))
       addError(result, "unexpected costs!");
 
-    if (!thrust::equal(thrust::device, left.capacities.begin(), left.capacities.end(),
-                       right.capacities.begin()))
+    if (!thrust::equal(thrust::device, left.capacities.begin() + begin,
+                       left.capacities.begin() + end, right.capacities.begin() + begin))
       addError(result, "unexpected capacities!");
 
-    if (!thrust::equal(thrust::device, left.times.begin(), left.times.end(), right.times.begin()))
+    if (!thrust::equal(thrust::device, left.times.begin() + begin, left.times.begin() + end,
+                       right.times.begin() + begin))
       addError(result, "unexpected times!");
 
-    if (!thrust::equal(thrust::device, left.plan.begin(), left.plan.end(), right.plan.begin()))
+    if (!thrust::equal(thrust::device, left.plan.begin() + begin, left.plan.begin() + end,
+                       right.plan.begin() + begin))
       addError(result, "unexpected plan!");
   }
 };
@@ -113,6 +119,7 @@ struct check_tours final {
   int index;
 
   void operator()(int begin, int end) {
+    auto errors = result.errors.size();
     auto tasks =
       Tasks(solution.problem.size(), solution.tasks.population() * solution.problem.size());
 
@@ -153,7 +160,9 @@ struct check_tours final {
 
     } while (to < last);
 
-    verify_tasks{result}(solution.tasks, tasks);
+    verify_tasks{result}(solution.tasks, tasks, begin, end);
+
+    dumpIfErrors(solution.tasks, tasks, index, errors);
   }
 
 private:
@@ -208,6 +217,14 @@ private:
       addError(result, (std::to_string(tasks.times[task]) +
                         std::string(" time violates end time window constraint of depot "))
                          .c_str());
+  }
+  /// Dumps tasks into std out if new errors occurred.
+  void dumpIfErrors(const Tasks& left, const Tasks& right, int index, int errors) {
+    if (errors < result.errors.size()) {
+      std::cout << "Errors in " << index << "\n";
+      MatrixTextWriter::write(std::cout, left);
+      MatrixTextWriter::write(std::cout, right);
+    }
   }
 };
 

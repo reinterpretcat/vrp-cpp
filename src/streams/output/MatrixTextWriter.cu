@@ -75,11 +75,15 @@ void writeCosts(std::ostream& stream, Solution& solution) {
 
 void MatrixTextWriter::write(std::ostream& out, const vrp::models::Solution& solution) {
   writeCosts(out << "\ntotal costs: ", const_cast<Solution&>(solution));
-  writeVector(out << "\ncustomers:   ", solution.tasks.ids, solution.tasks.population());
-  writeVector(out << "\nvehicles:    ", solution.tasks.vehicles, solution.tasks.population());
-  writeVector(out << "\ncosts:       ", solution.tasks.costs, solution.tasks.population());
-  writeVector(out << "\ncapacities:  ", solution.tasks.capacities, solution.tasks.population());
-  writeVector(out << "\ntimes:       ", solution.tasks.times, solution.tasks.population());
-  writeVector(out << "\nplan:        ", solution.tasks.plan, solution.tasks.population());
+  write(out, solution.tasks);
+}
+
+void MatrixTextWriter::write(std::ostream& out, const vrp::models::Tasks& tasks) {
+  writeVector(out << "\ncustomers:   ", tasks.ids, tasks.population());
+  writeVector(out << "\nvehicles:    ", tasks.vehicles, tasks.population());
+  writeVector(out << "\ncosts:       ", tasks.costs, tasks.population());
+  writeVector(out << "\ncapacities:  ", tasks.capacities, tasks.population());
+  writeVector(out << "\ntimes:       ", tasks.times, tasks.population());
+  writeVector(out << "\nplan:        ", tasks.plan, tasks.population());
   out << "\n";
 }
