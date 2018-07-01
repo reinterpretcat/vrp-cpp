@@ -84,24 +84,24 @@ struct verify_tasks final {
   SolutionChecker::Result& result;
 
   void operator()(const Tasks& left, const Tasks& right) const {
-    if (thrust::equal(thrust::device, left.ids.begin(), left.ids.end(), right.ids.begin()))
+    if (!thrust::equal(thrust::device, left.ids.begin(), left.ids.end(), right.ids.begin()))
       addError(result, "unexpected ids!");
 
-    if (thrust::equal(thrust::device, left.vehicles.begin(), left.vehicles.end(),
-                      right.vehicles.begin()))
+    if (!thrust::equal(thrust::device, left.vehicles.begin(), left.vehicles.end(),
+                       right.vehicles.begin()))
       addError(result, "unexpected vehicles!");
 
-    if (thrust::equal(thrust::device, left.costs.begin(), left.costs.end(), right.costs.begin()))
+    if (!thrust::equal(thrust::device, left.costs.begin(), left.costs.end(), right.costs.begin()))
       addError(result, "unexpected costs!");
 
-    if (thrust::equal(thrust::device, left.capacities.begin(), left.capacities.end(),
-                      right.capacities.begin()))
+    if (!thrust::equal(thrust::device, left.capacities.begin(), left.capacities.end(),
+                       right.capacities.begin()))
       addError(result, "unexpected capacities!");
 
-    if (thrust::equal(thrust::device, left.times.begin(), left.times.end(), right.times.begin()))
+    if (!thrust::equal(thrust::device, left.times.begin(), left.times.end(), right.times.begin()))
       addError(result, "unexpected times!");
 
-    if (thrust::equal(thrust::device, left.plan.begin(), left.plan.end(), right.plan.begin()))
+    if (!thrust::equal(thrust::device, left.plan.begin(), left.plan.end(), right.plan.begin()))
       addError(result, "unexpected plan!");
   }
 };
@@ -136,11 +136,12 @@ struct check_tours final {
         // do we have to use next vehicle?
         if (solution.tasks.vehicles[begin + to] == vehicle + 1) {
           spawnNewVehicle(tasks, begin + to, ++vehicle);
+          from = 0;
           continue;
         }
 
-        std::string message = std::string("Cannot serve customer at ") + std::to_string(to);
-        addError(result, index, message.c_str());
+        addError(result, index,
+                 (std::string("Cannot serve customer at ") + std::to_string(to) + " task").c_str());
         return;
       }
 
@@ -148,8 +149,7 @@ struct check_tours final {
 
       ensureConstraints(tasks, begin + to, vehicle);
 
-      ++from;
-      ++to;
+      from = to++;
 
     } while (to < last);
 
@@ -179,29 +179,34 @@ private:
 
   /// Ensures that vehicle constraints are not violated.
   void ensureConstraints(Tasks& tasks, int task, int vehicle) {
-    if (tasks.capacities[task] > solution.problem.resources.capacities[vehicle])
+    int customer = tasks.ids[task];
+    int arrivalTime = tasks.times[task] - solution.problem.customers.services[customer];
+    int returnTime =
+      tasks.times[task] + solution.problem.routing.durations[index * solution.problem.size()];
+
+    if (tasks.capacities[task] < 0)
       addError(result, (std::to_string(tasks.capacities[task]) +
-                        std::string(" exceeds capacity of vehicle ") + std::to_string(vehicle))
+                        std::string(" requested capacity exceeds capacity of vehicle ") +
+                        std::to_string(vehicle))
                          .c_str());
 
-    if (tasks.times[task] < solution.problem.customers.starts[tasks.ids[task]] ||
-        tasks.times[task] > solution.problem.customers.ends[tasks.ids[task]])
-      addError(result, (std::to_string(tasks.capacities[task]) +
-                        std::string(" violates time window constraint of customer ") +
-                        std::to_string(tasks.ids[task]))
-                         .c_str());
-
-    if (tasks.times[task] + solution.problem.routing.durations[index * solution.problem.size()] >
-        solution.problem.resources.timeLimits[vehicle])
+    if (arrivalTime < solution.problem.customers.starts[customer] ||
+        arrivalTime > solution.problem.customers.ends[customer])
       addError(result,
-               (std::to_string(tasks.capacities[task]) +
-                std::string(" violates return constraint of vehicle ") + std::to_string(vehicle))
+               (std::to_string(arrivalTime) +
+                std::string(" as arrival time violates time window constraint of customer ") +
+                std::to_string(customer))
                  .c_str());
 
-    if (tasks.times[task] + solution.problem.routing.durations[index * solution.problem.size()] >
-        solution.problem.customers.ends[0])
-      addError(result, (std::to_string(tasks.capacities[task]) +
-                        std::string(" violates end time window constraint of depot "))
+    if (tasks.times[task] + returnTime > solution.problem.resources.timeLimits[vehicle])
+      addError(result, (std::to_string(tasks.times[task]) +
+                        std::string(" time violates return constraint of vehicle ") +
+                        std::to_string(vehicle))
+                         .c_str());
+
+    if (returnTime > solution.problem.customers.ends[0])
+      addError(result, (std::to_string(tasks.times[task]) +
+                        std::string(" time violates end time window constraint of depot "))
                          .c_str());
   }
 };

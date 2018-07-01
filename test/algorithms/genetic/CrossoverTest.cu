@@ -1,10 +1,10 @@
 #include "algorithms/genetic/Crossovers.hpp"
 #include "algorithms/heuristics/NearestNeighbor.hpp"
-#include "utils/validation/SolutionChecker.hpp"
 #include "test_utils/MemoryUtils.hpp"
 #include "test_utils/PopulationFactory.hpp"
 #include "test_utils/ProblemStreams.hpp"
 #include "test_utils/VectorUtils.hpp"
+#include "utils/validation/SolutionChecker.hpp"
 
 #include <catch/catch.hpp>
 
@@ -45,7 +45,7 @@ SCENARIO("Can create offsprings", "[genetic][crossover][acdc]") {
                    thrust::make_counting_iterator(1),
                    run_crossover{solution.getShadow(), *pool, settings, generation});
 
-  //REQUIRE(SolutionChecker::check(solution).isValid());
+  // REQUIRE(SolutionChecker::check(solution).isValid());
   CHECK_THAT(
     vrp::test::copy(solution.tasks.ids),
     Catch::Matchers::Equals(std::vector<int>{0, 1,  20, 21, 22, 23, 2,  24, 25, 10, 11, 9,  6,
