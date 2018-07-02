@@ -21,6 +21,7 @@ struct assign_convolution {
   Solution::Shadow solution;
   const Convolution& convolution;
   size_t base;
+  bool preferFirst;
 
   __device__ void operator()(const thrust::tuple<int, int>& tuple) {
     auto task = thrust::get<0>(tuple);
@@ -30,7 +31,7 @@ struct assign_convolution {
     Plan current = solution.tasks.plan[base + customer];
 
     solution.tasks.plan[base + customer] =
-      Plan::reserve(current.hasConvolution() ? current.convolution() : index);
+      Plan::reserve(current.hasConvolution() && preferFirst ? current.convolution() : index);
   }
 };
 
@@ -38,6 +39,7 @@ struct assign_convolution {
 struct prepare_convolution final {
   Solution::Shadow solution;
   size_t base;
+  bool preferFirst;
 
   __device__ void operator()(const thrust::tuple<int, Convolution>& tuple) {
     const auto index = thrust::get<0>(tuple);
@@ -50,7 +52,7 @@ struct prepare_convolution final {
                      thrust::make_zip_iterator(thrust::make_tuple(
                        thrust::make_counting_iterator(convolution.tasks.second + 1),
                        thrust::make_constant_iterator(index))),
-                     assign_convolution{solution, convolution, base});
+                     assign_convolution{solution, convolution, base, preferFirst});
   }
 };
 
@@ -61,7 +63,6 @@ struct prepare_plan final {
   thrust::pair<int, int> offspring;
 
   __device__ void operator()(int order) {
-    // if (order != 0) return;
     auto index = order == 0 ? offspring.first : offspring.second;
     auto begin = static_cast<size_t>(solution.problem.size * index);
     auto end = begin + static_cast<size_t>(solution.problem.size);
@@ -69,7 +70,6 @@ struct prepare_plan final {
     // reset whole plan except depot
     thrust::fill(thrust::device, solution.tasks.plan + begin + 1, solution.tasks.plan + end,
                  Plan::empty());
-    // thrust::fill(thrust::device, solution.tasks.ids + begin + 1, solution.tasks.ids + end, -1);
 
     // mark convolution's customers as assigned
     thrust::for_each(thrust::device,
@@ -78,7 +78,7 @@ struct prepare_plan final {
                      thrust::make_zip_iterator(thrust::make_tuple(
                        thrust::make_counting_iterator(static_cast<int>(convolutions.first)),
                        convolutions.second + convolutions.first)),
-                     prepare_convolution{solution, begin});
+                     prepare_convolution{solution, begin, order == 0});
   }
 };
 
@@ -101,7 +101,6 @@ struct improve_individuum final {
   thrust::pair<int, int> offspring;
 
   __device__ void operator()(int order) {
-    // if (order != 0) return;
     int index = order == 0 ? offspring.first : offspring.second;
     create_individuum<Heuristic>{solution.problem, solution.tasks, convolutions, 0}.operator()(
       index);

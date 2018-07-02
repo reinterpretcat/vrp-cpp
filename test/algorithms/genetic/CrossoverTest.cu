@@ -34,7 +34,7 @@ struct run_crossover final {
 
 }  // namespace
 
-SCENARIO("Can create offsprings", "[genetic][crossover][acdc]") {
+SCENARIO("Can create offsprings", "[genetic][crossover][acdc][one_offspring]") {
   int populationSize = 4;
   auto solution = getPopulation(populationSize);
   auto settings = Settings{populationSize, {0.75, 0.05}};
@@ -58,5 +58,28 @@ SCENARIO("Can create offsprings", "[genetic][crossover][acdc]") {
                                              5, 3,  8,  1,  7,  12, 13, 17, 18, 19, 15, 16, 14,
 
                                              0, 20, 21, 22, 23, 2,  24, 25, 10, 11, 9,  6,  4,
-                                             5, 3,  8,  1,  7,  12, 13, 17, 18, 19, 15, 16, 14}));
+                                             1, 5,  3,  7,  8,  12, 13, 17, 18, 19, 15, 16, 14}));
+}
+
+SCENARIO("Can process multiple offsprings", "[genetic][crossover][acdc][multiple_offsprings]") {
+  int populationSize = 4;
+  auto solution = getPopulation(populationSize);
+  auto settingsVec = std::vector<Settings>{
+    Settings{populationSize, {0.50, 0.09}}, Settings{populationSize, {0.55, 0.08}},
+    Settings{populationSize, {0.60, 0.07}}, Settings{populationSize, {0.65, 0.06}},
+    Settings{populationSize, {0.70, 0.05}}};
+  auto oddGen = Generation{{0, 1}, {2, 3}};
+  auto evenGen = Generation{{2, 3}, {0, 1}};
+  auto pool = vrp::utils::DevicePool::create(1, 4, 1000);
+
+
+  for (int i = 0; i < settingsVec.size(); ++i) {
+    auto settings = settingsVec[i];
+    auto generation = i % 2 ? evenGen : oddGen;
+    thrust::for_each(thrust::device, thrust::make_counting_iterator(0),
+                     thrust::make_counting_iterator(1),
+                     run_crossover{solution.getShadow(), *pool, settings, generation});
+    // vrp::streams::MatrixTextWriter::write(std::cout, solution);
+    REQUIRE(SolutionChecker::check(solution).isValid());
+  }
 }
