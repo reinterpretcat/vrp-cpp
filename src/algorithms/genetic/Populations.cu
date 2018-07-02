@@ -121,7 +121,6 @@ Tasks create_population<Heuristic>::operator()(const Settings& settings) {
 template<typename Heuristic>
 void create_individuum<Heuristic>::operator()(int index) {
   const auto begin = index * problem.size;
-  const auto end = begin + problem.size;
 
   auto getCost = calculate_transition_cost{problem.resources};
   auto performTransition = perform_transition{problem, tasks};
@@ -144,7 +143,7 @@ void create_individuum<Heuristic>::operator()(int index) {
       spawnNewVehicle(problem, tasks, from, ++vehicle);
     }
     /// TODO end is wrong?
-  } while (to < end);
+  } while (to < problem.size);
 }
 
 // NOTE explicit specialization to make linker happy.

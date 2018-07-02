@@ -130,7 +130,6 @@ struct check_tours final {
     int from = 0;
     int to = from + 1;
     int vehicle = 0;
-    int last = end - begin;
 
     createDepotTask(tasks, begin + from);
 
@@ -158,7 +157,7 @@ struct check_tours final {
 
       from = to++;
 
-    } while (to < last);
+    } while (to < solution.problem.size());
 
     verify_tasks{result}(solution.tasks, tasks, begin, end);
 
@@ -191,7 +190,7 @@ private:
     int customer = tasks.ids[task];
     int arrivalTime = tasks.times[task] - solution.problem.customers.services[customer];
     int returnTime =
-      tasks.times[task] + solution.problem.routing.durations[index * solution.problem.size()];
+      tasks.times[task] + solution.problem.routing.durations[customer * solution.problem.size()];
 
     if (tasks.capacities[task] < 0)
       addError(result, (std::to_string(tasks.capacities[task]) +
@@ -207,7 +206,7 @@ private:
                 std::to_string(customer))
                  .c_str());
 
-    if (tasks.times[task] + returnTime > solution.problem.resources.timeLimits[vehicle])
+    if (returnTime > solution.problem.resources.timeLimits[vehicle])
       addError(result, (std::to_string(tasks.times[task]) +
                         std::string(" time violates return constraint of vehicle ") +
                         std::to_string(vehicle))
