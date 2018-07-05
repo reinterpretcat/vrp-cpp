@@ -5,6 +5,4 @@
 using namespace vrp::algorithms::heuristics;
 using namespace vrp::models;
 
-__host__ __device__ Transition dummy::operator()(int base, int fromTask, int toTask, int vehicle) {
-  return Transition();
-};
+__host__ __device__ Transition dummy::operator()(const Step& step) { return Transition(); };

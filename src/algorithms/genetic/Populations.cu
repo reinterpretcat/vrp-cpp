@@ -131,7 +131,7 @@ void create_individuum<Heuristic>::operator()(int index) {
   int to = from + 1;
 
   do {
-    auto transition = heuristic(begin, from, to, vehicle);
+    auto transition = heuristic({begin, from, to, vehicle});
     if (transition.isValid()) {
       from = performTransition(transition, getCost(transition));
       to = from + 1;

@@ -26,6 +26,7 @@ add_executable(${LIBRARY_TEST}
         algorithms/genetic/PopulationTest.cu
 
         algorithms/heuristics/NearestNeighborTest.cu
+        algorithms/heuristics/RandomInsertionTest.cu
 
         streams/input/SolomonReaderTest.cu
         streams/output/GeoJsonWriterTest.cu

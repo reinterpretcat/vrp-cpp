@@ -1,5 +1,5 @@
-#ifndef VRP_HEURISTICS_NEARESTNEIGHBOR_HPP
-#define VRP_HEURISTICS_NEARESTNEIGHBOR_HPP
+#ifndef VRP_HEURISTICS_RANDOMINSERTION_HPP
+#define VRP_HEURISTICS_RANDOMINSERTION_HPP
 
 #include "algorithms/heuristics/Models.hpp"
 #include "models/Convolution.hpp"
@@ -13,14 +13,14 @@ namespace vrp {
 namespace algorithms {
 namespace heuristics {
 
-/// Implements algorithm of nearest neighbor heuristic.
-struct nearest_neighbor final {
+/// Implements algorithm of random insertion heuristic.
+struct random_insertion final {
   const vrp::models::Problem::Shadow problem;
-  const vrp::models::Tasks::Shadow tasks;
+  vrp::models::Tasks::Shadow tasks;
   const thrust::device_ptr<vrp::models::Convolution> convolutions;
 
   __host__ __device__
-  nearest_neighbor(const vrp::models::Problem::Shadow problem,
+  random_insertion(const vrp::models::Problem::Shadow problem,
                    const vrp::models::Tasks::Shadow tasks,
                    const thrust::device_ptr<vrp::models::Convolution> convolutions) :
     problem(problem),
@@ -34,4 +34,4 @@ struct nearest_neighbor final {
 }  // namespace algorithms
 }  // namespace vrp
 
-#endif  // VRP_HEURISTICS_NEARESTNEIGHBOR_HPP
+#endif  // VRP_HEURISTICS_RANDOMINSERTION_HPP

@@ -1,14 +1,12 @@
 #include "algorithms/genetic/Mutations.hpp"
 
-namespace {
-
-}
+namespace {}
 
 namespace vrp {
 namespace algorithms {
 namespace genetic {
 
-void mutate_individuum::operator()(const Settings &settings, int index) const {
+void mutate_individuum::operator()(const Settings& settings, int index) const {
   // TODO
 }
 

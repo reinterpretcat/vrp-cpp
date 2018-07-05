@@ -1,6 +1,7 @@
 #ifndef VRP_HEURISTICS_DUMMY_HPP
 #define VRP_HEURISTICS_DUMMY_HPP
 
+#include "algorithms/heuristics/Models.hpp"
 #include "models/Problem.hpp"
 #include "models/Tasks.hpp"
 #include "models/Transition.hpp"
@@ -12,13 +13,10 @@ namespace heuristics {
 /// A dummy implementation of heuristic which returns an invalid transition and cost.
 struct dummy final {
   __host__ __device__ dummy(const vrp::models::Problem::Shadow problem,
-                            vrp::models::Tasks::Shadow tasks,
+                            const vrp::models::Tasks::Shadow tasks,
                             const thrust::device_ptr<vrp::models::Convolution> convolutions) {}
 
-  __host__ __device__ vrp::models::Transition operator()(int base,
-                                                         int fromTask,
-                                                         int toTask,
-                                                         int vehicle);
+  __host__ __device__ vrp::models::Transition operator()(const Step& step);
 };
 
 }  // namespace heuristics
