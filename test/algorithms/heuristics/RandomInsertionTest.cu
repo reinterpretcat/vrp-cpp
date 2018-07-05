@@ -22,7 +22,7 @@ SCENARIO("Can find transition after depot.", "[heuristics][construction][RandomI
   Tasks tasks{problem.size()};
   vrp::test::createDepotTask(problem, tasks);
 
-  auto transition = random_insertion(problem.getShadow(), tasks.getShadow(), {})({0, 0, 1, 0});
+  auto transition = random_insertion({problem.getShadow(), tasks.getShadow(), {}})({0, 0, 1, 0});
 
   // TODO
   // REQUIRE(transition.isValid());

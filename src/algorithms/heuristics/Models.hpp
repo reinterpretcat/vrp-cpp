@@ -3,8 +3,12 @@
 
 #include "algorithms/costs/TransitionCosts.hpp"
 #include "algorithms/transitions/Factories.hpp"
+#include "models/Convolution.hpp"
+#include "models/Problem.hpp"
+#include "models/Tasks.hpp"
+#include "models/Transition.hpp"
 
-#include <models/Transition.hpp>
+#include <thrust/device_ptr.h>
 #include <thrust/pair.h>
 
 namespace vrp {
@@ -19,7 +23,7 @@ using TransitionCostOp = thrust::pair<vrp::algorithms::transitions::create_trans
                                       vrp::algorithms::costs::calculate_transition_cost>;
 
 /// Specifies information about tasks for heuristic step.
-struct Step {
+struct Step final {
   /// Base index.
   int base;
   /// Task to start from.
@@ -28,6 +32,13 @@ struct Step {
   int to;
   /// Vehicle index.
   int vehicle;
+};
+
+/// Heuristic context.
+struct Context final {
+  vrp::models::Problem::Shadow problem;
+  vrp::models::Tasks::Shadow tasks;
+  thrust::device_ptr<vrp::models::Convolution> convolutions;
 };
 
 }  // namespace heuristics

@@ -16,16 +16,17 @@ using namespace vrp::models;
 using namespace vrp::utils;
 
 Transition nearest_neighbor::operator()(const Step& step) {
-  TransitionCostOp operators = {create_transition{problem, tasks},
-                                calculate_transition_cost{problem.resources}};
+  TransitionCostOp operators = {create_transition{context.problem, context.tasks},
+                                calculate_transition_cost{context.problem.resources}};
 
   return thrust::transform_reduce(
            thrust::device,
            thrust::make_zip_iterator(
-             thrust::make_tuple(thrust::make_counting_iterator(0), tasks.plan + step.base)),
-           thrust::make_zip_iterator(thrust::make_tuple(
-             thrust::make_counting_iterator(problem.size), tasks.plan + step.base + problem.size)),
-           create_cost_transition(step, operators, convolutions), create_invaild(),
+             thrust::make_tuple(thrust::make_counting_iterator(0), context.tasks.plan + step.base)),
+           thrust::make_zip_iterator(
+             thrust::make_tuple(thrust::make_counting_iterator(context.problem.size),
+                                context.tasks.plan + step.base + context.problem.size)),
+           create_cost_transition(step, operators, context.convolutions), create_invaild(),
            compare_transition_costs())
     .first;
 }

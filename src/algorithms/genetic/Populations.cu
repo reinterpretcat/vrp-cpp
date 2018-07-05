@@ -124,7 +124,7 @@ void create_individuum<Heuristic>::operator()(int index) {
 
   auto getCost = calculate_transition_cost{problem.resources};
   auto performTransition = perform_transition{problem, tasks};
-  auto heuristic = Heuristic(problem, tasks, convolutions);
+  auto heuristic = Heuristic({problem, tasks, convolutions});
 
   int vehicle = 0;
   int from = shift;
