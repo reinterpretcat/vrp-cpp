@@ -19,6 +19,7 @@ set(HEADER_FILES
 
         algorithms/genetic/Crossovers.hpp
         algorithms/genetic/Models.hpp
+        algorithms/genetic/Mutations.hpp
         algorithms/genetic/Populations.hpp
 
         algorithms/heuristics/Dummy.hpp
@@ -63,8 +64,9 @@ set(SOURCE_FILES
         algorithms/costs/SolutionCosts.cu
         algorithms/costs/TransitionCosts.cu
 
-        algorithms/genetic/Populations.cu
         algorithms/genetic/Crossovers.cu
+        algorithms/genetic/Mutations.cu
+        algorithms/genetic/Populations.cu
 
         algorithms/heuristics/Dummy.cu
         algorithms/heuristics/NearestNeighbor.cu

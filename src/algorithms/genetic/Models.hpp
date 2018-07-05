@@ -22,6 +22,18 @@ struct Generation {
   thrust::pair<int, int> offspring;
 };
 
+/// Defines parameters of mutation.
+struct Mutation {
+  /// Affected individuum.
+  int index;
+
+  /// Defines how much individuum is affected, specified in range [0,1].
+  float aggressiveness;
+
+  /// Specifies whether convolutions are affected too.
+  bool keepConvolutions;
+};
+
 }  // namespace genetic
 }  // namespace algorithms
 }  // namespace vrp
