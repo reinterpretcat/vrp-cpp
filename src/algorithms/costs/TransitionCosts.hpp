@@ -4,19 +4,22 @@
 #include "models/Resources.hpp"
 #include "models/Transition.hpp"
 
+#include <models/Problem.hpp>
+
 namespace vrp {
 namespace algorithms {
 namespace costs {
 
 /// Calculates cost of transition.
 struct calculate_transition_cost final {
-  const vrp::models::Resources::Shadow resources;
-
-  __host__ __device__ explicit calculate_transition_cost(
-    const vrp::models::Resources::Shadow& resources) :
-    resources(resources) {}
+  __host__ __device__ explicit calculate_transition_cost(const vrp::models::Problem::Shadow problem,
+                                                         const vrp::models::Tasks::Shadow tasks) :
+    problem(problem) {}
 
   __host__ __device__ float operator()(const vrp::models::Transition& transition) const;
+
+private:
+  const vrp::models::Problem::Shadow problem;
 };
 
 }  // namespace costs

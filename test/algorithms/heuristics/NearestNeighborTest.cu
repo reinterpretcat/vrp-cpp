@@ -37,8 +37,8 @@ SCENARIO("Can find best transition on solution using convolutions.",
   auto convolution = Convolution{0, 3, 30, {5, 4}, {0, 35}, {3, 5}};
   auto convolutions = create({convolution});
 
-  auto transition = nearest_neighbor({solution.problem.getShadow(), solution.tasks.getShadow(),
-                                     convolutions.data()})({0, 0, 1, 0});
+  auto transition = nearest_neighbor(
+    {solution.problem.getShadow(), solution.tasks.getShadow(), convolutions.data()})({0, 0, 1, 0});
 
   // TODO consider cost without service time
   REQUIRE(transition.isValid());

@@ -2,28 +2,38 @@
 #include "algorithms/heuristics/RandomInsertion.hpp"
 #include "config.hpp"
 #include "streams/input/SolomonReader.hpp"
-#include "streams/output/MatrixTextWriter.hpp"
-#include "test_utils/ConvolutionUtils.hpp"
 #include "test_utils/PopulationFactory.hpp"
 #include "test_utils/ProblemStreams.hpp"
 #include "test_utils/TaskUtils.hpp"
+#include "utils/validation/SolutionChecker.hpp"
 
+#include <algorithms/transitions/Executors.hpp>
 #include <catch/catch.hpp>
 
 using namespace vrp::algorithms::distances;
 using namespace vrp::algorithms::heuristics;
 using namespace vrp::models;
 using namespace vrp::streams;
+using namespace vrp::utils;
 using namespace vrp::test;
 
-SCENARIO("Can find transition after depot.", "[heuristics][construction][RandomInsertion][init]") {
+namespace {
+typedef typename vrp::algorithms::heuristics::TransitionDelegate<
+  vrp::algorithms::transitions::create_transition,
+  vrp::algorithms::costs::calculate_transition_cost,
+  vrp::algorithms::transitions::perform_transition>
+  Delegate;
+}
+
+SCENARIO("Can build solution.", "[heuristics][construction][RandomInsertion][init]") {
   auto stream = create_sequential_problem_stream{}();
   auto problem = SolomonReader().read(stream, cartesian_distance());
   Tasks tasks{problem.size()};
   vrp::test::createDepotTask(problem, tasks);
+  auto context = Context{problem.getShadow(), tasks.getShadow(), {}};
 
-  auto transition = random_insertion({problem.getShadow(), tasks.getShadow(), {}})({0, 0, 1, 0});
-
-  // TODO
-  // REQUIRE(transition.isValid());
+  //  random_insertion<Delegate>{}(context, 0, 0);
+  //
+  //  auto solution = Solution(std::move(problem), std::move(tasks));
+  //  REQUIRE(SolutionChecker::check(solution).isValid());
 }

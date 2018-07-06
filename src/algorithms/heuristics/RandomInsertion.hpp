@@ -8,13 +8,10 @@ namespace algorithms {
 namespace heuristics {
 
 /// Implements algorithm of random insertion heuristic.
+template<typename TransitionOp>
 struct random_insertion final {
-  const Context& context;
-
-  __host__ __device__ explicit random_insertion(const Context& context) : context(context) {}
-
-  /// Finds the "nearest" transition for given task and vehicle
-  __host__ __device__ vrp::models::Transition operator()(const Step& step);
+  /// Populates individuum with given index starting from task defined by shift.
+  __host__ __device__ void operator()(const Context& context, int index, int shift);
 };
 
 }  // namespace heuristics

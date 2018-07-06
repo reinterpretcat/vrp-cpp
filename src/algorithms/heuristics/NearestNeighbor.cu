@@ -17,7 +17,7 @@ using namespace vrp::utils;
 
 Transition nearest_neighbor::operator()(const Step& step) {
   TransitionCostOp operators = {create_transition{context.problem, context.tasks},
-                                calculate_transition_cost{context.problem.resources}};
+                                calculate_transition_cost{context.problem, context.tasks}};
 
   return thrust::transform_reduce(
            thrust::device,

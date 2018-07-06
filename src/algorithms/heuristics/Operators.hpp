@@ -19,6 +19,16 @@ __host__ __device__ inline TransitionCostModel create_invaild() {
   return thrust::make_pair(vrp::models::Transition(), -1);
 }
 
+/// Picks the next vehicle and assigns it to the task.
+__host__ __device__ inline void spawn_vehicle(const vrp::models::Problem::Shadow& problem,
+                                              const vrp::models::Tasks::Shadow& tasks,
+                                              int task,
+                                              int vehicle) {
+  tasks.times[task] = problem.customers.starts[0];
+  tasks.capacities[task] = problem.resources.capacities[vehicle];
+  tasks.costs[task] = problem.resources.fixedCosts[vehicle];
+}
+
 /// Creates transition and calculates cost for given customer if it is not handled.
 struct create_cost_transition final {
   Step step;

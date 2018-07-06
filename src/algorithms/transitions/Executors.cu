@@ -81,7 +81,7 @@ struct process_convolution_task final {
     auto transition = create_transition{problem, tasks}(
       {details.base, details.from + index, details.to + index, variant, details.vehicle});
 
-    auto cost = calculate_transition_cost{problem.resources}(transition);
+    auto cost = calculate_transition_cost{problem, tasks}(transition);
 
     auto nextTask = moveToCustomer(transition, cost, tasks);
 

@@ -41,6 +41,31 @@ struct Context final {
   thrust::device_ptr<vrp::models::Convolution> convolutions;
 };
 
+/// Aggregates basic actions on transition.
+template<typename TransitionFactory, typename CostFactory, typename TransitionExecutor>
+struct TransitionDelegate final {
+  TransitionFactory transitionFactory;
+  CostFactory costFactory;
+  TransitionExecutor transitionExecutor;
+
+  TransitionDelegate(const vrp::models::Problem::Shadow problem, vrp::models::Tasks::Shadow tasks) :
+    transitionFactory{problem, tasks}, costFactory{problem, tasks}, transitionExecutor{problem,
+                                                                                       tasks} {}
+
+  /// Creates transition from details.
+  vrp::models::Transition create(const vrp::models::Transition::Details& details) {
+    return transitionFactory(details);
+  }
+
+  /// Estimates cost of performing transition.
+  float estimate(const vrp::models::Transition& transition) { return costFactory(transition); }
+
+  /// Performs transition within cost and returns last task.
+  int perform(const vrp::models::Transition& transition, float cost) {
+    return transitionExecutor(transition, cost);
+  }
+};
+
 }  // namespace heuristics
 }  // namespace algorithms
 }  // namespace vrp

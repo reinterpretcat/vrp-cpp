@@ -23,7 +23,7 @@ namespace {
 struct create_roots {
   create_roots(const Problem& problem, Tasks& tasks, const Settings& settings) :
     problem(problem.getShadow()), tasks(tasks.getShadow()), populationSize(settings.populationSize),
-    getCost(problem.resources.getShadow()),
+    getCost(problem.getShadow(), tasks.getShadow()),
     createTransition(problem.getShadow(), tasks.getShadow()),
     performTransition(problem.getShadow(), tasks.getShadow()) {}
 
@@ -122,7 +122,7 @@ template<typename Heuristic>
 void create_individuum<Heuristic>::operator()(int index) {
   const auto begin = index * problem.size;
 
-  auto getCost = calculate_transition_cost{problem.resources};
+  auto getCost = calculate_transition_cost{problem, tasks};
   auto performTransition = perform_transition{problem, tasks};
   auto heuristic = Heuristic({problem, tasks, convolutions});
 
