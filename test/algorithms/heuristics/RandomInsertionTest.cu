@@ -32,7 +32,7 @@ SCENARIO("Can build solution.", "[heuristics][construction][RandomInsertion][ini
   vrp::test::createDepotTask(problem, tasks);
   auto context = Context{problem.getShadow(), tasks.getShadow(), {}};
 
-  //  random_insertion<Delegate>{}(context, 0, 0);
+  random_insertion<Delegate>{}(context, 0, 0);
   //
   //  auto solution = Solution(std::move(problem), std::move(tasks));
   //  REQUIRE(SolutionChecker::check(solution).isValid());

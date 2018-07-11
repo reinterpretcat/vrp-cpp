@@ -18,8 +18,13 @@ struct create_transition final {
     problem(problem),
     tasks(tasks) {}
 
+  // TODO remove this method to avoid confusion
   __host__ __device__ vrp::models::Transition operator()(
     const vrp::models::Transition::Details& details) const;
+
+  __host__ __device__ vrp::models::Transition operator()(
+    const vrp::models::Transition::Details& details,
+    const vrp::models::Transition::State& state) const;
 
 private:
   const vrp::models::Problem::Shadow problem;

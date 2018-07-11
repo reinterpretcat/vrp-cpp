@@ -11,8 +11,18 @@ namespace models {
 
 /// Represents transition from task to a customer.
 struct Transition {
+  /// Stores information about state between transitions.
+  struct State final {
+    /// Last customer.
+    int customer;
+    /// Remaining demand.
+    int capacity;
+    /// Departure time.
+    int time;
+  };
+
   /// Details about transition.
-  struct Details {
+  struct Details final {
     /// Base index.
     int base;
     /// Task from which transition should happen.
@@ -27,7 +37,7 @@ struct Transition {
   };
 
   /// Delta change of transition.
-  struct Delta {
+  struct Delta final {
     /// Travelling distance.
     float distance;
     /// Traveling time.

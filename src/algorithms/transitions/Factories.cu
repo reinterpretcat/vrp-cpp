@@ -22,9 +22,7 @@ __host__ __device__ inline bool isTooLate(const Problem::Shadow& problem,
 }
 
 /// Checks whether vehicle can carry requested demand.
-__host__ __device__ inline bool isTooMuch(const Tasks::Shadow& tasks, int task, int demand) {
-  return tasks.capacities[task] < demand;
-}
+__host__ __device__ inline bool isTooMuch(int remaining, int demand) { return remaining < demand; }
 
 /// Returns demand of transition.
 __host__ __device__ inline int getDemand(const Problem::Shadow& problem,
@@ -64,18 +62,18 @@ __host__ __device__ inline bool noReturn(const Problem::Shadow& problem,
 
 }  // namespace
 
-__host__ __device__ Transition
-create_transition::operator()(const Transition::Details& details) const {
-  int task = details.base + details.from;
+
+Transition create_transition::operator()(const Transition::Details& details,
+                                         const Transition::State& state) const {
   int customer = getCustomerId(details.customer);
 
-  int matrix = tasks.ids[task] * problem.size + customer;
+  int matrix = state.customer * problem.size + customer;
   float distance = problem.routing.distances[matrix];
   int traveling = problem.routing.durations[matrix];
-  int arrivalTime = tasks.times[task] + traveling;
+  int arrivalTime = state.time + traveling;
   int demand = getDemand(problem, details.customer);
 
-  if (isTooLate(problem, details.customer, arrivalTime) || isTooMuch(tasks, task, demand)) {
+  if (isTooLate(problem, details.customer, arrivalTime) || isTooMuch(state.capacity, demand)) {
     return vrp::models::Transition();
   }
 
@@ -86,4 +84,9 @@ create_transition::operator()(const Transition::Details& details) const {
   return noReturn(problem, details.customer, details.vehicle, departure)
            ? Transition()
            : Transition(details, {distance, traveling, serving, waiting, demand});
+}
+
+Transition create_transition::operator()(const Transition::Details& details) const {
+  int task = details.base + details.from;
+  return this->operator()(details, {tasks.ids[task], tasks.capacities[task], tasks.times[task]});
 }
