@@ -45,6 +45,8 @@ set(HEADER_FILES
         models/Transition.hpp
         models/Locations.hpp
 
+        runtime/Config.hpp
+
         streams/input/SolomonReader.hpp
         streams/output/GeoJsonWriter.hpp
         streams/output/MatrixTextWriter.hpp
