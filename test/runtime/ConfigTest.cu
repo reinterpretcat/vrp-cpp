@@ -24,5 +24,5 @@ TEST_CASE("Can use runtime config.", "[runtime][config]") {
 
   thrust::generate(input.begin(), input.end(), generator{});
   thrust::sort(exec_unit, input.begin(), input.end());
-  thrust::for_each(exec_unit, pointer, pointer  + size, check);
+  thrust::for_each(exec_unit, pointer, pointer + size, check);
 }

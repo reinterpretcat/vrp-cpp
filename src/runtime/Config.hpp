@@ -5,7 +5,7 @@
 #ifdef RUN_ON_DEVICE
 #include "runtime/detail/device/Config.inl"
 #else
-// TODO
+#include "runtime/detail/host/Config.inl"
 #endif
 
 
