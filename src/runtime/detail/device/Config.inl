@@ -12,7 +12,7 @@ namespace runtime {
 
 /// Specifies device execution policy.
 struct exec_unit_policy : thrust::device_execution_policy<exec_unit_policy> {
-} exec_unit;
+};
 
 
 }  // namespace runtime

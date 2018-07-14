@@ -2,9 +2,9 @@
 #define VRP_MODELS_TRANSITION_HPP
 
 #include "models/Convolution.hpp"
+#include "runtime/Config.hpp"
 #include "utils/types/DeviceVariant.hpp"
 
-#include <thrust/execution_policy.h>
 
 namespace vrp {
 namespace models {
@@ -50,7 +50,7 @@ struct Transition {
     int demand;
 
     /// Returns total delta's duration.
-    __host__ __device__ int duration() const { return traveling + serving + waiting; }
+    ANY_EXEC_UNIT int duration() const { return traveling + serving + waiting; }
   };
 
   /// Details about transition.
@@ -58,17 +58,17 @@ struct Transition {
   /// Delta change of transition.
   Delta delta;
 
-  __host__ __device__ Transition() : Transition({-1, -1}, {-1, -1, -1, -1, -1}) {}
+  ANY_EXEC_UNIT Transition() : Transition({-1, -1}, {-1, -1, -1, -1, -1}) {}
 
-  __host__ __device__ Transition(const Details& details, const Delta& delta) :
+  ANY_EXEC_UNIT Transition(const Details& details, const Delta& delta) :
     details(details), delta(delta) {}
 
-  __host__ __device__ Transition(const Transition&) = default;
+  ANY_EXEC_UNIT Transition(const Transition&) = default;
 
-  __host__ __device__ Transition& operator=(const Transition&) = default;
+  ANY_EXEC_UNIT Transition& operator=(const Transition&) = default;
 
   /// Flag whether transition is valid.
-  __host__ __device__ bool isValid() const { return details.from >= 0; }
+  ANY_EXEC_UNIT bool isValid() const { return details.from >= 0; }
 };
 
 }  // namespace models
