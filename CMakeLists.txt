@@ -4,7 +4,10 @@ project(vrp)
 
 option(RUN_ON_DEVICE_PREFFERED "Runs algorithms on GPU." ON)
 if(RUN_ON_DEVICE_PREFFERED)
+    message("-- Configured to run on device.")
     add_definitions(-DRUN_ON_DEVICE)
+else()
+    message("-- Configured to run on host.")
 endif()
 
 
