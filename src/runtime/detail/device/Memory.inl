@@ -13,7 +13,7 @@ template<typename T>
 thrust::pair<thrust::pointer<T, exec_unit_policy>, std::ptrdiff_t> get_temporary_buffer(
   exec_unit_policy,
   std::ptrdiff_t n) {
-  std::cout << "get_temporary_buffer(exec_unit_policy): calling device_malloc" << std::endl;
+  printf("get_temporary_buffer(exec_unit_policy): calling device_malloc\n");
 
   // ask device_malloc for storage
   thrust::pointer<T, exec_unit_policy> result(thrust::device_malloc<T>(n).get());
@@ -24,7 +24,7 @@ thrust::pair<thrust::pointer<T, exec_unit_policy>, std::ptrdiff_t> get_temporary
 
 template<typename Pointer>
 void return_temporary_buffer(exec_unit_policy, Pointer p) {
-  std::cout << "return_temporary_buffer(exec_unit_policy): calling device_free" << std::endl;
+  printf("return_temporary_buffer(exec_unit_policy): calling device_free\n");
 
   thrust::device_free(thrust::device_pointer_cast(p.get()));
 }
@@ -37,15 +37,15 @@ struct vector_allocator : thrust::device_malloc_allocator<T> {
   typedef typename super_t::pointer pointer;
   typedef typename super_t::size_type size_type;
 
-  pointer allocate(size_type n) {
-    std::cout << "vector_allocator::allocate() on device" << std::endl;
+  __host__ pointer allocate(size_type n) {
+    printf("vector_allocator::allocate() on device\n");
 
     return super_t::allocate(n);
   }
 
   // customize deallocate
-  void deallocate(pointer p, size_type n) {
-    std::cout << "vector_allocator::deallocate() on device:" << std::endl;
+  __host__ void deallocate(pointer p, size_type n) {
+    printf("vector_allocator::deallocate() on device\n");
 
     super_t::deallocate(p, n);
   }

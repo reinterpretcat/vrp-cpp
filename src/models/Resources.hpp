@@ -1,8 +1,7 @@
 #ifndef VRP_MODELS_RESOURCES_HPP
 #define VRP_MODELS_RESOURCES_HPP
 
-#include <thrust/device_ptr.h>
-#include <thrust/device_vector.h>
+#include "runtime/Config.hpp"
 
 namespace vrp {
 namespace models {
@@ -12,32 +11,32 @@ struct Resources final {
   /// Stores device pointers to data.
   struct Shadow final {
     int vehicles;
-    thrust::device_ptr<const int> capacities;
-    thrust::device_ptr<const float> distanceCosts;
-    thrust::device_ptr<const float> timeCosts;
-    thrust::device_ptr<const float> waitingCosts;
-    thrust::device_ptr<const float> fixedCosts;
-    thrust::device_ptr<const int> timeLimits;
+    vrp::runtime::vector_ptr<const int> capacities;
+    vrp::runtime::vector_ptr<const float> distanceCosts;
+    vrp::runtime::vector_ptr<const float> timeCosts;
+    vrp::runtime::vector_ptr<const float> waitingCosts;
+    vrp::runtime::vector_ptr<const float> fixedCosts;
+    vrp::runtime::vector_ptr<const int> timeLimits;
   };
 
   /// Maximum vehicle capacity (units).
-  thrust::device_vector<int> capacities;
+  vrp::runtime::vector<int> capacities;
 
   /// Vehicle cost per distance.
-  thrust::device_vector<float> distanceCosts;
+  vrp::runtime::vector<float> distanceCosts;
 
   /// Vehicle cost per traveling time.
-  thrust::device_vector<float> timeCosts;
+  vrp::runtime::vector<float> timeCosts;
 
   /// Vehicle cost per waiting time.
-  thrust::device_vector<float> waitingCosts;
+  vrp::runtime::vector<float> waitingCosts;
 
   /// Vehicle fixed cost.
-  thrust::device_vector<float> fixedCosts;
+  vrp::runtime::vector<float> fixedCosts;
 
   /// TODO do we need it? Depot time window seems simulate it.
   /// Vehicle time limit.
-  thrust::device_vector<int> timeLimits;
+  vrp::runtime::vector<int> timeLimits;
 
   /// Reserves resource size.
   void reserve(std::size_t size) {

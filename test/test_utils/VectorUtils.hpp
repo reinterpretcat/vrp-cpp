@@ -1,38 +1,29 @@
 #ifndef VRP_UTILS_VECTORUTILS_HPP
 #define VRP_UTILS_VECTORUTILS_HPP
 
-#include <thrust/copy.h>
-#include <thrust/device_vector.h>
-#include <thrust/host_vector.h>
+#include "runtime/Config.hpp"
 #include <vector>
 
 namespace vrp {
 namespace test {
 
-/// Copies host vector to std vector.
+/// Creates vrp vector from initializer list.
 template<typename T>
-std::vector<T> copy(const thrust::host_vector<T>& v) {
+inline vrp::runtime::vector<T> create(const std::initializer_list<T>& list) {
+  thrust::host_vector<T> buffer(list.begin(), list.end());
+  return vrp::runtime::vector<T>(buffer.begin(), buffer.end());
+}
+
+/// Copies vrp vector to std vector.
+template<typename T>
+std::vector<T> copy(const vrp::runtime::vector<T>& v) {
   return std::vector<T>(v.begin(), v.end());
-}
+};
 
-/// Copies n-first items of host vector to std vector.
+/// Copies n-first items of vrp vector to std vector.
 template<typename T>
-std::vector<T> copy(const thrust::host_vector<T>& v, std::size_t n) {
+std::vector<T> copy(const vrp::runtime::vector<T>& v, std::size_t n) {
   return std::vector<T>(v.begin(), v.begin() + n);
-}
-
-/// Copies device vector to std vector.
-template<typename T>
-std::vector<T> copy(const thrust::device_vector<T>& v) {
-  thrust::host_vector<T> hv = v;
-  return copy(hv);
-}
-
-/// Copies n-first items of device vector to std vector.
-template<typename T>
-std::vector<T> copy(const thrust::device_vector<T>& v, std::size_t n) {
-  thrust::host_vector<T> hv = v;
-  return copy(hv, n);
 }
 
 }  // namespace test

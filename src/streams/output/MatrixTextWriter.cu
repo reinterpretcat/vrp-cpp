@@ -1,5 +1,5 @@
-#include "../../models/Tasks.hpp"
 #include "algorithms/costs/SolutionCosts.hpp"
+#include "models/Tasks.hpp"
 #include "models/Problem.hpp"
 #include "streams/output/MatrixTextWriter.hpp"
 
@@ -48,7 +48,7 @@ struct print_one final {
 
 /// Writes vectorized data into stream.
 template<typename T>
-void writeVector(std::ostream& stream, const thrust::device_vector<T>& data, int populationSize) {
+void writeVector(std::ostream& stream, const vrp::runtime::vector<T>& data, int populationSize) {
   thrust::host_vector<T> hData(data.begin(), data.end());
   thrust::for_each(
     thrust::make_zip_iterator(thrust::make_tuple(thrust::make_counting_iterator(0), hData.begin())),

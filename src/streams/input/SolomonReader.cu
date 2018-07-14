@@ -81,7 +81,7 @@ void setCustomers(const thrust::host_vector<CustomerData>& data, Customers& cust
 
 /// Creates distance matrix.
 void setDistances(const thrust::host_vector<CustomerData>& data,
-                  thrust::device_vector<float>& distances,
+                  vrp::runtime::vector<float>& distances,
                   const DistanceCalculator& calculator) {
   // TODO move calculations on GPU
   typedef thrust::host_vector<CustomerData>::const_iterator Iterator;
@@ -104,8 +104,8 @@ void setDistances(const thrust::host_vector<CustomerData>& data,
 
 /// Creates durations matrix.
 void setDurations(const thrust::host_vector<CustomerData>& data,
-                  const thrust::device_vector<float>& distances,
-                  thrust::device_vector<int>& durations) {
+                  const vrp::runtime::vector<float>& distances,
+                  vrp::runtime::vector<int>& durations) {
   durations.resize(data.size() * data.size(), 0);
   thrust::transform(distances.begin(), distances.end(), durations.begin(),
                     thrust::placeholders::_1);

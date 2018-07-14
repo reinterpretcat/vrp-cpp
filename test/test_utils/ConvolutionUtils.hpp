@@ -8,12 +8,6 @@
 namespace vrp {
 namespace test {
 
-template<typename T>
-inline thrust::device_vector<T> create(const std::initializer_list<T>& list) {
-  thrust::device_vector<T> data(list.begin(), list.end());
-  return std::move(data);
-}
-
 /// Copies convolution array to host.
 inline thrust::host_vector<vrp::models::Convolution> copy(
   const thrust::device_ptr<vrp::models::Convolution> data,

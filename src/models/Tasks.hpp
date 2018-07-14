@@ -1,10 +1,8 @@
 #ifndef VRP_MODEL_TASKS_HPP
 #define VRP_MODEL_TASKS_HPP
 
+#include "runtime/Config.hpp"
 #include "models/Plan.hpp"
-
-#include <thrust/device_ptr.h>
-#include <thrust/device_vector.h>
 #include <thrust/pair.h>
 
 namespace vrp {
@@ -16,12 +14,12 @@ struct Tasks final {
   /// Stores device pointers to data.
   struct Shadow final {
     int customers;
-    thrust::device_ptr<int> ids;
-    thrust::device_ptr<float> costs;
-    thrust::device_ptr<int> times;
-    thrust::device_ptr<int> capacities;
-    thrust::device_ptr<int> vehicles;
-    thrust::device_ptr<Plan> plan;
+    vrp::runtime::vector_ptr<int> ids;
+    vrp::runtime::vector_ptr<float> costs;
+    vrp::runtime::vector_ptr<int> times;
+    vrp::runtime::vector_ptr<int> capacities;
+    vrp::runtime::vector_ptr<int> vehicles;
+    vrp::runtime::vector_ptr<Plan> plan;
   };
 
   explicit Tasks() = default;
@@ -37,22 +35,22 @@ struct Tasks final {
   int customers = 0;
 
   /// Customer id of the task.
-  thrust::device_vector<int> ids;
+  vrp::runtime::vector<int> ids;
 
   /// Cost of performing task.
-  thrust::device_vector<float> costs;
+  vrp::runtime::vector<float> costs;
 
   /// Departure time after serving task.
-  thrust::device_vector<int> times;
+  vrp::runtime::vector<int> times;
 
   /// Remaining demand capacity.
-  thrust::device_vector<int> capacities;
+  vrp::runtime::vector<int> capacities;
 
   /// Current vehicle. Negative is a marker of unprocessed.
-  thrust::device_vector<int> vehicles;
+  vrp::runtime::vector<int> vehicles;
 
   /// Keeps state of customer's state.
-  thrust::device_vector<Plan> plan;
+  vrp::runtime::vector<Plan> plan;
 
   /// Returns size of tasks.
   int size() const { return static_cast<int>(ids.size()); }

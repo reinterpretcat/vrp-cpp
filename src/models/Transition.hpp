@@ -5,7 +5,6 @@
 #include "runtime/Config.hpp"
 #include "utils/types/DeviceVariant.hpp"
 
-
 namespace vrp {
 namespace models {
 

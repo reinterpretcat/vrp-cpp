@@ -1,5 +1,3 @@
-#include "test_utils/VectorUtils.hpp"
-
 #include <catch/catch.hpp>
 #include <thrust/device_vector.h>
 #include <thrust/fill.h>
@@ -29,6 +27,7 @@ SCENARIO("Can perform SAXPY operation", "[environment]") {
 
   thrust::transform(d_x.begin(), d_x.end(), d_y.begin(), d_res.begin(), Saxpy(3));
 
-  CHECK_THAT(vrp::test::copy(d_res),
+  std::vector<float> result(d_res.begin(), d_res.end());
+  CHECK_THAT(result,
              Catch::Matchers::Equals(std::vector<float>{2, 5, 8, 11, 14, 17, 20, 23, 26, 29}));
 }

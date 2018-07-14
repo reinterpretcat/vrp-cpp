@@ -1,8 +1,7 @@
 #ifndef VRP_MODELS_CUSTOMERS_HPP
 #define VRP_MODELS_CUSTOMERS_HPP
 
-#include <thrust/device_ptr.h>
-#include <thrust/device_vector.h>
+#include "runtime/Config.hpp"
 
 namespace vrp {
 namespace models {
@@ -11,23 +10,23 @@ namespace models {
 struct Customers final {
   /// Stores device pointers to data.
   struct Shadow final {
-    thrust::device_ptr<const int> demands;
-    thrust::device_ptr<const int> services;
-    thrust::device_ptr<const int> starts;
-    thrust::device_ptr<const int> ends;
+    vrp::runtime::vector_ptr<const int> demands;
+    vrp::runtime::vector_ptr<const int> services;
+    vrp::runtime::vector_ptr<const int> starts;
+    vrp::runtime::vector_ptr<const int> ends;
   };
 
   /// Customer demand.
-  thrust::device_vector<int> demands;
+  vrp::runtime::vector<int> demands;
 
   /// Customer service times.
-  thrust::device_vector<int> services;
+  vrp::runtime::vector<int> services;
 
   /// Customer time window start.
-  thrust::device_vector<int> starts;
+  vrp::runtime::vector<int> starts;
 
   /// Customer time window end.
-  thrust::device_vector<int> ends;
+  vrp::runtime::vector<int> ends;
 
   /// Reserves customers size.
   void reserve(std::size_t size) {

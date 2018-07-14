@@ -1,8 +1,7 @@
 #ifndef VRP_MODELS_ROUTINGMATRIX_HPP
 #define VRP_MODELS_ROUTINGMATRIX_HPP
 
-#include <thrust/device_ptr.h>
-#include <thrust/device_vector.h>
+#include "runtime/Config.hpp"
 
 namespace vrp {
 namespace models {
@@ -11,15 +10,15 @@ namespace models {
 struct RoutingMatrix final {
   /// Stores device pointers to data.
   struct Shadow {
-    thrust::device_ptr<const float> distances;
-    thrust::device_ptr<const int> durations;
+    vrp::runtime::vector_ptr<const float> distances;
+    vrp::runtime::vector_ptr<const int> durations;
   };
 
   /// Matrix of distances.
-  thrust::device_vector<float> distances;
+  vrp::runtime::vector<float> distances;
 
   /// Matrix of durations.
-  thrust::device_vector<int> durations;
+  vrp::runtime::vector<int> durations;
 
   /// Reserves resource size.
   void reserve(std::size_t size) {
