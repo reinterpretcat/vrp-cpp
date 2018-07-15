@@ -1,11 +1,11 @@
 //#include "test_utils/MemoryUtils.hpp"
 //#include "test_utils/SettingsFactory.hpp"
 //#include "utils/memory/DevicePool.hpp"
-#include "utils/memory/DeviceUnique.hpp"
+#include "runtime/DeviceUnique.hpp"
 
 #include <catch/catch.hpp>
 
-using namespace vrp::utils;
+using namespace vrp::runtime;
 
 namespace {
 __global__ void useDeviceUniquePointer() { auto pointer = make_device_unique<int>(); }

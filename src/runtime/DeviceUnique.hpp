@@ -1,11 +1,11 @@
-#ifndef VRP_UTILS_MEMORY_DEVICE_UNIQUE_HPP
-#define VRP_UTILS_MEMORY_DEVICE_UNIQUE_HPP
+#ifndef VRP_RUNTIME_DEVICE_UNIQUE_HPP
+#define VRP_RUNTIME_DEVICE_UNIQUE_HPP
 
 #include <thrust/execution_policy.h>
 #include <thrust/swap.h>
 
 namespace vrp {
-namespace utils {
+namespace runtime {
 
 /// Default deleter.
 template<typename T>
@@ -89,7 +89,7 @@ __device__ device_unique_ptr<T, Deleter> make_device_unique(Args&&... args) {
   return device_unique_ptr<T, Deleter>(new T(std::forward<Args>(args)...));
 }
 
-}  // namespace utils
+}  // namespace runtime
 }  // namespace vrp
 
-#endif  // VRP_UTILS_MEMORY_DEVICE_UNIQUE_HPP
+#endif  // VRP_RUNTIME_DEVICE_UNIQUE_HPP

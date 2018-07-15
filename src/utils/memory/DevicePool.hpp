@@ -3,7 +3,7 @@
 
 #include "algorithms/convolutions/Models.hpp"
 #include "models/Convolution.hpp"
-#include "utils/memory/DeviceUnique.hpp"
+#include "runtime/DeviceUnique.hpp"
 
 #include <functional>
 #include <memory>
@@ -44,7 +44,7 @@ public:
     };
 
     using DataType = thrust::device_ptr<T>;
-    using ReturnType = device_unique_ptr<DataType, pool_vector_deleter>;
+    using ReturnType = vrp::runtime::device_unique_ptr<DataType, pool_vector_deleter>;
 
     friend DevicePool;
 
@@ -56,8 +56,8 @@ public:
     }
 
     __device__ ReturnType operator()() {
-      return device_unique_ptr<DataType, pool_vector_deleter>(new DataType(data[--top]),
-                                                              pool_vector_deleter(this));
+      return vrp::runtime::device_unique_ptr<DataType, pool_vector_deleter>(
+        new DataType(data[--top]), pool_vector_deleter(this));
     }
 
   private:

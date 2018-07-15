@@ -54,7 +54,7 @@ set(HEADER_FILES
         utils/geo/Resolvers.hpp
         utils/memory/Allocations.hpp
         utils/memory/DevicePool.hpp
-        utils/memory/DeviceUnique.hpp
+        runtime/DeviceUnique.hpp
         utils/types/DeviceVariant.hpp
         utils/validation/SolutionChecker.hpp
         )
