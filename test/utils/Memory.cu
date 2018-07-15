@@ -1,7 +1,7 @@
 //#include "test_utils/MemoryUtils.hpp"
 //#include "test_utils/SettingsFactory.hpp"
 //#include "utils/memory/DevicePool.hpp"
-#include "runtime/DeviceUnique.hpp"
+#include "runtime/UniquePointer.hpp"
 
 #include <catch/catch.hpp>
 

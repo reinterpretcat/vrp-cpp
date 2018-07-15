@@ -46,6 +46,7 @@ set(HEADER_FILES
         models/Locations.hpp
 
         runtime/Config.hpp
+        runtime/UniquePointer.hpp
 
         streams/input/SolomonReader.hpp
         streams/output/GeoJsonWriter.hpp
@@ -54,7 +55,6 @@ set(HEADER_FILES
         utils/geo/Resolvers.hpp
         utils/memory/Allocations.hpp
         utils/memory/DevicePool.hpp
-        runtime/DeviceUnique.hpp
         utils/types/DeviceVariant.hpp
         utils/validation/SolutionChecker.hpp
         )
