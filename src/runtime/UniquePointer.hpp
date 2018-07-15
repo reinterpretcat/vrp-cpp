@@ -12,7 +12,14 @@ namespace runtime {
 template<typename T>
 struct default_delete final {
   EXEC_UNIT void operator()(T* ptr) const {
+    printf("default_delete: deallocate value\n");
+    deallocate(ptr);
+  }
+
+  EXEC_UNIT void operator()(vector_ptr<T>* ptr) const {
     // TODO is memory allocated with make_unique_ptr_data cleaned fully?
+    printf("default_delete: deallocate vector_ptr\n");
+    deallocate(ptr->get());
     deallocate(ptr);
   }
 };
@@ -24,6 +31,7 @@ struct default_delete<T[]> final {
   EXEC_UNIT typename std::enable_if<std::is_convertible<Arr (*)[], T (*)[]>::value>::type
   operator()(Arr* ptr) const {
     // TODO investigate how this case is handled now.
+    printf("default_delete: deallocate array\n");
     delete[] ptr;
   }
 };
@@ -90,8 +98,10 @@ public:
 
 /// Creates unique pointer to hold data of given size.
 template<typename T, typename Deleter = default_delete<T>>
-EXEC_UNIT unique_ptr<T, Deleter> make_unique_ptr_data(size_t size) {
-  return unique_ptr<T, Deleter>(vrp::runtime::allocate_data<T>(size));
+EXEC_UNIT unique_ptr<vector_ptr<T>, Deleter> make_unique_ptr_data(size_t size) {
+  auto buffer = allocate_data<T>(size);
+  auto vectorPtr = new vector_ptr<T>(buffer);
+  return unique_ptr<vector_ptr<T>, Deleter>(vectorPtr);
 }
 
 /// Creates unique pointer to hold single value.
