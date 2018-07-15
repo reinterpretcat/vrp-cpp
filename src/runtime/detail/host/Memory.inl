@@ -27,28 +27,33 @@ void return_temporary_buffer(exec_unit_policy exec_unit, Pointer p) {
   thrust::free(exec_unit, p.get());
 }
 
-namespace detail {
-/// Allocator used by host vector.
+/// Allocates buffer dynamically in host memory.
 template<typename T>
-struct vector_allocator : std::allocator<T> {
-  typedef std::allocator<T> super_t;
-  typedef typename super_t::pointer pointer;
-  typedef typename super_t::size_type size_type;
+EXEC_UNIT vrp::runtime::vector_ptr<T> allocate(size_t size) {
+  return thrust::malloc<T>(exec_unit_policy{}, size).get();
+}
 
-  pointer allocate(size_type n) {
-    std::cout << "vector_allocator::allocate() host" << std::endl;
+/// Allocates buffer to store single value in device memory.
+template<typename T>
+EXEC_UNIT vrp::runtime::vector_ptr<T> allocate(const T& value) {
+  auto pValue = allocate<T>(1);
+  *pValue = value;
+  return pValue;
+}
 
-    return super_t::allocate(n);
-  }
+/// Deallocates dynamically allocated buffer.
+template<typename T>
+EXEC_UNIT void deallocate(vrp::runtime::vector_ptr<T> ptr) {
+  thrust::free(exec_unit_policy{}, ptr);
+}
 
-  // customize deallocate
-  void deallocate(pointer p, size_type n) {
-    std::cout << "vector_allocator::deallocate() host" << std::endl;
+///  Deallocates dynamically allocated buffer and returns first item value.
+template<typename T>
+EXEC_UNIT inline T release(vrp::runtime::vector_ptr<T>& ptr) {
+  T value = *ptr;
+  deallocate(ptr);
+  return value;
+}
 
-    super_t::deallocate(p, n);
-  }
-};
-
-}  // namespace detail
 }  // namespace runtime
 }  // namespace vrp

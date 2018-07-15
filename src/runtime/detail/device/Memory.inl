@@ -2,13 +2,13 @@
 
 #include <thrust/device_free.h>
 #include <thrust/device_malloc.h>
-#include <thrust/memory.h>
 
 namespace vrp {
 namespace runtime {
 
 // TODO cache memory
 
+/// Allocates temporary buffer.
 template<typename T>
 thrust::pair<thrust::pointer<T, exec_unit_policy>, std::ptrdiff_t> get_temporary_buffer(
   exec_unit_policy,
@@ -22,6 +22,7 @@ thrust::pair<thrust::pointer<T, exec_unit_policy>, std::ptrdiff_t> get_temporary
   return thrust::make_pair(result, n);
 }
 
+/// Returns back temporary buffer.
 template<typename Pointer>
 void return_temporary_buffer(exec_unit_policy, Pointer p) {
   printf("return_temporary_buffer(exec_unit_policy): calling device_free\n");
@@ -29,28 +30,33 @@ void return_temporary_buffer(exec_unit_policy, Pointer p) {
   thrust::device_free(thrust::device_pointer_cast(p.get()));
 }
 
-namespace detail {
-/// Allocator used by device vector.
+/// Allocates buffer dynamically in device memory.
 template<typename T>
-struct vector_allocator : thrust::device_malloc_allocator<T> {
-  typedef thrust::device_malloc_allocator<T> super_t;
-  typedef typename super_t::pointer pointer;
-  typedef typename super_t::size_type size_type;
+EXEC_UNIT vrp::runtime::vector_ptr<T> allocate(size_t size) {
+  return thrust::device_malloc<T>(size).get();
+}
 
-  __host__ pointer allocate(size_type n) {
-    printf("vector_allocator::allocate() on device\n");
+/// Allocates buffer to store single value in device memory.
+template<typename T>
+EXEC_UNIT vrp::runtime::vector_ptr<T> allocate(const T& value) {
+  auto pValue = allocate<T>(1);
+  *pValue = value;
+  return pValue;
+}
 
-    return super_t::allocate(n);
-  }
+/// Deallocates dynamically allocated buffer.
+template<typename T>
+EXEC_UNIT void deallocate(vrp::runtime::vector_ptr<T> ptr) {
+  thrust::device_free(ptr);
+}
 
-  // customize deallocate
-  __host__ void deallocate(pointer p, size_type n) {
-    printf("vector_allocator::deallocate() on device\n");
-
-    super_t::deallocate(p, n);
-  }
-};
-}  // namespace detail
+///  Deallocates dynamically allocated buffer and returns first item value.
+template<typename T>
+EXEC_UNIT inline T release(vrp::runtime::vector_ptr<T>& ptr) {
+  T value = *ptr;
+  deallocate(ptr);
+  return value;
+}
 
 }  // namespace runtime
 }  // namespace vrp

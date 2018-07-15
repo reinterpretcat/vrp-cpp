@@ -1,6 +1,6 @@
 #include "algorithms/costs/SolutionCosts.hpp"
-#include "models/Tasks.hpp"
 #include "models/Problem.hpp"
+#include "models/Tasks.hpp"
 #include "streams/output/MatrixTextWriter.hpp"
 
 #include <iomanip>

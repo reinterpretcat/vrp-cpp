@@ -1,8 +1,9 @@
 #ifndef VRP_MODEL_TASKS_HPP
 #define VRP_MODEL_TASKS_HPP
 
-#include "runtime/Config.hpp"
 #include "models/Plan.hpp"
+#include "runtime/Config.hpp"
+
 #include <thrust/pair.h>
 
 namespace vrp {

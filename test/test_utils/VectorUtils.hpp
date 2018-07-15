@@ -2,6 +2,7 @@
 #define VRP_UTILS_VECTORUTILS_HPP
 
 #include "runtime/Config.hpp"
+
 #include <vector>
 
 namespace vrp {

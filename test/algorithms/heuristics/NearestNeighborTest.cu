@@ -3,12 +3,11 @@
 #include "config.hpp"
 #include "streams/input/SolomonReader.hpp"
 #include "streams/output/MatrixTextWriter.hpp"
-
 #include "test_utils/ConvolutionUtils.hpp"
-#include "test_utils/VectorUtils.hpp"
 #include "test_utils/PopulationFactory.hpp"
 #include "test_utils/ProblemStreams.hpp"
 #include "test_utils/TaskUtils.hpp"
+#include "test_utils/VectorUtils.hpp"
 
 #include <catch/catch.hpp>
 
