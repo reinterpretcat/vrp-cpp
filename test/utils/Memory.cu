@@ -8,7 +8,10 @@
 using namespace vrp::runtime;
 
 namespace {
-__global__ void useDeviceUniquePointer() { auto pointer = make_device_unique<int>(); }
+__global__ void useDeviceUniquePointer() {
+  auto singleInt = make_unique_ptr_value<int>();
+  auto arrayInt = make_unique_ptr_data<int>(5);
+}
 
 /*__global__ void useDevicePool(thrust::device_ptr<DevicePool> pool) {
   auto ints = pool.get()->ints(3);

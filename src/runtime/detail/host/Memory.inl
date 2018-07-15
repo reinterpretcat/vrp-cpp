@@ -29,21 +29,21 @@ void return_temporary_buffer(exec_unit_policy exec_unit, Pointer p) {
 
 /// Allocates buffer dynamically in host memory.
 template<typename T>
-EXEC_UNIT vrp::runtime::vector_ptr<T> allocate(size_t size) {
-  return thrust::malloc<T>(exec_unit_policy{}, size).get();
+EXEC_UNIT T* allocate_data(size_t size) {
+  return thrust::malloc<T>(exec_unit_policy{}, size);
 }
 
 /// Allocates buffer to store single value in device memory.
 template<typename T>
-EXEC_UNIT vrp::runtime::vector_ptr<T> allocate(const T& value) {
-  auto pValue = allocate<T>(1);
+EXEC_UNIT T* allocate_value(const T& value) {
+  auto pValue = allocate_data<T>(1);
   *pValue = value;
   return pValue;
 }
 
 /// Deallocates dynamically allocated buffer.
 template<typename T>
-EXEC_UNIT void deallocate(vrp::runtime::vector_ptr<T> ptr) {
+EXEC_UNIT void deallocate(T* ptr) {
   thrust::free(exec_unit_policy{}, ptr);
 }
 

@@ -11,7 +11,7 @@ namespace runtime {
 /// Default deleter.
 template<typename T>
 struct default_delete final {
-  EXEC_UNIT void operator()(T* ptr) const { delete ptr; }
+  EXEC_UNIT void operator()(T* ptr) const { deallocate(ptr); }
 };
 
 /// Default deleter for arrays.
@@ -84,10 +84,16 @@ public:
   }
 };
 
-/// Creates device unique pointer.
+/// Creates unique pointer to hold data of given size.
+template<typename T, typename Deleter = default_delete<T>>
+EXEC_UNIT unique_ptr<T, Deleter> make_unique_ptr_data(size_t size) {
+  return unique_ptr<T, Deleter>(allocate_data<T>(size));
+}
+
+/// Creates unique pointer to hold single value.
 template<typename T, typename Deleter = default_delete<T>, typename... Args>
-EXEC_UNIT unique_ptr<T, Deleter> make_device_unique(Args&&... args) {
-  return unique_ptr<T, Deleter>(new T(std::forward<Args>(args)...));
+EXEC_UNIT unique_ptr<T, Deleter> make_unique_ptr_value(Args&&... args) {
+  return unique_ptr<T, Deleter>(allocate_value<T>(T(std::forward<Args>(args)...)));
 }
 
 }  // namespace runtime

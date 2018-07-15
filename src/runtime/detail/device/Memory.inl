@@ -32,27 +32,29 @@ void return_temporary_buffer(exec_unit_policy, Pointer p) {
 
 /// Allocates buffer dynamically in device memory.
 template<typename T>
-EXEC_UNIT vrp::runtime::vector_ptr<T> allocate(size_t size) {
-  return thrust::device_malloc<T>(size).get();
+EXEC_UNIT T* allocate_data(size_t size) {
+  printf("allocate on device\n");
+  return thrust::malloc<T>(thrust::device, size).get();
 }
 
 /// Allocates buffer to store single value in device memory.
 template<typename T>
-EXEC_UNIT vrp::runtime::vector_ptr<T> allocate(const T& value) {
-  auto pValue = allocate<T>(1);
+EXEC_UNIT T* allocate_value(const T& value) {
+  auto pValue = allocate_data<T>(1);
   *pValue = value;
   return pValue;
 }
 
 /// Deallocates dynamically allocated buffer.
 template<typename T>
-EXEC_UNIT void deallocate(vrp::runtime::vector_ptr<T> ptr) {
-  thrust::device_free(ptr);
+EXEC_UNIT void deallocate(T* ptr) {
+  printf("deallocate on device\n");
+  thrust::free(thrust::device, ptr);
 }
 
 ///  Deallocates dynamically allocated buffer and returns first item value.
 template<typename T>
-EXEC_UNIT inline T release(vrp::runtime::vector_ptr<T>& ptr) {
+EXEC_UNIT inline T release(T* ptr) {
   T value = *ptr;
   deallocate(ptr);
   return value;
