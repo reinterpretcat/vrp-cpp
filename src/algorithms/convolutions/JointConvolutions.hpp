@@ -13,12 +13,10 @@ namespace convolutions {
 struct create_joint_convolutions final {
   /// Solution shadow.
   vrp::models::Solution::Shadow solution;
-  /// Object pool
-  thrust::device_ptr<vrp::utils::DevicePool> pool;
 
-  __device__ JointPairs operator()(const Settings& settings,
-                                   const Convolutions& left,
-                                   const Convolutions& right) const;
+  EXEC_UNIT JointPairs operator()(const Settings& settings,
+                                  const Convolutions& left,
+                                  const Convolutions& right) const;
 };
 
 }  // namespace convolutions

@@ -5,13 +5,14 @@
 #include <thrust/sequence.h>
 
 using namespace vrp::models;
+using namespace vrp::runtime;
 using namespace vrp::algorithms::convolutions;
 
 namespace {
 
 /// Swaps iterator values.
 template<typename Iterator>
-__device__ void swap_values(Iterator a, Iterator b) {
+EXEC_UNIT void swap_values(Iterator a, Iterator b) {
   // TODO why I cannot simply use Iterator::value_type or auto?
   thrust::device_ptr<int>::value_type tmp = *a;
   *a = *b;
@@ -20,16 +21,16 @@ __device__ void swap_values(Iterator a, Iterator b) {
 
 /// Reverses iterator values.
 template<typename Iterator>
-__device__ void reverse_values(Iterator first, Iterator last) {
+EXEC_UNIT void reverse_values(Iterator first, Iterator last) {
   for (; first != last && first != --last; ++first)
     swap_values(first, last);
 }
 
 /// Implements permutation generator (code is mostly taken from STL).
 template<typename BidirectionalIterator, typename Compare>
-__device__ bool next_permutation(BidirectionalIterator first,
-                                 BidirectionalIterator last,
-                                 Compare comp) {
+EXEC_UNIT bool next_permutation(BidirectionalIterator first,
+                                BidirectionalIterator last,
+                                Compare comp) {
   if (first == last) return false;
   BidirectionalIterator next = first;
   ++next;
@@ -56,7 +57,7 @@ __device__ bool next_permutation(BidirectionalIterator first,
 
 /// Calculates rank of the pair.
 struct rank_pair final {
-  __device__ inline int operator()(const JointPair& pair, const thrust::pair<bool, bool>&) const {
+  EXEC_UNIT inline int operator()(const JointPair& pair, const thrust::pair<bool, bool>&) const {
     return pair.completeness - pair.similarity;
   }
 };
@@ -66,7 +67,7 @@ struct copy_pair final {
   thrust::device_ptr<Convolution>& convolutions;
   int current;
 
-  __device__ inline int operator()(const JointPair& pair, const thrust::pair<bool, bool>& copyMap) {
+  EXEC_UNIT inline int operator()(const JointPair& pair, const thrust::pair<bool, bool>& copyMap) {
     if (copyMap.first) *(convolutions + current++) = pair.pair.first;
     if (copyMap.second) *(convolutions + current++) = pair.pair.second;
     return 0;
@@ -78,10 +79,10 @@ struct rank_sliced_pairs final {
   thrust::pair<size_t, size_t> dimens;
 
   template<typename KeyIterator, typename ValueIterator, typename RankOp>
-  __device__ int operator()(const KeyIterator keyBegin,
-                            const KeyIterator keyEnd,
-                            const ValueIterator valueBegin,
-                            RankOp rankOp) {
+  EXEC_UNIT int operator()(const KeyIterator keyBegin,
+                           const KeyIterator keyEnd,
+                           const ValueIterator valueBegin,
+                           RankOp rankOp) {
     int row = 0, rank = 0;
     for (auto it = keyBegin; it != keyEnd; ++it, ++row) {
       auto column = *it;
@@ -103,10 +104,10 @@ struct rank_sliced_pairs final {
 };
 
 /// Finds and sets the best pairs slice to convolution container.
-__device__ void setBestSlice(const thrust::device_ptr<JointPair> pairs,
-                             const thrust::device_ptr<int> keys,
-                             const thrust::pair<size_t, size_t> dimens,
-                             thrust::device_ptr<Convolution> convolutions) {
+EXEC_UNIT void setBestSlice(const thrust::device_ptr<JointPair> pairs,
+                            const thrust::device_ptr<int> keys,
+                            const thrust::pair<size_t, size_t> dimens,
+                            thrust::device_ptr<Convolution> convolutions) {
   auto size = thrust::max(dimens.first, dimens.second);
   auto keyBegin = keys;
   auto keyEnd = keys + size;
@@ -123,11 +124,11 @@ __device__ void setBestSlice(const thrust::device_ptr<JointPair> pairs,
 
 }  // namespace
 
-__device__ Convolutions create_sliced_convolutions::operator()(const Settings& settings,
-                                                               const JointPairs& pairs) const {
+EXEC_UNIT Convolutions create_sliced_convolutions::operator()(const Settings& settings,
+                                                              const JointPairs& pairs) const {
   auto size = thrust::max(pairs.dimens.first, pairs.dimens.second);
-  auto keys = pool.get()->ints(static_cast<size_t>(solution.problem.size));
-  auto convolutions = pool.get()->convolutions(pairs.dimens.first + pairs.dimens.second);
+  auto keys = make_unique_ptr_data<int>(static_cast<size_t>(solution.problem.size));
+  auto convolutions = make_unique_ptr_data<Convolution>(pairs.dimens.first + pairs.dimens.second);
 
   thrust::sequence(thrust::device, *keys, *keys + size, 0, 1);
 

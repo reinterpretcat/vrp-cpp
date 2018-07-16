@@ -10,27 +10,25 @@
 
 using namespace vrp::algorithms::convolutions;
 using namespace vrp::models;
+using namespace vrp::runtime;
 using namespace vrp::utils;
 using namespace vrp::test;
 
 namespace {
 
-using ConvolutionResult = thrust::pair<size_t, Convolutions::ConvolutionsPtr>;
-
 struct run_best_convolutions final {
   Solution::Shadow solution;
-  DevicePool::Pointer pool;
   Settings settings;
+  vector_ptr<Convolution> output;
 
-  __device__ ConvolutionResult operator()(int index) const {
-    auto convolutions = create_best_convolutions{solution, pool}(settings, index);
-    return {convolutions.size, *convolutions.data.release()};
+  EXEC_UNIT size_t operator()(int index) const {
+    auto convolutions = create_best_convolutions{solution}(settings, index);
+    auto source = *convolutions.data;
+    thrust::copy(exec_unit_policy{}, source, source + convolutions.size, output);
+    return convolutions.size;
   };
 
-  __device__ ConvolutionResult operator()(const ConvolutionResult& left,
-                                          const ConvolutionResult& right) const {
-    return right;
-  }
+  EXEC_UNIT size_t operator()(size_t left, size_t right) const { return right; }
 };
 
 Solution createBasicSolution() {
@@ -59,30 +57,30 @@ Solution createBasicSolution() {
 }  // namespace
 
 SCENARIO("Can create best convolutions with 25 customers with two convolutions",
-         "[convolution][C101]") {
+         "[best_convolutions][C101]") {
+  size_t size = 2;
   auto solution = createBasicSolution();
+  auto output = vector<Convolution>(size);
 
-  auto runner = run_best_convolutions{solution.getShadow(), getPool(), {0.75, 0.1}};
-  auto result = thrust::transform_reduce(thrust::device, thrust::make_counting_iterator(0),
-                                         thrust::make_counting_iterator(1), runner,
-                                         ConvolutionResult{}, runner);
-  REQUIRE(result.first == 2);
-  auto convolutions = copy(result.second, result.first);
-  compare(convolutions[0], {0, 50, 367, {11, 4}, {448, 450}, {10, 13}});
-  compare(convolutions[1], {0, 140, 560, {17, 14}, {99, 124}, {20, 25}});
+  auto runner = run_best_convolutions{solution.getShadow(), {0.75, 0.1}, output.data()};
+  auto result = thrust::transform_reduce(exec_unit, thrust::make_counting_iterator(0),
+                                         thrust::make_counting_iterator(1), runner, 0, runner);
+  REQUIRE(result == size);
+  compare(output[0], {0, 50, 367, {11, 4}, {448, 450}, {10, 13}});
+  compare(output[1], {0, 140, 560, {17, 14}, {99, 124}, {20, 25}});
 }
 
 SCENARIO("Can create best convolutions with 25 customers with three convolutions",
-         "[convolution][C101]") {
+         "[best_convolutions][C101]") {
+  size_t size = 3;
   auto solution = createBasicSolution();
+  auto output = vector<Convolution>(size);
 
-  auto runner = run_best_convolutions{solution.getShadow(), getPool(), {0.9, 0.1}};
-  auto result = thrust::transform_reduce(thrust::device, thrust::make_counting_iterator(0),
-                                         thrust::make_counting_iterator(1), runner,
-                                         ConvolutionResult{}, runner);
-  REQUIRE(result.first == 3);
-  auto convolutions = copy(result.second, result.first);
-  compare(convolutions[0], {0, 100, 648, {25, 4}, {169, 169}, {8, 13}});
-  compare(convolutions[1], {0, 70, 636, {3, 12}, {65, 106}, {15, 18}});
-  compare(convolutions[2], {0, 140, 560, {17, 14}, {99, 124}, {20, 25}});
+  auto runner = run_best_convolutions{solution.getShadow(), {0.9, 0.1}, output.data()};
+  auto result = thrust::transform_reduce(exec_unit, thrust::make_counting_iterator(0),
+                                         thrust::make_counting_iterator(1), runner, 0, runner);
+  REQUIRE(result == 3);
+  compare(output[0], {0, 100, 648, {25, 4}, {169, 169}, {8, 13}});
+  compare(output[1], {0, 70, 636, {3, 12}, {65, 106}, {15, 18}});
+  compare(output[2], {0, 140, 560, {17, 14}, {99, 124}, {20, 25}});
 }

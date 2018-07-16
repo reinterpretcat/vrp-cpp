@@ -5,21 +5,22 @@
 #include "test_utils/MemoryUtils.hpp"
 #include "test_utils/TaskUtils.hpp"
 #include "test_utils/VectorUtils.hpp"
+#include "utils/memory/Allocations.hpp"
 
 #include <catch/catch.hpp>
 #include <thrust/execution_policy.h>
 #include <thrust/transform_reduce.h>
-#include <utils/memory/Allocations.hpp>
 
 using namespace vrp::algorithms::convolutions;
 using namespace vrp::models;
+using namespace vrp::runtime;
 using namespace vrp::utils;
 using namespace vrp::test;
 
 namespace {
 const int customers = 20 + 1;
 
-using ConvolutionResult = thrust::pair<size_t, thrust::device_ptr<Convolution>>;
+using ConvolutionResult = thrust::pair<size_t, vector_ptr<Convolution>>;
 
 /// Creates solution skeleton.
 Solution createBasicSolution() {
@@ -34,21 +35,20 @@ Solution createBasicSolution() {
 /// Prepares and runs testing function on device.
 struct run_sliced_convolutions final {
   Solution::Shadow solution;
-  DevicePool::Pointer pool;
   Settings settings;
   thrust::pair<size_t, size_t> dimens;
-  thrust::device_ptr<JointPair> data;
+  vector_ptr<JointPair> data;
 
-  thrust::device_ptr<ConvolutionResult> result;
+  vector_ptr<ConvolutionResult> result;
 
-  __device__ void operator()(int index) {
-    auto jointPairs = pool.get()->jointPairs(customers);
-    thrust::copy(thrust::device, data, data + dimens.first * dimens.second, *jointPairs);
+  EXEC_UNIT void operator()(int index) {
+    auto jointPairs = make_unique_ptr_data<JointPair>(customers);
+    thrust::copy(exec_unit_policy{}, data, data + dimens.first * dimens.second, *jointPairs);
 
-    auto sliced =
-      create_sliced_convolutions{solution, pool}({0.2, 0.2}, {dimens, std::move(jointPairs)});
+    auto sliced = create_sliced_convolutions{solution}({0.2, 0.2}, {dimens, std::move(jointPairs)});
 
-    thrust::copy(thrust::device, *sliced.data, *sliced.data + sliced.size, result.get()->second);
+    thrust::copy(exec_unit_policy{}, *sliced.data, *sliced.data + sliced.size,
+                 result.get()->second);
     result.get()->first = sliced.size;
   }
 };
@@ -58,16 +58,17 @@ thrust::host_vector<Convolution> getResult(Solution& solution,
                                            const thrust::pair<size_t, size_t>& dimens,
                                            const std::initializer_list<JointPair>& list) {
   const int expected = 5;
-  thrust::device_vector<Convolution> resultData(expected);
-  thrust::device_vector<JointPair> jointPairs(list.begin(), list.end());
+  vector<Convolution> resultData(expected);
+  vector<JointPair> jointPairs(list.begin(), list.end());
 
-  auto runner = run_sliced_convolutions{
-    solution.getShadow(), getPool(),
-    {0.2, 0.2},           dimens,
-    jointPairs.data(),    allocate<ConvolutionResult>({0, resultData.data()})};
+  auto runner = run_sliced_convolutions{solution.getShadow(),
+                                        {0.2, 0.2},
+                                        dimens,
+                                        jointPairs.data(),
+                                        allocate<ConvolutionResult>({0, resultData.data()})};
 
-  thrust::for_each(thrust::device, thrust::make_counting_iterator(0),
-                   thrust::make_counting_iterator(1), runner);
+  thrust::for_each(exec_unit, thrust::make_counting_iterator(0), thrust::make_counting_iterator(1),
+                   runner);
 
   auto result = release(runner.result);
   thrust::host_vector<Convolution> data(result.second, result.second + result.first);

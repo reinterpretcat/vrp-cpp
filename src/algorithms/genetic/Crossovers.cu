@@ -13,6 +13,7 @@
 using namespace vrp::algorithms::convolutions;
 using namespace vrp::algorithms::genetic;
 using namespace vrp::models;
+using namespace vrp::runtime;
 using namespace vrp::utils;
 
 namespace {
@@ -131,15 +132,13 @@ __device__ void adjusted_cost_difference<Heuristic>::operator()(
   const Settings& settings,
   const Generation& generation) const {
   // find convolutions
-  auto left = create_best_convolutions{solution, pool}.operator()(settings.convolution,
-                                                                  generation.parents.first);
-  auto right = create_best_convolutions{solution, pool}.operator()(settings.convolution,
-                                                                   generation.parents.second);
-  auto pairs =
-    create_joint_convolutions{solution, pool}.operator()(settings.convolution, left, right);
+  auto left =
+    create_best_convolutions{solution}.operator()(settings.convolution, generation.parents.first);
+  auto right =
+    create_best_convolutions{solution}.operator()(settings.convolution, generation.parents.second);
+  auto pairs = create_joint_convolutions{solution}.operator()(settings.convolution, left, right);
 
-  auto convolutions =
-    create_sliced_convolutions{solution, pool}.operator()(settings.convolution, pairs);
+  auto convolutions = create_sliced_convolutions{solution}.operator()(settings.convolution, pairs);
 
   auto wrapper = thrust::make_pair(convolutions.size, *convolutions.data);
 

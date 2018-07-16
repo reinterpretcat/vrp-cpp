@@ -10,7 +10,7 @@ namespace test {
 
 /// Copies convolution array to host.
 inline thrust::host_vector<vrp::models::Convolution> copy(
-  const thrust::device_ptr<vrp::models::Convolution> data,
+  const vrp::runtime::vector_ptr<vrp::models::Convolution> data,
   size_t size) {
   return thrust::host_vector<vrp::models::Convolution>(data, data + size);
 }

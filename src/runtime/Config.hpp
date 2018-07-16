@@ -12,6 +12,6 @@
 #endif
 
 /// Define execution policy once.
-const vrp::runtime::exec_unit_policy exec_unit = {};
+static const vrp::runtime::exec_unit_policy exec_unit{};
 
 #endif  // VRP_RUNTIME_CONFIG_HPP

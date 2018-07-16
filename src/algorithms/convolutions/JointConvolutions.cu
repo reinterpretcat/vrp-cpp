@@ -8,7 +8,7 @@
 using namespace vrp::algorithms::convolutions;
 using namespace vrp::models;
 using namespace vrp::iterators;
-using namespace vrp::utils;
+using namespace vrp::runtime;
 using namespace thrust::placeholders;
 
 namespace {
@@ -19,13 +19,13 @@ struct create_joint_pair final {
   /// Counts equal pairs of ints.
   struct count_equal_pairs final {
     int* total;
-    __device__ int operator()(int l, int r) {
+    EXEC_UNIT int operator()(int l, int r) {
       if (l == r) atomicAdd(total, 1);
       return 0;
     }
   };
 
-  __device__ JointPair operator()(const Convolution& left, const Convolution& right) const {
+  EXEC_UNIT JointPair operator()(const Convolution& left, const Convolution& right) const {
     // NOTE task range is inclusive, so +1 is required
     auto leftSize = static_cast<size_t>(left.tasks.second - left.tasks.first + 1);
     auto rightSize = static_cast<size_t>(right.tasks.second - right.tasks.first + 1);
@@ -52,9 +52,9 @@ struct create_joint_pair final {
 };
 }  // namespace
 
-__device__ JointPairs create_joint_convolutions::operator()(const Settings& settings,
-                                                            const Convolutions& left,
-                                                            const Convolutions& right) const {
+EXEC_UNIT JointPairs create_joint_convolutions::operator()(const Settings& settings,
+                                                           const Convolutions& left,
+                                                           const Convolutions& right) const {
   auto leftData = *left.data;
   auto leftSize = left.size;
   auto rightData = *right.data;
@@ -65,11 +65,11 @@ __device__ JointPairs create_joint_convolutions::operator()(const Settings& sett
 
   // theoretical max convolution size in each group
   auto size = static_cast<int>(1 / settings.ConvolutionRatio);
-  auto pairs = pool.get()->jointPairs(static_cast<size_t>(size * size));
+  auto pairs = make_unique_ptr_data<JointPair>(static_cast<size_t>(size * size));
 
   // create all possible combinations from two group
   thrust::transform(thrust::device, repeated.begin(), repeated.end(), tiled.begin(), *pairs,
                     create_joint_pair{solution});
 
-  return JointPairs{{leftSize, rightSize}, std::move(pairs)};
+  return {{leftSize, rightSize}, std::move(pairs)};
 }

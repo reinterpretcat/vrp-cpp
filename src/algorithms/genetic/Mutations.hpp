@@ -15,10 +15,8 @@ namespace genetic {
 struct mutate_individuum final {
   /// Solution shadow.
   vrp::models::Solution::Shadow solution;
-  /// Object pool
-  thrust::device_ptr<vrp::utils::DevicePool> pool;
 
-  __device__ void operator()(const Settings& settings, int index) const;
+  EXEC_UNIT void operator()(const Settings& settings, int index) const;
 };
 
 }  // namespace genetic

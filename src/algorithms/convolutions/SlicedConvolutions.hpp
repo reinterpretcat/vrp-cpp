@@ -13,10 +13,8 @@ namespace convolutions {
 struct create_sliced_convolutions final {
   /// Solution shadow.
   vrp::models::Solution::Shadow solution;
-  /// Object pool
-  thrust::device_ptr<vrp::utils::DevicePool> pool;
 
-  __device__ Convolutions operator()(const Settings& settings, const JointPairs& pairs) const;
+  EXEC_UNIT Convolutions operator()(const Settings& settings, const JointPairs& pairs) const;
 };
 
 }  // namespace convolutions

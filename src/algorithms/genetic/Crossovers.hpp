@@ -16,10 +16,8 @@ template<typename Heuristic>
 struct adjusted_cost_difference final {
   /// Solution shadow.
   vrp::models::Solution::Shadow solution;
-  /// Object pool
-  thrust::device_ptr<vrp::utils::DevicePool> pool;
 
-  __device__ void operator()(const Settings& settings, const Generation& generation) const;
+  EXEC_UNIT void operator()(const Settings& settings, const Generation& generation) const;
 };
 
 }  // namespace genetic

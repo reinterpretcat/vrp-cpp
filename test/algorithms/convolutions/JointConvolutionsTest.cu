@@ -11,13 +11,14 @@
 
 using namespace vrp::algorithms::convolutions;
 using namespace vrp::models;
+using namespace vrp::runtime;
 using namespace vrp::utils;
 using namespace vrp::test;
 
 namespace {
 const int customers = 20 + 1;
 
-using JoinPairResult = thrust::pair<thrust::pair<size_t, size_t>, thrust::device_ptr<JointPair>>;
+using JoinPairResult = thrust::pair<thrust::pair<size_t, size_t>, vector_ptr<JointPair>>;
 using Result = thrust::pair<thrust::pair<size_t, size_t>, thrust::host_vector<JointPair>>;
 
 /// Minimal solution to launch testing function.
@@ -30,28 +31,28 @@ Solution createBasicSolution() {
   return {std::move(problem), std::move(tasks)};
 }
 
-/// Prepares and runs testing function on device.
+/// Prepares and runs testing function on device or host.
 struct run_joint_convolutions final {
-  using ConvolutionData = thrust::pair<size_t, thrust::device_ptr<Convolution>>;
+  using ConvolutionData = thrust::pair<size_t, vector_ptr<Convolution>>;
 
   Solution::Shadow solution;
-  DevicePool::Pointer pool;
   Settings settings;
   ConvolutionData left;
   ConvolutionData right;
 
-  thrust::device_ptr<JoinPairResult> result;
+  vector_ptr<JoinPairResult> result;
 
-  __device__ void operator()(int index) {
-    auto leftPooled = pool.get()->convolutions(static_cast<size_t>(customers));
-    thrust::copy(thrust::device, left.second, left.second + left.first, *leftPooled);
-    auto rightPooled = pool.get()->convolutions(static_cast<size_t>(customers));
-    thrust::copy(thrust::device, right.second, right.second + right.first, *rightPooled);
+  EXEC_UNIT void operator()(int index) {
+    // TODO simplify this
+    auto leftPooled = make_unique_ptr_data<Convolution>(static_cast<size_t>(customers));
+    thrust::copy(exec_unit_policy{}, left.second, left.second + left.first, *leftPooled);
+    auto rightPooled = make_unique_ptr_data<Convolution>(static_cast<size_t>(customers));
+    thrust::copy(exec_unit_policy{}, right.second, right.second + right.first, *rightPooled);
 
-    auto joinPairs = create_joint_convolutions{solution, pool}(
+    auto joinPairs = create_joint_convolutions{solution}(
       settings, {left.first, std::move(leftPooled)}, {right.first, std::move(rightPooled)});
 
-    thrust::copy(thrust::device, *joinPairs.data,
+    thrust::copy(exec_unit_policy{}, *joinPairs.data,
                  *joinPairs.data + joinPairs.dimens.first * joinPairs.dimens.second,
                  result.get()->second);
 
@@ -64,18 +65,17 @@ Result getResult(Solution& solution,
                  const std::vector<Convolution>& left,
                  const std::vector<Convolution>& right) {
   const int expected = 6;
-  thrust::device_vector<JointPair> resultData(expected);
-  thrust::device_vector<Convolution> leftDev(left.begin(), left.end());
-  thrust::device_vector<Convolution> rightDev(right.begin(), right.end());
+  vector<JointPair> resultData(expected);
+  vector<Convolution> leftDev(left.begin(), left.end());
+  vector<Convolution> rightDev(right.begin(), right.end());
 
   auto runner = run_joint_convolutions{solution.getShadow(),
-                                       getPool(),
                                        {0.75, 0.1},
                                        {leftDev.size(), leftDev.data()},
                                        {rightDev.size(), rightDev.data()},
                                        allocate<JoinPairResult>({{0, 0}, resultData.data()})};
-  thrust::for_each(thrust::device, thrust::make_counting_iterator(0),
-                   thrust::make_counting_iterator(1), runner);
+  thrust::for_each(exec_unit, thrust::make_counting_iterator(0), thrust::make_counting_iterator(1),
+                   runner);
   auto result = release(runner.result);
   thrust::host_vector<JointPair> data(result.second, result.second + expected);
 

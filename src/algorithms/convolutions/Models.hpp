@@ -3,7 +3,6 @@
 
 #include "models/Convolution.hpp"
 #include "runtime/UniquePointer.hpp"
-#include "utils/memory/DevicePool.hpp"
 
 namespace vrp {
 namespace algorithms {
@@ -19,24 +18,18 @@ struct Settings final {
 
 /// Specifies convolutions collection acquired from pool with its real size.
 struct Convolutions {
-  using ConvolutionsPtr = thrust::device_ptr<vrp::models::Convolution>;
-  using Deleter = vrp::utils::DevicePool::TypedPool<vrp::models::Convolution>::pool_vector_deleter;
-
-  /// Convolutions size
+  /// Convolutions size.
   size_t size;
   /// Convolutions data.
-  vrp::runtime::unique_ptr<ConvolutionsPtr, Deleter> data;
+  vrp::runtime::unique_ptr<thrust::device_ptr<vrp::models::Convolution>> data;
 };
 
 /// Represents collection of join pairs with some meta information.
 struct JointPairs final {
-  using JointPairPtr = thrust::device_ptr<vrp::models::JointPair>;
-  using Deleter = vrp::utils::DevicePool::TypedPool<vrp::models::JointPair>::pool_vector_deleter;
-
   /// Dimensions of the sets.
   thrust::pair<size_t, size_t> dimens;
   /// Represent convolution joint pair collection retrieved from pool.
-  vrp::runtime::unique_ptr<JointPairPtr, Deleter> data;
+  vrp::runtime::unique_ptr<thrust::device_ptr<vrp::models::JointPair>> data;
 };
 
 }  // namespace convolutions

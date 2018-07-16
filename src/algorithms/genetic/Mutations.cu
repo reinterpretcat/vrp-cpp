@@ -6,7 +6,7 @@ namespace vrp {
 namespace algorithms {
 namespace genetic {
 
-void mutate_individuum::operator()(const Settings& settings, int index) const {
+EXEC_UNIT void mutate_individuum::operator()(const Settings& settings, int index) const {
   // TODO
 }
 

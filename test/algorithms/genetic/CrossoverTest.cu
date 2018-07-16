@@ -24,11 +24,10 @@ Solution getPopulation(int populationSize) {
 /// Runs crossover
 struct run_crossover final {
   Solution::Shadow solution;
-  DevicePool::Pointer pool;
   const Settings settings;
   const Generation generation;
-  __device__ void operator()(int index) {
-    adjusted_cost_difference<nearest_neighbor>{solution, pool}(settings, generation);
+  EXEC_UNIT void operator()(int index) {
+    adjusted_cost_difference<nearest_neighbor>{solution}(settings, generation);
   }
 };
 
@@ -39,11 +38,9 @@ SCENARIO("Can create offsprings", "[genetic][crossover][acdc][one_offspring]") {
   auto solution = getPopulation(populationSize);
   auto settings = Settings{populationSize, {0.75, 0.05}};
   auto generation = Generation{{0, 1}, {2, 3}};
-  auto pool = vrp::utils::DevicePool::create(1, 4, 1000);
 
-  thrust::for_each(thrust::device, thrust::make_counting_iterator(0),
-                   thrust::make_counting_iterator(1),
-                   run_crossover{solution.getShadow(), *pool, settings, generation});
+  thrust::for_each(exec_unit, thrust::make_counting_iterator(0), thrust::make_counting_iterator(1),
+                   run_crossover{solution.getShadow(), settings, generation});
 
   REQUIRE(SolutionChecker::check(solution).isValid());
   CHECK_THAT(
@@ -70,15 +67,13 @@ SCENARIO("Can process multiple offsprings", "[genetic][crossover][acdc][multiple
     Settings{populationSize, {0.70, 0.05}}};
   auto oddGen = Generation{{0, 1}, {2, 3}};
   auto evenGen = Generation{{2, 3}, {0, 1}};
-  auto pool = vrp::utils::DevicePool::create(1, 4, 1000);
-
 
   for (int i = 0; i < settingsVec.size(); ++i) {
     auto settings = settingsVec[i];
     auto generation = i % 2 ? evenGen : oddGen;
-    thrust::for_each(thrust::device, thrust::make_counting_iterator(0),
+    thrust::for_each(exec_unit, thrust::make_counting_iterator(0),
                      thrust::make_counting_iterator(1),
-                     run_crossover{solution.getShadow(), *pool, settings, generation});
+                     run_crossover{solution.getShadow(), settings, generation});
     // vrp::streams::MatrixTextWriter::write(std::cout, solution);
     REQUIRE(SolutionChecker::check(solution).isValid());
   }

@@ -17,7 +17,7 @@
 using namespace vrp::algorithms::convolutions;
 using namespace vrp::models;
 using namespace vrp::iterators;
-using namespace vrp::utils;
+using namespace vrp::runtime;
 using namespace thrust::placeholders;
 
 namespace {
@@ -33,7 +33,7 @@ struct create_cost_differences final {
   /// Creates a gradient of costs between tasks.
   struct make_gradient final {
     template<typename Tuple>
-    __device__ Tuple operator()(const Tuple& left, const Tuple& right) const {
+    EXEC_UNIT Tuple operator()(const Tuple& left, const Tuple& right) const {
       // NOTE use big number for cost as barrier between vehicles
       const float CostBarrier = 3.4E37;
       return thrust::get<0>(left) == thrust::get<0>(right)
@@ -46,15 +46,14 @@ struct create_cost_differences final {
   /// Maps cost gradient info to cost.
   struct map_gradient final {
     template<typename Tuple>
-    __device__ float operator()(const Tuple& tuple) const {
+    EXEC_UNIT float operator()(const Tuple& tuple) const {
       return thrust::get<1>(tuple);
     }
   };
 
-  __device__ void operator()(const Tasks::Shadow& tasks,
-                             thrust::device_ptr<float> differences) const {
+  EXEC_UNIT void operator()(const Tasks::Shadow& tasks, vector_ptr<float> differences) const {
     thrust::adjacent_difference(
-      thrust::device,
+      exec_unit_policy{},
       thrust::make_zip_iterator(thrust::make_tuple(tasks.vehicles + begin, tasks.costs + begin)),
       thrust::make_zip_iterator(thrust::make_tuple(tasks.vehicles + end, tasks.costs + end)),
       thrust::make_transform_output_iterator(differences, map_gradient()), make_gradient());
@@ -68,10 +67,10 @@ struct create_partial_plan final {
   float medianRatio;
   size_t size;
 
-  __device__ void operator()(const thrust::device_ptr<int> vehicles,
-                             thrust::device_ptr<float> differences,
-                             thrust::device_ptr<float> medians,
-                             thrust::device_ptr<bool> plan) const {
+  EXEC_UNIT void operator()(const vector_ptr<int> vehicles,
+                            vector_ptr<float> differences,
+                            vector_ptr<float> medians,
+                            vector_ptr<bool> plan) const {
     // initialize medians
     thrust::copy(thrust::device, differences, differences + size, medians);
 
@@ -90,16 +89,16 @@ struct estimate_convolutions final {
   /// Convolution operator.
   struct compare_plan final {
     template<typename Tuple>
-    __device__ bool operator()(const Tuple& left, const Tuple& right) const {
+    EXEC_UNIT bool operator()(const Tuple& left, const Tuple& right) const {
       return thrust::get<0>(left) == thrust::get<0>(right);
     }
   };
 
-  __device__ size_t operator()(const thrust::device_ptr<bool> plan,
-                               thrust::device_ptr<thrust::tuple<bool, int>> output,
-                               thrust::device_ptr<int> lengths) const {
+  EXEC_UNIT size_t operator()(const vector_ptr<bool> plan,
+                              vector_ptr<thrust::tuple<bool, int>> output,
+                              vector_ptr<int> lengths) const {
     auto result = thrust::reduce_by_key(
-      thrust::device,
+      exec_unit_policy{},
       thrust::make_zip_iterator(thrust::make_tuple(plan, thrust::make_counting_iterator(0))),
       thrust::make_zip_iterator(
         thrust::make_tuple(plan + size, thrust::make_counting_iterator(static_cast<int>(size)))),
@@ -120,7 +119,7 @@ struct create_convolutions final {
   struct filter_group final {
     int limit;
     template<typename Tuple>
-    __device__ bool operator()(const Tuple& tuple) const {
+    EXEC_UNIT bool operator()(const Tuple& tuple) const {
       return !(thrust::get<0>(thrust::get<0>(tuple)) && thrust::get<1>(tuple) > limit);
     }
   };
@@ -130,9 +129,9 @@ struct create_convolutions final {
     Solution::Shadow solution;
     int base;
 
-    __device__ int operator()(int id) const { return *(solution.problem.customers.demands + id); }
+    EXEC_UNIT int operator()(int id) const { return *(solution.problem.customers.demands + id); }
 
-    __device__ Convolution operator()(const thrust::tuple<thrust::tuple<bool, int>, int>& tuple) {
+    EXEC_UNIT Convolution operator()(const thrust::tuple<thrust::tuple<bool, int>, int>& tuple) {
       auto problem = solution.problem;
       auto tasks = solution.tasks;
 
@@ -158,10 +157,10 @@ struct create_convolutions final {
     };
   };
 
-  __device__ size_t operator()(int base,
-                               const thrust::device_ptr<thrust::tuple<bool, int>> output,
-                               const thrust::device_ptr<int> lengths,
-                               thrust::device_ptr<Convolution> convolutions) const {
+  EXEC_UNIT size_t operator()(int base,
+                              const vector_ptr<thrust::tuple<bool, int>> output,
+                              const vector_ptr<int> lengths,
+                              vector_ptr<Convolution> convolutions) const {
     auto limit = __float2int_rn(solution.problem.size * convolutionRatio);
 
     auto newEnd = thrust::remove_copy_if(
@@ -178,25 +177,25 @@ struct create_convolutions final {
 
 }  // namespace
 
-__device__ Convolutions create_best_convolutions::operator()(const Settings& settings,
-                                                             int index) const {
+EXEC_UNIT Convolutions create_best_convolutions::operator()(const Settings& settings,
+                                                            int index) const {
   auto size = static_cast<size_t>(solution.problem.size);
   auto begin = index * size;
   auto end = begin + size;
 
-  auto differences = pool.get()->floats(size);
+  auto differences = make_unique_ptr_data<float>(size);
   create_cost_differences{begin, end}.operator()(solution.tasks, *differences);
 
-  auto medians = pool.get()->floats(size);
-  auto plan = pool.get()->bools(size);
+  auto medians = make_unique_ptr_data<float>(size);
+  auto plan = make_unique_ptr_data<bool>(size);
   create_partial_plan{settings.MedianRatio, size}.operator()(solution.tasks.vehicles, *differences,
                                                              *medians, *plan);
 
-  auto output = pool.get()->boolInts(size);
-  auto lengths = pool.get()->ints(size);
+  auto output = make_unique_ptr_data<thrust::tuple<bool, int>>(size);
+  auto lengths = make_unique_ptr_data<int>(size);
   auto groups = estimate_convolutions{size}.operator()(*plan, *output, *lengths);
 
-  auto convolutions = pool.get()->convolutions(size);
+  auto convolutions = make_unique_ptr_data<Convolution>(size);
   auto resultSize =
     create_convolutions{solution, settings.ConvolutionRatio, size, groups}.operator()(
       static_cast<int>(begin), *output, *lengths, *convolutions);
