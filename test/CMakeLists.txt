@@ -34,7 +34,6 @@ add_executable(${LIBRARY_TEST}
         streams/output/GeoJsonWriterTest.cu
 
         test_utils/ConvolutionUtils.hpp
-        test_utils/MemoryUtils.hpp
         test_utils/PopulationFactory.hpp
         test_utils/ProblemStreams.hpp
         test_utils/SettingsFactory.hpp

@@ -2,7 +2,6 @@
 #define VRP_TESTUTILS_PROBLEMSTREAMS_HPP
 
 #include "test_utils/SolomonBuilder.hpp"
-#include "utils/memory/DevicePool.hpp"
 
 namespace vrp {
 namespace test {

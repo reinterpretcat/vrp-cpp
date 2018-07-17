@@ -1,6 +1,5 @@
 #include "algorithms/genetic/Crossovers.hpp"
 #include "algorithms/heuristics/NearestNeighbor.hpp"
-#include "test_utils/MemoryUtils.hpp"
 #include "test_utils/PopulationFactory.hpp"
 #include "test_utils/ProblemStreams.hpp"
 #include "test_utils/VectorUtils.hpp"

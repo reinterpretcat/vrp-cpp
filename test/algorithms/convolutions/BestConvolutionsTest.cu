@@ -1,6 +1,5 @@
 #include "algorithms/convolutions/BestConvolutions.hpp"
 #include "test_utils/ConvolutionUtils.hpp"
-#include "test_utils/MemoryUtils.hpp"
 #include "test_utils/TaskUtils.hpp"
 #include "test_utils/VectorUtils.hpp"
 
@@ -11,7 +10,6 @@
 using namespace vrp::algorithms::convolutions;
 using namespace vrp::models;
 using namespace vrp::runtime;
-using namespace vrp::utils;
 using namespace vrp::test;
 
 namespace {

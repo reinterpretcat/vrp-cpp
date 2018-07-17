@@ -1,6 +1,5 @@
 #include "algorithms/convolutions/JointConvolutions.hpp"
 #include "test_utils/ConvolutionUtils.hpp"
-#include "test_utils/MemoryUtils.hpp"
 #include "test_utils/TaskUtils.hpp"
 #include "test_utils/VectorUtils.hpp"
 #include "utils/memory/Allocations.hpp"
