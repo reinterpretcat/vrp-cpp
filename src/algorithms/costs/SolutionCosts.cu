@@ -6,6 +6,7 @@
 #include "utils/memory/Allocations.hpp"
 
 #include <thrust/iterator/discard_iterator.h>
+#include <thrust/iterator/reverse_iterator.h>
 #include <thrust/unique.h>
 
 using namespace vrp::algorithms::transitions;
@@ -53,18 +54,22 @@ struct aggregate_cost final {
 
 
 __host__ float calculate_total_cost::operator()(Solution& solution, int index) const {
-  int end = solution.tasks.customers * (index + 1);
-  int rbegin = solution.tasks.size() - end;
-  int rend = rbegin + solution.tasks.customers;
+  typedef thrust::device_vector<int>::iterator IntIterator;
+  typedef thrust::device_vector<float>::iterator FloatIterator;
+
+  int start = solution.tasks.customers * index;
+  int end = start + solution.tasks.customers;
 
   auto model = vrp::utils::allocate<Model>({0, solution.getShadow()});
   auto iterator = thrust::make_zip_iterator(
-    thrust::make_tuple(thrust::make_counting_iterator(0), solution.tasks.vehicles.rbegin() + rbegin,
-                       solution.tasks.costs.rbegin() + rbegin));
+    thrust::make_tuple(thrust::make_counting_iterator(0),
+                       thrust::reverse_iterator<IntIterator>(solution.tasks.vehicles.data() + end),
+                       thrust::reverse_iterator<FloatIterator>(solution.tasks.costs.data() + end)));
 
   thrust::unique_by_key_copy(
-    thrust::device, solution.tasks.vehicles.rbegin() + rbegin,
-    solution.tasks.vehicles.rbegin() + rend, iterator, thrust::make_discard_iterator(),
+    thrust::device, thrust::reverse_iterator<IntIterator>(solution.tasks.vehicles.data() + end),
+    thrust::reverse_iterator<IntIterator>(solution.tasks.vehicles.data() + start), iterator,
+    thrust::make_discard_iterator(),
     make_aggregate_output_iterator(
       iterator,
       aggregate_cost{model.get(), solution.tasks.customers - 1, end - solution.tasks.customers}));
