@@ -102,7 +102,7 @@ struct estimate_insertion final {
         // TODO add extra
       }
 
-      device_variant<int, Convolution> customer;
+      variant<int, Convolution> customer;
       // TODO: support convolution here?
       customer.set<int>(search.context.tasks.ids[insertion.base + i]);
 

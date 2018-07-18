@@ -1,7 +1,7 @@
 #ifndef VRP_RUNTIME_DEVICEVARIANT_HPP
 #define VRP_RUNTIME_DEVICEVARIANT_HPP
 
-#include "runtime/detail/Helpers.hpp"
+#include "runtime/detail/VariantHelpers.hpp"
 
 #include <cassert>
 #include <thrust/execution_policy.h>
@@ -13,19 +13,19 @@ namespace runtime {
 
 /// Implements variant type which works on device.
 template<class... Ts>
-class device_variant {
+class variant {
 public:
   static_assert(sizeof...(Ts) > 1, "Variant should have at least 2 different types.");
 
-  __host__ __device__ device_variant() = default;
-  __host__ __device__ ~device_variant();
+  __host__ __device__ variant() = default;
+  __host__ __device__ ~variant();
 
-  __host__ __device__ device_variant(const device_variant<Ts...>& other);
-  __host__ __device__ device_variant(device_variant<Ts...>&& other);
+  __host__ __device__ variant(const variant<Ts...>& other);
+  __host__ __device__ variant(variant<Ts...>&& other);
 
 
-  __host__ __device__ device_variant<Ts...>& operator=(const device_variant<Ts...>& other);
-  __host__ __device__ device_variant<Ts...>& operator=(device_variant<Ts...>&& other);
+  __host__ __device__ variant<Ts...>& operator=(const variant<Ts...>& other);
+  __host__ __device__ variant<Ts...>& operator=(variant<Ts...>&& other);
 
   template<class T>
   __host__ __device__ bool is() const;
@@ -57,6 +57,6 @@ private:
 }  // namespace runtime
 }  // namespace vrp
 
-#include "runtime/detail/DeviceVariant.inl"
+#include "runtime/detail/Variant.inl"
 
 #endif  // VRP_RUNTIME_DEVICEVARIANT_HPP

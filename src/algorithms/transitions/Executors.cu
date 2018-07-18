@@ -76,11 +76,11 @@ struct process_convolution_task final {
     int customer = thrust::get<1>(value);
     int index = thrust::get<2>(value);
 
-    auto variant = device_variant<int, Convolution>();
-    variant.set<int>(customer);
+    auto var = variant<int, Convolution>();
+    var.set<int>(customer);
 
     auto transition = create_transition{problem, tasks}(
-      {details.base, details.from + index, details.to + index, variant, details.vehicle});
+      {details.base, details.from + index, details.to + index, var, details.vehicle});
 
     auto cost = calculate_transition_cost{problem, tasks}(transition);
 

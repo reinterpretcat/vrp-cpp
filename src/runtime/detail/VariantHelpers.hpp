@@ -1,5 +1,5 @@
-#ifndef VRP_UTILS_TYPES_DETAIL_HELPERS_HPP
-#define VRP_UTILS_TYPES_DETAIL_HELPERS_HPP
+#ifndef VRP_RUNTIME_DETAIL_VARIANTHELPERS_HPP
+#define VRP_RUNTIME_DETAIL_VARIANTHELPERS_HPP
 
 #include <thrust/execution_policy.h>
 #include <type_traits>
@@ -57,4 +57,4 @@ struct VariantHelper<Union> {
 }  // namespace runtime
 }  // namespace vrp
 
-#endif  // VRP_UTILS_TYPES_DETAIL_HELPERS_HPP
+#endif  // VRP_RUNTIME_DETAIL_VARIANTHELPERS_HPP

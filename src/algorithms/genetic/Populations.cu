@@ -66,8 +66,8 @@ private:
     return thrust::max(1, (individuum * tasks.customers / populationSize + 1) % tasks.customers);
   }
 
-  __host__ __device__ inline device_variant<int, Convolution> wrapCustomer(int customer) const {
-    device_variant<int, Convolution> wrapped;
+  __host__ __device__ inline variant<int, Convolution> wrapCustomer(int customer) const {
+    variant<int, Convolution> wrapped;
     wrapped.set<int>(customer);
     return wrapped;
   };

@@ -1,4 +1,4 @@
-#include "Helpers.hpp"
+#include "runtime/detail/VariantHelpers.hpp"
 
 #include <thrust/system_error.h>
 
@@ -41,24 +41,24 @@ void VariantHelper<Union, T, Ts...>::copy(std::size_t index,
 }  // namespace detail
 
 template<class... Ts>
-device_variant<Ts...>::~device_variant() {
+variant<Ts...>::~variant() {
   if (valid()) Helper::destroy(index - 1u, &data);
 }
 
 
 template<class... Ts>
-device_variant<Ts...>::device_variant(const device_variant<Ts...>& other) : index{other.index} {
+variant<Ts...>::variant(const variant<Ts...>& other) : index{other.index} {
   if (valid()) Helper::copy(index - 1u, &other.data, &data);
 }
 
 template<class... Ts>
-device_variant<Ts...>::device_variant(device_variant<Ts...>&& other) : index{other.index} {
+variant<Ts...>::variant(variant<Ts...>&& other) : index{other.index} {
   if (valid()) Helper::move(index - 1u, &other.data, &data);
 }
 
 
 template<class... Ts>
-device_variant<Ts...>& device_variant<Ts...>::operator=(const device_variant<Ts...>& other) {
+variant<Ts...>& variant<Ts...>::operator=(const variant<Ts...>& other) {
   if (&other != this) {
     if (valid()) Helper::destroy(index - 1u, &data);
 
@@ -71,7 +71,7 @@ device_variant<Ts...>& device_variant<Ts...>::operator=(const device_variant<Ts.
 }
 
 template<class... Ts>
-device_variant<Ts...>& device_variant<Ts...>::operator=(device_variant<Ts...>&& other) {
+variant<Ts...>& variant<Ts...>::operator=(variant<Ts...>&& other) {
   if (&other != this) {
     if (valid()) Helper::destroy(index - 1u, &data);
 
@@ -85,19 +85,19 @@ device_variant<Ts...>& device_variant<Ts...>::operator=(device_variant<Ts...>&& 
 
 template<class... Ts>
 template<class T>
-bool device_variant<Ts...>::is() const {
+bool variant<Ts...>::is() const {
   return index == detail::index_of<T, void, Ts...>::value;
 }
 
 template<class... Ts>
-bool device_variant<Ts...>::valid() const {
+bool variant<Ts...>::valid() const {
   return index != 0u;
 }
 
 
 template<class... Ts>
 template<class T, class... Args, class>
-void device_variant<Ts...>::set(Args&&... args) {
+void variant<Ts...>::set(Args&&... args) {
   if (valid()) Helper::destroy(index - 1u, &data);
 
   new (&data) T(std::forward<Args>(args)...);
@@ -109,22 +109,22 @@ void device_variant<Ts...>::set(Args&&... args) {
 
 template<class... Ts>
 template<class T, class>
-const T& device_variant<Ts...>::get() const {
-  assert(valid() && "device_variant is not initialized.");
+const T& variant<Ts...>::get() const {
+  assert(valid() && "variant is not initialized.");
   assert(is<T>() && "wrong type requested.");
   return *reinterpret_cast<const T*>(&data);
 }
 
 template<class... Ts>
 template<class T, class>
-T& device_variant<Ts...>::get() {
-  assert(valid() && "device_variant is not initialized.");
+T& variant<Ts...>::get() {
+  assert(valid() && "variant is not initialized.");
   assert(is<T>() && "wrong type requested.");
   return *reinterpret_cast<T*>(&data);
 }
 
 template<class... Ts>
-void device_variant<Ts...>::reset() {
+void variant<Ts...>::reset() {
   if (valid()) Helper::destroy(index - 1u, &data);
 
   index = 0u;

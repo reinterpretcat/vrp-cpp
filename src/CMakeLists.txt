@@ -46,7 +46,7 @@ set(HEADER_FILES
         models/Locations.hpp
 
         runtime/Config.hpp
-        runtime/DeviceVariant.hpp
+        runtime/Variant.hpp
         runtime/UniquePointer.hpp
 
         streams/input/SolomonReader.hpp

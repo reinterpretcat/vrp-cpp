@@ -28,7 +28,7 @@ create_cost_transition::operator()(const thrust::tuple<int, Plan>& customer) {
 
   if (plan.isAssigned()) return create_invaild();
 
-  auto wrapped = device_variant<int, Convolution>();
+  auto wrapped = variant<int, Convolution>();
   if (plan.hasConvolution()) {
     wrapped.set<Convolution>(*(convolutions + plan.convolution()));
   } else

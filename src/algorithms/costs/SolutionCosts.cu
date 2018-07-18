@@ -36,7 +36,7 @@ struct aggregate_cost final {
     const int vehicle = thrust::get<1>(tuple);
     const float cost = thrust::get<2>(tuple);
 
-    auto depot = device_variant<int, Convolution>();
+    auto depot = variant<int, Convolution>();
     depot.set<int>(0);
 
     auto details = Transition::Details{base, task, -1, depot, vehicle};

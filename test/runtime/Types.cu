@@ -1,4 +1,4 @@
-#include "runtime/DeviceVariant.hpp"
+#include "runtime/Variant.hpp"
 
 #include <catch/catch.hpp>
 #include <thrust/execution_policy.h>
@@ -8,7 +8,7 @@ using namespace vrp::runtime;
 namespace {
 
 __global__ void useDeviceVariant() {
-  device_variant<bool, int> value;
+  variant<bool, int> value;
 
   value.set<bool>(true);
   assert(value.is<bool>());
