@@ -29,6 +29,7 @@ add_executable(${LIBRARY_TEST}
         algorithms/heuristics/RandomInsertionTest.cu
 
         runtime/ConfigTest.cu
+        runtime/Types.cu
 
         streams/input/SolomonReaderTest.cu
         streams/output/GeoJsonWriterTest.cu
@@ -42,7 +43,6 @@ add_executable(${LIBRARY_TEST}
         test_utils/VectorUtils.hpp
 
         utils/Memory.cu
-        utils/Types.cu
         utils/Validations.cu
         )
 

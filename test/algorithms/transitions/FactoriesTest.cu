@@ -14,6 +14,7 @@ using namespace vrp::algorithms::heuristics;
 using namespace vrp::algorithms::transitions;
 using namespace vrp::models;
 using namespace vrp::streams;
+using namespace vrp::runtime;
 using namespace vrp::test;
 
 SCENARIO("Can create transition from convolution.", "[transitions][convolutions]") {
@@ -21,7 +22,7 @@ SCENARIO("Can create transition from convolution.", "[transitions][convolutions]
   auto solution = createPopulation<nearest_neighbor>(stream, 1);
   thrust::fill(thrust::device, solution.tasks.plan.begin() + 3, solution.tasks.plan.end(),
                Plan::reserve(0));
-  vrp::utils::device_variant<int, Convolution> variant;
+  device_variant<int, Convolution> variant;
   variant.set<Convolution>(Convolution{0, 3, 30, {3, 5}, {30, 1000}, {3, 5}});
   auto details = Transition::Details{0, 2, 3, variant, 0};
 

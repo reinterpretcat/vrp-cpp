@@ -11,7 +11,6 @@
 using namespace vrp::algorithms::heuristics;
 using namespace vrp::models;
 using namespace vrp::runtime;
-using namespace vrp::utils;
 
 namespace {
 /// Stores insertion point and its cost together.

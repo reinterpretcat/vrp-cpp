@@ -14,7 +14,6 @@ using namespace vrp::algorithms::heuristics;
 using namespace vrp::algorithms::transitions;
 using namespace vrp::models;
 using namespace vrp::runtime;
-using namespace vrp::utils;
 
 Transition nearest_neighbor::operator()(const Step& step) {
   TransitionCostOp operators = {create_transition{context.problem, context.tasks},

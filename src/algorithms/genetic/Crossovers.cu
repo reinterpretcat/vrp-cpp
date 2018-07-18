@@ -14,7 +14,6 @@ using namespace vrp::algorithms::convolutions;
 using namespace vrp::algorithms::genetic;
 using namespace vrp::models;
 using namespace vrp::runtime;
-using namespace vrp::utils;
 
 namespace {
 /// Reserves convolution in plan.

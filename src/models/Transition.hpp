@@ -3,7 +3,7 @@
 
 #include "models/Convolution.hpp"
 #include "runtime/Config.hpp"
-#include "utils/types/DeviceVariant.hpp"
+#include "runtime/DeviceVariant.hpp"
 
 namespace vrp {
 namespace models {
@@ -30,7 +30,7 @@ struct Transition {
     int to;
     /// Customer which is being served by transition
     /// represented by their id or convolution.
-    vrp::utils::device_variant<int, Convolution> customer;
+    vrp::runtime::device_variant<int, Convolution> customer;
     /// Vehicle used in transition.
     int vehicle;
   };

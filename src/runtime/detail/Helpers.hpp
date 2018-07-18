@@ -5,7 +5,7 @@
 #include <type_traits>
 
 namespace vrp {
-namespace utils {
+namespace runtime {
 namespace detail {
 
 template<typename...>
@@ -54,7 +54,7 @@ struct VariantHelper<Union> {
 };
 
 }  // namespace detail
-}  // namespace utils
+}  // namespace runtime
 }  // namespace vrp
 
 #endif  // VRP_UTILS_TYPES_DETAIL_HELPERS_HPP

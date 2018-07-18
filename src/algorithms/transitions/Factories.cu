@@ -2,7 +2,7 @@
 
 using namespace vrp::algorithms::transitions;
 using namespace vrp::models;
-using namespace vrp::utils;
+using namespace vrp::runtime;
 
 namespace {
 

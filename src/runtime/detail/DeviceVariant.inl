@@ -1,9 +1,9 @@
-#include "utils/types/detail/Helpers.hpp"
+#include "Helpers.hpp"
 
 #include <thrust/system_error.h>
 
 namespace vrp {
-namespace utils {
+namespace runtime {
 namespace detail {
 
 template<class Union, class T, class... Ts>
@@ -130,5 +130,5 @@ void device_variant<Ts...>::reset() {
   index = 0u;
 }
 
-}  // namespace utils
+}  // namespace runtime
 }  // namespace vrp

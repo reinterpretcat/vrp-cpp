@@ -1,7 +1,7 @@
-#ifndef VRP_UTILS_TYPES_DEVICEVARIANT_HPP
-#define VRP_UTILS_TYPES_DEVICEVARIANT_HPP
+#ifndef VRP_RUNTIME_DEVICEVARIANT_HPP
+#define VRP_RUNTIME_DEVICEVARIANT_HPP
 
-#include "utils/types/detail/Helpers.hpp"
+#include "runtime/detail/Helpers.hpp"
 
 #include <cassert>
 #include <thrust/execution_policy.h>
@@ -9,7 +9,7 @@
 #include <utility>
 
 namespace vrp {
-namespace utils {
+namespace runtime {
 
 /// Implements variant type which works on device.
 template<class... Ts>
@@ -54,9 +54,9 @@ private:
   Data data;
 };
 
-}  // namespace utils
+}  // namespace runtime
 }  // namespace vrp
 
-#include "utils/types/detail/DeviceVariant.inl"
+#include "runtime/detail/DeviceVariant.inl"
 
-#endif  // VRP_UTILS_TYPES_DEVICEVARIANT_HPP
+#endif  // VRP_RUNTIME_DEVICEVARIANT_HPP

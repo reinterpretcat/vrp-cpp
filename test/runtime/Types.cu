@@ -1,9 +1,9 @@
-#include "utils/types/DeviceVariant.hpp"
+#include "runtime/DeviceVariant.hpp"
 
 #include <catch/catch.hpp>
 #include <thrust/execution_policy.h>
 
-using namespace vrp::utils;
+using namespace vrp::runtime;
 
 namespace {
 
