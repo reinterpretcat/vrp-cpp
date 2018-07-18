@@ -10,6 +10,7 @@
 
 using namespace vrp::algorithms::heuristics;
 using namespace vrp::models;
+using namespace vrp::runtime;
 using namespace vrp::utils;
 
 namespace {
@@ -41,8 +42,8 @@ struct InsertionContext final {
 };
 
 /// Restores vehicle state from insertion context.
-__device__ inline Transition::State restore_state(const Context& context,
-                                                  const InsertionContext& insertion) {
+EXEC_UNIT inline Transition::State restore_state(const Context& context,
+                                                 const InsertionContext& insertion) {
   auto index = insertion.base + thrust::max(insertion.from - 1, 0);
   if (context.tasks.vehicles[index] != insertion.vehicle) index = 0;
 
@@ -94,7 +95,7 @@ struct estimate_insertion final {
   const TransitionOp transitionOp;
 
   /// @param task Task index from which arc starts.
-  __device__ InsertionCost operator()(int point) const {
+  EXEC_UNIT InsertionCost operator()(int point) const {
     auto state = restore_state(search.context, insertion);
     float cost = 0;
     for (int i = insertion.from; i != insertion.to; ++i) {
@@ -124,7 +125,7 @@ struct estimate_insertion final {
 
 ///// Compares two arcs using their insertion costs.
 struct compare_arcs final {
-  __device__ InsertionCost operator()(const InsertionCost& left, const InsertionCost& right) const {
+  EXEC_UNIT InsertionCost operator()(const InsertionCost& left, const InsertionCost& right) const {
     return left.second > right.second ? left : right;
   }
 };
@@ -135,7 +136,7 @@ struct find_best_arc final {
   const SearchContext search;
   const TransitionOp transitionOp;
 
-  __device__ InsertionCost operator()(const VehicleRange& range) const {
+  EXEC_UNIT InsertionCost operator()(const VehicleRange& range) const {
     if (thrust::get<1>(range) == -1) return InsertionCost{-1, -1};
 
     int from = thrust::get<0>(range);
@@ -143,7 +144,7 @@ struct find_best_arc final {
     int vehicle = thrust::get<2>(range);
 
     return thrust::transform_reduce(
-      thrust::device, thrust::make_counting_iterator(search.base + 1),
+      exec_unit_policy{}, thrust::make_counting_iterator(search.base + 1),
       thrust::make_counting_iterator(to),
       estimate_insertion<TransitionOp>{
         search, {search.base, from, to, vehicle, search.customer}, transitionOp},
@@ -154,7 +155,7 @@ struct find_best_arc final {
 /// Represents operator which helps to create vehicle ranges without extra memory footprint.
 struct create_vehicle_ranges final {
   int last;
-  __device__ VehicleRange operator()(const VehicleRange& left, const VehicleRange& right) {
+  EXEC_UNIT VehicleRange operator()(const VehicleRange& left, const VehicleRange& right) {
     if (thrust::get<2>(left) != thrust::get<2>(right) && thrust::get<1>(left) == -1)
       return {thrust::get<0>(left), thrust::get<0>(right) - 1, thrust::get<2>(left)};
 
@@ -179,7 +180,7 @@ struct find_insertion_point final {
     int size = to - 1;
 
     thrust::inclusive_scan(
-      thrust::device,
+      exec_unit_policy{},
       thrust::make_zip_iterator(
         thrust::make_tuple(thrust::make_counting_iterator(0), thrust::make_constant_iterator(-1),
                            search.context.tasks.vehicles + search.base + 1)),
@@ -198,7 +199,7 @@ struct find_insertion_point final {
 ///// Inserts a new customer in between existing ones.
 struct insert_customer final {
   /// @returns Index of last task.
-  __device__ int operator()(const InsertionContext& context, int point) {
+  EXEC_UNIT int operator()(const InsertionContext& context, int point) {
     // TODO
   }
 };

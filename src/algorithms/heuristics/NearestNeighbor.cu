@@ -13,6 +13,7 @@ using namespace vrp::algorithms::costs;
 using namespace vrp::algorithms::heuristics;
 using namespace vrp::algorithms::transitions;
 using namespace vrp::models;
+using namespace vrp::runtime;
 using namespace vrp::utils;
 
 Transition nearest_neighbor::operator()(const Step& step) {
@@ -20,7 +21,7 @@ Transition nearest_neighbor::operator()(const Step& step) {
                                 calculate_transition_cost{context.problem, context.tasks}};
 
   return thrust::transform_reduce(
-           thrust::device,
+           exec_unit_policy{},
            thrust::make_zip_iterator(
              thrust::make_tuple(thrust::make_counting_iterator(0), context.tasks.plan + step.base)),
            thrust::make_zip_iterator(

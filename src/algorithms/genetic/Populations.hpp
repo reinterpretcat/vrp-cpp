@@ -25,7 +25,7 @@ template<typename Heuristic>
 struct create_individuum final {
   const vrp::models::Problem::Shadow problem;
   vrp::models::Tasks::Shadow tasks;
-  const thrust::device_ptr<vrp::models::Convolution> convolutions;
+  const vrp::runtime::vector_ptr<vrp::models::Convolution> convolutions;
   int shift;
 
   __host__ __device__ void operator()(int index);

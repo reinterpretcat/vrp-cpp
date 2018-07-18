@@ -14,7 +14,7 @@ namespace {
 template<typename Iterator>
 EXEC_UNIT void swap_values(Iterator a, Iterator b) {
   // TODO why I cannot simply use Iterator::value_type or auto?
-  thrust::device_ptr<int>::value_type tmp = *a;
+  vector_ptr<int>::value_type tmp = *a;
   *a = *b;
   *b = tmp;
 }
@@ -64,7 +64,7 @@ struct rank_pair final {
 
 /// Copies pair to convolution list.
 struct copy_pair final {
-  thrust::device_ptr<Convolution>& convolutions;
+  vector_ptr<Convolution>& convolutions;
   int current;
 
   EXEC_UNIT inline int operator()(const JointPair& pair, const thrust::pair<bool, bool>& copyMap) {
@@ -104,10 +104,10 @@ struct rank_sliced_pairs final {
 };
 
 /// Finds and sets the best pairs slice to convolution container.
-EXEC_UNIT void setBestSlice(const thrust::device_ptr<JointPair> pairs,
-                            const thrust::device_ptr<int> keys,
+EXEC_UNIT void setBestSlice(const vector_ptr<JointPair> pairs,
+                            const vector_ptr<int> keys,
                             const thrust::pair<size_t, size_t> dimens,
-                            thrust::device_ptr<Convolution> convolutions) {
+                            vector_ptr<Convolution> convolutions) {
   auto size = thrust::max(dimens.first, dimens.second);
   auto keyBegin = keys;
   auto keyEnd = keys + size;
@@ -130,7 +130,7 @@ EXEC_UNIT Convolutions create_sliced_convolutions::operator()(const Settings& se
   auto keys = make_unique_ptr_data<int>(static_cast<size_t>(solution.problem.size));
   auto convolutions = make_unique_ptr_data<Convolution>(pairs.dimens.first + pairs.dimens.second);
 
-  thrust::sequence(thrust::device, *keys, *keys + size, 0, 1);
+  thrust::sequence(exec_unit_policy{}, *keys, *keys + size, 0, 1);
 
   setBestSlice(*pairs.data, *keys, pairs.dimens, *convolutions);
 

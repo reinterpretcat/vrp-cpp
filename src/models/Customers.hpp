@@ -8,7 +8,7 @@ namespace models {
 
 /// Represents a customer by "Struct of Array" idiom.
 struct Customers final {
-  /// Stores device pointers to data.
+  /// Stores pointers to data.
   struct Shadow final {
     vrp::runtime::vector_ptr<const int> demands;
     vrp::runtime::vector_ptr<const int> services;

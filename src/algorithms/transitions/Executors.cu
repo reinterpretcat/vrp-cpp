@@ -10,6 +10,7 @@
 using namespace vrp::algorithms::costs;
 using namespace vrp::algorithms::transitions;
 using namespace vrp::models;
+using namespace vrp::runtime;
 using namespace vrp::utils;
 
 namespace {
@@ -47,7 +48,7 @@ struct create_customer_entry final {
   const Tasks::Shadow tasks;
   const Transition::Details details;
 
-  __device__ CustomerEntry operator()(int customer) const {
+  EXEC_UNIT CustomerEntry operator()(int customer) const {
     Plan plan = tasks.plan[details.base + customer];
     return thrust::make_tuple(plan.isAssigned(), customer, plan.isAssigned() ? -1 : 0);
   }
@@ -55,7 +56,7 @@ struct create_customer_entry final {
 
 /// Calculates proper sequential index.
 struct calculate_seq_index final {
-  __device__ CustomerEntry operator()(const CustomerEntry& init, const CustomerEntry& value) const {
+  EXEC_UNIT CustomerEntry operator()(const CustomerEntry& init, const CustomerEntry& value) const {
     return thrust::get<0>(value)
              ? thrust::make_tuple(true, thrust::get<1>(value), thrust::get<2>(init))
              : thrust::make_tuple(false, thrust::get<1>(value), thrust::get<2>(init) + 1);
@@ -67,9 +68,9 @@ struct process_convolution_task final {
   const Problem::Shadow problem;
   const Tasks::Shadow tasks;
   const Transition::Details details;
-  thrust::device_ptr<int> max;
+  vector_ptr<int> max;
 
-  __device__ CustomerEntry operator()(const CustomerEntry& value) {
+  EXEC_UNIT CustomerEntry operator()(const CustomerEntry& value) {
     if (thrust::get<0>(value)) return {};
 
     int customer = thrust::get<1>(value);
@@ -99,11 +100,10 @@ __host__ __device__ inline int moveToConvolution(const Transition& transition,
 
   auto max = vrp::utils::allocate<int>(details.from);
   auto iterator = vrp::iterators::make_aggregate_output_iterator(
-    thrust::device_vector<CustomerEntry>::iterator{},
-    process_convolution_task{problem, tasks, details, max});
+    vector<CustomerEntry>::iterator{}, process_convolution_task{problem, tasks, details, max});
 
   thrust::transform_inclusive_scan(
-    thrust::device, tasks.ids + convolution.base + convolution.tasks.first,
+    exec_unit_policy{}, tasks.ids + convolution.base + convolution.tasks.first,
     tasks.ids + convolution.base + convolution.tasks.second + 1, iterator,
     create_customer_entry{tasks, details}, calculate_seq_index{});
 

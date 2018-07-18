@@ -38,7 +38,7 @@ struct Step final {
 struct Context final {
   vrp::models::Problem::Shadow problem;
   vrp::models::Tasks::Shadow tasks;
-  thrust::device_ptr<vrp::models::Convolution> convolutions;
+  vrp::runtime::vector_ptr<vrp::models::Convolution> convolutions;
 };
 
 /// Aggregates basic actions on transition.

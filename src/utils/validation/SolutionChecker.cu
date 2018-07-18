@@ -14,6 +14,7 @@ using namespace vrp::algorithms::costs;
 using namespace vrp::algorithms::transitions;
 using namespace vrp::models;
 using namespace vrp::streams;
+using namespace vrp::runtime;
 using namespace vrp::utils;
 
 namespace {
@@ -41,8 +42,8 @@ struct check_customers final {
   void operator()(Iterator begin, Iterator end) {
     typedef typename Iterator::value_type ValueType;
 
-    thrust::device_vector<ValueType> sorted(begin, end);
-    thrust::sort(thrust::device, sorted.begin(), sorted.end());
+    vector<ValueType> sorted(begin, end);
+    thrust::sort(exec_unit, sorted.begin(), sorted.end());
 
     // ensure bounds
     if (sorted[0] != 0) {
@@ -50,10 +51,9 @@ struct check_customers final {
       return;
     }
 
-    thrust::device_vector<ValueType> differences(static_cast<size_t>(thrust::distance(begin, end)));
-    thrust::adjacent_difference(thrust::device, sorted.begin(), sorted.end(), differences.begin());
-    if (!thrust::all_of(thrust::device, differences.begin() + 1, differences.end(),
-                        is<ValueType>{1}))
+    vector<ValueType> differences(static_cast<size_t>(thrust::distance(begin, end)));
+    thrust::adjacent_difference(exec_unit, sorted.begin(), sorted.end(), differences.begin());
+    if (!thrust::all_of(exec_unit, differences.begin() + 1, differences.end(), is<ValueType>{1}))
       addError(result, index, "has non unique customer ids.");
   }
 };
@@ -69,15 +69,15 @@ struct check_vehicles final {
     typedef typename Iterator::value_type ValueType;
 
     // check that vehicles are allocated sequentially
-    thrust::device_vector<ValueType> sorted(begin, end);
-    thrust::sort(thrust::device, sorted.begin(), sorted.end());
+    vector<ValueType> sorted(begin, end);
+    thrust::sort(exec_unit, sorted.begin(), sorted.end());
 
     if (sorted[0] != 0) addError(result, index, "unexpected first vehicle.");
 
     if (sorted[sorted.size() - 1] + 1 > solution.problem.resources.capacities.size())
       addError(result, index, "has extra vehicles.");
 
-    if (!thrust::equal(thrust::device, begin, end, sorted.begin()))
+    if (!thrust::equal(exec_unit, begin, end, sorted.begin()))
       addError(result, index, "has wrong vehicle order.");
   }
 };
@@ -86,27 +86,27 @@ struct verify_tasks final {
   SolutionChecker::Result& result;
 
   void operator()(const Tasks& left, const Tasks& right, int begin, int end) const {
-    if (!thrust::equal(thrust::device, left.ids.begin() + begin, left.ids.begin() + end,
+    if (!thrust::equal(exec_unit, left.ids.begin() + begin, left.ids.begin() + end,
                        right.ids.begin() + begin))
       addError(result, "unexpected ids!");
 
-    if (!thrust::equal(thrust::device, left.vehicles.begin() + begin, left.vehicles.begin() + end,
+    if (!thrust::equal(exec_unit, left.vehicles.begin() + begin, left.vehicles.begin() + end,
                        right.vehicles.begin() + begin))
       addError(result, "unexpected vehicles!");
 
-    if (!thrust::equal(thrust::device, left.costs.begin() + begin, left.costs.begin() + end,
+    if (!thrust::equal(exec_unit, left.costs.begin() + begin, left.costs.begin() + end,
                        right.costs.begin() + begin))
       addError(result, "unexpected costs!");
 
-    if (!thrust::equal(thrust::device, left.capacities.begin() + begin,
-                       left.capacities.begin() + end, right.capacities.begin() + begin))
+    if (!thrust::equal(exec_unit, left.capacities.begin() + begin, left.capacities.begin() + end,
+                       right.capacities.begin() + begin))
       addError(result, "unexpected capacities!");
 
-    if (!thrust::equal(thrust::device, left.times.begin() + begin, left.times.begin() + end,
+    if (!thrust::equal(exec_unit, left.times.begin() + begin, left.times.begin() + end,
                        right.times.begin() + begin))
       addError(result, "unexpected times!");
 
-    if (!thrust::equal(thrust::device, left.plan.begin() + begin, left.plan.begin() + end,
+    if (!thrust::equal(exec_unit, left.plan.begin() + begin, left.plan.begin() + end,
                        right.plan.begin() + begin))
       addError(result, "unexpected plan!");
   }

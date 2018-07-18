@@ -21,7 +21,7 @@ struct Convolutions {
   /// Convolutions size.
   size_t size;
   /// Convolutions data.
-  vrp::runtime::unique_ptr<thrust::device_ptr<vrp::models::Convolution>> data;
+  vrp::runtime::unique_ptr<vrp::runtime::vector_ptr<vrp::models::Convolution>> data;
 };
 
 /// Represents collection of join pairs with some meta information.
@@ -29,7 +29,7 @@ struct JointPairs final {
   /// Dimensions of the sets.
   thrust::pair<size_t, size_t> dimens;
   /// Represent convolution joint pair collection retrieved from pool.
-  vrp::runtime::unique_ptr<thrust::device_ptr<vrp::models::JointPair>> data;
+  vrp::runtime::unique_ptr<vrp::runtime::vector_ptr<vrp::models::JointPair>> data;
 };
 
 }  // namespace convolutions

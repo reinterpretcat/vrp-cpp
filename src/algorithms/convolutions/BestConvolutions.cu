@@ -72,14 +72,14 @@ struct create_partial_plan final {
                             vector_ptr<float> medians,
                             vector_ptr<bool> plan) const {
     // initialize medians
-    thrust::copy(thrust::device, differences, differences + size, medians);
+    thrust::copy(exec_unit_policy{}, differences, differences + size, medians);
 
     // sort and get median
-    thrust::sort(thrust::device, medians, medians + size);
+    thrust::sort(exec_unit_policy{}, medians, medians + size);
     float median = medians[(size - vehicles[size - 1]) * medianRatio];
 
     // create plan using median
-    thrust::transform(thrust::device, differences, differences + size, plan, _1 <= median);
+    thrust::transform(exec_unit_policy{}, differences, differences + size, plan, _1 <= median);
   }
 };
 
@@ -142,8 +142,8 @@ struct create_convolutions final {
       auto end = start + length - 1;
       auto firstCustomerService = problem.customers.services[tasks.ids[start]];
 
-      auto demand = thrust::transform_reduce(thrust::device, tasks.ids + start, tasks.ids + end + 1,
-                                             *this, 0, thrust::plus<int>());
+      auto demand = thrust::transform_reduce(exec_unit_policy{}, tasks.ids + start,
+                                             tasks.ids + end + 1, *this, 0, thrust::plus<int>());
       return Convolution{base, demand,
                          // new service time from total duration
                          tasks.times[end] - tasks.times[start] + firstCustomerService,
@@ -164,7 +164,7 @@ struct create_convolutions final {
     auto limit = __float2int_rn(solution.problem.size * convolutionRatio);
 
     auto newEnd = thrust::remove_copy_if(
-      thrust::device, thrust::make_zip_iterator(thrust::make_tuple(output, lengths)),
+      exec_unit_policy{}, thrust::make_zip_iterator(thrust::make_tuple(output, lengths)),
       thrust::make_zip_iterator(thrust::make_tuple(output + groups, lengths + groups)),
       thrust::make_transform_output_iterator(convolutions, map_group{solution, base}),
       filter_group{limit});

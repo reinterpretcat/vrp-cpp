@@ -24,7 +24,7 @@ struct assign_convolution {
   size_t base;
   bool preferFirst;
 
-  __device__ void operator()(const thrust::tuple<int, int>& tuple) {
+  EXEC_UNIT void operator()(const thrust::tuple<int, int>& tuple) {
     auto task = thrust::get<0>(tuple);
     auto index = thrust::get<1>(tuple);
 
@@ -42,11 +42,11 @@ struct prepare_convolution final {
   size_t base;
   bool preferFirst;
 
-  __device__ void operator()(const thrust::tuple<int, Convolution>& tuple) {
+  EXEC_UNIT void operator()(const thrust::tuple<int, Convolution>& tuple) {
     const auto index = thrust::get<0>(tuple);
     const auto& convolution = thrust::get<1>(tuple);
 
-    thrust::for_each(thrust::device,
+    thrust::for_each(exec_unit_policy{},
                      thrust::make_zip_iterator(
                        thrust::make_tuple(thrust::make_counting_iterator(convolution.tasks.first),
                                           thrust::make_constant_iterator(index))),
@@ -60,20 +60,20 @@ struct prepare_convolution final {
 /// Prepares plan of selected solution which allows "smart" customer reassignment.
 struct prepare_plan final {
   Solution::Shadow solution;
-  thrust::pair<size_t, thrust::device_ptr<Convolution>> convolutions;
+  thrust::pair<size_t, vector_ptr<Convolution>> convolutions;
   thrust::pair<int, int> offspring;
 
-  __device__ void operator()(int order) {
+  EXEC_UNIT void operator()(int order) {
     auto index = order == 0 ? offspring.first : offspring.second;
     auto begin = static_cast<size_t>(solution.problem.size * index);
     auto end = begin + static_cast<size_t>(solution.problem.size);
 
     // reset whole plan except depot
-    thrust::fill(thrust::device, solution.tasks.plan + begin + 1, solution.tasks.plan + end,
+    thrust::fill(exec_unit_policy{}, solution.tasks.plan + begin + 1, solution.tasks.plan + end,
                  Plan::empty());
 
     // mark convolution's customers as assigned
-    thrust::for_each(thrust::device,
+    thrust::for_each(exec_unit_policy{},
                      thrust::make_zip_iterator(
                        thrust::make_tuple(thrust::make_counting_iterator(0), convolutions.second)),
                      thrust::make_zip_iterator(thrust::make_tuple(
@@ -85,11 +85,11 @@ struct prepare_plan final {
 
 struct prepare_plans final {
   Solution::Shadow solution;
-  thrust::pair<size_t, thrust::device_ptr<Convolution>> convolutions;
+  thrust::pair<size_t, vector_ptr<Convolution>> convolutions;
   thrust::pair<int, int> offspring;
 
-  __device__ void operator()() {
-    thrust::for_each(thrust::device, thrust::make_counting_iterator(0),
+  EXEC_UNIT void operator()() {
+    thrust::for_each(exec_unit_policy{}, thrust::make_counting_iterator(0),
                      thrust::make_counting_iterator(2),
                      prepare_plan{solution, convolutions, offspring});
   }
@@ -98,10 +98,10 @@ struct prepare_plans final {
 template<typename Heuristic>
 struct improve_individuum final {
   Solution::Shadow solution;
-  const thrust::device_ptr<Convolution> convolutions;
+  const vector_ptr<Convolution> convolutions;
   thrust::pair<int, int> offspring;
 
-  __device__ void operator()(int order) {
+  EXEC_UNIT void operator()(int order) {
     int index = order == 0 ? offspring.first : offspring.second;
     create_individuum<Heuristic>{solution.problem, solution.tasks, convolutions, 0}.operator()(
       index);
@@ -111,11 +111,12 @@ struct improve_individuum final {
 template<typename Heuristic>
 struct improve_individuums final {
   Solution::Shadow solution;
-  const thrust::device_ptr<Convolution> convolutions;
+  const vector_ptr<Convolution> convolutions;
   thrust::pair<int, int> offspring;
 
-  __device__ void operator()() {
-    thrust::for_each(thrust::device, thrust::make_counting_iterator(0),
+  EXEC_UNIT void operator()() {
+    // TODO try thrust::seq
+    thrust::for_each(exec_unit_policy{}, thrust::make_counting_iterator(0),
                      thrust::make_counting_iterator(2),
                      improve_individuum<Heuristic>{solution, convolutions, offspring});
   }
@@ -128,9 +129,8 @@ namespace algorithms {
 namespace genetic {
 
 template<typename Heuristic>
-__device__ void adjusted_cost_difference<Heuristic>::operator()(
-  const Settings& settings,
-  const Generation& generation) const {
+EXEC_UNIT void adjusted_cost_difference<Heuristic>::operator()(const Settings& settings,
+                                                               const Generation& generation) const {
   // find convolutions
   auto left =
     create_best_convolutions{solution}.operator()(settings.convolution, generation.parents.first);

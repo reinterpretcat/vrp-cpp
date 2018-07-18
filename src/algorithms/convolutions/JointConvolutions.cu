@@ -33,14 +33,14 @@ struct create_joint_pair final {
     auto leftBegin = solution.tasks.ids + left.base + left.tasks.first;
     auto rightBegin = solution.tasks.ids + right.base + right.tasks.first;
 
-    typedef thrust::device_ptr<int> Iterator;
+    typedef vector_ptr<int> Iterator;
     vrp::iterators::repeated_range<Iterator> repeated(leftBegin, leftBegin + leftSize, rightSize);
     vrp::iterators::tiled_range<Iterator> tiled(rightBegin, rightBegin + rightSize, rightSize);
 
     int* total = (int*) malloc(sizeof(int));
     *total = 0;
 
-    thrust::transform(thrust::device, repeated.begin(), repeated.end(), tiled.begin(),
+    thrust::transform(exec_unit_policy{}, repeated.begin(), repeated.end(), tiled.begin(),
                       thrust::make_discard_iterator(), count_equal_pairs{total});
 
     auto shared = *total;
@@ -68,7 +68,7 @@ EXEC_UNIT JointPairs create_joint_convolutions::operator()(const Settings& setti
   auto pairs = make_unique_ptr_data<JointPair>(static_cast<size_t>(size * size));
 
   // create all possible combinations from two group
-  thrust::transform(thrust::device, repeated.begin(), repeated.end(), tiled.begin(), *pairs,
+  thrust::transform(exec_unit_policy{}, repeated.begin(), repeated.end(), tiled.begin(), *pairs,
                     create_joint_pair{solution});
 
   return {{leftSize, rightSize}, std::move(pairs)};

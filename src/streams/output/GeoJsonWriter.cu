@@ -9,6 +9,7 @@
 
 using namespace json11;
 using namespace vrp::models;
+using namespace vrp::runtime;
 using namespace vrp::streams;
 
 using namespace std::placeholders;
@@ -124,7 +125,7 @@ struct materialize_solution final {
   thrust::host_vector<Job> getJobs(int solution) {
     int start = tasks.customers * solution;
     int end = start + tasks.customers;
-    thrust::device_vector<Job> jobs(static_cast<std::size_t>(tasks.customers - 1));
+    vector<Job> jobs(static_cast<std::size_t>(tasks.customers - 1));
 
     // get all jobs with their vehicles (except depot)
     thrust::transform(thrust::make_zip_iterator(thrust::make_tuple(tasks.ids.data() + start + 1,

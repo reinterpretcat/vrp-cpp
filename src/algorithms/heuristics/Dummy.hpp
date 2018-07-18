@@ -14,7 +14,8 @@ namespace heuristics {
 struct dummy final {
   __host__ __device__ dummy(const vrp::models::Problem::Shadow problem,
                             const vrp::models::Tasks::Shadow tasks,
-                            const thrust::device_ptr<vrp::models::Convolution> convolutions) {}
+                            const vrp::runtime::vector_ptr<vrp::models::Convolution> convolutions) {
+  }
 
   __host__ __device__ vrp::models::Transition operator()(const Step& step);
 };

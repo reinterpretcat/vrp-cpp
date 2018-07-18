@@ -105,13 +105,13 @@ Tasks create_population<Heuristic>::operator()(const Settings& settings) {
   Tasks population(problem.size(), settings.populationSize * problem.size());
 
   // create roots
-  thrust::for_each(thrust::device, thrust::make_counting_iterator(0),
+  thrust::for_each(exec_unit, thrust::make_counting_iterator(0),
                    thrust::make_counting_iterator(settings.populationSize),
                    create_roots(problem, population, settings));
 
   // complete solutions
   thrust::for_each(
-    thrust::device, thrust::make_counting_iterator(0),
+    exec_unit, thrust::make_counting_iterator(0),
     thrust::make_counting_iterator(settings.populationSize),
     create_individuum<Heuristic>{problem.getShadow(), population.getShadow(), {}, 1});
 

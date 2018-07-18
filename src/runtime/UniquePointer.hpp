@@ -17,12 +17,12 @@ struct default_delete final {
   }
 };
 
-/// Default deleter for device_ptr
+/// Default deleter for vector_ptr
 template<typename T>
-struct default_delete<thrust::device_ptr<T>> final {
+struct default_delete<vector_ptr<T>> final {
   size_t size;
 
-  EXEC_UNIT void operator()(thrust::device_ptr<T>* ptr) const {
+  EXEC_UNIT void operator()(vector_ptr<T>* ptr) const {
     // TODO is memory allocated with make_unique_ptr_data cleaned fully?
     printf("default_delete: deallocate vector_ptr of size=%d\n", static_cast<int>(size));
     deallocate(ptr->get());

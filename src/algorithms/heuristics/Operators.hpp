@@ -33,12 +33,12 @@ __host__ __device__ inline void spawn_vehicle(const vrp::models::Problem::Shadow
 struct create_cost_transition final {
   Step step;
   TransitionCostOp operators;
-  const thrust::device_ptr<vrp::models::Convolution> convolutions;
+  const vrp::runtime::vector_ptr<vrp::models::Convolution> convolutions;
 
   __host__ __device__
   create_cost_transition(const Step& step,
                          const TransitionCostOp& operators,
-                         const thrust::device_ptr<vrp::models::Convolution>& convolutions) :
+                         const vrp::runtime::vector_ptr<vrp::models::Convolution>& convolutions) :
     step(step),
     operators(operators), convolutions(convolutions) {}
 

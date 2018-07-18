@@ -13,6 +13,7 @@ using namespace vrp::algorithms::transitions;
 using namespace vrp::algorithms::costs;
 using namespace vrp::iterators;
 using namespace vrp::models;
+using namespace vrp::runtime;
 using namespace vrp::utils;
 
 namespace {
@@ -30,7 +31,7 @@ struct aggregate_cost final {
   int base;
 
   template<class Tuple>
-  __device__ void operator()(const Tuple& tuple) {
+  EXEC_UNIT void operator()(const Tuple& tuple) {
     const int task = lastCustomer - thrust::get<0>(tuple);
     const int vehicle = thrust::get<1>(tuple);
     const float cost = thrust::get<2>(tuple);
@@ -54,8 +55,8 @@ struct aggregate_cost final {
 
 
 __host__ float calculate_total_cost::operator()(Solution& solution, int index) const {
-  typedef thrust::device_vector<int>::iterator IntIterator;
-  typedef thrust::device_vector<float>::iterator FloatIterator;
+  typedef vector<int>::iterator IntIterator;
+  typedef vector<float>::iterator FloatIterator;
 
   int start = solution.tasks.customers * index;
   int end = start + solution.tasks.customers;
@@ -67,7 +68,7 @@ __host__ float calculate_total_cost::operator()(Solution& solution, int index) c
                        thrust::reverse_iterator<FloatIterator>(solution.tasks.costs.data() + end)));
 
   thrust::unique_by_key_copy(
-    thrust::device, thrust::reverse_iterator<IntIterator>(solution.tasks.vehicles.data() + end),
+    exec_unit, thrust::reverse_iterator<IntIterator>(solution.tasks.vehicles.data() + end),
     thrust::reverse_iterator<IntIterator>(solution.tasks.vehicles.data() + start), iterator,
     thrust::make_discard_iterator(),
     make_aggregate_output_iterator(
