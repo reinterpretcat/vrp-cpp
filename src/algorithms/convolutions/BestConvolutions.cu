@@ -76,7 +76,7 @@ struct create_partial_plan final {
 
     // sort and get median
     thrust::sort(exec_unit_policy{}, medians, medians + size);
-    float median = medians[(size - vehicles[size - 1]) * medianRatio];
+    float median = medians[static_cast<int>((size - vehicles[size - 1]) * medianRatio)];
 
     // create plan using median
     thrust::transform(exec_unit_policy{}, differences, differences + size, plan, _1 <= median);
@@ -161,7 +161,7 @@ struct create_convolutions final {
                               const vector_ptr<thrust::tuple<bool, int>> output,
                               const vector_ptr<int> lengths,
                               vector_ptr<Convolution> convolutions) const {
-    auto limit = __float2int_rn(solution.problem.size * convolutionRatio);
+    auto limit = vrp::runtime::round(solution.problem.size * convolutionRatio);
 
     auto newEnd = thrust::remove_copy_if(
       exec_unit_policy{}, thrust::make_zip_iterator(thrust::make_tuple(output, lengths)),

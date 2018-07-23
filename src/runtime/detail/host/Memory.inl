@@ -30,7 +30,8 @@ void return_temporary_buffer(exec_unit_policy exec_unit, Pointer p) {
 /// Allocates buffer dynamically in host memory.
 template<typename T>
 EXEC_UNIT T* allocate_data(size_t size) {
-  return thrust::malloc<T>(exec_unit_policy{}, size);
+  printf("allocate on host\n");
+  return thrust::malloc<T>(thrust::host, size).get();
 }
 
 /// Allocates buffer to store single value in device memory.
@@ -51,13 +52,15 @@ EXEC_UNIT void deallocate(T* ptr) {
 /// Allocates a new buffer in memory initializing with given value.
 template<typename T>
 ANY_EXEC_UNIT inline vector_ptr<T> allocate(const T& value) {
-  throw std::runtime_error("not implemented.");
+  // throw std::runtime_error("not implemented.");
+  return vector_ptr<T>();
 }
 
 /// Releases buffer returning its value.
 template<typename T>
 ANY_EXEC_UNIT inline T release(vector_ptr<T>& buffer) {
-  throw std::runtime_error("not implemented.");
+  // throw std::runtime_error("not implemented.");
+  return T();
 }
 
 }  // namespace runtime
