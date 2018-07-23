@@ -4,7 +4,6 @@
 #include "test_utils/ConvolutionUtils.hpp"
 #include "test_utils/TaskUtils.hpp"
 #include "test_utils/VectorUtils.hpp"
-#include "utils/memory/Allocations.hpp"
 
 #include <catch/catch.hpp>
 #include <thrust/execution_policy.h>
@@ -13,7 +12,6 @@
 using namespace vrp::algorithms::convolutions;
 using namespace vrp::models;
 using namespace vrp::runtime;
-using namespace vrp::utils;
 using namespace vrp::test;
 
 namespace {
@@ -60,16 +58,17 @@ thrust::host_vector<Convolution> getResult(Solution& solution,
   vector<Convolution> resultData(expected);
   vector<JointPair> jointPairs(list.begin(), list.end());
 
-  auto runner = run_sliced_convolutions{solution.getShadow(),
-                                        {0.2, 0.2},
-                                        dimens,
-                                        jointPairs.data(),
-                                        allocate<ConvolutionResult>({0, resultData.data()})};
+  auto runner =
+    run_sliced_convolutions{solution.getShadow(),
+                            {0.2, 0.2},
+                            dimens,
+                            jointPairs.data(),
+                            vrp::runtime::allocate<ConvolutionResult>({0, resultData.data()})};
 
   thrust::for_each(exec_unit, thrust::make_counting_iterator(0), thrust::make_counting_iterator(1),
                    runner);
 
-  auto result = release(runner.result);
+  auto result = vrp::runtime::release(runner.result);
   thrust::host_vector<Convolution> data(result.second, result.second + result.first);
 
   return std::move(data);

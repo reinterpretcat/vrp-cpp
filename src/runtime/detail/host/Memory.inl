@@ -47,12 +47,17 @@ EXEC_UNIT void deallocate(T* ptr) {
   thrust::free(exec_unit_policy{}, ptr);
 }
 
-///  Deallocates dynamically allocated buffer and returns first item value.
+
+/// Allocates a new buffer in memory initializing with given value.
 template<typename T>
-EXEC_UNIT inline T release(vrp::runtime::vector_ptr<T>& ptr) {
-  T value = *ptr;
-  deallocate(ptr);
-  return value;
+ANY_EXEC_UNIT inline vector_ptr<T> allocate(const T& value) {
+  throw std::runtime_error("not implemented.");
+}
+
+/// Releases buffer returning its value.
+template<typename T>
+ANY_EXEC_UNIT inline T release(vector_ptr<T>& buffer) {
+  throw std::runtime_error("not implemented.");
 }
 
 }  // namespace runtime

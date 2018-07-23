@@ -3,7 +3,6 @@
 #include "algorithms/transitions/Executors.hpp"
 #include "algorithms/transitions/Factories.hpp"
 #include "iterators/Aggregates.hpp"
-#include "utils/memory/Allocations.hpp"
 
 #include <thrust/iterator/discard_iterator.h>
 #include <thrust/iterator/reverse_iterator.h>
@@ -14,7 +13,6 @@ using namespace vrp::algorithms::costs;
 using namespace vrp::iterators;
 using namespace vrp::models;
 using namespace vrp::runtime;
-using namespace vrp::utils;
 
 namespace {
 
@@ -59,7 +57,7 @@ __host__ float calculate_total_cost::operator()(Solution& solution, int index) c
   int start = solution.tasks.customers * index;
   int end = start + solution.tasks.customers;
 
-  auto model = vrp::utils::allocate<Model>({0, solution.getShadow()});
+  auto model = vrp::runtime::allocate<Model>({0, solution.getShadow()});
   auto iterator = thrust::make_zip_iterator(
     thrust::make_tuple(thrust::make_counting_iterator(0),
                        thrust::reverse_iterator<IntIterator>(solution.tasks.vehicles.data() + end),
@@ -73,5 +71,5 @@ __host__ float calculate_total_cost::operator()(Solution& solution, int index) c
       iterator,
       aggregate_cost{model.get(), solution.tasks.customers - 1, end - solution.tasks.customers}));
 
-  return vrp::utils::release(model).total;
+  return vrp::runtime::release(model).total;
 }

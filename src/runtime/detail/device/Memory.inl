@@ -52,11 +52,19 @@ EXEC_UNIT void deallocate(T* ptr) {
   thrust::free(thrust::device, ptr);
 }
 
-///  Deallocates dynamically allocated buffer and returns first item value.
+/// Allocates a new buffer in memory initializing with given value.
 template<typename T>
-EXEC_UNIT inline T release(T* ptr) {
-  T value = *ptr;
-  deallocate(ptr);
+ANY_EXEC_UNIT inline vector_ptr<T> allocate(const T& value) {
+  vector_ptr<T> pValue = thrust::device_malloc<T>(1);
+  *pValue = value;
+  return pValue;
+}
+
+/// Releases buffer returning its value.
+template<typename T>
+ANY_EXEC_UNIT inline T release(vector_ptr<T>& buffer) {
+  T value = *buffer;
+  thrust::device_free(buffer);
   return value;
 }
 

@@ -2,7 +2,6 @@
 #include "test_utils/ConvolutionUtils.hpp"
 #include "test_utils/TaskUtils.hpp"
 #include "test_utils/VectorUtils.hpp"
-#include "utils/memory/Allocations.hpp"
 
 #include <catch/catch.hpp>
 #include <thrust/execution_policy.h>
@@ -11,7 +10,6 @@
 using namespace vrp::algorithms::convolutions;
 using namespace vrp::models;
 using namespace vrp::runtime;
-using namespace vrp::utils;
 using namespace vrp::test;
 
 namespace {
@@ -68,14 +66,15 @@ Result getResult(Solution& solution,
   vector<Convolution> leftDev(left.begin(), left.end());
   vector<Convolution> rightDev(right.begin(), right.end());
 
-  auto runner = run_joint_convolutions{solution.getShadow(),
-                                       {0.75, 0.1},
-                                       {leftDev.size(), leftDev.data()},
-                                       {rightDev.size(), rightDev.data()},
-                                       allocate<JoinPairResult>({{0, 0}, resultData.data()})};
+  auto runner =
+    run_joint_convolutions{solution.getShadow(),
+                           {0.75, 0.1},
+                           {leftDev.size(), leftDev.data()},
+                           {rightDev.size(), rightDev.data()},
+                           vrp::runtime::allocate<JoinPairResult>({{0, 0}, resultData.data()})};
   thrust::for_each(exec_unit, thrust::make_counting_iterator(0), thrust::make_counting_iterator(1),
                    runner);
-  auto result = release(runner.result);
+  auto result = vrp::runtime::release(runner.result);
   thrust::host_vector<JointPair> data(result.second, result.second + expected);
 
   return {result.first, std::move(data)};

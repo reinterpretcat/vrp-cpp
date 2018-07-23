@@ -2,7 +2,6 @@
 #include "algorithms/transitions/Executors.hpp"
 #include "algorithms/transitions/Factories.hpp"
 #include "iterators/Aggregates.hpp"
-#include "utils/memory/Allocations.hpp"
 
 #include <thrust/functional.h>
 #include <thrust/transform_scan.h>
@@ -11,7 +10,6 @@ using namespace vrp::algorithms::costs;
 using namespace vrp::algorithms::transitions;
 using namespace vrp::models;
 using namespace vrp::runtime;
-using namespace vrp::utils;
 
 namespace {
 __host__ __device__ inline int moveToCustomer(const Transition& transition,
@@ -98,7 +96,7 @@ __host__ __device__ inline int moveToConvolution(const Transition& transition,
   const auto& details = transition.details;
   const auto& convolution = details.customer.get<Convolution>();
 
-  auto max = vrp::utils::allocate<int>(details.from);
+  auto max = vrp::runtime::allocate<int>(details.from);
   auto iterator = vrp::iterators::make_aggregate_output_iterator(
     vector<CustomerEntry>::iterator{}, process_convolution_task{problem, tasks, details, max});
 
@@ -107,7 +105,7 @@ __host__ __device__ inline int moveToConvolution(const Transition& transition,
     tasks.ids + convolution.base + convolution.tasks.second + 1, iterator,
     create_customer_entry{tasks, details}, calculate_seq_index{});
 
-  return vrp::utils::release(max);
+  return vrp::runtime::release(max);
 }
 
 }  // namespace

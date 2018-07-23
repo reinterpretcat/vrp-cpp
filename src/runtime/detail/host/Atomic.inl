@@ -8,7 +8,7 @@ __host__ inline void add(T* accumulator, T value) {
 
 template<typename T>
 __host__ inline void max(T* oldValue, T newValue) {
-
+  throw std::runtime_error("not implemented.");
 }
 
 
