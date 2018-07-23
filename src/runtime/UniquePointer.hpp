@@ -107,7 +107,7 @@ template<typename T, typename Deleter = default_delete<vector_ptr<T>>>
 EXEC_UNIT unique_ptr<vector_ptr<T>, Deleter> make_unique_ptr_data(size_t size) {
   auto buffer = allocate_data<T>(size);
   auto vectorPtr = new vector_ptr<T>(buffer);
-  return unique_ptr<vector_ptr<T>, Deleter>(vectorPtr, default_delete<vector_ptr<T>>{size});
+  return unique_ptr<vector_ptr<T>, Deleter>(vectorPtr, Deleter{size});
 }
 
 /// Creates unique pointer to hold single value.

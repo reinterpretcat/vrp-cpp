@@ -17,9 +17,9 @@ struct exec_unit_policy : thrust::host_execution_policy<exec_unit_policy> {};
 }  // namespace runtime
 }  // namespace vrp
 
+#include "runtime/detail/host/Atomic.inl"
 #include "runtime/detail/host/Containers.inl"
 #include "runtime/detail/host/Memory.inl"
-#include "runtime/detail/host/Atomic.inl"
 #include "runtime/detail/host/Operations.inl"
 
 

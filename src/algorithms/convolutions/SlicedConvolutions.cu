@@ -14,7 +14,7 @@ namespace {
 template<typename Iterator>
 EXEC_UNIT void swap_values(Iterator a, Iterator b) {
   // TODO why I cannot simply use Iterator::value_type or auto?
-  vector_ptr<int>::value_type tmp = *a;
+  vector<int>::value_type tmp = *a;
   *a = *b;
   *b = tmp;
 }

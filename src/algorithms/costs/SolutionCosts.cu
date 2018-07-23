@@ -71,5 +71,5 @@ __host__ float calculate_total_cost::operator()(Solution& solution, int index) c
       iterator,
       aggregate_cost{model.get(), solution.tasks.customers - 1, end - solution.tasks.customers}));
 
-  return vrp::runtime::release(model).total;
+  return vrp::runtime::release<Model>(model).total;
 }
