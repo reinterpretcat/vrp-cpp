@@ -54,7 +54,6 @@ set(HEADER_FILES
         streams/output/MatrixTextWriter.hpp
 
         utils/geo/Resolvers.hpp
-        utils/memory/Allocations.hpp
         utils/validation/SolutionChecker.hpp
         )
 
