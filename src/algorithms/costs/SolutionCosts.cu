@@ -45,9 +45,7 @@ struct aggregate_cost final {
       calculate_transition_cost(model->solution.problem, model->solution.tasks)(transition);
     auto routeCost = cost + returnCost;
 
-    // NOTE to use atomicAdd, variable has to be allocated in device memory,
-    // not in registers
-    atomicAdd(&model->total, routeCost);
+    vrp::runtime::add(&model->total, routeCost);
   }
 };
 

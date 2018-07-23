@@ -86,7 +86,7 @@ struct process_convolution_task final {
 
     auto nextTask = moveToCustomer(transition, cost, tasks);
 
-    atomicMax(max.get(), nextTask);
+    vrp::runtime::max(max.get(), nextTask);
 
     return {};
   }

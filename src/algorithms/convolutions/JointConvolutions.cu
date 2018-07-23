@@ -20,7 +20,7 @@ struct create_joint_pair final {
   struct count_equal_pairs final {
     int* total;
     EXEC_UNIT int operator()(int l, int r) {
-      if (l == r) atomicAdd(total, 1);
+      if (l == r) vrp::runtime::add(total, 1);
       return 0;
     }
   };

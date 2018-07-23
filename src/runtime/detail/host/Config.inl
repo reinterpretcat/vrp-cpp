@@ -1,6 +1,8 @@
 #ifndef VRP_RUNTIME_DETAIL_HOST_CONFIG_HPP
 #define VRP_RUNTIME_DETAIL_HOST_CONFIG_HPP
 
+#include "runtime/detail/host/Atomic.inl"
+
 #include <thrust/execution_policy.h>
 
 namespace vrp {

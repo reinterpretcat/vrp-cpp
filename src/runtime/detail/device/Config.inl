@@ -1,6 +1,8 @@
 #ifndef VRP_RUNTIME_DETAIL_DEVICE_CONFIG_HPP
 #define VRP_RUNTIME_DETAIL_DEVICE_CONFIG_HPP
 
+#include "runtime/detail/device/Atomic.inl"
+
 #include <thrust/device_vector.h>
 #include <thrust/execution_policy.h>
 
