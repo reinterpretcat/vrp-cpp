@@ -8,6 +8,12 @@ namespace runtime {
 
 // TODO cache memory
 
+/// Casts vector_ptr to raw pointer
+template <typename T>
+__host__ __device__ inline T* raw_pointer_cast(vector_ptr<T>& ptr) {
+  return ptr.get();
+}
+
 /// Allocates temporary buffer.
 template<typename T>
 thrust::pair<thrust::pointer<T, exec_unit_policy>, std::ptrdiff_t> get_temporary_buffer(

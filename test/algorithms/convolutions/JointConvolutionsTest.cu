@@ -49,11 +49,13 @@ struct run_joint_convolutions final {
     auto joinPairs = create_joint_convolutions{solution}(
       settings, {left.first, std::move(leftPooled)}, {right.first, std::move(rightPooled)});
 
+    auto resultPtr = raw_pointer_cast(result);
+
     thrust::copy(exec_unit_policy{}, *joinPairs.data,
                  *joinPairs.data + joinPairs.dimens.first * joinPairs.dimens.second,
-                 result.get()->second);
+                 resultPtr->second);
 
-    result.get()->first = joinPairs.dimens;
+    resultPtr->first = joinPairs.dimens;
   };
 };
 
@@ -74,7 +76,7 @@ Result getResult(Solution& solution,
                            vrp::runtime::allocate<JoinPairResult>({{0, 0}, resultData.data()})};
   thrust::for_each(exec_unit, thrust::make_counting_iterator(0), thrust::make_counting_iterator(1),
                    runner);
-  auto result = vrp::runtime::release(runner.result);
+  auto result = vrp::runtime::release<JoinPairResult>(runner.result);
   thrust::host_vector<JointPair> data(result.second, result.second + expected);
 
   return {result.first, std::move(data)};

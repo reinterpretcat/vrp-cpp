@@ -58,7 +58,7 @@ ANY_EXEC_UNIT inline vector_ptr<T> allocate(const T& value) {
 
 /// Releases buffer returning its value.
 template<typename T>
-ANY_EXEC_UNIT inline T release(vector_ptr<T>& buffer) {
+ANY_EXEC_UNIT inline T release(vector_ptr<T> buffer) {
   // throw std::runtime_error("not implemented.");
   return T();
 }

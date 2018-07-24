@@ -4,6 +4,8 @@
 
 using namespace vrp::runtime;
 
+#ifdef RUN_ON_DEVICE
+
 namespace {
 __global__ void useUniquePointer() {
   auto singleInt = make_unique_ptr_value<int>();
@@ -16,3 +18,5 @@ SCENARIO("Can use unique pointer on device", "[utils][memory][device][pointer]")
   useUniquePointer<<<1, 1, 0>>>();
   cudaStreamSynchronize(0);
 }
+
+#endif

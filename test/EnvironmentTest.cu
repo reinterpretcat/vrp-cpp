@@ -5,6 +5,8 @@
 #include <thrust/sequence.h>
 #include <thrust/transform.h>
 
+#ifdef RUN_ON_DEVICE
+
 namespace {
 
 struct Saxpy {
@@ -16,7 +18,8 @@ struct Saxpy {
 };
 }  // namespace
 
-SCENARIO("Can perform SAXPY operation", "[environment]") {
+
+SCENARIO("Can perform SAXPY operation", "[environment][device]") {
   const int N = 10;
   thrust::device_vector<float> d_x(N);
   thrust::device_vector<float> d_y(N);
@@ -31,3 +34,5 @@ SCENARIO("Can perform SAXPY operation", "[environment]") {
   CHECK_THAT(result,
              Catch::Matchers::Equals(std::vector<float>{2, 5, 8, 11, 14, 17, 20, 23, 26, 29}));
 }
+
+#endif

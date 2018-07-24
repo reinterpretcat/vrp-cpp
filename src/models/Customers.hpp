@@ -10,10 +10,10 @@ namespace models {
 struct Customers final {
   /// Stores pointers to data.
   struct Shadow final {
-    vrp::runtime::vector_ptr<const int> demands;
-    vrp::runtime::vector_ptr<const int> services;
-    vrp::runtime::vector_ptr<const int> starts;
-    vrp::runtime::vector_ptr<const int> ends;
+    vrp::runtime::vector_const_ptr<int> demands;
+    vrp::runtime::vector_const_ptr<int> services;
+    vrp::runtime::vector_const_ptr<int> starts;
+    vrp::runtime::vector_const_ptr<int> ends;
   };
 
   /// Customer demand.

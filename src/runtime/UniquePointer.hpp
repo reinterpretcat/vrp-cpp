@@ -17,19 +17,6 @@ struct default_delete final {
   }
 };
 
-/// Default deleter for vector_ptr
-template<typename T>
-struct default_delete<vector_ptr<T>> final {
-  size_t size;
-
-  EXEC_UNIT void operator()(vector_ptr<T>* ptr) const {
-    // TODO is memory allocated with make_unique_ptr_data cleaned fully?
-    printf("default_delete: deallocate vector_ptr of size=%d\n", static_cast<int>(size));
-    deallocate(ptr->get());
-    deallocate(ptr);
-  }
-};
-
 /// Default deleter for arrays.
 template<typename T>
 struct default_delete<T[]> final {
@@ -107,7 +94,7 @@ template<typename T, typename Deleter = default_delete<vector_ptr<T>>>
 EXEC_UNIT unique_ptr<vector_ptr<T>, Deleter> make_unique_ptr_data(size_t size) {
   auto buffer = allocate_data<T>(size);
   auto vectorPtr = new vector_ptr<T>(buffer);
-  return unique_ptr<vector_ptr<T>, Deleter>(vectorPtr, Deleter{size});
+  return unique_ptr<vector_ptr<T>, Deleter>(vectorPtr, Deleter{});
 }
 
 /// Creates unique pointer to hold single value.

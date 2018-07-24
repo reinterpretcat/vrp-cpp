@@ -24,7 +24,7 @@ struct Model final {
 
 /// Aggregates all costs.
 struct aggregate_cost final {
-  Model* model;
+  vector_ptr<Model> model;
   int lastCustomer;
   int base;
 
@@ -37,13 +37,16 @@ struct aggregate_cost final {
     auto depot = variant<int, Convolution>();
     depot.set<int>(0);
 
+    auto modelPtr = vrp::runtime::raw_pointer_cast<Model>(model);
+    auto solution = modelPtr->solution;
+
     auto details = Transition::Details{base, task, -1, depot, vehicle};
-    auto transition = create_transition(model->solution.problem, model->solution.tasks)(details);
+    auto transition = create_transition(solution.problem, solution.tasks)(details);
     auto returnCost =
-      calculate_transition_cost(model->solution.problem, model->solution.tasks)(transition);
+      calculate_transition_cost(solution.problem, solution.tasks)(transition);
     auto routeCost = cost + returnCost;
 
-    vrp::runtime::add(&model->total, routeCost);
+    vrp::runtime::add(&modelPtr->total, routeCost);
   }
 };
 
@@ -67,9 +70,8 @@ __host__ float calculate_total_cost::operator()(Solution& solution, int index) c
     exec_unit, thrust::reverse_iterator<IntIterator>(solution.tasks.vehicles.data() + end),
     thrust::reverse_iterator<IntIterator>(solution.tasks.vehicles.data() + start), iterator,
     thrust::make_discard_iterator(),
-    make_aggregate_output_iterator(
-      iterator,
-      aggregate_cost{model.get(), solution.tasks.customers - 1, end - solution.tasks.customers}));
+    make_aggregate_output_iterator(iterator, aggregate_cost{model, solution.tasks.customers - 1,
+                                                            end - solution.tasks.customers}));
 
   return vrp::runtime::release<Model>(model).total;
 }

@@ -12,14 +12,14 @@ struct vector_allocator : std::allocator<T> {
   typedef typename super_t::size_type size_type;
 
   pointer allocate(size_type n) {
-    std::cout << "vector_allocator::allocate() host" << std::endl;
+    std::cout << "vector_allocator::allocate() on host " << n << " bytes" << std::endl;
 
     return super_t::allocate(n);
   }
 
   // customize deallocate
   void deallocate(pointer p, size_type n) {
-    std::cout << "vector_allocator::deallocate() host" << std::endl;
+    std::cout << "vector_allocator::deallocate() on host " << n << "bytes" << std::endl;
 
     super_t::deallocate(p, n);
   }
@@ -34,6 +34,11 @@ using vector = thrust::host_vector<T, detail::vector_allocator<T>>;
 /// Alias for host vector pointer.
 template<typename T>
 using vector_ptr = typename vector<T>::pointer;
+
+/// Alias for host vector const pointer.
+template<typename T>
+using vector_const_ptr = typename vector<T>::const_pointer;
+
 
 }  // namespace runtime
 }  // namespace vrp

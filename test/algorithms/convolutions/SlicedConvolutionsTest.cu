@@ -44,9 +44,10 @@ struct run_sliced_convolutions final {
 
     auto sliced = create_sliced_convolutions{solution}({0.2, 0.2}, {dimens, std::move(jointPairs)});
 
-    thrust::copy(exec_unit_policy{}, *sliced.data, *sliced.data + sliced.size,
-                 result.get()->second);
-    result.get()->first = sliced.size;
+    auto resultPtr = raw_pointer_cast(result);
+
+    thrust::copy(exec_unit_policy{}, *sliced.data, *sliced.data + sliced.size, resultPtr->second);
+    resultPtr->first = sliced.size;
   }
 };
 
@@ -68,7 +69,7 @@ thrust::host_vector<Convolution> getResult(Solution& solution,
   thrust::for_each(exec_unit, thrust::make_counting_iterator(0), thrust::make_counting_iterator(1),
                    runner);
 
-  auto result = vrp::runtime::release(runner.result);
+  auto result = vrp::runtime::release<ConvolutionResult>(runner.result);
   thrust::host_vector<Convolution> data(result.second, result.second + result.first);
 
   return std::move(data);

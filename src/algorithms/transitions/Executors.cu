@@ -84,7 +84,7 @@ struct process_convolution_task final {
 
     auto nextTask = moveToCustomer(transition, cost, tasks);
 
-    vrp::runtime::max(max.get(), nextTask);
+    vrp::runtime::max(raw_pointer_cast(max), nextTask);
 
     return {};
   }
@@ -105,7 +105,7 @@ __host__ __device__ inline int moveToConvolution(const Transition& transition,
     tasks.ids + convolution.base + convolution.tasks.second + 1, iterator,
     create_customer_entry{tasks, details}, calculate_seq_index{});
 
-  return vrp::runtime::release(max);
+  return vrp::runtime::release<int>(max);
 }
 
 }  // namespace

@@ -30,9 +30,13 @@ struct vector_allocator : thrust::device_malloc_allocator<T> {
 template<typename T>
 using vector = thrust::device_vector<T, detail::vector_allocator<T>>;
 
-/// Alias for device vector pointer.
+/// Alias for host vector pointer.
 template<typename T>
-using vector_ptr = thrust::device_ptr<T>;
+using vector_ptr = typename vector<T>::pointer;
+
+/// Alias for host vector const pointer.
+template<typename T>
+using vector_const_ptr = typename vector<T>::const_pointer;
 
 }  // namespace runtime
 }  // namespace vrp

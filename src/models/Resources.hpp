@@ -11,12 +11,12 @@ struct Resources final {
   /// Stores device pointers to data.
   struct Shadow final {
     int vehicles;
-    vrp::runtime::vector_ptr<const int> capacities;
-    vrp::runtime::vector_ptr<const float> distanceCosts;
-    vrp::runtime::vector_ptr<const float> timeCosts;
-    vrp::runtime::vector_ptr<const float> waitingCosts;
-    vrp::runtime::vector_ptr<const float> fixedCosts;
-    vrp::runtime::vector_ptr<const int> timeLimits;
+    vrp::runtime::vector_const_ptr<int> capacities;
+    vrp::runtime::vector_const_ptr<float> distanceCosts;
+    vrp::runtime::vector_const_ptr<float> timeCosts;
+    vrp::runtime::vector_const_ptr<float> waitingCosts;
+    vrp::runtime::vector_const_ptr<float> fixedCosts;
+    vrp::runtime::vector_const_ptr<int> timeLimits;
   };
 
   /// Maximum vehicle capacity (units).

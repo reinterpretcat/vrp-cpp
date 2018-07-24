@@ -10,8 +10,8 @@ namespace models {
 struct RoutingMatrix final {
   /// Stores device pointers to data.
   struct Shadow {
-    vrp::runtime::vector_ptr<const float> distances;
-    vrp::runtime::vector_ptr<const int> durations;
+    vrp::runtime::vector_const_ptr<float> distances;
+    vrp::runtime::vector_const_ptr<int> durations;
   };
 
   /// Matrix of distances.
