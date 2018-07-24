@@ -84,7 +84,7 @@ struct process_convolution_task final {
 
     auto nextTask = moveToCustomer(transition, cost, tasks);
 
-    vrp::runtime::max(raw_pointer_cast(max), nextTask);
+    vrp::runtime::max(vrp::runtime::raw_pointer_cast<int>(max), nextTask);
 
     return {};
   }

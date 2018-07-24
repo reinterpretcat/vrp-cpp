@@ -6,6 +6,11 @@ namespace vrp {
 namespace runtime {
 
 // TODO cache memory
+/// Casts vector_ptr to raw pointer
+template <typename T>
+ANY_EXEC_UNIT inline T* raw_pointer_cast(vector_ptr<T>& ptr) {
+  return static_cast<T*>(ptr);
+}
 
 template<typename T>
 thrust::pair<thrust::pointer<T, exec_unit_policy>, std::ptrdiff_t> get_temporary_buffer(
