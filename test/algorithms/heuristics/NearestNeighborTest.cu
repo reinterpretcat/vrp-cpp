@@ -33,7 +33,7 @@ SCENARIO("Can find best transition on solution using convolutions.",
          "[heuristics][construction][NearestNeighbor][convolutions]") {
   auto stream = create_shuffled_coordinates{}();
   auto solution = createPopulation<nearest_neighbor>(stream, 1);
-  thrust::fill(thrust::device, solution.tasks.plan.begin() + 3, solution.tasks.plan.end(),
+  thrust::fill(exec_unit, solution.tasks.plan.begin() + 3, solution.tasks.plan.end(),
                Plan::reserve(0));
   auto convolution = Convolution{0, 3, 30, {5, 4}, {0, 35}, {3, 5}};
   auto convolutions = create({convolution});

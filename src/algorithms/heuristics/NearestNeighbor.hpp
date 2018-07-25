@@ -9,7 +9,7 @@ namespace heuristics {
 
 /// Implements algorithm of nearest neighbor heuristic.
 struct nearest_neighbor final {
-  const Context& context;
+  const Context context;
 
   __host__ __device__ explicit nearest_neighbor(const Context& context) : context(context) {}
 

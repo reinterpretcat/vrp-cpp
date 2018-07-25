@@ -57,15 +57,17 @@ EXEC_UNIT void deallocate(T* ptr) {
 /// Allocates a new buffer in memory initializing with given value.
 template<typename T>
 ANY_EXEC_UNIT inline vector_ptr<T> allocate(const T& value) {
-  // throw std::runtime_error("not implemented.");
-  return vector_ptr<T>();
+  vector_ptr<T> pValue = vector_ptr<T>(thrust::malloc<T>(exec_unit_policy{}, 1).get());
+  *pValue = value;
+  return pValue;
 }
 
 /// Releases buffer returning its value.
 template<typename T>
 ANY_EXEC_UNIT inline T release(vector_ptr<T> buffer) {
-  // throw std::runtime_error("not implemented.");
-  return T();
+  T value = *buffer;
+  thrust::free(exec_unit_policy{}, buffer);
+  return value;
 }
 
 }  // namespace runtime

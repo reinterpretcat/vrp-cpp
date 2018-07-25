@@ -41,9 +41,9 @@ struct aggregate_cost final {
     auto solution = modelPtr->solution;
 
     auto details = Transition::Details{base, task, -1, depot, vehicle};
-    auto transition = create_transition(solution.problem, solution.tasks)(details);
+    auto transition = create_transition{solution.problem, solution.tasks}(details);
     auto returnCost =
-      calculate_transition_cost(solution.problem, solution.tasks)(transition);
+      calculate_transition_cost{solution.problem, solution.tasks}(transition);
     auto routeCost = cost + returnCost;
 
     vrp::runtime::add(&modelPtr->total, routeCost);

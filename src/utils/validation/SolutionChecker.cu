@@ -123,9 +123,9 @@ struct check_tours final {
     auto tasks =
       Tasks(solution.problem.size(), solution.tasks.population() * solution.problem.size());
 
-    auto factory = create_transition(solution.problem.getShadow(), tasks.getShadow());
-    auto executor = perform_transition(solution.problem.getShadow(), tasks.getShadow());
-    auto costs = calculate_transition_cost(solution.problem.getShadow(), tasks.getShadow());
+    auto factory = create_transition{solution.problem.getShadow(), tasks.getShadow()};
+    auto executor = perform_transition{solution.problem.getShadow(), tasks.getShadow()};
+    auto costs = calculate_transition_cost{solution.problem.getShadow(), tasks.getShadow()};
 
     int from = 0;
     int to = from + 1;

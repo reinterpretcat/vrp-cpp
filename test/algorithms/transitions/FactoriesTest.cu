@@ -27,7 +27,7 @@ SCENARIO("Can create transition from convolution.", "[transitions][convolutions]
   auto details = Transition::Details{0, 2, 3, variant, 0};
 
   auto transition =
-    create_transition(solution.problem.getShadow(), solution.tasks.getShadow())(details);
+    create_transition{solution.problem.getShadow(), solution.tasks.getShadow()}(details);
 
   REQUIRE(transition.isValid());
   REQUIRE(transition.details.customer.is<Convolution>());

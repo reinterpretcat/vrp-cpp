@@ -23,9 +23,9 @@ namespace {
 struct create_roots {
   create_roots(const Problem& problem, Tasks& tasks, const Settings& settings) :
     problem(problem.getShadow()), tasks(tasks.getShadow()), populationSize(settings.populationSize),
-    getCost(problem.getShadow(), tasks.getShadow()),
-    createTransition(problem.getShadow(), tasks.getShadow()),
-    performTransition(problem.getShadow(), tasks.getShadow()) {}
+    getCost {problem.getShadow(), tasks.getShadow()},
+    createTransition {problem.getShadow(), tasks.getShadow()},
+    performTransition{problem.getShadow(), tasks.getShadow()} {}
 
   __host__ __device__ void operator()(int individuum) {
     int customer = getCustomer(individuum);

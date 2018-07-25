@@ -13,10 +13,9 @@ namespace transitions {
 
 /// Creates transition between customers.
 struct create_transition final {
-  __host__ __device__ explicit create_transition(const vrp::models::Problem::Shadow problem,
-                                                 const vrp::models::Tasks::Shadow tasks) :
-    problem(problem),
-    tasks(tasks) {}
+
+  const vrp::models::Problem::Shadow problem;
+  const vrp::models::Tasks::Shadow tasks;
 
   // TODO remove this method to avoid confusion
   __host__ __device__ vrp::models::Transition operator()(
@@ -26,9 +25,6 @@ struct create_transition final {
     const vrp::models::Transition::Details& details,
     const vrp::models::Transition::State& state) const;
 
-private:
-  const vrp::models::Problem::Shadow problem;
-  const vrp::models::Tasks::Shadow tasks;
 };
 
 }  // namespace transitions
