@@ -9,7 +9,7 @@ namespace runtime {
 // TODO cache memory
 
 /// Casts vector_ptr to raw pointer
-template <typename T>
+template<typename T>
 __host__ __device__ inline T* raw_pointer_cast(vector_ptr<T>& ptr) {
   return ptr.get();
 }

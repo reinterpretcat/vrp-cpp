@@ -36,21 +36,17 @@ struct VariantHelper;
 
 template<class Union, class T, class... Ts>
 struct VariantHelper<Union, T, Ts...> {
-  __host__ __device__ inline static void destroy(std::size_t index, Union* data);
-  __host__ __device__ inline static void move(std::size_t index, Union* oldValue, Union* newValue);
-  __host__ __device__ inline static void copy(std::size_t index,
-                                              const Union* oldValue,
-                                              Union* new_v);
+  ANY_EXEC_UNIT inline static void destroy(std::size_t index, Union* data);
+  ANY_EXEC_UNIT inline static void move(std::size_t index, Union* oldValue, Union* newValue);
+  ANY_EXEC_UNIT inline static void copy(std::size_t index, const Union* oldValue, Union* new_v);
 };
 
 template<class Union>
 struct VariantHelper<Union> {
-  __host__ __device__ inline static void destroy(std::size_t index, Union* data) {}
-  __host__ __device__ inline static void move(std::size_t index, Union* oldValue, Union* newValue) {
+  ANY_EXEC_UNIT inline static void destroy(std::size_t index, Union* data) {}
+  ANY_EXEC_UNIT inline static void move(std::size_t index, Union* oldValue, Union* newValue) {}
+  ANY_EXEC_UNIT inline static void copy(std::size_t index, const Union* oldValue, Union* newValue) {
   }
-  __host__ __device__ inline static void copy(std::size_t index,
-                                              const Union* oldValue,
-                                              Union* newValue) {}
 };
 
 }  // namespace detail

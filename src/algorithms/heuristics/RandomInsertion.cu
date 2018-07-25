@@ -57,10 +57,10 @@ EXEC_UNIT inline Transition::State restore_state(const Context& context,
 
 /// Finds next random customer to serve.
 struct find_random_customer final {
-  __host__ __device__ explicit find_random_customer(const Tasks::Shadow tasks) :
+  ANY_EXEC_UNIT explicit find_random_customer(const Tasks::Shadow tasks) :
     tasks(tasks), dist(0, tasks.customers), rng() {}
 
-  __host__ __device__ int operator()() {
+  ANY_EXEC_UNIT int operator()() {
     auto start = dist(rng);
     auto customer = start;
     bool increment = start % 2 == 0;
@@ -172,7 +172,7 @@ struct find_insertion_point final {
   const TransitionOp transitionOp;
 
   /// @returns Task index from which to perform transition.
-  __host__ __device__ int operator()(const SearchContext& search, int to) {
+  ANY_EXEC_UNIT int operator()(const SearchContext& search, int to) {
     auto iterator = thrust::make_zip_iterator(thrust::make_tuple(thrust::make_counting_iterator(0),
                                                                  thrust::make_constant_iterator(0),
                                                                  search.context.tasks.vehicles));

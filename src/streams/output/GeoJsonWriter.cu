@@ -1,3 +1,4 @@
+#include "runtime/Config.hpp"
 #include "streams/output/GeoJsonWriter.hpp"
 
 #include <algorithm>
@@ -119,7 +120,7 @@ struct materialize_solution final {
       std::bind(&mergeTour, _1, _2));
   }
 
-  __host__ __device__ Job operator()(const Job& item) { return item; }
+  ANY_EXEC_UNIT Job operator()(const Job& item) { return item; }
 
   /// Gets all jobs in sorted by vehicle order.
   thrust::host_vector<Job> getJobs(int solution) {

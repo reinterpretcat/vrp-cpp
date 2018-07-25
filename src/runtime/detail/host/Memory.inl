@@ -7,7 +7,7 @@ namespace runtime {
 
 // TODO cache memory
 /// Casts vector_ptr to raw pointer
-template <typename T>
+template<typename T>
 ANY_EXEC_UNIT inline T* raw_pointer_cast(vector_ptr<T>& ptr) {
   return static_cast<T*>(ptr);
 }

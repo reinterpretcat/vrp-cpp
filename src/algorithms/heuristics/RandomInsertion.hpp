@@ -11,7 +11,7 @@ namespace heuristics {
 template<typename TransitionOp>
 struct random_insertion final {
   /// Populates individuum with given index starting from task defined by shift.
-  __host__ __device__ void operator()(const Context& context, int index, int shift);
+  ANY_EXEC_UNIT void operator()(const Context& context, int index, int shift);
 };
 
 }  // namespace heuristics

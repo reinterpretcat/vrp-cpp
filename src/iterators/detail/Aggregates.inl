@@ -1,4 +1,5 @@
 #include "iterators/Aggregates.hpp"
+#include "runtime/Config.hpp"
 
 #include <thrust/detail/use_default.h>
 #include <thrust/iterator/detail/discard_iterator_base.h>
@@ -18,10 +19,10 @@ class aggregate_output_iterator_proxy {
   UnaryFunction& fun;
 
 public:
-  __host__ __device__ aggregate_output_iterator_proxy(UnaryFunction fun) : fun(fun) {}
+  ANY_EXEC_UNIT aggregate_output_iterator_proxy(UnaryFunction fun) : fun(fun) {}
 
   template<typename T>
-  __host__ __device__ aggregate_output_iterator_proxy operator=(const T& x) const {
+  ANY_EXEC_UNIT aggregate_output_iterator_proxy operator=(const T& x) const {
     fun(x);
     return *this;
   }

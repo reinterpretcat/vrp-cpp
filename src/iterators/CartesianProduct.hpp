@@ -1,6 +1,8 @@
 #ifndef VRP_ITERATORS_CARTESIANPRODUCTITERATOR_HPP
 #define VRP_ITERATORS_CARTESIANPRODUCTITERATOR_HPP
 
+#include "runtime/Config.hpp"
+
 #include <thrust/device_vector.h>
 #include <thrust/fill.h>
 #include <thrust/functional.h>
@@ -19,11 +21,9 @@ public:
   struct repeat_functor : public thrust::unary_function<difference_type, difference_type> {
     int repeats;
 
-    __host__ __device__ repeat_functor(difference_type repeats) : repeats(repeats) {}
+    ANY_EXEC_UNIT repeat_functor(difference_type repeats) : repeats(repeats) {}
 
-    __host__ __device__ difference_type operator()(const difference_type& i) const {
-      return i / repeats;
-    }
+    ANY_EXEC_UNIT difference_type operator()(const difference_type& i) const { return i / repeats; }
   };
 
   typedef typename thrust::counting_iterator<difference_type> CountingIterator;
@@ -34,15 +34,15 @@ public:
   typedef PermutationIterator iterator;
 
   // construct repeated_range for the range [first,last)
-  __host__ __device__ repeated_range(Iterator first, Iterator last, size_t repeats) :
+  ANY_EXEC_UNIT repeated_range(Iterator first, Iterator last, size_t repeats) :
     first(first), last(last), repeats(repeats) {}
 
-  __host__ __device__ iterator begin(void) const {
+  ANY_EXEC_UNIT iterator begin(void) const {
     return PermutationIterator(first,
                                TransformIterator(CountingIterator(0), repeat_functor(repeats)));
   }
 
-  __host__ __device__ iterator end(void) const { return begin() + repeats * (last - first); }
+  ANY_EXEC_UNIT iterator end(void) const { return begin() + repeats * (last - first); }
 
 protected:
   size_t repeats;
@@ -58,9 +58,9 @@ public:
   struct tile_functor : public thrust::unary_function<difference_type, difference_type> {
     difference_type tile_size;
 
-    __host__ __device__ tile_functor(difference_type tile_size) : tile_size(tile_size) {}
+    ANY_EXEC_UNIT tile_functor(difference_type tile_size) : tile_size(tile_size) {}
 
-    __host__ __device__ difference_type operator()(const difference_type& i) const {
+    ANY_EXEC_UNIT difference_type operator()(const difference_type& i) const {
       return i % tile_size;
     }
   };
@@ -73,15 +73,15 @@ public:
   typedef PermutationIterator iterator;
 
   // construct repeated_range for the range [first,last)
-  __host__ __device__ tiled_range(Iterator first, Iterator last, size_t tiles) :
+  ANY_EXEC_UNIT tiled_range(Iterator first, Iterator last, size_t tiles) :
     first(first), last(last), tiles(tiles) {}
 
-  __host__ __device__ iterator begin(void) const {
+  ANY_EXEC_UNIT iterator begin(void) const {
     return PermutationIterator(first,
                                TransformIterator(CountingIterator(0), tile_functor(last - first)));
   }
 
-  __host__ __device__ iterator end(void) const { return begin() + tiles * (last - first); }
+  ANY_EXEC_UNIT iterator end(void) const { return begin() + tiles * (last - first); }
 
 protected:
   size_t tiles;

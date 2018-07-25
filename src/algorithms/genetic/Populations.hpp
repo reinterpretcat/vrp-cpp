@@ -28,7 +28,7 @@ struct create_individuum final {
   const vrp::runtime::vector_ptr<vrp::models::Convolution> convolutions;
   int shift;
 
-  __host__ __device__ void operator()(int index);
+  ANY_EXEC_UNIT void operator()(int index);
 };
 
 }  // namespace genetic

@@ -2,6 +2,7 @@
 #define VRP_ALGORITHMS_DISTANCES_GEOGRAPHIC_HPP
 
 #include "models/Locations.hpp"
+#include "runtime/Config.hpp"
 
 #include <cmath>
 #include <thrust/execution_policy.h>
@@ -14,8 +15,8 @@ namespace distances {
 /// Calculates geo distance between two coordinates.
 template<unsigned int ScaleDown = static_cast<unsigned int>(1E8)>
 struct geographic_distance final {
-  __host__ __device__ float operator()(const vrp::models::DeviceGeoCoord& left,
-                                       const vrp::models::DeviceGeoCoord& right) {
+  ANY_EXEC_UNIT float operator()(const vrp::models::DeviceGeoCoord& left,
+                                 const vrp::models::DeviceGeoCoord& right) {
     double leftLon = thrust::get<0>(left) / ScaleDown;
     double leftLat = thrust::get<1>(left) / ScaleDown;
     double rightLon = thrust::get<0>(right) / ScaleDown;
@@ -39,7 +40,7 @@ struct geographic_distance final {
 
 private:
   /// Earth radius at a given latitude, according to the WGS-84 ellipsoid [m].
-  __host__ __device__ double wgs84EarthRadius(double lat) {
+  ANY_EXEC_UNIT double wgs84EarthRadius(double lat) {
     // Semi-axes of WGS-84 geoidal reference
     const double WGS84_a = 6378137.0;  // Major semiaxis [m]
     const double WGS84_b = 6356752.3;  // Minor semiaxis [m]
@@ -53,7 +54,7 @@ private:
   }
 
   /// Converts degrees to radians.
-  __host__ __device__ inline double deg2Rad(double degrees) { return M_PI * degrees / 180.0; }
+  ANY_EXEC_UNIT inline double deg2Rad(double degrees) { return M_PI * degrees / 180.0; }
 };
 
 }  // namespace distances

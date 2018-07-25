@@ -12,9 +12,9 @@ using namespace vrp::models;
 using namespace vrp::runtime;
 
 namespace {
-__host__ __device__ inline int moveToCustomer(const Transition& transition,
-                                              float cost,
-                                              const Tasks::Shadow& tasks) {
+ANY_EXEC_UNIT inline int moveToCustomer(const Transition& transition,
+                                        float cost,
+                                        const Tasks::Shadow& tasks) {
   const auto& details = transition.details;
   const auto& delta = transition.delta;
   int customer = details.customer.get<int>();
@@ -90,9 +90,9 @@ struct process_convolution_task final {
   }
 };
 
-__host__ __device__ inline int moveToConvolution(const Transition& transition,
-                                                 const Problem::Shadow& problem,
-                                                 const Tasks::Shadow& tasks) {
+ANY_EXEC_UNIT inline int moveToConvolution(const Transition& transition,
+                                           const Problem::Shadow problem,
+                                           const Tasks::Shadow tasks) {
   const auto& details = transition.details;
   const auto& convolution = details.customer.get<Convolution>();
 
@@ -110,8 +110,7 @@ __host__ __device__ inline int moveToConvolution(const Transition& transition,
 
 }  // namespace
 
-__host__ __device__ int perform_transition::operator()(const Transition& transition,
-                                                       float cost) const {
+ANY_EXEC_UNIT int perform_transition::operator()(const Transition& transition, float cost) const {
   return transition.details.customer.is<Convolution>()
            ? moveToConvolution(transition, problem, tasks)
            : moveToCustomer(transition, cost, tasks);

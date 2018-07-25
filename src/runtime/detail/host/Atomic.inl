@@ -15,8 +15,7 @@ __host__ inline void add(T* accumulator, T value) {
 template<typename T>
 __host__ inline void max(T* oldValue, T newValue) {
   std::lock_guard<std::mutex> lock{mx};
-  if (*oldValue < newValue)
-    *oldValue = newValue;
+  if (*oldValue < newValue) *oldValue = newValue;
 }
 
 

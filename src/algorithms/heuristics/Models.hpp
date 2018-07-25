@@ -48,31 +48,30 @@ struct TransitionDelegate final {
   CostFactory costFactory;
   TransitionExecutor transitionExecutor;
 
-  __host__ __device__ TransitionDelegate(const vrp::models::Problem::Shadow problem,
-                                         vrp::models::Tasks::Shadow tasks) :
+  ANY_EXEC_UNIT TransitionDelegate(const vrp::models::Problem::Shadow problem,
+                                   vrp::models::Tasks::Shadow tasks) :
     transitionFactory{problem, tasks},
     costFactory{problem, tasks}, transitionExecutor{problem, tasks} {}
 
   /// Creates transition from details.
-  __host__ __device__ vrp::models::Transition create(
+  ANY_EXEC_UNIT vrp::models::Transition create(
     const vrp::models::Transition::Details& details) const {
     return transitionFactory(details);
   }
 
   /// Creates transition from details and state.
-  __host__ __device__ vrp::models::Transition create(
-    const vrp::models::Transition::Details& details,
-    const vrp::models::Transition::State& state) const {
+  ANY_EXEC_UNIT vrp::models::Transition create(const vrp::models::Transition::Details& details,
+                                               const vrp::models::Transition::State& state) const {
     return transitionFactory(details, state);
   }
 
   /// Estimates cost of performing transition.
-  __host__ __device__ float estimate(const vrp::models::Transition& transition) const {
+  ANY_EXEC_UNIT float estimate(const vrp::models::Transition& transition) const {
     return costFactory(transition);
   }
 
   /// Performs transition within cost and returns last task.
-  __host__ __device__ int perform(const vrp::models::Transition& transition, float cost) const {
+  ANY_EXEC_UNIT int perform(const vrp::models::Transition& transition, float cost) const {
     return transitionExecutor(transition, cost);
   }
 };

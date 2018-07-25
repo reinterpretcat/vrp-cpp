@@ -5,6 +5,8 @@
 
 using namespace vrp::runtime;
 
+#ifdef RUN_ON_DEVICE
+
 namespace {
 
 __global__ void useDeviceVariant() {
@@ -27,3 +29,5 @@ SCENARIO("Can use device variant on device", "[utils][types][device][variant]") 
   useDeviceVariant<<<1, 1, 0>>>();
   cudaStreamSynchronize(0);
 }
+
+#endif

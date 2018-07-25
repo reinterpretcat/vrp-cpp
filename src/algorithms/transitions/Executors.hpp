@@ -16,7 +16,7 @@ struct perform_transition final {
 
   /// Performs transition and returns next task index from which
   /// transition should start.
-  __host__ __device__ int operator()(const vrp::models::Transition& transition, float cost) const;
+  ANY_EXEC_UNIT int operator()(const vrp::models::Transition& transition, float cost) const;
 };
 
 }  // namespace transitions

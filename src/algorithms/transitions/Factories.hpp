@@ -13,18 +13,16 @@ namespace transitions {
 
 /// Creates transition between customers.
 struct create_transition final {
-
   const vrp::models::Problem::Shadow problem;
   const vrp::models::Tasks::Shadow tasks;
 
   // TODO remove this method to avoid confusion
-  __host__ __device__ vrp::models::Transition operator()(
+  ANY_EXEC_UNIT vrp::models::Transition operator()(
     const vrp::models::Transition::Details& details) const;
 
-  __host__ __device__ vrp::models::Transition operator()(
+  ANY_EXEC_UNIT vrp::models::Transition operator()(
     const vrp::models::Transition::Details& details,
     const vrp::models::Transition::State& state) const;
-
 };
 
 }  // namespace transitions

@@ -22,12 +22,13 @@ namespace {
 /// one customer making feasible solution.
 struct create_roots {
   create_roots(const Problem& problem, Tasks& tasks, const Settings& settings) :
-    problem(problem.getShadow()), tasks(tasks.getShadow()), populationSize(settings.populationSize),
-    getCost {problem.getShadow(), tasks.getShadow()},
-    createTransition {problem.getShadow(), tasks.getShadow()},
-    performTransition{problem.getShadow(), tasks.getShadow()} {}
+    problem(problem.getShadow()), tasks(tasks.getShadow()),
+    populationSize(settings.populationSize), getCost{problem.getShadow(), tasks.getShadow()},
+    createTransition{problem.getShadow(), tasks.getShadow()}, performTransition{problem.getShadow(),
+                                                                                tasks.getShadow()} {
+  }
 
-  __host__ __device__ void operator()(int individuum) {
+  ANY_EXEC_UNIT void operator()(int individuum) {
     int customer = getCustomer(individuum);
     int vehicle = 0;
 
@@ -51,7 +52,7 @@ struct create_roots {
   }
 
 private:
-  __host__ __device__ void createDepotTask(int task, int vehicle) {
+  ANY_EXEC_UNIT void createDepotTask(int task, int vehicle) {
     const int depot = 0;
 
     tasks.ids[task] = depot;
@@ -62,11 +63,11 @@ private:
     tasks.plan[task] = Plan::assign();
   }
 
-  __host__ __device__ inline int getCustomer(int individuum) const {
+  ANY_EXEC_UNIT inline int getCustomer(int individuum) const {
     return thrust::max(1, (individuum * tasks.customers / populationSize + 1) % tasks.customers);
   }
 
-  __host__ __device__ inline variant<int, Convolution> wrapCustomer(int customer) const {
+  ANY_EXEC_UNIT inline variant<int, Convolution> wrapCustomer(int customer) const {
     variant<int, Convolution> wrapped;
     wrapped.set<int>(customer);
     return wrapped;
@@ -82,10 +83,10 @@ private:
 };
 
 /// Picks the next vehicle and assigns it to the task.
-__host__ __device__ void spawnNewVehicle(const Problem::Shadow& problem,
-                                         Tasks::Shadow& tasks,
-                                         int task,
-                                         int vehicle) {
+ANY_EXEC_UNIT void spawnNewVehicle(const Problem::Shadow& problem,
+                                   Tasks::Shadow& tasks,
+                                   int task,
+                                   int vehicle) {
   tasks.times[task] = problem.customers.starts[0];
   tasks.capacities[task] = problem.resources.capacities[vehicle];
   tasks.costs[task] = problem.resources.fixedCosts[vehicle];

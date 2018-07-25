@@ -11,10 +11,10 @@ namespace heuristics {
 struct nearest_neighbor final {
   const Context context;
 
-  __host__ __device__ explicit nearest_neighbor(const Context& context) : context(context) {}
+  ANY_EXEC_UNIT explicit nearest_neighbor(const Context& context) : context(context) {}
 
   /// Finds the "nearest" transition for given task and vehicle
-  __host__ __device__ vrp::models::Transition operator()(const Step& step);
+  ANY_EXEC_UNIT vrp::models::Transition operator()(const Step& step);
 };
 
 }  // namespace heuristics

@@ -3,8 +3,6 @@
 
 #include <thrust/execution_policy.h>
 
-#define ANY_EXEC_UNIT __host__ __device__
-
 #ifdef RUN_ON_DEVICE
 #include "runtime/detail/device/Config.inl"
 #else

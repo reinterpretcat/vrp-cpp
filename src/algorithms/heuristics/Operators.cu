@@ -9,8 +9,8 @@ using namespace vrp::runtime;
 namespace {
 
 /// Returns cost without service time.
-__host__ __device__ inline float getCost(const Transition& transition,
-                                         calculate_transition_cost& costFunc) {
+ANY_EXEC_UNIT inline float getCost(const Transition& transition,
+                                   calculate_transition_cost& costFunc) {
   auto newTransition = transition;
   newTransition.delta.serving = 0;
   return costFunc(transition);
@@ -22,7 +22,7 @@ namespace vrp {
 namespace algorithms {
 namespace heuristics {
 
-__host__ __device__ TransitionCostModel
+ANY_EXEC_UNIT TransitionCostModel
 create_cost_transition::operator()(const thrust::tuple<int, Plan>& customer) {
   auto plan = thrust::get<1>(customer);
 

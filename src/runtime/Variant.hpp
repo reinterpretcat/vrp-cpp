@@ -1,6 +1,7 @@
 #ifndef VRP_RUNTIME_DEVICEVARIANT_HPP
 #define VRP_RUNTIME_DEVICEVARIANT_HPP
 
+#include "runtime/Config.hpp"
 #include "runtime/detail/VariantHelpers.hpp"
 
 #include <cassert>
@@ -17,34 +18,34 @@ class variant {
 public:
   static_assert(sizeof...(Ts) > 1, "Variant should have at least 2 different types.");
 
-  __host__ __device__ variant() = default;
-  __host__ __device__ ~variant();
+  ANY_EXEC_UNIT variant() = default;
+  ANY_EXEC_UNIT ~variant();
 
-  __host__ __device__ variant(const variant<Ts...>& other);
-  __host__ __device__ variant(variant<Ts...>&& other);
+  ANY_EXEC_UNIT variant(const variant<Ts...>& other);
+  ANY_EXEC_UNIT variant(variant<Ts...>&& other);
 
 
-  __host__ __device__ variant<Ts...>& operator=(const variant<Ts...>& other);
-  __host__ __device__ variant<Ts...>& operator=(variant<Ts...>&& other);
+  ANY_EXEC_UNIT variant<Ts...>& operator=(const variant<Ts...>& other);
+  ANY_EXEC_UNIT variant<Ts...>& operator=(variant<Ts...>&& other);
 
   template<class T>
-  __host__ __device__ bool is() const;
+  ANY_EXEC_UNIT bool is() const;
 
-  __host__ __device__ bool valid() const;
+  ANY_EXEC_UNIT bool valid() const;
 
 
   template<class T,
            class... Args,
            class = typename std::enable_if<detail::one_of<T, Ts...>::value>::type>
-  __host__ __device__ void set(Args&&... args);
+  ANY_EXEC_UNIT void set(Args&&... args);
 
   template<class T, class = typename std::enable_if<detail::one_of<T, Ts...>::value>::type>
-  __host__ __device__ const T& get() const;
+  ANY_EXEC_UNIT const T& get() const;
 
   template<class T, class = typename std::enable_if<detail::one_of<T, Ts...>::value>::type>
-  __host__ __device__ T& get();
+  ANY_EXEC_UNIT T& get();
 
-  __host__ __device__ void reset();
+  ANY_EXEC_UNIT void reset();
 
 private:
   using Data = typename std::aligned_union<0, Ts...>::type;

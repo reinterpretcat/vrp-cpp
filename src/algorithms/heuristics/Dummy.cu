@@ -5,4 +5,4 @@
 using namespace vrp::algorithms::heuristics;
 using namespace vrp::models;
 
-__host__ __device__ Transition dummy::operator()(const Step& step) { return Transition(); };
+ANY_EXEC_UNIT Transition dummy::operator()(const Step& step) { return Transition(); };

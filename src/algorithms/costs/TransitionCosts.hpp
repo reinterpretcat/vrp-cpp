@@ -15,7 +15,7 @@ struct calculate_transition_cost final {
   const vrp::models::Problem::Shadow problem;
   const vrp::models::Tasks::Shadow tasks;
 
-  __host__ __device__ float operator()(const vrp::models::Transition& transition) const;
+  ANY_EXEC_UNIT float operator()(const vrp::models::Transition& transition) const;
 };
 
 }  // namespace costs

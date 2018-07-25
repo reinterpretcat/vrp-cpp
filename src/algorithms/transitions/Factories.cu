@@ -7,51 +7,51 @@ using namespace vrp::runtime;
 namespace {
 
 /// Gets id of the customer.
-__host__ __device__ inline int getCustomerId(const variant<int, Convolution>& customer) {
+ANY_EXEC_UNIT inline int getCustomerId(const variant<int, Convolution>& customer) {
   return customer.is<Convolution>() ? customer.get<Convolution>().customers.first
                                     : customer.get<int>();
 }
 
 /// Checks whether vehicle arrives too late.
-__host__ __device__ inline bool isTooLate(const Problem::Shadow& problem,
-                                          const variant<int, Convolution>& customer,
-                                          int arrivalTime) {
+ANY_EXEC_UNIT inline bool isTooLate(const Problem::Shadow& problem,
+                                    const variant<int, Convolution>& customer,
+                                    int arrivalTime) {
   int endTime = customer.is<Convolution>() ? customer.get<Convolution>().times.second
                                            : problem.customers.ends[customer.get<int>()];
   return arrivalTime > endTime;
 }
 
 /// Checks whether vehicle can carry requested demand.
-__host__ __device__ inline bool isTooMuch(int remaining, int demand) { return remaining < demand; }
+ANY_EXEC_UNIT inline bool isTooMuch(int remaining, int demand) { return remaining < demand; }
 
 /// Returns demand of transition.
-__host__ __device__ inline int getDemand(const Problem::Shadow& problem,
-                                         const variant<int, Convolution>& customer) {
+ANY_EXEC_UNIT inline int getDemand(const Problem::Shadow& problem,
+                                   const variant<int, Convolution>& customer) {
   return customer.is<Convolution>() ? customer.get<Convolution>().demand
                                     : problem.customers.demands[customer.get<int>()];
 }
 
 /// Calculates waiting time.
-__host__ __device__ inline int getWaitingTime(const Problem::Shadow& problem,
-                                              const variant<int, Convolution>& customer,
-                                              int arrivalTime) {
+ANY_EXEC_UNIT inline int getWaitingTime(const Problem::Shadow& problem,
+                                        const variant<int, Convolution>& customer,
+                                        int arrivalTime) {
   int startTime = customer.is<Convolution>() ? customer.get<Convolution>().times.first
                                              : problem.customers.starts[customer.get<int>()];
   return arrivalTime < startTime ? startTime - arrivalTime : 0;
 }
 
 /// Calculates service time.
-__host__ __device__ inline int getServiceTime(const Problem::Shadow& problem,
-                                              const variant<int, Convolution>& customer) {
+ANY_EXEC_UNIT inline int getServiceTime(const Problem::Shadow& problem,
+                                        const variant<int, Convolution>& customer) {
   return customer.is<Convolution>() ? customer.get<Convolution>().service
                                     : problem.customers.services[customer.get<int>()];
 }
 
 /// Checks whether vehicle can NOT return to depot.
-__host__ __device__ inline bool noReturn(const Problem::Shadow& problem,
-                                         const variant<int, Convolution>& customer,
-                                         int vehicle,
-                                         int departure) {
+ANY_EXEC_UNIT inline bool noReturn(const Problem::Shadow& problem,
+                                   const variant<int, Convolution>& customer,
+                                   int vehicle,
+                                   int departure) {
   int index =
     customer.is<Convolution>() ? customer.get<Convolution>().customers.second : customer.get<int>();
 

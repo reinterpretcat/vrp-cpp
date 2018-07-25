@@ -15,15 +15,15 @@ namespace algorithms {
 namespace heuristics {
 
 /// Returns invalid transition-cost model.
-__host__ __device__ inline TransitionCostModel create_invaild() {
+ANY_EXEC_UNIT inline TransitionCostModel create_invaild() {
   return thrust::make_pair(vrp::models::Transition(), -1);
 }
 
 /// Picks the next vehicle and assigns it to the task.
-__host__ __device__ inline void spawn_vehicle(const vrp::models::Problem::Shadow& problem,
-                                              const vrp::models::Tasks::Shadow& tasks,
-                                              int task,
-                                              int vehicle) {
+ANY_EXEC_UNIT inline void spawn_vehicle(const vrp::models::Problem::Shadow& problem,
+                                        const vrp::models::Tasks::Shadow& tasks,
+                                        int task,
+                                        int vehicle) {
   tasks.times[task] = problem.customers.starts[0];
   tasks.capacities[task] = problem.resources.capacities[vehicle];
   tasks.costs[task] = problem.resources.fixedCosts[vehicle];
@@ -35,21 +35,21 @@ struct create_cost_transition final {
   TransitionCostOp operators;
   const vrp::runtime::vector_ptr<vrp::models::Convolution> convolutions;
 
-  __host__ __device__
+  ANY_EXEC_UNIT
   create_cost_transition(const Step& step,
                          const TransitionCostOp& operators,
                          const vrp::runtime::vector_ptr<vrp::models::Convolution>& convolutions) :
     step(step),
     operators(operators), convolutions(convolutions) {}
 
-  __host__ __device__ TransitionCostModel
+  ANY_EXEC_UNIT TransitionCostModel
   operator()(const thrust::tuple<int, vrp::models::Plan>& customer);
 };
 
 /// Compares costs of two transitions and returns the lowest.
 struct compare_transition_costs {
-  __host__ __device__ TransitionCostModel& operator()(TransitionCostModel& result,
-                                                      const TransitionCostModel& left);
+  ANY_EXEC_UNIT TransitionCostModel& operator()(TransitionCostModel& result,
+                                                const TransitionCostModel& left);
 };
 
 }  // namespace heuristics

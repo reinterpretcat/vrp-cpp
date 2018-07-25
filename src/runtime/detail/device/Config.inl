@@ -7,6 +7,8 @@
 namespace vrp {
 namespace runtime {
 
+#define ANY_EXEC_UNIT __host__ __device__
+
 /// Alias for device execution policy.
 #define EXEC_UNIT __device__
 

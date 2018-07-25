@@ -2,6 +2,7 @@
 #define VRP_ALGORITHMS_DISTANCES_CARTESIAN_HPP
 
 #include "models/Locations.hpp"
+#include "runtime/Config.hpp"
 
 #include <cmath>
 #include <thrust/execution_policy.h>
@@ -13,8 +14,8 @@ namespace distances {
 
 /// Calculates cartesian distance between two points on plane in 2D.
 struct cartesian_distance final {
-  __host__ __device__ float operator()(const vrp::models::DeviceGeoCoord& left,
-                                       const vrp::models::DeviceGeoCoord& right) {
+  ANY_EXEC_UNIT float operator()(const vrp::models::DeviceGeoCoord& left,
+                                 const vrp::models::DeviceGeoCoord& right) {
     auto x = thrust::get<0>(left) - thrust::get<0>(right);
     auto y = thrust::get<1>(left) - thrust::get<1>(right);
     return static_cast<float>(sqrt(x * x + y * y));
