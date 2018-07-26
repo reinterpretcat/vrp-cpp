@@ -33,7 +33,7 @@ SCENARIO("Can execute transition with convolution.", "[transitions][executors][c
   auto expectedCap = vrp::test::copy(solution.tasks.capacities);
   auto expectedTimes = vrp::test::copy(solution.tasks.times);
   auto expectedPlan = vrp::test::copy(solution.tasks.plan);
-  thrust::fill(thrust::device, solution.tasks.plan.begin() + 3, solution.tasks.plan.end(),
+  thrust::fill(exec_unit, solution.tasks.plan.begin() + 3, solution.tasks.plan.end(),
                Plan::reserve(0));
   auto convolution = Convolution{0, 3, 30, {3, 5}, {30, 1000}, {3, 5}};
   variant<int, Convolution> variant;
