@@ -16,13 +16,13 @@ namespace detail {
 
 template<typename UnaryFunction>
 class aggregate_output_iterator_proxy {
-  UnaryFunction& fun;
+  UnaryFunction fun;
 
 public:
   ANY_EXEC_UNIT aggregate_output_iterator_proxy(UnaryFunction fun) : fun(fun) {}
 
   template<typename T>
-  ANY_EXEC_UNIT aggregate_output_iterator_proxy operator=(const T& x) const {
+  ANY_EXEC_UNIT aggregate_output_iterator_proxy operator=(const T& x) {
     fun(x);
     return *this;
   }
