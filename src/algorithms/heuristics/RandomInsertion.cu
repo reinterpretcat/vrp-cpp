@@ -62,7 +62,7 @@ inline Result create_invalid_data() {
 /// Finds next random customer to serve.
 struct find_random_customer final {
   ANY_EXEC_UNIT explicit find_random_customer(const Tasks::Shadow tasks) :
-    tasks(tasks), dist(0, tasks.customers), rng() {}
+    tasks(tasks), dist(0, tasks.customers - 1), rng() {}
 
   ANY_EXEC_UNIT int operator()() {
     auto start = dist(rng);
@@ -302,7 +302,6 @@ struct insert_customer final {
     shift(tasks.costs + begin, tasks.costs + end);
     shift(tasks.vehicles + begin, tasks.vehicles + end);
     shift(tasks.capacities + begin, tasks.capacities + end);
-    shift(tasks.plan + begin, tasks.plan + end);
     shift(tasks.times + begin, tasks.times + end);
 
     // insert new customer
@@ -315,7 +314,8 @@ struct insert_customer final {
     for (int i = data.point; i <= data.to; ++i) {
       auto customer = i == data.point ? search.customer : stateOp.customer(search.base + i + 1);
       auto transition = stateOp.update(customer, i, search.base, vehicle);
-      last = transitionOp.perform(transition, stateOp.cost);
+      auto cost = transitionOp.estimate(transition);
+      last = transitionOp.perform(transition, cost);
     }
 
     return last;
@@ -348,8 +348,6 @@ void random_insertion<TransitionOp>::operator()(const Context& context, int inde
   int customer = 0;
   int vehicle = context.tasks.vehicles[to - 1];
 
-  bool stop = false;
-
   do {
     customer = customer != 0 ? customer : findCustomer();
 
@@ -364,11 +362,6 @@ void random_insertion<TransitionOp>::operator()(const Context& context, int inde
     else customer = 0;
 
     to = insertCustomer(search, insertion) + 1;
-
-
-    // TODO remove
-    if (stop) break;
-    stop = true;
 
   } while (to < context.problem.size);
 }

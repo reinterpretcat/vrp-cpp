@@ -1,13 +1,14 @@
 #include "algorithms/distances/Cartesian.hpp"
 #include "algorithms/heuristics/RandomInsertion.hpp"
+#include "algorithms/transitions/Executors.hpp"
 #include "config.hpp"
 #include "streams/input/SolomonReader.hpp"
+#include "streams/output/MatrixTextWriter.hpp"
 #include "test_utils/PopulationFactory.hpp"
 #include "test_utils/ProblemStreams.hpp"
 #include "test_utils/TaskUtils.hpp"
 #include "utils/validation/SolutionChecker.hpp"
 
-#include <algorithms/transitions/Executors.hpp>
 #include <catch/catch.hpp>
 
 using namespace vrp::algorithms::distances;
@@ -25,7 +26,7 @@ typedef typename vrp::algorithms::heuristics::TransitionDelegate<
   Delegate;
 }
 
-SCENARIO("Can build solution.", "[heuristics][construction][RandomInsertion][init]") {
+SCENARIO("Can build single solution.", "[heuristics][construction][RandomInsertion][init]") {
   auto stream = create_sequential_problem_stream{}();
   auto problem = SolomonReader().read(stream, cartesian_distance());
   Tasks tasks{problem.size()};
@@ -33,7 +34,8 @@ SCENARIO("Can build solution.", "[heuristics][construction][RandomInsertion][ini
   auto context = Context{problem.getShadow(), tasks.getShadow(), {}};
 
   random_insertion<Delegate>{}(context, 0, 0);
-  //
-  //  auto solution = Solution(std::move(problem), std::move(tasks));
-  //  REQUIRE(SolutionChecker::check(solution).isValid());
+
+  auto solution = Solution(std::move(problem), std::move(tasks));
+  //MatrixTextWriter::write(std::cout, solution);
+  REQUIRE(SolutionChecker::check(solution).isValid());
 }

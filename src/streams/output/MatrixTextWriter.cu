@@ -4,7 +4,6 @@
 #include "streams/output/MatrixTextWriter.hpp"
 
 #include <iomanip>
-#include <thrust/device_vector.h>
 #include <thrust/execution_policy.h>
 #include <thrust/for_each.h>
 #include <thrust/iterator/counting_iterator.h>
@@ -74,7 +73,7 @@ void writeCosts(std::ostream& stream, Solution& solution) {
 }  // namespace
 
 void MatrixTextWriter::write(std::ostream& out, const vrp::models::Solution& solution) {
-  writeCosts(out << "\ntotal costs: ", const_cast<Solution&>(solution));
+  // writeCosts(out << "\ntotal costs: ", const_cast<Solution&>(solution));
   write(out, solution.tasks);
 }
 
