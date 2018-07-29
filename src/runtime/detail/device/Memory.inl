@@ -60,12 +60,6 @@ EXEC_UNIT void deallocate(T* ptr) {
 
 /// Allocates a new buffer in memory initializing with given value.
 template<typename T>
-ANY_EXEC_UNIT inline vector_ptr<T> allocate(size_t size) {
-  return thrust::device_malloc<T>(size);
-}
-
-/// Allocates a new buffer in memory initializing with given value.
-template<typename T>
 ANY_EXEC_UNIT inline vector_ptr<T> allocate(const T& value) {
   vector_ptr<T> pValue = thrust::device_malloc<T>(1);
   *pValue = value;

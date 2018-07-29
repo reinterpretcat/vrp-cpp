@@ -53,11 +53,6 @@ EXEC_UNIT void deallocate(T* ptr) {
   thrust::free(exec_unit_policy{}, ptr);
 }
 
-/// Allocates a new buffer in memory initializing with given value.
-template<typename T>
-ANY_EXEC_UNIT inline vector_ptr<T> allocate(size_t size) {
-  return vector_ptr<T>(thrust::malloc<T>(exec_unit_policy{}, size).get());
-}
 
 /// Allocates a new buffer in memory initializing with given value.
 template<typename T>
