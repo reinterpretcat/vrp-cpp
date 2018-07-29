@@ -28,15 +28,11 @@ struct SearchContext final {
   int customer;
 };
 
-/// Represents insertion context: data used to estimate insertion cost.
-struct InsertionContext final {
-  /// Base index.
-  int base;
-  /// Last index.
-  int last;
-  /// Task where insertion range starts.
+/// Stores data used to estimate insertion.
+struct InsertionData final {
+  /// Task where vehicle range starts.
   int from;
-  /// Task where insertion range ends.
+  /// Task where vehicle range ends.
   int to;
   /// Used vehicle.
   int vehicle;
@@ -44,11 +40,10 @@ struct InsertionContext final {
   int customer;
 };
 
-struct Result final {
-  /// Task where vehicle range starts.
-  int from;
-  /// Task where vehicle range ends.
-  int to;
+/// Stores insertion result.
+struct InsertionResult final {
+  /// Contains insertion data.
+  InsertionData data;
   /// Insertion Point
   int point;
   /// Estimated insertion cost
@@ -56,7 +51,7 @@ struct Result final {
 };
 
 EXEC_UNIT
-inline Result create_invalid_data() { return {-1, -1, -1, __FLT_MAX__}; }
+inline InsertionResult create_invalid_data() { return {{}, -1, __FLT_MAX__}; }
 
 /// Finds next random customer to serve.
 struct find_random_customer final {
@@ -141,39 +136,39 @@ struct state_processor final {
 /// Estimates insertion to a given arc.
 template<typename TransitionOp>
 struct estimate_insertion final {
-  const InsertionContext insertion;
+  const InsertionData data;
   state_processor<TransitionOp> stateOp;
+  int base;
 
   /// @param task Task index from which arc starts.
-  EXEC_UNIT Result operator()(int point) {
-    int base = insertion.base;
-    int vehicle = insertion.vehicle;
+  EXEC_UNIT InsertionResult operator()(int point) {
+    int vehicle = data.vehicle;
 
     stateOp.restore(point, base, vehicle);
 
-    if (!stateOp.update(insertion.customer, point, base, vehicle).isValid())
+    if (!stateOp.update(data.customer, point, base, vehicle).isValid())
       return create_invalid_data();
 
-    for (int i = point + 1; i <= insertion.to; ++i) {
-      auto customer = stateOp.customer(insertion.base + i);
-      if (!stateOp.update(customer, i, insertion.base, vehicle).isValid())
+    for (int i = point + 1; i <= data.to; ++i) {
+      auto customer = stateOp.customer(base + i);
+      if (!stateOp.update(customer, i, base, vehicle).isValid())
         return create_invalid_data();
     }
 
-    return Result{insertion.from, insertion.to, point, stateOp.cost};
+    return InsertionResult{ {data.from, data.to, vehicle, data.customer}, point, stateOp.cost};
   }
 };
 
 ///// Compares two arcs using their insertion costs.
 struct compare_arcs_value final {
-  EXEC_UNIT Result operator()(const Result& left, const Result& right) const {
+  EXEC_UNIT InsertionResult operator()(const InsertionResult& left, const InsertionResult& right) const {
     return left.cost > right.cost ? left : right;
   }
 };
 
 ///// Compares two arcs using their insertion costs.
 struct compare_arcs_logical final {
-  EXEC_UNIT bool operator()(const Result& left, const Result& right) const {
+  EXEC_UNIT bool operator()(const InsertionResult& left, const InsertionResult& right) const {
     return left.cost > right.cost;
   }
 };
@@ -183,22 +178,25 @@ template<typename TransitionOp>
 struct find_best_arc final {
   const SearchContext search;
   const TransitionOp transitionOp;
-  vector_ptr<Result> results;
+  vector_ptr<InsertionResult> results;
 
-  EXEC_UNIT Result operator()(const VehicleRange& range) const {
+  EXEC_UNIT InsertionResult operator()(const VehicleRange& range) const {
     if (thrust::get<1>(range) == -1) return create_invalid_data();
 
     int from = thrust::get<0>(range);
     int to = thrust::get<1>(range);
     int vehicle = thrust::get<2>(range);
 
+    auto data = InsertionData{from, to, vehicle, search.customer};
+
     results[vehicle] = thrust::transform_reduce(
       exec_unit_policy{}, thrust::make_counting_iterator(search.base + from),
       thrust::make_counting_iterator(search.base + to + 1),
       estimate_insertion<TransitionOp>{
-        {search.base, /* TODO */ 0, from, to, vehicle, search.customer},
-        state_processor<TransitionOp>{search, transitionOp, {}, 0}},
-      Result{from, to, -1, -1}, compare_arcs_value{});
+          data,
+        state_processor<TransitionOp>{search, transitionOp, {}, 0},
+        search.base},
+      InsertionResult{data, -1, -1}, compare_arcs_value{});
 
     return {};
   }
@@ -223,15 +221,18 @@ struct create_vehicle_ranges final {
 template<typename TransitionOp>
 struct find_insertion_point final {
   const TransitionOp transitionOp;
-  unique_ptr<vector_ptr<Result>> results;
+  unique_ptr<vector_ptr<InsertionResult>> results;
 
   /// @returns Task index from which to perform transition.
-  EXEC_UNIT Result operator()(const SearchContext& search, int vehicle) {
+  EXEC_UNIT InsertionResult operator()(const SearchContext& search, int vehicle) {
     auto iterator = thrust::make_zip_iterator(thrust::make_tuple(thrust::make_counting_iterator(0),
                                                                  thrust::make_constant_iterator(0),
                                                                  search.context.tasks.vehicles));
-    // first iteration
-    if (search.last == 1) return Result{0, search.last, 1, 0};
+    auto last = search.context.tasks.vehicles[search.last - 1];
+
+    // first customer in tour
+    if (search.last == 1 || last != vehicle)
+      return InsertionResult{ {0, search.last, vehicle, search.customer }, search.last, 0};
 
     thrust::inclusive_scan(
       exec_unit_policy{},
@@ -257,27 +258,25 @@ struct insert_customer final {
   const TransitionOp transitionOp;
 
   /// @returns Index of last task.
-  EXEC_UNIT int operator()(const SearchContext& search, const Result& data) {
+  EXEC_UNIT int operator()(const SearchContext& search, const InsertionResult& data) {
     return data.point == search.last ? insertLast(search, data) : insertInBetween(search, data);
   }
 
 private:
   /// Inserts new customer as last.
-  EXEC_UNIT int insertLast(const SearchContext& search, const Result& data) {
+  EXEC_UNIT int insertLast(const SearchContext& search, const InsertionResult& result) {
     variant<int, Convolution> customer;
-    customer.set<int>(search.customer);
+    customer.set<int>(result.data.customer);
 
-    int vehicle = search.context.tasks.vehicles[data.from];
-
-    auto details = Transition::Details{search.base, data.from, data.to, customer, vehicle};
+    auto details = Transition::Details{search.base, result.data.from, result.data.to, customer, result.data.vehicle};
     auto transition = transitionOp.create(details);
     auto cost = transitionOp.estimate(transition);
     return transitionOp.perform(transition, cost);
   }
 
   /// Inserts new customer in single tour.
-  EXEC_UNIT int insertInBetween(const SearchContext& search, const Result& data) {
-    int begin = data.point;
+  EXEC_UNIT int insertInBetween(const SearchContext& search, const InsertionResult& result) {
+    int begin = result.point;
     int end = search.last - 1;
     auto tasks = search.context.tasks;
 
@@ -289,15 +288,14 @@ private:
     shift(tasks.times + begin, tasks.times + end);
 
     // insert new customer
-    int vehicle = search.context.tasks.vehicles[data.from];
     auto stateOp = state_processor<TransitionOp>{search, transitionOp};
-    stateOp.restore(data.point, search.base, vehicle);
+    stateOp.restore(result.point, search.base, result.data.vehicle);
 
     // insert and recalculate affected tour
     auto last = -1;
-    for (int i = data.point; i <= data.to; ++i) {
-      auto customer = i == data.point ? search.customer : stateOp.customer(search.base + i + 1);
-      auto transition = stateOp.update(customer, i, search.base, vehicle);
+    for (int i = result.point; i <= result.data.to; ++i) {
+      auto customer = i == result.point ? result.data.customer : stateOp.customer(search.base + i + 1);
+      auto transition = stateOp.update(customer, i, search.base, result.data.vehicle);
       auto cost = transitionOp.estimate(transition);
       last = transitionOp.perform(transition, cost);
     }
@@ -329,7 +327,7 @@ EXEC_UNIT void random_insertion<TransitionOp>::operator()(const Context& context
   auto transitionOp = TransitionOp(context.problem, context.tasks);
   auto findCustomer = find_random_customer(context.tasks);
   auto findPoint = find_insertion_point<TransitionOp>{
-    transitionOp, make_unique_ptr_data<Result>(context.problem.size)};
+    transitionOp, make_unique_ptr_data<InsertionResult>(context.problem.size)};
   auto insertCustomer = insert_customer<TransitionOp>{transitionOp};
 
   int to = shift == 0 ? 1 : shift;
@@ -346,10 +344,11 @@ EXEC_UNIT void random_insertion<TransitionOp>::operator()(const Context& context
     if (insertion.point == -1) {
       ++vehicle;
       continue;
-    } else
-      customer = 0;
+    }
 
     to = insertCustomer(search, insertion) + 1;
+
+    customer = 0;
 
   } while (to < context.problem.size);
 }

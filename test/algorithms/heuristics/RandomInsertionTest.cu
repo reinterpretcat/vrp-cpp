@@ -32,10 +32,9 @@ struct run_heuristic final {
   EXEC_UNIT void operator()(int index) const { random_insertion<Delegate>{}(context, index, 0); };
 };
 
-}  // namespace
-
-SCENARIO("Can build single solution.", "[heuristics][construction][RandomInsertion][init]") {
-  auto stream = create_sequential_problem_stream{}();
+template <typename ProblemStream>
+void test() {
+  auto stream = ProblemStream{}();
   auto problem = SolomonReader().read(stream, cartesian_distance());
   Tasks tasks{problem.size()};
   vrp::test::createDepotTask(problem, tasks);
@@ -44,6 +43,16 @@ SCENARIO("Can build single solution.", "[heuristics][construction][RandomInserti
                      run_heuristic{Context{problem.getShadow(), tasks.getShadow(), {}}});
 
   auto solution = Solution(std::move(problem), std::move(tasks));
-  // MatrixTextWriter::write(std::cout, solution);
+  MatrixTextWriter::write(std::cout, solution);
   REQUIRE(SolutionChecker::check(solution).isValid());
+}
+
+}  // namespace
+
+SCENARIO("Can build single solution with one vehicle.", "[ggg1][heuristics][construction][RandomInsertion][init]") {
+  test<create_sequential_problem_stream>();
+}
+
+SCENARIO("Can build single solution with multiple vehicles.", "[ggg2][heuristics][construction][RandomInsertion][init]") {
+  test<create_exceeded_time_problem_stream>();
 }
