@@ -131,6 +131,8 @@ struct state_processor final {
   }
 
   EXEC_UNIT int customer(int task) { return search.context.tasks.ids[task]; }
+
+  EXEC_UNIT float costs(int task) { return search.context.tasks.costs[task]; }
 };
 
 /// Estimates insertion to a given arc.
@@ -143,6 +145,7 @@ struct estimate_insertion final {
   /// @param task Task index from which arc starts.
   EXEC_UNIT InsertionResult operator()(int point) {
     int vehicle = data.vehicle;
+    float cost = stateOp.costs(data.to);
 
     stateOp.restore(point, base, vehicle);
 
@@ -156,7 +159,8 @@ struct estimate_insertion final {
 
     // TODO must be delta cost!!!
 
-    return InsertionResult{{data.from, data.to, vehicle, data.customer}, point, stateOp.cost};
+    return InsertionResult{
+      {data.from, data.to, vehicle, data.customer}, point, stateOp.cost - cost};
   }
 };
 
@@ -368,7 +372,7 @@ EXEC_UNIT void random_insertion<TransitionOp>::operator()(const Context& context
     auto search = SearchContext{context, begin, to, customer};
     auto insertion = findPoint(search, vehicle);
 
-    // allocate new  vehicle if estimation fails to insert customer
+    // allocate new vehicle if estimation fails to insert customer
     if (insertion.point == -1) {
       ++vehicle;
       continue;

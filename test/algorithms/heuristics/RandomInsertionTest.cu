@@ -32,7 +32,7 @@ struct run_heuristic final {
   EXEC_UNIT void operator()(int index) const { random_insertion<Delegate>{}(context, index, 0); };
 };
 
-template <typename ProblemStream>
+template<typename ProblemStream>
 void test() {
   auto stream = ProblemStream{}();
   auto problem = SolomonReader().read(stream, cartesian_distance());
@@ -49,10 +49,12 @@ void test() {
 
 }  // namespace
 
-SCENARIO("Can build single solution with one vehicle.", "[ggg1][heuristics][construction][RandomInsertion][init]") {
+SCENARIO("Can build single solution with one vehicle.",
+         "[heuristics][construction][RandomInsertion][init]") {
   test<create_sequential_problem_stream>();
 }
 
-SCENARIO("Can build single solution with multiple vehicles.", "[ggg2][heuristics][construction][RandomInsertion][init]") {
+SCENARIO("Can build single solution with multiple vehicles.",
+         "[heuristics][construction][RandomInsertion][init]") {
   test<create_exceeded_time_problem_stream>();
 }
