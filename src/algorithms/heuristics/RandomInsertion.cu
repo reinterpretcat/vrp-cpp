@@ -154,6 +154,8 @@ struct estimate_insertion final {
       if (!stateOp.update(customer, i, base, vehicle).isValid()) return create_invalid_data();
     }
 
+    // TODO must be delta cost!!!
+
     return InsertionResult{{data.from, data.to, vehicle, data.customer}, point, stateOp.cost};
   }
 };
@@ -302,7 +304,7 @@ private:
   /// Inserts new customer in single tour.
   EXEC_UNIT int insertInBetween(const SearchContext& search, const InsertionResult& result) {
     int begin = result.point;
-    int end = search.last - 1;
+    int end = search.last;
     auto tasks = search.context.tasks;
 
     // shift everything to the right
@@ -326,13 +328,13 @@ private:
       last = transitionOp.perform(transition, cost);
     }
 
-    return last;
+    return thrust::max(last, search.last);
   }
 
   /// Shifts to the right all data.
   template<typename T>
   EXEC_UNIT void shift(T begin, T end) {
-    for (auto iter = end; iter != begin; --iter) {
+    for (auto iter = end - 1; iter >= begin; --iter) {
       *(iter + 1) = *iter;
     }
   }
