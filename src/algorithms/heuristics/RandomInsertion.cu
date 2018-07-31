@@ -17,8 +17,8 @@ using namespace vrp::runtime;
 
 namespace {
 
-/// Specifies vehicle range: start, end, id.
-using VehicleRange = thrust::tuple<int, int, int>;
+/// Specifies vehicle range: start, end, id, and some extra.
+using VehicleRange = thrust::tuple<int, int, int, int>;
 
 /// Represents search context: data passed through main operators.
 struct SearchContext final {
@@ -151,17 +151,17 @@ struct estimate_insertion final {
 
     for (int i = point + 1; i <= data.to; ++i) {
       auto customer = stateOp.customer(base + i);
-      if (!stateOp.update(customer, i, base, vehicle).isValid())
-        return create_invalid_data();
+      if (!stateOp.update(customer, i, base, vehicle).isValid()) return create_invalid_data();
     }
 
-    return InsertionResult{ {data.from, data.to, vehicle, data.customer}, point, stateOp.cost};
+    return InsertionResult{{data.from, data.to, vehicle, data.customer}, point, stateOp.cost};
   }
 };
 
 ///// Compares two arcs using their insertion costs.
 struct compare_arcs_value final {
-  EXEC_UNIT InsertionResult operator()(const InsertionResult& left, const InsertionResult& right) const {
+  EXEC_UNIT InsertionResult operator()(const InsertionResult& left,
+                                       const InsertionResult& right) const {
     return left.cost > right.cost ? left : right;
   }
 };
@@ -181,7 +181,7 @@ struct find_best_arc final {
   vector_ptr<InsertionResult> results;
 
   EXEC_UNIT InsertionResult operator()(const VehicleRange& range) const {
-    if (thrust::get<1>(range) == -1) return create_invalid_data();
+    if (thrust::get<0>(range) == -1) return create_invalid_data();
 
     int from = thrust::get<0>(range);
     int to = thrust::get<1>(range);
@@ -193,9 +193,7 @@ struct find_best_arc final {
       exec_unit_policy{}, thrust::make_counting_iterator(search.base + from),
       thrust::make_counting_iterator(search.base + to + 1),
       estimate_insertion<TransitionOp>{
-          data,
-        state_processor<TransitionOp>{search, transitionOp, {}, 0},
-        search.base},
+        data, state_processor<TransitionOp>{search, transitionOp, {}, 0}, search.base},
       InsertionResult{data, -1, -1}, compare_arcs_value{});
 
     return {};
@@ -204,16 +202,32 @@ struct find_best_arc final {
 
 /// Represents operator which helps to create vehicle ranges without extra memory footprint.
 struct create_vehicle_ranges final {
-  int last;
   EXEC_UNIT VehicleRange operator()(const VehicleRange& left, const VehicleRange& right) {
-    if (thrust::get<2>(left) != thrust::get<2>(right) && thrust::get<1>(left) == -1)
-      return {thrust::get<0>(left), thrust::get<0>(right) - 1, thrust::get<2>(left)};
+    auto leftStart = thrust::get<0>(left);
+    auto leftEnd = thrust::get<1>(left);
+    auto leftVehicle = thrust::get<2>(left);
+    auto leftExtra = thrust::get<3>(left);
 
-    if (thrust::get<0>(right) == last)
-      return {thrust::get<0>(left), thrust::get<0>(right), thrust::get<2>(right)};
+    auto rightStart = thrust::get<0>(right);
+    auto rightEnd = thrust::get<1>(right);
+    auto rightVehicle = thrust::get<2>(right);
 
-    return {thrust::get<1>(left) != -1 ? thrust::get<0>(right) - 1 : thrust::get<0>(left), -1,
-            thrust::get<2>(right)};
+    if (rightStart == 0) return {1, leftExtra != -1 ? 1 : leftEnd, 0, -1};
+
+    if (leftExtra != -1) {
+      // continue with this vehicle
+      if (leftExtra == rightVehicle) {
+        return {-1, leftStart - 1, leftExtra, -1};
+      }
+      // vehicle was used only once
+      else {
+        return {leftStart - 1, leftStart - 1, leftExtra, rightVehicle};
+      }
+    }
+
+    if (leftVehicle != rightVehicle) return {rightStart + 1, leftEnd, leftVehicle, rightVehicle};
+
+    return {-1, leftEnd, leftVehicle, -1};
   }
 };
 
@@ -225,26 +239,36 @@ struct find_insertion_point final {
 
   /// @returns Task index from which to perform transition.
   EXEC_UNIT InsertionResult operator()(const SearchContext& search, int vehicle) {
-    auto iterator = thrust::make_zip_iterator(thrust::make_tuple(thrust::make_counting_iterator(0),
-                                                                 thrust::make_constant_iterator(0),
-                                                                 search.context.tasks.vehicles));
-    auto last = search.context.tasks.vehicles[search.last - 1];
+    auto iterator = thrust::make_zip_iterator(
+      thrust::make_tuple(thrust::make_counting_iterator(0), thrust::make_constant_iterator(0),
+                         search.context.tasks.vehicles, thrust::make_constant_iterator(0)));
+    auto lastVehicle = search.context.tasks.vehicles[search.base + search.last - 1];
 
     // first customer in tour
-    if (search.last == 1 || last != vehicle)
-      return InsertionResult{ {0, search.last, vehicle, search.customer }, search.last, 0};
+    if (search.last == 1 || lastVehicle != vehicle)
+      return InsertionResult{{0, search.last, vehicle, search.customer}, search.last, 0};
 
-    thrust::inclusive_scan(
+    thrust::exclusive_scan(
       exec_unit_policy{},
-      thrust::make_zip_iterator(thrust::make_tuple(thrust::make_counting_iterator(0),
-                                                   thrust::make_constant_iterator(-1),
-                                                   search.context.tasks.vehicles + search.base)),
+
       thrust::make_zip_iterator(thrust::make_tuple(
-        thrust::make_counting_iterator(search.last), thrust::make_constant_iterator(1),
-        search.context.tasks.vehicles + search.base + search.last)),
+        thrust::make_reverse_iterator(thrust::make_counting_iterator(search.last)),
+        thrust::make_constant_iterator(-1),
+        thrust::make_reverse_iterator(search.context.tasks.vehicles + search.base + search.last),
+        thrust::make_constant_iterator(-1))),
+
+      thrust::make_zip_iterator(thrust::make_tuple(
+        thrust::make_reverse_iterator(thrust::make_counting_iterator(-1)),
+        thrust::make_constant_iterator(1),
+        thrust::make_reverse_iterator(search.context.tasks.vehicles + search.base),
+        thrust::make_constant_iterator(-1))),
+
       vrp::iterators::make_aggregate_output_iterator(
         iterator, find_best_arc<TransitionOp>{search, transitionOp, *results.get()}),
-      create_vehicle_ranges{search.last - 1});
+
+      VehicleRange{-1, search.last - 1, lastVehicle, -1},
+
+      create_vehicle_ranges{});
 
     return *thrust::max_element(exec_unit_policy{}, *results.get(),
                                 *results.get() + search.context.tasks.vehicles[search.last] + 1,
@@ -268,7 +292,8 @@ private:
     variant<int, Convolution> customer;
     customer.set<int>(result.data.customer);
 
-    auto details = Transition::Details{search.base, result.data.from, result.data.to, customer, result.data.vehicle};
+    auto details = Transition::Details{search.base, result.data.from, result.data.to, customer,
+                                       result.data.vehicle};
     auto transition = transitionOp.create(details);
     auto cost = transitionOp.estimate(transition);
     return transitionOp.perform(transition, cost);
@@ -294,7 +319,8 @@ private:
     // insert and recalculate affected tour
     auto last = -1;
     for (int i = result.point; i <= result.data.to; ++i) {
-      auto customer = i == result.point ? result.data.customer : stateOp.customer(search.base + i + 1);
+      auto customer =
+        i == result.point ? result.data.customer : stateOp.customer(search.base + i + 1);
       auto transition = stateOp.update(customer, i, search.base, result.data.vehicle);
       auto cost = transitionOp.estimate(transition);
       last = transitionOp.perform(transition, cost);
@@ -334,7 +360,7 @@ EXEC_UNIT void random_insertion<TransitionOp>::operator()(const Context& context
   int customer = 0;
   int vehicle = context.tasks.vehicles[to - 1];
 
-  do {
+  while (to < context.problem.size) {
     customer = customer != 0 ? customer : findCustomer();
 
     auto search = SearchContext{context, begin, to, customer};
@@ -349,8 +375,7 @@ EXEC_UNIT void random_insertion<TransitionOp>::operator()(const Context& context
     to = insertCustomer(search, insertion) + 1;
 
     customer = 0;
-
-  } while (to < context.problem.size);
+  }
 }
 
 /// NOTE make linker happy.
