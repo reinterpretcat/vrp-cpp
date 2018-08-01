@@ -58,3 +58,8 @@ SCENARIO("Can build single solution with multiple vehicles.",
          "[heuristics][construction][RandomInsertion][init]") {
   test<create_exceeded_time_problem_stream>();
 }
+
+SCENARIO("Can build single solution with C101 problem.",
+         "[heuristics][construction][RandomInsertion][init]") {
+  test<create_c101_problem_stream>();
+}

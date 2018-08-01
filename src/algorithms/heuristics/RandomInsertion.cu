@@ -157,8 +157,6 @@ struct estimate_insertion final {
       if (!stateOp.update(customer, i, base, vehicle).isValid()) return create_invalid_data();
     }
 
-    // TODO must be delta cost!!!
-
     return InsertionResult{
       {data.from, data.to, vehicle, data.customer}, point, stateOp.cost - cost};
   }
@@ -168,14 +166,14 @@ struct estimate_insertion final {
 struct compare_arcs_value final {
   EXEC_UNIT InsertionResult operator()(const InsertionResult& left,
                                        const InsertionResult& right) const {
-    return left.cost > right.cost ? left : right;
+    return left.cost < right.cost ? left : right;
   }
 };
 
 ///// Compares two arcs using their insertion costs.
 struct compare_arcs_logical final {
   EXEC_UNIT bool operator()(const InsertionResult& left, const InsertionResult& right) const {
-    return left.cost > right.cost;
+    return left.cost < right.cost;
   }
 };
 
@@ -200,7 +198,7 @@ struct find_best_arc final {
       thrust::make_counting_iterator(search.base + to + 1),
       estimate_insertion<TransitionOp>{
         data, state_processor<TransitionOp>{search, transitionOp, {}, 0}, search.base},
-      InsertionResult{data, -1, -1}, compare_arcs_value{});
+      InsertionResult{data, -1, __FLT_MAX__}, compare_arcs_value{});
 
     return {};
   }
@@ -276,9 +274,8 @@ struct find_insertion_point final {
 
       create_vehicle_ranges{});
 
-    return *thrust::max_element(exec_unit_policy{}, *results.get(),
-                                *results.get() + search.context.tasks.vehicles[search.last] + 1,
-                                compare_arcs_logical{});
+    return *thrust::min_element(exec_unit_policy{}, *results.get(),
+                                *results.get() + lastVehicle + 1, compare_arcs_logical{});
   }
 };
 
