@@ -33,7 +33,7 @@ struct run_heuristic final {
 };
 
 template<typename ProblemStream>
-void test() {
+void test_individuum() {
   auto stream = ProblemStream{}();
   auto problem = SolomonReader().read(stream, cartesian_distance());
   Tasks tasks{problem.size()};
@@ -47,26 +47,9 @@ void test() {
   REQUIRE(SolutionChecker::check(solution).isValid());
 }
 
-}  // namespace
-
-SCENARIO("Can build single solution with one vehicle.",
-         "[heuristics][construction][RandomInsertion]") {
-  test<create_sequential_problem_stream>();
-}
-
-SCENARIO("Can build single solution with multiple vehicles.",
-         "[heuristics][construction][RandomInsertion]") {
-  test<create_exceeded_time_problem_stream>();
-}
-
-SCENARIO("Can build single solution with C101 problem.",
-         "[heuristics][construction][RandomInsertion]") {
-  test<create_c101_problem_stream>();
-}
-
-SCENARIO("Can build population with one vehicle in each of two individuums.",
-         "[heuristics][construction][RandomInsertion]") {
-  auto stream = create_sequential_problem_stream{}();
+template<typename ProblemStream>
+void test_population() {
+  auto stream = ProblemStream{}();
   auto problem = SolomonReader().read(stream, cartesian_distance());
   auto settings = Settings{2, vrp::algorithms::convolutions::Settings{0, 0}};
 
@@ -75,4 +58,31 @@ SCENARIO("Can build population with one vehicle in each of two individuums.",
   auto solution = Solution(std::move(problem), std::move(tasks));
   MatrixTextWriter::write(std::cout, solution);
   REQUIRE(SolutionChecker::check(solution).isValid());
+}
+
+}  // namespace
+
+SCENARIO("Can build single solution with one vehicle.",
+         "[heuristics][construction][RandomInsertion]") {
+  test_individuum<create_sequential_problem_stream>();
+}
+
+SCENARIO("Can build single solution with multiple vehicles.",
+         "[heuristics][construction][RandomInsertion]") {
+  test_individuum<create_exceeded_time_problem_stream>();
+}
+
+SCENARIO("Can build single solution with C101 problem.",
+         "[heuristics][construction][RandomInsertion]") {
+  test_individuum<create_c101_problem_stream>();
+}
+
+SCENARIO("Can build population with one vehicle in each of two individuums.",
+         "[heuristics][construction][RandomInsertion]") {
+  test_population<create_sequential_problem_stream>();
+}
+
+SCENARIO("Can build population with C101 problem and two individuums.",
+         "[heuristics][construction][RandomInsertion]") {
+  test_population<create_c101_problem_stream>();
 }
