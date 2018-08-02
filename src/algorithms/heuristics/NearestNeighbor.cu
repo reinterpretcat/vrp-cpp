@@ -83,17 +83,9 @@ struct create_cost_transition final {
 
     auto transition = transitionOp.create({step.base, step.from, step.to, wrapped, step.vehicle});
 
-    float cost = transition.isValid() ? getCostWithoutServiceTime(transition) : -1;
+    float cost = transition.isValid() ? transitionOp.estimate(transition) : -1;
 
     return thrust::make_pair(transition, cost);
-  }
-
-private:
-  /// Returns cost without service time.
-  ANY_EXEC_UNIT float getCostWithoutServiceTime(const Transition& transition) {
-    auto newTransition = transition;
-    newTransition.delta.serving = 0;
-    return transitionOp.estimate(transition);
   }
 };
 
