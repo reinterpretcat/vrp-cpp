@@ -29,7 +29,7 @@ using LocationResolver = GeoJsonWriter::LocationResolver;
 /// Creates coordinate from customer id.
 Json::array createCoordinate(const LocationResolver& resolver, int id) {
   auto coord = resolver(id);
-  return Json::array{coord.first, coord.second};
+  return Json::array{thrust::get<0>(coord), thrust::get<1>(coord)};
 }
 
 /// Creates geo json of given route as line string.

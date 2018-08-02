@@ -1,7 +1,6 @@
 #ifndef VRP_STREAMS_SOLOMONREADER_HPP
 #define VRP_STREAMS_SOLOMONREADER_HPP
 
-#include "models/Locations.hpp"
 #include "models/Problem.hpp"
 
 #include <functional>
@@ -14,7 +13,7 @@ class SolomonReader final {
 public:
   /// Calculates distance between two coordinates.
   using DistanceCalculator =
-    std::function<float(const vrp::models::DeviceGeoCoord&, const vrp::models::DeviceGeoCoord&)>;
+    std::function<float(const thrust::tuple<double, double>&, const thrust::tuple<double, double>&)>;
 
   /// Creates VRP problem and resources from input stream.
   vrp::models::Problem read(std::istream& input, const DistanceCalculator& calculator);

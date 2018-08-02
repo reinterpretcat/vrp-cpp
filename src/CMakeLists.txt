@@ -42,7 +42,6 @@ set(HEADER_FILES
         models/Solution.hpp
         models/Tasks.hpp
         models/Transition.hpp
-        models/Locations.hpp
 
         runtime/Config.hpp
         runtime/Variant.hpp

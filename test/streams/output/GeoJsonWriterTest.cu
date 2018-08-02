@@ -23,7 +23,7 @@ SCENARIO("Can write solution as geojson.", "[streams][geojson]") {
   GeoJsonWriter writer;
   std::stringstream ss;
 
-  writer.write(ss, createSolution(), [](int customer) { return std::make_pair(customer, 0); });
+  writer.write(ss, createSolution(), [](int customer) { return thrust::make_tuple<double, double>(customer, 0); });
 
   std::string err;
   auto json = json11::Json::parse(ss.str(), err, json11::JsonParse::STANDARD);

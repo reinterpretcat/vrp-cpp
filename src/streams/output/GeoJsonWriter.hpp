@@ -1,7 +1,6 @@
 #ifndef VRP_STREAMS_GEOJSONWRITER_HPP
 #define VRP_STREAMS_GEOJSONWRITER_HPP
 
-#include "models/Locations.hpp"
 #include "models/Tasks.hpp"
 
 #include <functional>
@@ -13,7 +12,7 @@ namespace streams {
 class GeoJsonWriter final {
 public:
   /// Defines resolver func type.
-  using LocationResolver = std::function<vrp::models::HostGeoCoord(int)>;
+  using LocationResolver = std::function<thrust::tuple<double, double>(int)>;
 
   /// Writes geo json to stream.
   void write(std::ostream& out, const vrp::models::Tasks& tasks, const LocationResolver& resolver);

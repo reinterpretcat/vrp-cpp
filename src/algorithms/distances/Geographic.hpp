@@ -1,7 +1,6 @@
 #ifndef VRP_ALGORITHMS_DISTANCES_GEOGRAPHIC_HPP
 #define VRP_ALGORITHMS_DISTANCES_GEOGRAPHIC_HPP
 
-#include "models/Locations.hpp"
 #include "runtime/Config.hpp"
 
 #include <cmath>
@@ -15,8 +14,8 @@ namespace distances {
 /// Calculates geo distance between two coordinates.
 template<unsigned int ScaleDown = static_cast<unsigned int>(1E8)>
 struct geographic_distance final {
-  ANY_EXEC_UNIT float operator()(const vrp::models::DeviceGeoCoord& left,
-                                 const vrp::models::DeviceGeoCoord& right) {
+  ANY_EXEC_UNIT float operator()(const thrust::tuple<double, double>& left,
+                                 const thrust::tuple<double, double>& right) {
     double leftLon = thrust::get<0>(left) / ScaleDown;
     double leftLat = thrust::get<1>(left) / ScaleDown;
     double rightLon = thrust::get<0>(right) / ScaleDown;

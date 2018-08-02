@@ -15,6 +15,7 @@ using namespace vrp::models;
 using namespace vrp::streams;
 
 namespace {
+
 /// Customer defined by: id, x, y, demand, start, end, service
 using CustomerData = thrust::tuple<int, int, int, int, int, int, int>;
 
