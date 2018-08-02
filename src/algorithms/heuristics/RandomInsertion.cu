@@ -145,7 +145,7 @@ struct estimate_insertion final {
   /// @param task Task index from which arc starts.
   EXEC_UNIT InsertionResult operator()(int point) {
     int vehicle = data.vehicle;
-    float cost = stateOp.costs(data.to);
+    float cost = stateOp.costs(base + data.to);
 
     stateOp.restore(point, base, vehicle);
 
@@ -194,10 +194,12 @@ struct find_best_arc final {
     auto data = InsertionData{from, to, vehicle, search.customer};
 
     results[vehicle] = thrust::transform_reduce(
-      exec_unit_policy{}, thrust::make_counting_iterator(search.base + from),
-      thrust::make_counting_iterator(search.base + to + 1),
+      exec_unit_policy{}, thrust::make_counting_iterator(from),
+      thrust::make_counting_iterator(to + 1),
+
       estimate_insertion<TransitionOp>{
         data, state_processor<TransitionOp>{search, transitionOp, {}, 0}, search.base},
+
       InsertionResult{data, -1, __FLT_MAX__}, compare_arcs_value{});
 
     return {};
@@ -304,8 +306,8 @@ private:
 
   /// Inserts new customer in single tour.
   EXEC_UNIT int insertInBetween(const SearchContext& search, const InsertionResult& result) {
-    int begin = result.point;
-    int end = search.last;
+    int begin = search.base + result.point;
+    int end = search.base + search.last;
     auto tasks = search.context.tasks;
 
     // shift everything to the right
@@ -359,7 +361,7 @@ EXEC_UNIT void random_insertion<TransitionOp>::operator()(const Context& context
     transitionOp, make_unique_ptr_data<InsertionResult>(context.problem.size)};
   auto insertCustomer = insert_customer<TransitionOp>{transitionOp};
 
-  int to = shift == 0 ? 1 : shift;
+  int to = shift == 0 ? 1 : shift + 1;
   int customer = 0;
   int vehicle = context.tasks.vehicles[to - 1];
 
