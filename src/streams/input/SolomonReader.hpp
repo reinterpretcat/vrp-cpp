@@ -12,8 +12,8 @@ namespace streams {
 class SolomonReader final {
 public:
   /// Calculates distance between two coordinates.
-  using DistanceCalculator =
-    std::function<float(const thrust::tuple<double, double>&, const thrust::tuple<double, double>&)>;
+  using DistanceCalculator = std::function<float(const thrust::tuple<double, double>&,
+                                                 const thrust::tuple<double, double>&)>;
 
   /// Creates VRP problem and resources from input stream.
   vrp::models::Problem read(std::istream& input, const DistanceCalculator& calculator);

@@ -5,7 +5,9 @@ find_package(Thrust REQUIRED)
 set(EXE_NAME SolverRunner)
 set(LIBRARY_NAME Solver)
 
-add_executable(${EXE_NAME} runner/main.cu)
+add_executable(${EXE_NAME}
+        runner/Resolvers.hpp
+        runner/main.cu)
 
 target_link_libraries(${EXE_NAME}
         ${LIBRARY_NAME}

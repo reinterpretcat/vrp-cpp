@@ -51,7 +51,6 @@ set(HEADER_FILES
         streams/output/GeoJsonWriter.hpp
         streams/output/MatrixTextWriter.hpp
 
-        utils/geo/Resolvers.hpp
         utils/validation/SolutionChecker.hpp
         )
 
