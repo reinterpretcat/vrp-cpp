@@ -55,7 +55,7 @@ inline InsertionResult create_invalid_data() { return {{}, -1, __FLT_MAX__}; }
 /// Finds next random customer to serve.
 struct find_random_customer final {
   EXEC_UNIT explicit find_random_customer(const Tasks::Shadow tasks, int base) :
-    tasks(tasks), base(base), dist(0, tasks.customers - 1), rng() {}
+    tasks(tasks), base(base), maxCustomer(tasks.customers - 1), dist(1, maxCustomer), rng() {}
 
   EXEC_UNIT int operator()() {
     auto start = dist(rng);
@@ -69,9 +69,9 @@ struct find_random_customer final {
 
       // try to find next customer
       if (increment)
-        customer = customer == tasks.customers ? 1 : customer + 1;
+        customer = customer == maxCustomer ? 1 : customer + 1;
       else
-        customer = customer == 0 ? tasks.customers - 1 : customer - 1;
+        customer = customer == 0 ? maxCustomer : customer - 1;
     } while (customer != start);
 
     return -1;
@@ -80,6 +80,7 @@ struct find_random_customer final {
 private:
   const Tasks::Shadow tasks;
   int base;
+  int maxCustomer;
   thrust::uniform_int_distribution<int> dist;
   thrust::minstd_rand rng;
 };
