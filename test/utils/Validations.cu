@@ -12,7 +12,7 @@ using namespace vrp::test;
 
 SCENARIO("Can check simple solution", "[utils][validation][solution_checker]") {
   auto stream = create_sequential_problem_stream()();
-  auto population = createPopulation<nearest_neighbor>(stream, 2);
+  auto population = createPopulation<nearest_neighbor<TransitionOperator>>(stream, 2);
 
   auto result = SolutionChecker::check(population);
 
@@ -21,7 +21,7 @@ SCENARIO("Can check simple solution", "[utils][validation][solution_checker]") {
 
 SCENARIO("Can check complex solution", "[utils][validation][solution_checker][c101]") {
   auto stream = create_c101_problem_stream()();
-  auto population = createPopulation<nearest_neighbor>(stream, 1);
+  auto population = createPopulation<nearest_neighbor<TransitionOperator>>(stream, 1);
 
   auto result = SolutionChecker::check(population);
 

@@ -13,7 +13,8 @@ namespace vrp {
 namespace test {
 
 /// Creates population from input stream. Result includes problem definition.
-template<typename Heuristic = vrp::algorithms::heuristics::nearest_neighbor>
+template<typename Heuristic = vrp::algorithms::heuristics::nearest_neighbor<
+           vrp::algorithms::heuristics::TransitionOperator>>
 vrp::models::Solution createPopulation(std::istream& stream, int populationSize = 3) {
   auto problem =
     vrp::streams::SolomonReader().read(stream, vrp::algorithms::distances::cartesian_distance());

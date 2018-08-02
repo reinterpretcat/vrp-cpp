@@ -26,7 +26,7 @@ struct run_crossover final {
   const Settings settings;
   const Generation generation;
   EXEC_UNIT void operator()(int index) {
-    adjusted_cost_difference<nearest_neighbor>{solution}(settings, generation);
+    adjusted_cost_difference<nearest_neighbor<TransitionOperator>>{solution}(settings, generation);
   }
 };
 

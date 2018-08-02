@@ -2,6 +2,7 @@
 #include "algorithms/genetic/Populations.hpp"
 #include "algorithms/heuristics/Dummy.hpp"
 #include "algorithms/heuristics/NearestNeighbor.hpp"
+#include "algorithms/heuristics/RandomInsertion.hpp"
 #include "algorithms/transitions/Executors.hpp"
 #include "algorithms/transitions/Factories.hpp"
 #include "models/Transition.hpp"
@@ -12,23 +13,25 @@
 
 using namespace vrp::algorithms::costs;
 using namespace vrp::algorithms::genetic;
+using namespace vrp::algorithms::heuristics;
 using namespace vrp::algorithms::transitions;
 using namespace vrp::models;
 using namespace vrp::runtime;
 
 namespace {
 
+using TransitionOperator = vrp::algorithms::heuristics::TransitionOperator;
+
 /// Creates roots in solutions. Root connects depot with exact
 /// one customer making feasible solution.
+template<typename TransitionOp>
 struct create_roots {
-  create_roots(const Problem& problem, Tasks& tasks, const Settings& settings) :
-    problem(problem.getShadow()), tasks(tasks.getShadow()),
-    populationSize(settings.populationSize), getCost{problem.getShadow(), tasks.getShadow()},
-    createTransition{problem.getShadow(), tasks.getShadow()}, performTransition{problem.getShadow(),
-                                                                                tasks.getShadow()} {
-  }
+  create_roots(const Problem& problem, Tasks& tasks, int populationSize) :
+    problem(problem.getShadow()), tasks(tasks.getShadow()), populationSize(populationSize) {}
 
   ANY_EXEC_UNIT void operator()(int individuum) {
+    auto transitionOp = TransitionOp(problem, tasks);
+
     int customer = getCustomer(individuum);
     int vehicle = 0;
 
@@ -41,9 +44,10 @@ struct create_roots {
     while (customer != 0) {
       auto details =
         vrp::models::Transition::Details{base, fromTask, toTask, wrapCustomer(customer), vehicle};
-      auto transition = createTransition(details);
+      auto transition = transitionOp.create(details);
       if (transition.isValid()) {
-        performTransition(transition, getCost(transition));
+        auto cost = transitionOp.estimate(transition);
+        transitionOp.perform(transition, cost);
         break;
       }
       // TODO try to pick another vehicle in case of heterogeneous fleet.
@@ -76,21 +80,8 @@ private:
   const Problem::Shadow problem;
   Tasks::Shadow tasks;
   int populationSize;
-
-  calculate_transition_cost getCost;
-  create_transition createTransition;
-  perform_transition performTransition;
 };
 
-/// Picks the next vehicle and assigns it to the task.
-ANY_EXEC_UNIT void spawnNewVehicle(const Problem::Shadow& problem,
-                                   Tasks::Shadow& tasks,
-                                   int task,
-                                   int vehicle) {
-  tasks.times[task] = problem.customers.starts[0];
-  tasks.capacities[task] = problem.resources.capacities[vehicle];
-  tasks.costs[task] = problem.resources.fixedCosts[vehicle];
-}
 }  // namespace
 
 namespace vrp {
@@ -108,7 +99,7 @@ Tasks create_population<Heuristic>::operator()(const Settings& settings) {
   // create roots
   thrust::for_each(exec_unit, thrust::make_counting_iterator(0),
                    thrust::make_counting_iterator(settings.populationSize),
-                   create_roots(problem, population, settings));
+                   create_roots<TransitionOperator>(problem, population, settings.populationSize));
 
   // complete solutions
   thrust::for_each(
@@ -120,39 +111,20 @@ Tasks create_population<Heuristic>::operator()(const Settings& settings) {
 }
 
 template<typename Heuristic>
-void create_individuum<Heuristic>::operator()(int index) {
-  const auto begin = index * problem.size;
+EXEC_UNIT void create_individuum<Heuristic>::operator()(int index) {
+  auto context = Context{problem, tasks, convolutions};
 
-  auto getCost = calculate_transition_cost{problem, tasks};
-  auto performTransition = perform_transition{problem, tasks};
-  auto heuristic = Heuristic({problem, tasks, convolutions});
-
-  int vehicle = 0;
-  int from = shift;
-  int to = from + 1;
-
-  do {
-    auto transition = heuristic({begin, from, to, vehicle});
-    if (transition.isValid()) {
-      from = performTransition(transition, getCost(transition));
-      to = from + 1;
-    } else {
-      // NOTE cannot find any further customer to serve within vehicle
-      if (from == 0 || vehicle == problem.resources.vehicles - 1) break;
-
-      from = 0;
-      spawnNewVehicle(problem, tasks, from, ++vehicle);
-    }
-    /// TODO end is wrong?
-  } while (to < problem.size);
+  Heuristic()(context, index, shift);
 }
 
 // NOTE explicit specialization to make linker happy.
-template class create_population<vrp::algorithms::heuristics::dummy>;
-template class create_population<vrp::algorithms::heuristics::nearest_neighbor>;
+template class create_population<vrp::algorithms::heuristics::dummy<TransitionOperator>>;
+template class create_population<vrp::algorithms::heuristics::nearest_neighbor<TransitionOperator>>;
+template class create_population<vrp::algorithms::heuristics::random_insertion<TransitionOperator>>;
 
-template class create_individuum<vrp::algorithms::heuristics::dummy>;
-template class create_individuum<vrp::algorithms::heuristics::nearest_neighbor>;
+template class create_individuum<vrp::algorithms::heuristics::dummy<TransitionOperator>>;
+template class create_individuum<vrp::algorithms::heuristics::nearest_neighbor<TransitionOperator>>;
+template class create_individuum<vrp::algorithms::heuristics::random_insertion<TransitionOperator>>;
 
 }  // namespace genetic
 }  // namespace algorithms

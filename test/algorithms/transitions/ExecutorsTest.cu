@@ -26,7 +26,7 @@ const auto T = Plan::assign();
 SCENARIO("Can execute transition with convolution.", "[transitions][executors][convolutions]") {
   int capacity = 10;
   auto stream = create_sequential_problem_stream{}(capacity);
-  auto solution = createPopulation<nearest_neighbor>(stream, 1);
+  auto solution = createPopulation<nearest_neighbor<TransitionOperator>>(stream, 1);
   auto expectedIds = vrp::test::copy(solution.tasks.ids);
   auto expectedVehicles = vrp::test::copy(solution.tasks.vehicles);
   auto expectedCosts = vrp::test::copy(solution.tasks.costs);

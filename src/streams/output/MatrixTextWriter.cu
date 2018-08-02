@@ -73,7 +73,7 @@ void writeCosts(std::ostream& stream, Solution& solution) {
 }  // namespace
 
 void MatrixTextWriter::write(std::ostream& out, const vrp::models::Solution& solution) {
-  // writeCosts(out << "\ntotal costs: ", const_cast<Solution&>(solution));
+  writeCosts(out << "\ntotal costs: ", const_cast<Solution&>(solution));
   write(out, solution.tasks);
 }
 

@@ -5,6 +5,7 @@
 #include "algorithms/genetic/Populations.hpp"
 #include "algorithms/heuristics/Dummy.hpp"
 #include "algorithms/heuristics/NearestNeighbor.hpp"
+#include "algorithms/heuristics/RandomInsertion.hpp"
 
 #include <thrust/iterator/constant_iterator.h>
 #include <thrust/iterator/counting_iterator.h>
@@ -147,8 +148,12 @@ EXEC_UNIT void adjusted_cost_difference<Heuristic>::operator()(const Settings& s
 }
 
 // NOTE explicit specialization to make linker happy.
-template class adjusted_cost_difference<vrp::algorithms::heuristics::dummy>;
-template class adjusted_cost_difference<vrp::algorithms::heuristics::nearest_neighbor>;
+using TransitionOperator = vrp::algorithms::heuristics::TransitionOperator;
+template class adjusted_cost_difference<vrp::algorithms::heuristics::dummy<TransitionOperator>>;
+template class adjusted_cost_difference<
+  vrp::algorithms::heuristics::nearest_neighbor<TransitionOperator>>;
+template class adjusted_cost_difference<
+  vrp::algorithms::heuristics::random_insertion<TransitionOperator>>;
 
 }  // namespace genetic
 }  // namespace algorithms

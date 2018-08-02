@@ -1,4 +1,3 @@
-#include "algorithms/heuristics/Operators.hpp"
 #include "algorithms/heuristics/RandomInsertion.hpp"
 #include "algorithms/transitions/Executors.hpp"
 #include "iterators/Aggregates.hpp"
@@ -382,10 +381,7 @@ EXEC_UNIT void random_insertion<TransitionOp>::operator()(const Context& context
 }
 
 /// NOTE make linker happy.
-template class random_insertion<
-  TransitionDelegate<vrp::algorithms::transitions::create_transition,
-                     vrp::algorithms::costs::calculate_transition_cost,
-                     vrp::algorithms::transitions::perform_transition>>;
+template class random_insertion<TransitionOperator>;
 
 }  // namespace heuristics
 }  // namespace algorithms

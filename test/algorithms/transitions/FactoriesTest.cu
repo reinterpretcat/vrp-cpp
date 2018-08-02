@@ -19,7 +19,7 @@ using namespace vrp::test;
 
 SCENARIO("Can create transition from convolution.", "[transitions][convolutions]") {
   auto stream = create_sequential_problem_stream{}();
-  auto solution = createPopulation<nearest_neighbor>(stream, 1);
+  auto solution = createPopulation<nearest_neighbor<TransitionOperator>>(stream, 1);
   thrust::fill(exec_unit, solution.tasks.plan.begin() + 3, solution.tasks.plan.end(),
                Plan::reserve(0));
   variant<int, Convolution> variant;

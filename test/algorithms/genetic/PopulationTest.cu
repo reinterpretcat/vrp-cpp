@@ -23,7 +23,7 @@ const auto F = Plan::empty();
 
 SCENARIO("Can create roots of initial population.", "[genetic][population][initial][roots]") {
   auto stream = create_sequential_problem_stream{}();
-  auto solution = createPopulation<dummy>(stream);
+  auto solution = createPopulation<dummy<TransitionOperator>>(stream);
 
   CHECK_THAT(vrp::test::copy(solution.tasks.ids),
              Catch::Matchers::Equals(
@@ -48,7 +48,7 @@ SCENARIO("Can create roots of initial population.", "[genetic][population][initi
 
 SCENARIO("Can create a full initial population.", "[genetic][population][initial][solution]") {
   auto stream = create_sequential_problem_stream{}();
-  auto solution = createPopulation<nearest_neighbor>(stream);
+  auto solution = createPopulation<nearest_neighbor<TransitionOperator>>(stream);
 
   CHECK_THAT(vrp::test::copy(solution.tasks.ids),
              Catch::Matchers::Equals(
@@ -75,7 +75,7 @@ SCENARIO("Can use second vehicle within initial population in case of demand vio
          "[genetic][population][initial][two_vehicles]") {
   auto stream = create_exceeded_capacity_variant_2_problem_stream{}();
 
-  auto solution = createPopulation<nearest_neighbor>(stream, 1);
+  auto solution = createPopulation<nearest_neighbor<TransitionOperator>>(stream, 1);
 
   CHECK_THAT(vrp::test::copy(solution.tasks.vehicles),
              Catch::Matchers::Equals(std::vector<int>{0, 0, 0, 0, 1, 1}));
@@ -87,7 +87,7 @@ SCENARIO("Can use second vehicle within initial population in case of time viola
          "[genetic][initial][two_vehicles]") {
   auto stream = create_exceeded_time_problem_stream{}();
 
-  auto solution = createPopulation<nearest_neighbor>(stream, 1);
+  auto solution = createPopulation<nearest_neighbor<TransitionOperator>>(stream, 1);
 
   CHECK_THAT(vrp::test::copy(solution.tasks.vehicles),
              Catch::Matchers::Equals(std::vector<int>{0, 0, 0, 0, 0, 1}));

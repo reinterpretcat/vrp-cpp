@@ -25,7 +25,6 @@ set(HEADER_FILES
         algorithms/heuristics/Dummy.hpp
         algorithms/heuristics/Models.hpp
         algorithms/heuristics/NearestNeighbor.hpp
-        algorithms/heuristics/Operators.hpp
         algorithms/heuristics/RandomInsertion.hpp
 
         algorithms/transitions/Factories.hpp
@@ -73,7 +72,6 @@ set(SOURCE_FILES
 
         algorithms/heuristics/Dummy.cu
         algorithms/heuristics/NearestNeighbor.cu
-        algorithms/heuristics/Operators.cu
         algorithms/heuristics/RandomInsertion.cu
 
         algorithms/transitions/Factories.cu
