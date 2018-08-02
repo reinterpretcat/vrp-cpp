@@ -1,6 +1,8 @@
+#include "algorithms/genetic/Crossovers.hpp"
 #include "algorithms/distances/Cartesian.hpp"
 #include "algorithms/heuristics/RandomInsertion.hpp"
 #include "algorithms/transitions/Executors.hpp"
+#include "algorithms/genetic/Populations.hpp"
 #include "config.hpp"
 #include "streams/input/SolomonReader.hpp"
 #include "streams/output/MatrixTextWriter.hpp"
@@ -15,21 +17,19 @@
 
 using namespace vrp::algorithms::distances;
 using namespace vrp::algorithms::heuristics;
+using namespace vrp::algorithms::genetic;
 using namespace vrp::models;
 using namespace vrp::streams;
 using namespace vrp::utils;
 using namespace vrp::test;
 
 namespace {
-typedef typename vrp::algorithms::heuristics::TransitionDelegate<
-  vrp::algorithms::transitions::create_transition,
-  vrp::algorithms::costs::calculate_transition_cost,
-  vrp::algorithms::transitions::perform_transition>
-  Delegate;
 
 struct run_heuristic final {
   Context context;
-  EXEC_UNIT void operator()(int index) const { random_insertion<Delegate>{}(context, index, 0); };
+  EXEC_UNIT void operator()(int index) const {
+    random_insertion<TransitionOperator>{}(context, index, 0);
+  };
 };
 
 template<typename ProblemStream>
@@ -50,16 +50,29 @@ void test() {
 }  // namespace
 
 SCENARIO("Can build single solution with one vehicle.",
-         "[heuristics][construction][RandomInsertion][init]") {
+         "[heuristics][construction][RandomInsertion]") {
   test<create_sequential_problem_stream>();
 }
 
 SCENARIO("Can build single solution with multiple vehicles.",
-         "[heuristics][construction][RandomInsertion][init]") {
+         "[heuristics][construction][RandomInsertion]") {
   test<create_exceeded_time_problem_stream>();
 }
 
 SCENARIO("Can build single solution with C101 problem.",
-         "[heuristics][construction][RandomInsertion][init]") {
+         "[heuristics][construction][RandomInsertion]") {
   test<create_c101_problem_stream>();
+}
+
+SCENARIO("Can build population with one vehicle in each of two individuums.",
+         "[heuristics][construction][RandomInsertion]") {
+  auto stream = create_sequential_problem_stream{}();
+  auto problem = SolomonReader().read(stream, cartesian_distance());
+  auto settings = Settings{2, vrp::algorithms::convolutions::Settings{0, 0}};
+
+  auto tasks = create_population<random_insertion<TransitionOperator>>(problem)(settings);
+
+  auto solution = Solution(std::move(problem), std::move(tasks));
+  MatrixTextWriter::write(std::cout, solution);
+  REQUIRE(SolutionChecker::check(solution).isValid());
 }

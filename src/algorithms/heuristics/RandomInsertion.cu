@@ -54,8 +54,8 @@ inline InsertionResult create_invalid_data() { return {{}, -1, __FLT_MAX__}; }
 
 /// Finds next random customer to serve.
 struct find_random_customer final {
-  EXEC_UNIT explicit find_random_customer(const Tasks::Shadow tasks) :
-    tasks(tasks), dist(0, tasks.customers - 1), rng() {}
+  EXEC_UNIT explicit find_random_customer(const Tasks::Shadow tasks, int base) :
+    tasks(tasks), base(base), dist(0, tasks.customers - 1), rng() {}
 
   EXEC_UNIT int operator()() {
     auto start = dist(rng);
@@ -63,7 +63,7 @@ struct find_random_customer final {
     bool increment = start % 2 == 0;
 
     do {
-      Plan plan = tasks.plan[customer];
+      Plan plan = tasks.plan[base + customer];
 
       if (!plan.isAssigned()) return customer;
 
@@ -79,6 +79,7 @@ struct find_random_customer final {
 
 private:
   const Tasks::Shadow tasks;
+  int base;
   thrust::uniform_int_distribution<int> dist;
   thrust::minstd_rand rng;
 };
@@ -353,7 +354,7 @@ EXEC_UNIT void random_insertion<TransitionOp>::operator()(const Context& context
   const auto begin = index * context.problem.size;
 
   auto transitionOp = TransitionOp(context.problem, context.tasks);
-  auto findCustomer = find_random_customer(context.tasks);
+  auto findCustomer = find_random_customer(context.tasks, begin);
   auto findPoint = find_insertion_point<TransitionOp>{
     transitionOp, make_unique_ptr_data<InsertionResult>(context.problem.size)};
   auto insertCustomer = insert_customer<TransitionOp>{transitionOp};
