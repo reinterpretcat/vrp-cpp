@@ -67,7 +67,7 @@ struct compare_transition_costs {
 template<typename TransitionOp>
 struct create_cost_transition final {
   TransitionOp transitionOp;
-  const vrp::runtime::vector_ptr<vrp::models::Convolution> convolutions;
+  const vector_ptr<Convolution> convolutions;
   Step step;
 
   ANY_EXEC_UNIT TransitionCostModel operator()(const thrust::tuple<int, Plan>& customer) {
