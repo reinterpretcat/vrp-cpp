@@ -47,6 +47,13 @@ public:
 
   ANY_EXEC_UNIT void reset();
 
+  template<class T, class = typename std::enable_if<detail::one_of<T, Ts...>::value>::type>
+  ANY_EXEC_UNIT static variant<Ts...> create(T value) {
+    variant<Ts...> v;
+    v.set<T>(value);
+    return v;
+  }
+
 private:
   using Data = typename std::aligned_union<0, Ts...>::type;
   using Helper = detail::VariantHelper<Data, Ts...>;

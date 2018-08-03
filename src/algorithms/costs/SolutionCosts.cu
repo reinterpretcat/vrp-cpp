@@ -34,9 +34,7 @@ struct aggregate_cost final {
     const int vehicle = thrust::get<1>(tuple);
     const float cost = thrust::get<2>(tuple);
 
-    auto depot = variant<int, Convolution>();
-    depot.set<int>(0);
-
+    auto depot = variant<int, Convolution>::create(0);
     auto modelPtr = vrp::runtime::raw_pointer_cast<Model>(model);
     auto solution = modelPtr->solution;
 

@@ -75,11 +75,10 @@ struct create_cost_transition final {
 
     if (plan.isAssigned()) return create_invaild();
 
-    auto wrapped = variant<int, Convolution>();
-    if (plan.hasConvolution()) {
-      wrapped.set<Convolution>(*(convolutions + plan.convolution()));
-    } else
-      wrapped.set<int>(thrust::get<0>(customer));
+    auto wrapped =
+      plan.hasConvolution()
+        ? variant<int, Convolution>::create<Convolution>(*(convolutions + plan.convolution()))
+        : variant<int, Convolution>::create<int>(thrust::get<0>(customer));
 
     auto transition = transitionOp.create({step.base, step.from, step.to, wrapped, step.vehicle});
 

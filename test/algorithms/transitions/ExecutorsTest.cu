@@ -36,9 +36,8 @@ SCENARIO("Can execute transition with convolution.", "[transitions][executors][c
   thrust::fill(exec_unit, solution.tasks.plan.begin() + 3, solution.tasks.plan.end(),
                Plan::reserve(0));
   auto convolution = Convolution{0, 3, 30, {3, 5}, {30, 1000}, {3, 5}};
-  variant<int, Convolution> variant;
-  variant.set<Convolution>(convolution);
-  auto transition = Transition{Transition::Details{0, 2, 3, variant, 0}, {}};
+  auto wrapped = variant<int, Convolution>::create(convolution);
+  auto transition = Transition{Transition::Details{0, 2, 3, wrapped, 0}, {}};
 
   perform_transition{solution.problem.getShadow(), solution.tasks.getShadow()}(transition, 0);
 

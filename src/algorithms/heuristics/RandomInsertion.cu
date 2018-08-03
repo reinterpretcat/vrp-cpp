@@ -113,10 +113,7 @@ struct state_processor final {
 
   /// Updates state within new customer.
   EXEC_UNIT Transition update(int id, int task, int base, int vehicle) {
-    variant<int, Convolution> customer;
-    // TODO: support convolution here?
-    customer.set<int>(id);
-
+    auto customer = variant<int, Convolution>::create(id);
     auto details = Transition::Details{base, task, task + 1, customer, vehicle};
     Transition transition = transitionOp.create(details, state);
 
@@ -295,8 +292,7 @@ struct insert_customer final {
 private:
   /// Inserts new customer as last.
   EXEC_UNIT int insertLast(const SearchContext& search, const InsertionResult& result) {
-    variant<int, Convolution> customer;
-    customer.set<int>(result.data.customer);
+    auto customer = variant<int, Convolution>::create(result.data.customer);
 
     auto details = Transition::Details{search.base, result.data.from, result.data.to, customer,
                                        result.data.vehicle};

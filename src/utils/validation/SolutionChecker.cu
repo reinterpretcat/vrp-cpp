@@ -134,8 +134,8 @@ struct check_tours final {
     createDepotTask(tasks, begin + from);
 
     do {
-      auto wrapped = variant<int, Convolution>();
-      wrapped.set<int>(solution.tasks.ids[begin + to]);
+      auto wrapped = variant<int, Convolution>::create<int>(solution.tasks.ids[begin + to]);
+
       auto transition = factory({begin, from, to, wrapped, vehicle});
 
       if (!transition.isValid()) {

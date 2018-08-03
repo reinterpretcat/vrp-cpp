@@ -42,8 +42,8 @@ struct create_roots {
     createDepotTask(base + fromTask, vehicle);
 
     while (customer != 0) {
-      auto details =
-        vrp::models::Transition::Details{base, fromTask, toTask, wrapCustomer(customer), vehicle};
+      auto wrapped = variant<int, Convolution>::create(customer);
+      auto details = vrp::models::Transition::Details{base, fromTask, toTask, wrapped, vehicle};
       auto transition = transitionOp.create(details);
       if (transition.isValid()) {
         auto cost = transitionOp.estimate(transition);
@@ -70,12 +70,6 @@ private:
   ANY_EXEC_UNIT inline int getCustomer(int individuum) const {
     return thrust::max(1, (individuum * tasks.customers / populationSize + 1) % tasks.customers);
   }
-
-  ANY_EXEC_UNIT inline variant<int, Convolution> wrapCustomer(int customer) const {
-    variant<int, Convolution> wrapped;
-    wrapped.set<int>(customer);
-    return wrapped;
-  };
 
   const Problem::Shadow problem;
   Tasks::Shadow tasks;

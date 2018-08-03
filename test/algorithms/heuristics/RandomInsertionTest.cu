@@ -37,7 +37,7 @@ struct run_heuristic final {
 
 template<typename ProblemStream>
 inline void test_individuum(vector_ptr<Convolution> convolutions,
-    std::function<void(Problem&, Tasks&)> modificator) {
+                            std::function<void(Problem&, Tasks&)> modificator) {
   auto stream = ProblemStream{}();
   auto problem = SolomonReader().read(stream, cartesian_distance());
   Tasks tasks{problem.size()};
@@ -54,9 +54,8 @@ inline void test_individuum(vector_ptr<Convolution> convolutions,
 
 template<typename ProblemStream>
 inline void test_individuum() {
-  test_individuum<ProblemStream>({}, [](Problem& problem, Tasks& tasks){
-    vrp::test::createDepotTask(problem, tasks);
-  });
+  test_individuum<ProblemStream>(
+    {}, [](Problem& problem, Tasks& tasks) { vrp::test::createDepotTask(problem, tasks); });
 }
 
 template<typename ProblemStream>
@@ -101,8 +100,9 @@ SCENARIO("Can build population with C101 problem and two individuums.",
 
 SCENARIO("Can create single solution with convolution.",
          "[ggg][heuristics][construction][NearestNeighbor][convolutions]") {
-  auto convolutions = vrp::test::create<Convolution>({Convolution{0, 3, 30, {1, 3}, {0, 33}, {3, 5}} });
-  auto modificator = [](Problem& problem, Tasks& tasks){
+  auto convolutions =
+    vrp::test::create<Convolution>({Convolution{0, 3, 30, {1, 3}, {0, 33}, {3, 5}}});
+  auto modificator = [](Problem& problem, Tasks& tasks) {
     vrp::test::createDepotTask(problem, tasks);
     thrust::sequence(exec_unit, tasks.ids.begin() + 3, tasks.ids.end(), 1);
     thrust::fill(exec_unit, tasks.plan.begin() + 3, tasks.plan.end(), Plan::reserve(0));
