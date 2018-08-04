@@ -36,11 +36,13 @@ struct run_heuristic final {
 };
 
 template<typename ProblemStream>
-inline void test_individuum(vector_ptr<Convolution> convolutions,
-                            std::function<void(Problem&, Tasks&)> modificator) {
+inline void test_heuristic(int populationSize,
+                           vector_ptr<Convolution> convolutions,
+                           std::function<void(Problem&, Tasks&)> modificator,
+                           std::function<void(const Solution&)> validator) {
   auto stream = ProblemStream{}();
   auto problem = SolomonReader().read(stream, cartesian_distance());
-  Tasks tasks{problem.size()};
+  Tasks tasks{problem.size(), problem.size() * populationSize};
 
   modificator(problem, tasks);
 
@@ -48,14 +50,18 @@ inline void test_individuum(vector_ptr<Convolution> convolutions,
                      run_heuristic{Context{problem.getShadow(), tasks.getShadow(), convolutions}});
 
   auto solution = Solution(std::move(problem), std::move(tasks));
-  MatrixTextWriter::write(std::cout, solution);
-  REQUIRE(SolutionChecker::check(solution).isValid());
+
+  validator(solution);
 }
 
 template<typename ProblemStream>
 inline void test_individuum() {
-  test_individuum<ProblemStream>(
-    {}, [](Problem& problem, Tasks& tasks) { vrp::test::createDepotTask(problem, tasks); });
+  test_heuristic<ProblemStream>(
+    1, {}, [](Problem& problem, Tasks& tasks) { vrp::test::createDepotTask(problem, tasks); },
+    [](const Solution& solution) {
+      MatrixTextWriter::write(std::cout, solution);
+      REQUIRE(SolutionChecker::check(solution).isValid());
+    });
 }
 
 template<typename ProblemStream>
@@ -98,15 +104,31 @@ SCENARIO("Can build population with C101 problem and two individuums.",
   test_population<create_c101_problem_stream>();
 }
 
-SCENARIO("Can create single solution with convolution.",
-         "[ggg][heuristics][construction][NearestNeighbor][convolutions]") {
+SCENARIO("Can create solution using convolution from another solution.",
+         "[heuristics][construction][NearestNeighbor][convolutions]") {
+  int size = 6;
   auto convolutions =
-    vrp::test::create<Convolution>({Convolution{0, 3, 30, {1, 3}, {0, 33}, {3, 5}}});
-  auto modificator = [](Problem& problem, Tasks& tasks) {
+    vrp::test::create<Convolution>({Convolution{size, 2, 30, {3, 2}, {0, 22}, {4, 5}}});
+  auto modificator = [=](Problem& problem, Tasks& tasks) {
     vrp::test::createDepotTask(problem, tasks);
-    thrust::sequence(exec_unit, tasks.ids.begin() + 3, tasks.ids.end(), 1);
-    thrust::fill(exec_unit, tasks.plan.begin() + 3, tasks.plan.end(), Plan::reserve(0));
+    tasks.plan[2] = Plan::reserve(0);
+    tasks.plan[3] = Plan::reserve(0);
+
+    auto begin = tasks.ids.begin() + size;
+    thrust::sequence(exec_unit, begin + 4, begin + size, 3, -1);
+  };
+  auto validator = [=](const Solution& solution) {
+    CHECK_THAT(vrp::test::copy(solution.tasks.ids, size),
+               Catch::Matchers::Equals(std::vector<int>{0, 1, 3, 2, 4, 5}));
+    CHECK_THAT(vrp::test::copy(solution.tasks.vehicles, size),
+               Catch::Matchers::Equals(std::vector<int>{0, 0, 0, 0, 0, 0}));
+    CHECK_THAT(vrp::test::copy(solution.tasks.capacities, size),
+               Catch::Matchers::Equals(std::vector<int>{10, 9, 8, 7, 6, 5}));
+    CHECK_THAT(vrp::test::copy(solution.tasks.times, size),
+               Catch::Matchers::Equals(std::vector<int>{0, 11, 23, 34, 47, 58}));
+    CHECK_THAT(vrp::test::copy(solution.tasks.costs, size),
+               Catch::Matchers::Equals(std::vector<float>{0, 1, 3, 4, 7, 8}));
   };
 
-  test_individuum<create_sequential_problem_stream>(convolutions.data(), modificator);
+  test_heuristic<create_sequential_problem_stream>(2, convolutions.data(), modificator, validator);
 }

@@ -19,12 +19,15 @@ namespace {
 /// Specifies vehicle range: start, end, id, and some extra.
 using VehicleRange = thrust::tuple<int, int, int, int>;
 
+/// Alias for customer variant.
+using Customer = variant<int, Convolution>;
+
 /// Represents search context: data passed through main operators.
 struct SearchContext final {
   Context context;
+  Customer customer;
   int base;
   int last;
-  int customer;
 };
 
 /// Stores data used to estimate insertion.
@@ -35,8 +38,8 @@ struct InsertionData final {
   int to;
   /// Used vehicle.
   int vehicle;
-  /// Customer to be inserted
-  int customer;
+  /// Customer to be inserted.
+  Customer customer;
 };
 
 /// Stores insertion result.
@@ -49,15 +52,26 @@ struct InsertionResult final {
   float cost;
 };
 
+/// Creates invalid insertion result.
 EXEC_UNIT
 inline InsertionResult create_invalid_data() { return {{}, -1, __FLT_MAX__}; }
 
+/// Checks whether customer is depot (id=0).
+EXEC_UNIT
+inline bool isDepot(const Customer& customer) {
+  return customer.is<int>() && customer.get<int>() == 0;
+}
+
 /// Finds next random customer to serve.
 struct find_random_customer final {
-  EXEC_UNIT explicit find_random_customer(const Tasks::Shadow tasks, int base) :
-    tasks(tasks), base(base), maxCustomer(tasks.customers - 1), dist(1, maxCustomer), rng() {}
+  EXEC_UNIT explicit find_random_customer(const Tasks::Shadow tasks,
+                                          const vector_ptr<Convolution> convolutions,
+                                          int base) :
+    tasks(tasks),
+    convolutions(convolutions), base(base), maxCustomer(tasks.customers - 1), dist(1, maxCustomer),
+    rng() {}
 
-  EXEC_UNIT int operator()() {
+  EXEC_UNIT Customer operator()() {
     auto start = dist(rng);
     auto customer = start;
     bool increment = start % 2 == 0;
@@ -65,7 +79,10 @@ struct find_random_customer final {
     do {
       Plan plan = tasks.plan[base + customer];
 
-      if (!plan.isAssigned()) return customer;
+      if (!plan.isAssigned())
+        return plan.hasConvolution()
+                 ? Customer::create<Convolution>(*(convolutions + plan.convolution()))
+                 : Customer::create<int>(customer);
 
       // try to find next customer
       if (increment)
@@ -74,11 +91,12 @@ struct find_random_customer final {
         customer = customer == 0 ? maxCustomer : customer - 1;
     } while (customer != start);
 
-    return -1;
+    return Customer::create<int>(-1);
   }
 
 private:
   const Tasks::Shadow tasks;
+  const vector_ptr<Convolution> convolutions;
   int base;
   int maxCustomer;
   thrust::uniform_int_distribution<int> dist;
@@ -111,24 +129,29 @@ struct state_processor final {
     state.time = time;
   }
 
-  /// Updates state within new customer.
-  EXEC_UNIT Transition update(int id, int task, int base, int vehicle) {
-    auto customer = variant<int, Convolution>::create(id);
+  /// Analyzes transition and updates state.
+  EXEC_UNIT int analyze(Customer customer, int task, int base, int vehicle) {
     auto details = Transition::Details{base, task, task + 1, customer, vehicle};
     Transition transition = transitionOp.create(details, state);
 
-    if (!transition.isValid()) return transition;
+    if (!transition.isValid()) return -1;
 
     cost += transitionOp.estimate(transition);
-
-    state.customer = transition.details.customer.get<int>();
-    state.time += transition.delta.duration();
-    state.capacity -= transition.delta.demand;
-
-    return transition;
+    return transitionOp.analyze(transition, state);
   }
 
-  EXEC_UNIT int customer(int task) { return search.context.tasks.ids[task]; }
+  EXEC_UNIT int perform(Customer customer, int task, int base, int vehicle) {
+    auto details = Transition::Details{search.base, task, task + 1, customer, vehicle};
+    Transition transition = transitionOp.create(details, state);
+    // TODO Performance: merge analyze and perform steps (or simply use restore?)
+    transitionOp.analyze(transition, state);
+    auto cost = transitionOp.estimate(transition);
+    return transitionOp.perform(transition, cost);
+  }
+
+  EXEC_UNIT Customer customer(int task) {
+    return Customer::create<int>(search.context.tasks.ids[task]);
+  }
 
   EXEC_UNIT float costs(int task) { return search.context.tasks.costs[task]; }
 };
@@ -147,12 +170,11 @@ struct estimate_insertion final {
 
     stateOp.restore(point, base, vehicle);
 
-    if (!stateOp.update(data.customer, point, base, vehicle).isValid())
-      return create_invalid_data();
+    if (stateOp.analyze(data.customer, point, base, vehicle) < 0) return create_invalid_data();
 
     for (int i = point + 1; i <= data.to; ++i) {
       auto customer = stateOp.customer(base + i);
-      if (!stateOp.update(customer, i, base, vehicle).isValid()) return create_invalid_data();
+      if (stateOp.analyze(customer, i, base, vehicle) < 0) return create_invalid_data();
     }
 
     return InsertionResult{
@@ -292,10 +314,8 @@ struct insert_customer final {
 private:
   /// Inserts new customer as last.
   EXEC_UNIT int insertLast(const SearchContext& search, const InsertionResult& result) {
-    auto customer = variant<int, Convolution>::create(result.data.customer);
-
-    auto details = Transition::Details{search.base, result.data.from, result.data.to, customer,
-                                       result.data.vehicle};
+    auto details = Transition::Details{search.base, result.data.from, result.data.to,
+                                       result.data.customer, result.data.vehicle};
     auto transition = transitionOp.create(details);
     auto cost = transitionOp.estimate(transition);
     return transitionOp.perform(transition, cost);
@@ -303,40 +323,61 @@ private:
 
   /// Inserts new customer in single tour.
   EXEC_UNIT int insertInBetween(const SearchContext& search, const InsertionResult& result) {
-    int begin = search.base + result.point;
-    int end = search.base + search.last;
-    auto tasks = search.context.tasks;
+    // prepare existing data for insertion
+    auto shift = shiftData(search, result);
 
-    // shift everything to the right
-    shift(tasks.ids + begin, tasks.ids + end);
-    shift(tasks.costs + begin, tasks.costs + end);
-    shift(tasks.vehicles + begin, tasks.vehicles + end);
-    shift(tasks.capacities + begin, tasks.capacities + end);
-    shift(tasks.times + begin, tasks.times + end);
-
-    // insert new customer
+    // prepare new customer
     auto stateOp = state_processor<TransitionOp>{search, transitionOp};
     stateOp.restore(result.point, search.base, result.data.vehicle);
 
-    // insert and recalculate affected tour
-    auto last = -1;
+    // insert and recalculate rest of affected tour
+    int last = result.point;
     for (int i = result.point; i <= result.data.to; ++i) {
+      auto ggg = *(search.context.tasks.ids + search.base + i + shift);
       auto customer =
-        i == result.point ? result.data.customer : stateOp.customer(search.base + i + 1);
-      auto transition = stateOp.update(customer, i, search.base, result.data.vehicle);
-      auto cost = transitionOp.estimate(transition);
-      last = transitionOp.perform(transition, cost);
+        i == result.point ? result.data.customer : stateOp.customer(search.base + i + shift);
+      last = stateOp.perform(customer, last, search.base, result.data.vehicle);
     }
 
-    return thrust::max(last, search.last);
+    return search.last + shift - 1;
+  }
+
+  /// Shifts data to right in order to allow insert new customer(-s).
+  EXEC_UNIT int shiftData(const SearchContext& search, const InsertionResult& result) {
+    int shift = getShiftCount(search.customer);
+
+    int begin = search.base + result.point;
+    int end = search.base + search.last + shift - 1;
+    auto tasks = search.context.tasks;
+
+    for (int i = 0; i < shift; ++i) {
+      // shift everything to the right
+      shiftRight(tasks.ids + begin, tasks.ids + end);
+      shiftRight(tasks.costs + begin, tasks.costs + end);
+      shiftRight(tasks.vehicles + begin, tasks.vehicles + end);
+      shiftRight(tasks.capacities + begin, tasks.capacities + end);
+      shiftRight(tasks.times + begin, tasks.times + end);
+    }
+
+    return shift;
   }
 
   /// Shifts to the right all data.
   template<typename T>
-  EXEC_UNIT void shift(T begin, T end) {
+  EXEC_UNIT void shiftRight(T begin, T end) {
     for (auto iter = end - 1; iter >= begin; --iter) {
       *(iter + 1) = *iter;
     }
+  }
+
+  /// Calculates how much data should be shifted to the right.
+  EXEC_UNIT int getShiftCount(const Customer& customer) const {
+    if (customer.is<int>()) return 1;
+
+    auto convolution = customer.get<Convolution>();
+    // NOTE assumption that all customers from convolution can be inserted!
+    // TODO use analyze to remove assumption (more expensive)
+    return convolution.tasks.second - convolution.tasks.first + 1;
   }
 };
 
@@ -353,19 +394,19 @@ EXEC_UNIT void random_insertion<TransitionOp>::operator()(const Context& context
   const auto begin = index * context.problem.size;
 
   auto transitionOp = TransitionOp(context.problem, context.tasks);
-  auto findCustomer = find_random_customer(context.tasks, begin);
+  auto findCustomer = find_random_customer(context.tasks, context.convolutions, begin);
   auto findPoint = find_insertion_point<TransitionOp>{
     transitionOp, make_unique_ptr_data<InsertionResult>(context.problem.size)};
   auto insertCustomer = insert_customer<TransitionOp>{transitionOp};
 
+  auto customer = Customer::create<int>(0);
   int to = shift == 0 ? 1 : shift + 1;
-  int customer = 0;
   int vehicle = context.tasks.vehicles[to - 1];
 
   while (to < context.problem.size) {
-    customer = customer != 0 ? customer : findCustomer();
+    customer = isDepot(customer) ? findCustomer() : customer;
 
-    auto search = SearchContext{context, begin, to, customer};
+    auto search = SearchContext{context, customer, begin, to};
     auto insertion = findPoint(search, vehicle);
 
     // allocate new vehicle if estimation fails to insert customer
@@ -376,7 +417,7 @@ EXEC_UNIT void random_insertion<TransitionOp>::operator()(const Context& context
 
     to = insertCustomer(search, insertion) + 1;
 
-    customer = 0;
+    customer = Customer::create<int>(0);
   }
 }
 

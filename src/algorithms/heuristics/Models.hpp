@@ -52,6 +52,12 @@ struct TransitionDelegate final {
     return costFactory(transition);
   }
 
+  /// Analyzes transition applying results to state; returns last task.
+  ANY_EXEC_UNIT int analyze(const vrp::models::Transition& transition,
+                            vrp::models::Transition::State& state) const {
+    return transitionExecutor(transition, state);
+  }
+
   /// Performs transition within cost and returns last task.
   ANY_EXEC_UNIT int perform(const vrp::models::Transition& transition, float cost) const {
     return transitionExecutor(transition, cost);
