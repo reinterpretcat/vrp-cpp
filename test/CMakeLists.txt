@@ -23,6 +23,7 @@ add_executable(${LIBRARY_TEST}
         algorithms/costs/CostsTest.cu
 
         algorithms/genetic/CrossoverTest.cu
+        algorithms/genetic/MutationTest.cu
         algorithms/genetic/PopulationTest.cu
 
         algorithms/heuristics/NearestNeighborTest.cu

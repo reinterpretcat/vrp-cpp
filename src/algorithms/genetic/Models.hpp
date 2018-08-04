@@ -24,8 +24,10 @@ struct Generation {
 
 /// Defines parameters of mutation.
 struct Mutation {
-  /// Affected individuum.
-  int index;
+  /// Source individuum.
+  int source;
+  /// Destination individuum
+  int destination;
 
   /// Defines how much individuum is affected, specified in range [0,1].
   float aggressiveness;
