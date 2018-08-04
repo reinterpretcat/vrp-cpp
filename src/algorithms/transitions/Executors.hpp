@@ -14,9 +14,13 @@ struct perform_transition final {
   const vrp::models::Problem::Shadow problem;
   const vrp::models::Tasks::Shadow tasks;
 
-  /// Performs transition and returns next task index from which
-  /// transition should start.
+  /// Performs transition and returns next task index from which transition should start.
   ANY_EXEC_UNIT int operator()(const vrp::models::Transition& transition, float cost) const;
+
+  /// Performs transition by updating existing state. Returns next task index from which
+  /// transition should start.
+  ANY_EXEC_UNIT int operator()(const vrp::models::Transition& transition,
+                               vrp::models::Transition::State& state) const;
 };
 
 }  // namespace transitions
