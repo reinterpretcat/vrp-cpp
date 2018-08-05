@@ -32,6 +32,7 @@ set(HEADER_FILES
 
         iterators/Aggregates.hpp
         iterators/CartesianProduct.hpp
+        iterators/Sequential.hpp
 
         models/Convolution.hpp
         models/Customers.hpp

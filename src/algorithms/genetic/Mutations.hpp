@@ -16,7 +16,7 @@ struct create_mutant final {
   /// Solution shadow.
   vrp::models::Solution::Shadow solution;
 
-  ANY_EXEC_UNIT void operator()(const Mutation& mutation) const;
+  EXEC_UNIT void operator()(const Mutation& mutation) const;
 };
 
 }  // namespace genetic
