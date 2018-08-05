@@ -334,7 +334,6 @@ private:
     // insert and recalculate rest of affected tour
     int last = result.point;
     for (int i = result.point; i <= result.data.to; ++i) {
-      auto ggg = *(search.context.tasks.ids + search.base + i + shift);
       auto customer =
         i == result.point ? result.data.customer : stateOp.customer(search.base + i + shift);
       last = stateOp.perform(customer, last, search.base, result.data.vehicle);

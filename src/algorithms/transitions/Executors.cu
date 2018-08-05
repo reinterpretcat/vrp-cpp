@@ -76,7 +76,7 @@ struct process_convolution final {
       to = from + 1;
     }
 
-    return from;
+    return to - 1;
   }
 };
 
