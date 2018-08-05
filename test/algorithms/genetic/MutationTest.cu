@@ -33,6 +33,8 @@ SCENARIO("Can mutate c101 individuum keeping convolutions.", "[genetic][mutation
   auto stream = create_c101_problem_stream{}();
   auto solution = createPopulation<nearest_neighbor<TransitionOperator>>(stream, 2);
   auto mutation = Mutation{0, 1, 0, false};
+  // NOTE invalidate ids for test purpose only
+  thrust::fill(exec_unit, solution.tasks.ids.begin() + 26 + 1, solution.tasks.ids.end(), -1);
 
   thrust::for_each(exec_unit, thrust::make_counting_iterator(0), thrust::make_counting_iterator(1),
                    run_mutation{solution.getShadow(), mutation});

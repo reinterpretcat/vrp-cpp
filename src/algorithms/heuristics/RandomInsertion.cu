@@ -79,16 +79,17 @@ struct find_random_customer final {
     do {
       Plan plan = tasks.plan[base + customer];
 
-      if (!plan.isAssigned())
+      if (!plan.isAssigned()) {
         return plan.hasConvolution()
-                 ? Customer::create<Convolution>(*(convolutions + plan.convolution()))
-                 : Customer::create<int>(customer);
+               ? Customer::create<Convolution>(*(convolutions + plan.convolution()))
+               : Customer::create<int>(customer);
+      }
 
       // try to find next customer
       if (increment)
         customer = customer == maxCustomer ? 1 : customer + 1;
       else
-        customer = customer == 0 ? maxCustomer : customer - 1;
+        customer = customer == 1 ? maxCustomer : customer - 1;
     } while (customer != start);
 
     return Customer::create<int>(-1);

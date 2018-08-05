@@ -23,7 +23,10 @@ struct reserve_convolution final {
     auto index = thrust::get<1>(tuple);
     for_seq(thrust::make_counting_iterator(convolution.tasks.first),
             thrust::make_counting_iterator(convolution.tasks.second + 1),
-            [&](int, int task) { tasks.plan[base + task] = Plan::reserve(index); });
+            [&](int, int task) {
+            auto customer = tasks.ids[convolution.base + task];
+            tasks.plan[base + customer] = Plan::reserve(index);
+    });
   }
 };
 
@@ -45,8 +48,8 @@ EXEC_UNIT void create_mutant<TransitionOp>::operator()(const Mutation& mutation)
   auto convPtr = *convolutions.data.get();
 
   // reset plan according to convolutions
-  thrust::fill(exec_unit_policy{}, base + solution.tasks.plan,
-               base + solution.tasks.plan + convolutions.size, Plan::empty());
+  thrust::fill(exec_unit_policy{}, base + solution.tasks.plan + 1,
+               base + solution.tasks.plan + solution.problem.size, Plan::empty());
   thrust::for_each_n(
     exec_unit_policy{},
     thrust::make_zip_iterator(thrust::make_tuple(convPtr, thrust::make_counting_iterator(0))),
