@@ -42,8 +42,7 @@ EXEC_UNIT void create_mutant<TransitionOp>::operator()(const Mutation& mutation)
 
   int base = solution.problem.size * mutation.destination;
 
-  auto settings = vrp::algorithms::convolutions::Settings{0.75, 0.05};
-  auto convolutions = create_best_convolutions{solution}.operator()(settings, mutation.source);
+  auto convolutions = create_best_convolutions{solution}.operator()(mutation.settings, mutation.source);
   auto convPtr = *convolutions.data.get();
 
   // reset plan according to convolutions

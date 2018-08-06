@@ -28,12 +28,8 @@ struct Mutation {
   int source;
   /// Destination individuum
   int destination;
-
-  /// Defines how much individuum is affected, specified in range [0,1].
-  float aggressiveness;
-
-  /// Specifies whether convolutions are affected too.
-  bool keepConvolutions;
+  /// Convolution settings.
+  vrp::algorithms::convolutions::Settings settings;
 };
 
 }  // namespace genetic
