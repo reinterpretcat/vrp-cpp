@@ -27,14 +27,13 @@ struct run_mutation final {
   EXEC_UNIT void operator()(int index) { create_mutant<TransitionOperator>{solution}(mutation); }
 };
 
-}  // namespace
-
-SCENARIO("Can mutate c101 individuum keeping convolutions.", "[genetic][mutation]") {
-  auto stream = create_c101_problem_stream{}();
+template <typename Problem, int Size>
+void test() {
+  auto stream = Problem{}();
   auto solution = createPopulation<nearest_neighbor<TransitionOperator>>(stream, 2);
   auto mutation = Mutation{0, 1, 0, false};
   // NOTE invalidate ids for test purpose only
-  auto start = 26 + 1;
+  auto start = Size + 1 + 1;
   thrust::fill(exec_unit, solution.tasks.ids.begin() + start, solution.tasks.ids.end(), -1);
   thrust::fill(exec_unit, solution.tasks.vehicles.begin() + start, solution.tasks.vehicles.end(),
                -1);
@@ -44,4 +43,14 @@ SCENARIO("Can mutate c101 individuum keeping convolutions.", "[genetic][mutation
 
   MatrixTextWriter::write(std::cout, solution);
   REQUIRE(SolutionChecker::check(solution).isValid());
+}
+
+}  // namespace
+
+SCENARIO("Can mutate c101 individuum keeping convolutions.", "[genetic][mutation][c101]") {
+  test<create_c101_problem_stream, 25>();
+}
+
+SCENARIO("Can mutate rc1_10_1 individuum keeping convolutions.", "[genetic][mutation][rc1_10_1]") {
+  test<rc1_10_1_problem_stream, 1000>();
 }

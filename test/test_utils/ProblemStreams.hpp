@@ -3,6 +3,9 @@
 
 #include "test_utils/SolomonBuilder.hpp"
 
+#include <fstream>
+#include <sstream>
+
 namespace vrp {
 namespace test {
 
@@ -113,6 +116,19 @@ struct create_c101_problem_stream {
       .addCustomer({24, 25, 50, 10, 65, 144, 90})
       .addCustomer({25, 25, 52, 40, 169, 224, 90})
       .build();
+  }
+};
+
+struct rc1_10_1_problem_stream final {
+  std::stringstream operator()() {
+    std::ifstream file("../../resources/data/solomon/benchmarks/RC1_10_1.txt");
+    if (file) {
+      std::stringstream buffer;
+
+      buffer << file.rdbuf();
+      return buffer;
+    }
+    throw std::invalid_argument("Cannot open file.");
   }
 };
 
