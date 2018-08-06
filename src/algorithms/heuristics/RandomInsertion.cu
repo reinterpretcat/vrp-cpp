@@ -138,7 +138,6 @@ struct state_processor final {
     if (!transition.isValid()) return -1;
     // TODO estimate does not consider convolution
     cost += transitionOp.estimate(transition);
-    // TODO current analyze does not use convolution properties
     return transitionOp.analyze(transition, state);
   }
 
