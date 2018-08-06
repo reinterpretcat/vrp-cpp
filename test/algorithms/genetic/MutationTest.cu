@@ -27,7 +27,7 @@ struct run_mutation final {
   EXEC_UNIT void operator()(int index) { create_mutant<TransitionOperator>{solution}(mutation); }
 };
 
-template <typename Problem, int Size>
+template<typename Problem, int Size>
 void test(const Mutation& mutation) {
   auto stream = Problem{}();
   auto solution = createPopulation<nearest_neighbor<TransitionOperator>>(stream, 2);
