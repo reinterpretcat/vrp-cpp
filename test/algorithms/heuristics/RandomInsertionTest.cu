@@ -125,9 +125,9 @@ SCENARIO("Can create solution using convolution from another solution.",
     CHECK_THAT(vrp::test::copy(solution.tasks.capacities, size),
                Catch::Matchers::Equals(std::vector<int>{10, 9, 8, 7, 6, 5}));
     CHECK_THAT(vrp::test::copy(solution.tasks.times, size),
-               Catch::Matchers::Equals(std::vector<int>{0, 11, 23, 34, 47, 58}));
+               Catch::Matchers::Equals(std::vector<int>{0, 11, 23, 34, 46, 57}));
     CHECK_THAT(vrp::test::copy(solution.tasks.costs, size),
-               Catch::Matchers::Equals(std::vector<float>{0, 1, 3, 4, 7, 8}));
+               Catch::Matchers::Equals(std::vector<float>{0, 1, 3, 4, 6, 7}));
   };
 
   test_heuristic<create_sequential_problem_stream>(2, convolutions.data(), modificator, validator);

@@ -22,11 +22,10 @@ struct reserve_convolution final {
     auto convolution = thrust::get<0>(tuple);
     auto index = thrust::get<1>(tuple);
     for_seq(thrust::make_counting_iterator(convolution.tasks.first),
-            thrust::make_counting_iterator(convolution.tasks.second + 1),
-            [&](int, int task) {
-            auto customer = tasks.ids[convolution.base + task];
-            tasks.plan[base + customer] = Plan::reserve(index);
-    });
+            thrust::make_counting_iterator(convolution.tasks.second + 1), [&](int, int task) {
+              auto customer = tasks.ids[convolution.base + task];
+              tasks.plan[base + customer] = Plan::reserve(index);
+            });
   }
 };
 

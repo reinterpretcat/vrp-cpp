@@ -50,14 +50,28 @@ struct analyze_customer final {
   }
 };
 
+/// Analyzes convolution using its properties.
+struct analyze_convolution final {
+  const Tasks::Shadow tasks;
 
-template<typename Processor>
-struct process_convolution final {
-  Processor processor;
+  ANY_EXEC_UNIT int operator()(const Transition& transition, Transition::State& state) const {
+    auto convolution = transition.details.customer.get<Convolution>();
+    state.customer = convolution.customers.second;
+    state.time += transition.delta.duration();
+    state.capacity -= transition.delta.demand;
 
-  ANY_EXEC_UNIT int operator()(const Problem::Shadow problem,
-                               const Tasks::Shadow tasks,
-                               const Transition& transition) {
+    return transition.details.to + convolution.tasks.second - convolution.tasks.first + 1;
+  }
+};
+
+/// Applies convolution.
+struct apply_convolution final {
+  create_transition factory;
+  calculate_transition_cost costs;
+  apply_customer customers;
+  const Tasks::Shadow tasks;
+
+  ANY_EXEC_UNIT int operator()(const Transition& transition, float cost) {
     const auto& details = transition.details;
     const auto& convolution = details.customer.get<Convolution>();
 
@@ -72,36 +86,14 @@ struct process_convolution final {
       Plan plan = tasks.plan[details.base + customer];
       if (plan.isAssigned()) continue;
 
-      from = processor(variant<int, Convolution>::create(customer), from, to);
+      auto newTransition = factory(
+        {details.base, from, to, variant<int, Convolution>::create(customer), details.vehicle});
+      auto newCost = costs(newTransition);
+      from = customers(newTransition, newCost);
       to = from + 1;
     }
 
     return to - 1;
-  }
-};
-
-struct make_transition final {
-  create_transition factory;
-  calculate_transition_cost costs;
-  apply_customer customers;
-  Transition::Details details;
-
-  ANY_EXEC_UNIT int operator()(const variant<int, Convolution>& customer, int from, int to) {
-    auto transition = factory({details.base, from, to, customer, details.vehicle});
-    auto cost = costs(transition);
-    return customers(transition, cost);
-  }
-};
-
-struct analyze_transition final {
-  create_transition factory;
-  analyze_customer analyzer;
-  Transition::Details details;
-  Transition::State state;
-
-  ANY_EXEC_UNIT int operator()(const variant<int, Convolution>& customer, int from, int to) {
-    auto transition = factory({details.base, from, to, customer, details.vehicle}, state);
-    return analyzer(transition, state);
   }
 };
 
@@ -113,18 +105,16 @@ namespace transitions {
 
 int perform_transition::operator()(const Transition& transition, float cost) const {
   return transition.details.customer.is<Convolution>()
-           ? process_convolution<make_transition>{make_transition{
-               create_transition{problem, tasks}, calculate_transition_cost{problem, tasks},
-               apply_customer{tasks}, transition.details}}(problem, tasks, transition)
+           ? apply_convolution{create_transition{problem, tasks},
+                               calculate_transition_cost{problem, tasks}, apply_customer{tasks},
+                               tasks}(transition, cost)
            : apply_customer{tasks}(transition, cost);
 }
 
 int perform_transition::operator()(const vrp::models::Transition& transition,
                                    vrp::models::Transition::State& state) const {
   return transition.details.customer.is<Convolution>()
-           ? process_convolution<analyze_transition>{analyze_transition{
-               create_transition{problem, tasks}, analyze_customer{tasks}, transition.details,
-               state}}(problem, tasks, transition)
+           ? analyze_convolution{tasks}(transition, state)
            : analyze_customer{tasks}(transition, state);
 }
 

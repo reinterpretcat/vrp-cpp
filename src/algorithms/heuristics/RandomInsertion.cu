@@ -81,8 +81,8 @@ struct find_random_customer final {
 
       if (!plan.isAssigned()) {
         return plan.hasConvolution()
-               ? Customer::create<Convolution>(*(convolutions + plan.convolution()))
-               : Customer::create<int>(customer);
+                 ? Customer::create<Convolution>(*(convolutions + plan.convolution()))
+                 : Customer::create<int>(customer);
       }
 
       // try to find next customer
