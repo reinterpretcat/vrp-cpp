@@ -26,7 +26,7 @@ const int PopulationSize = 4;
 template<typename Distance, typename Mapper>
 void solve(std::fstream& in, std::fstream& out, const Distance& distance, const Mapper& mapper) {
   auto problem = SolomonReader().read(in, distance);
-  auto tasks = create_population<nearest_neighbor<TransitionOperator>>(problem)(PopulationSize);
+  auto tasks = create_population<nearest_neighbor<TransitionOperator>>{problem}(PopulationSize);
   auto solution = Solution(std::move(problem), std::move(tasks));
 
   MatrixTextWriter().write(std::cout, solution);

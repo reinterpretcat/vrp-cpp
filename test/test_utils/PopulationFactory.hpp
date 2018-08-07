@@ -17,7 +17,7 @@ template<typename Heuristic = vrp::algorithms::heuristics::nearest_neighbor<
 vrp::models::Solution createPopulation(std::istream& stream, int populationSize = 3) {
   auto problem =
     vrp::streams::SolomonReader().read(stream, vrp::algorithms::distances::cartesian_distance());
-  auto tasks = vrp::algorithms::genetic::create_population<Heuristic>(problem)(populationSize);
+  auto tasks = vrp::algorithms::genetic::create_population<Heuristic>{problem}(populationSize);
   return vrp::models::Solution(std::move(problem), std::move(tasks));
 }
 

@@ -69,7 +69,7 @@ inline void test_population() {
   auto stream = ProblemStream{}();
   auto problem = SolomonReader().read(stream, cartesian_distance());
 
-  auto tasks = create_population<random_insertion<TransitionOperator>>(problem)(2);
+  auto tasks = create_population<random_insertion<TransitionOperator>>{problem}(2);
 
   auto solution = Solution(std::move(problem), std::move(tasks));
   MatrixTextWriter::write(std::cout, solution);

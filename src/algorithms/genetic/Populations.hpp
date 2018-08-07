@@ -15,8 +15,6 @@ template<typename Heuristic>
 struct create_population final {
   const vrp::models::Problem& problem;
 
-  explicit create_population(const vrp::models::Problem& problem) : problem(problem) {}
-
   vrp::models::Tasks operator()(int size);
 };
 
