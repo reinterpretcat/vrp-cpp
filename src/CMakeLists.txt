@@ -18,9 +18,12 @@ set(HEADER_FILES
         algorithms/distances/Geographic.hpp
 
         algorithms/genetic/Crossovers.hpp
+        algorithms/genetic/Evolution.hpp
+        algorithms/genetic/Listeners.hpp
         algorithms/genetic/Models.hpp
         algorithms/genetic/Mutations.hpp
         algorithms/genetic/Populations.hpp
+        algorithms/genetic/Terminations.hpp
 
         algorithms/heuristics/Dummy.hpp
         algorithms/heuristics/Models.hpp
@@ -66,8 +69,11 @@ set(SOURCE_FILES
         algorithms/costs/TransitionCosts.cu
 
         algorithms/genetic/Crossovers.cu
+        algorithms/genetic/Evolution.cu
+        algorithms/genetic/Listeners.cu
         algorithms/genetic/Mutations.cu
         algorithms/genetic/Populations.cu
+        algorithms/genetic/Terminations.cu
 
         algorithms/heuristics/Dummy.cu
         algorithms/heuristics/NearestNeighbor.cu

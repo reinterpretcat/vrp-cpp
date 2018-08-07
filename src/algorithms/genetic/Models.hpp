@@ -32,6 +32,16 @@ struct Mutation {
   vrp::algorithms::convolutions::Settings settings;
 };
 
+/// Defines evolution context.
+struct EvolutionContext {
+  /// Generation index.
+  int generation;
+  /// Best known cost.
+  float cost;
+  /// Best known solution.
+  int solution;
+};
+
 }  // namespace genetic
 }  // namespace algorithms
 }  // namespace vrp
