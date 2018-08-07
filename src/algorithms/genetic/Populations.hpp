@@ -17,7 +17,7 @@ struct create_population final {
 
   explicit create_population(const vrp::models::Problem& problem) : problem(problem) {}
 
-  vrp::models::Tasks operator()(const Settings& settings);
+  vrp::models::Tasks operator()(int size);
 };
 
 /// Modifies a single individuum using fast heuristic provided.

@@ -9,7 +9,7 @@ namespace algorithms {
 namespace genetic {
 
 /** Runs evolutions and terminates based on termination criteria. */
-template <typename TerminationCriteria, typename GenerationListener>
+template<typename TerminationCriteria, typename GenerationListener>
 struct run_evolution final {
   TerminationCriteria termination;
   GenerationListener listener;

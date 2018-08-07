@@ -83,25 +83,20 @@ namespace algorithms {
 namespace genetic {
 
 template<typename Heuristic>
-Tasks create_population<Heuristic>::operator()(const Settings& settings) {
-  if (settings.populationSize > problem.size()) {
-    throw std::invalid_argument("Population size is bigger than problem size.");
-  }
-
-  Tasks population(problem.size(), settings.populationSize * problem.size());
+Tasks create_population<Heuristic>::operator()(int size) {
+  Tasks tasks(problem.size(), size * problem.size());
 
   // create roots
   thrust::for_each(exec_unit, thrust::make_counting_iterator(0),
-                   thrust::make_counting_iterator(settings.populationSize),
-                   create_roots<TransitionOperator>(problem, population, settings.populationSize));
+                   thrust::make_counting_iterator(size),
+                   create_roots<TransitionOperator>(problem, tasks, size));
 
   // complete solutions
-  thrust::for_each(
-    exec_unit, thrust::make_counting_iterator(0),
-    thrust::make_counting_iterator(settings.populationSize),
-    create_individuum<Heuristic>{problem.getShadow(), population.getShadow(), {}, 1});
+  thrust::for_each(exec_unit, thrust::make_counting_iterator(0),
+                   thrust::make_counting_iterator(size),
+                   create_individuum<Heuristic>{problem.getShadow(), tasks.getShadow(), {}, 1});
 
-  return std::move(population);
+  return std::move(tasks);
 }
 
 template<typename Heuristic>
