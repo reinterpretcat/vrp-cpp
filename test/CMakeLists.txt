@@ -39,7 +39,6 @@ add_executable(${LIBRARY_TEST}
         test_utils/ConvolutionUtils.hpp
         test_utils/PopulationFactory.hpp
         test_utils/ProblemStreams.hpp
-        test_utils/SettingsFactory.hpp
         test_utils/SolomonBuilder.hpp
         test_utils/TaskUtils.hpp
         test_utils/VectorUtils.hpp

@@ -1,7 +1,6 @@
 #ifndef VRP_ALGORITHMS_GENETIC_CROSSOVERS_HPP
 #define VRP_ALGORITHMS_GENETIC_CROSSOVERS_HPP
 
-#include "algorithms/convolutions/Models.hpp"
 #include "algorithms/genetic/Models.hpp"
 #include "models/Solution.hpp"
 
@@ -17,7 +16,7 @@ struct adjusted_cost_difference final {
   /// Solution shadow.
   vrp::models::Solution::Shadow solution;
 
-  EXEC_UNIT void operator()(const Settings& settings, const Generation& generation) const;
+  EXEC_UNIT void operator()(const Generation& generation) const;
 };
 
 }  // namespace genetic

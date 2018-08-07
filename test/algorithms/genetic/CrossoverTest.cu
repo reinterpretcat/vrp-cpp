@@ -23,10 +23,9 @@ Solution getPopulation(int populationSize) {
 /// Runs crossover
 struct run_crossover final {
   Solution::Shadow solution;
-  const Settings settings;
   const Generation generation;
   EXEC_UNIT void operator()(int index) {
-    adjusted_cost_difference<nearest_neighbor<TransitionOperator>>{solution}(settings, generation);
+    adjusted_cost_difference<nearest_neighbor<TransitionOperator>>{solution}(generation);
   }
 };
 
@@ -35,11 +34,10 @@ struct run_crossover final {
 SCENARIO("Can create offsprings", "[genetic][crossover][acdc][one_offspring]") {
   int populationSize = 4;
   auto solution = getPopulation(populationSize);
-  auto settings = Settings{populationSize, {0.75, 0.05}};
-  auto generation = Generation{{0, 1}, {2, 3}};
+  auto generation = Generation{{0, 1}, {2, 3}, {0.75, 0.05}};
 
   thrust::for_each(exec_unit, thrust::make_counting_iterator(0), thrust::make_counting_iterator(1),
-                   run_crossover{solution.getShadow(), settings, generation});
+                   run_crossover{solution.getShadow(), generation});
 
   REQUIRE(SolutionChecker::check(solution).isValid());
   CHECK_THAT(
@@ -60,19 +58,17 @@ SCENARIO("Can create offsprings", "[genetic][crossover][acdc][one_offspring]") {
 SCENARIO("Can process multiple offsprings", "[genetic][crossover][acdc][multiple_offsprings]") {
   int populationSize = 4;
   auto solution = getPopulation(populationSize);
-  auto settingsVec = std::vector<Settings>{
-    Settings{populationSize, {0.50, 0.09}}, Settings{populationSize, {0.55, 0.08}},
-    Settings{populationSize, {0.60, 0.07}}, Settings{populationSize, {0.65, 0.06}},
-    Settings{populationSize, {0.70, 0.05}}};
-  auto oddGen = Generation{{0, 1}, {2, 3}};
-  auto evenGen = Generation{{2, 3}, {0, 1}};
+  auto settings = std::vector<vrp::algorithms::convolutions::Settings>{
+      {0.50, 0.09}, {0.55, 0.08}, {0.60, 0.07}, {0.65, 0.06}, {0.70, 0.05}
+  };
 
-  for (int i = 0; i < settingsVec.size(); ++i) {
-    auto settings = settingsVec[i];
-    auto generation = i % 2 ? evenGen : oddGen;
+  for (int i = 0; i < settings.size(); ++i) {
+    auto generation = i % 2
+        ? Generation{{2, 3}, {0, 1}, settings[i]}
+        : Generation{{0, 1}, {2, 3}, settings[i]};
     thrust::for_each(exec_unit, thrust::make_counting_iterator(0),
                      thrust::make_counting_iterator(1),
-                     run_crossover{solution.getShadow(), settings, generation});
+                     run_crossover{solution.getShadow(), generation});
     // vrp::streams::MatrixTextWriter::write(std::cout, solution);
     REQUIRE(SolutionChecker::check(solution).isValid());
   }

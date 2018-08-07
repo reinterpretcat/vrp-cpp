@@ -25,7 +25,7 @@ const int PopulationSize = 4;
 
 template<typename Distance, typename Mapper>
 void solve(std::fstream& in, std::fstream& out, const Distance& distance, const Mapper& mapper) {
-  auto settings = Settings{PopulationSize, vrp::algorithms::convolutions::Settings{0, 0}};
+  auto settings = Settings{PopulationSize};
   auto problem = SolomonReader().read(in, distance);
   auto tasks = create_population<nearest_neighbor<TransitionOperator>>(problem)(settings);
   auto solution = Solution(std::move(problem), std::move(tasks));

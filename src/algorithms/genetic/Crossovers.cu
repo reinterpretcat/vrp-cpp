@@ -129,16 +129,15 @@ namespace algorithms {
 namespace genetic {
 
 template<typename Heuristic>
-EXEC_UNIT void adjusted_cost_difference<Heuristic>::operator()(const Settings& settings,
-                                                               const Generation& generation) const {
+EXEC_UNIT void adjusted_cost_difference<Heuristic>::operator()(const Generation& generation) const {
   // find convolutions
   auto left =
-    create_best_convolutions{solution}.operator()(settings.convolution, generation.parents.first);
+    create_best_convolutions{solution}.operator()(generation.settings, generation.parents.first);
   auto right =
-    create_best_convolutions{solution}.operator()(settings.convolution, generation.parents.second);
-  auto pairs = create_joint_convolutions{solution}.operator()(settings.convolution, left, right);
+    create_best_convolutions{solution}.operator()(generation.settings, generation.parents.second);
+  auto pairs = create_joint_convolutions{solution}.operator()(generation.settings, left, right);
 
-  auto convolutions = create_sliced_convolutions{solution}.operator()(settings.convolution, pairs);
+  auto convolutions = create_sliced_convolutions{solution}.operator()(generation.settings, pairs);
 
   auto wrapper = thrust::make_pair(convolutions.size, *convolutions.data);
 

@@ -11,15 +11,16 @@ namespace genetic {
 struct Settings final {
   /// Size of population.
   int populationSize;
-
-  /// Convolution settings
-  vrp::algorithms::convolutions::Settings convolution;
 };
 
-/// Holds individuum indicies (solutions) to be processed.
+/// Specifies settings for next generation.
 struct Generation {
+  /// Parents indices.
   thrust::pair<int, int> parents;
+  /// Offspring indices.
   thrust::pair<int, int> offspring;
+  /// Convolution settings.
+  vrp::algorithms::convolutions::Settings settings;
 };
 
 /// Defines parameters of mutation.
