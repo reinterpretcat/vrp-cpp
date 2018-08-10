@@ -9,7 +9,8 @@ namespace costs {
 
 /// Calculates total cost of solution.
 struct calculate_total_cost final {
-  ANY_EXEC_UNIT float operator()(vrp::models::Solution& solution, int index = 0) const;
+  vrp::models::Solution::Shadow solution;
+  ANY_EXEC_UNIT float operator()(int index) const;
 };
 
 }  // namespace costs

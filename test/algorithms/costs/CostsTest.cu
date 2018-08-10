@@ -21,7 +21,7 @@ Solution getPopulation(int populationSize) {
 SCENARIO("Can calculate total cost for single solution.", "[algorithm][costs]") {
   auto solution = getPopulation(1);
 
-  auto cost = calculate_total_cost()(solution);
+  auto cost = calculate_total_cost{solution.getShadow()}(0);
 
   // locations : 0, 1, 2, 3, 4, 5
   // vehicles  : 0, 0, 1, 2, 2, 2
@@ -32,7 +32,7 @@ SCENARIO("Can calculate total cost for single solution.", "[algorithm][costs]") 
 SCENARIO("Can calculate total cost for multiple solutions.", "[algorithm][costs]") {
   auto solution = getPopulation(3);
 
-  auto cost = calculate_total_cost()(solution, 1);
+  auto cost = calculate_total_cost{solution.getShadow()}(1);
 
   // locations : 0, 3, 4, 5, 1, 2
   // vehicles  : 0, 0, 0, 0, 1, 2

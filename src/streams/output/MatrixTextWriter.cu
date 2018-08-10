@@ -62,7 +62,7 @@ void writeCosts(std::ostream& stream, Solution& solution) {
     thrust::host, thrust::make_counting_iterator(0),
     thrust::make_counting_iterator(solution.tasks.population()),
     [&](const int i) {
-      return std::to_string(static_cast<int>(calculate_total_cost()(solution, i)));
+      return std::to_string(static_cast<int>(calculate_total_cost{solution.getShadow()}(i)));
     },
     std::string(""),
     [](const std::string& result, const std::string& item) {

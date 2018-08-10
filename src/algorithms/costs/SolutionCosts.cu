@@ -50,22 +50,22 @@ struct aggregate_cost final {
 }  // namespace
 
 
-float calculate_total_cost::operator()(Solution& solution, int index) const {
+float calculate_total_cost::operator()(int index) const {
   typedef vector<int>::iterator IntIterator;
   typedef vector<float>::iterator FloatIterator;
 
   int start = solution.tasks.customers * index;
   int end = start + solution.tasks.customers;
 
-  auto model = vrp::runtime::allocate<Model>({0, solution.getShadow()});
+  auto model = vrp::runtime::allocate<Model>({0, solution});
   auto iterator = thrust::make_zip_iterator(
     thrust::make_tuple(thrust::make_counting_iterator(0),
-                       thrust::reverse_iterator<IntIterator>(solution.tasks.vehicles.data() + end),
-                       thrust::reverse_iterator<FloatIterator>(solution.tasks.costs.data() + end)));
+                       thrust::reverse_iterator<IntIterator>(solution.tasks.vehicles + end),
+                       thrust::reverse_iterator<FloatIterator>(solution.tasks.costs + end)));
 
   thrust::unique_by_key_copy(
-    exec_unit_policy{}, thrust::reverse_iterator<IntIterator>(solution.tasks.vehicles.data() + end),
-    thrust::reverse_iterator<IntIterator>(solution.tasks.vehicles.data() + start), iterator,
+    exec_unit_policy{}, thrust::reverse_iterator<IntIterator>(solution.tasks.vehicles + end),
+    thrust::reverse_iterator<IntIterator>(solution.tasks.vehicles + start), iterator,
     thrust::make_discard_iterator(),
     make_aggregate_output_iterator(iterator, aggregate_cost{model, solution.tasks.customers - 1,
                                                             end - solution.tasks.customers}));
