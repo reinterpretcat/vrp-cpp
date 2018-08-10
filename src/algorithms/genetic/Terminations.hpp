@@ -12,7 +12,7 @@ namespace genetic {
 struct max_generations final {
   size_t max;
 
-  EXEC_UNIT bool operator()(const EvolutionContext& context);
+  bool operator()(const EvolutionContext& context);
 };
 
 }  // namespace genetic

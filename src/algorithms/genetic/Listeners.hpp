@@ -10,12 +10,12 @@ namespace genetic {
 
 /** Empty listener. */
 struct empty_listener final {
-  EXEC_UNIT inline void operator()(const EvolutionContext& context) {}
+  inline void operator()(const EvolutionContext& context) {}
 };
 
 /** Listener which tracks evolution for each generation. */
 struct track_generation final {
-  EXEC_UNIT void operator()(const EvolutionContext& context);
+  void operator()(const EvolutionContext& context);
 };
 
 }  // namespace genetic

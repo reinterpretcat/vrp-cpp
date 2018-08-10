@@ -43,7 +43,7 @@ struct create_individuum final {
 struct init_population {
   Population population;
   ANY_EXEC_UNIT void operator()(int populationSize) {
-    thrust::transform(exec_unit, thrust::make_counting_iterator(0),
+    thrust::transform(exec_unit_policy{}, thrust::make_counting_iterator(0),
                       thrust::make_counting_iterator(populationSize), population.individuums,
                       create_individuum{});
   }

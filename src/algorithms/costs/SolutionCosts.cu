@@ -50,7 +50,7 @@ struct aggregate_cost final {
 }  // namespace
 
 
-__host__ float calculate_total_cost::operator()(Solution& solution, int index) const {
+float calculate_total_cost::operator()(Solution& solution, int index) const {
   typedef vector<int>::iterator IntIterator;
   typedef vector<float>::iterator FloatIterator;
 
@@ -64,7 +64,7 @@ __host__ float calculate_total_cost::operator()(Solution& solution, int index) c
                        thrust::reverse_iterator<FloatIterator>(solution.tasks.costs.data() + end)));
 
   thrust::unique_by_key_copy(
-    exec_unit, thrust::reverse_iterator<IntIterator>(solution.tasks.vehicles.data() + end),
+    exec_unit_policy{}, thrust::reverse_iterator<IntIterator>(solution.tasks.vehicles.data() + end),
     thrust::reverse_iterator<IntIterator>(solution.tasks.vehicles.data() + start), iterator,
     thrust::make_discard_iterator(),
     make_aggregate_output_iterator(iterator, aggregate_cost{model, solution.tasks.customers - 1,
