@@ -6,7 +6,9 @@
 #include "algorithms/heuristics/Models.hpp"
 #include "algorithms/heuristics/NearestNeighbor.hpp"
 
+#include <thrust/for_each.h>
 #include <thrust/iterator/counting_iterator.h>
+#include <thrust/sort.h>
 #include <thrust/transform.h>
 
 using namespace vrp::algorithms::costs;
@@ -42,8 +44,15 @@ struct init_individuum final {
 /// Estimates individuum cost.
 struct estimate_individuum final {
   calculate_total_cost costs;
-
   EXEC_UNIT void operator()(Individuum& individuum) { individuum.cost = costs(individuum.index); }
+};
+
+/// Sorts individuums by their cost.
+struct sort_individuums final {
+  calculate_total_cost costs;
+  EXEC_UNIT bool operator()(const Individuum& lfs, const Individuum& rhs) {
+    return lfs.cost < rhs.cost;
+  }
 };
 
 }  // namespace
@@ -68,8 +77,9 @@ void run_evolution<TerminationCriteria, GenerationListener>::operator()(const Pr
                     init_individuum{});
 
   do {
-    // estimate costs
+    // estimate individuums
     thrust::for_each(exec_unit, individuums.begin(), individuums.end(), estimate_individuum{costs});
+    thrust::sort(exec_unit, individuums.begin(), individuums.end(), sort_individuums{});
 
     // Elitism
     // Selection
