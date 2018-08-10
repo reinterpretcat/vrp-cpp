@@ -1,3 +1,4 @@
+#include "algorithms/costs/SolutionCosts.hpp"
 #include "algorithms/genetic/Evolution.hpp"
 #include "algorithms/genetic/Listeners.hpp"
 #include "algorithms/genetic/Populations.hpp"
@@ -8,6 +9,7 @@
 #include <thrust/iterator/counting_iterator.h>
 #include <thrust/transform.h>
 
+using namespace vrp::algorithms::costs;
 using namespace vrp::algorithms::genetic;
 using namespace vrp::algorithms::heuristics;
 using namespace vrp::models;
@@ -22,8 +24,6 @@ struct Individuum final {
   int index;
   /// Total cost.
   float cost;
-  /// Rank in population.
-  int rank;
 };
 
 /// Keeps population characteristics.
@@ -35,26 +35,17 @@ struct Population final {
 };
 
 /// Creates individuum.
-struct create_individuum final {
-  EXEC_UNIT Individuum operator()(int index) { return {index, __FLT_MAX__, 0}; }
+struct init_individuum final {
+  EXEC_UNIT Individuum operator()(int index) { return {index, __FLT_MAX__}; }
 };
 
-/// Initializes population.
-struct init_population {
-  Population population;
-  ANY_EXEC_UNIT void operator()(int populationSize) {
-    thrust::transform(exec_unit_policy{}, thrust::make_counting_iterator(0),
-                      thrust::make_counting_iterator(populationSize), population.individuums,
-                      create_individuum{});
-  }
+/// Estimates individuum cost.
+struct estimate_individuum final {
+  calculate_total_cost costs;
+
+  EXEC_UNIT void operator()(Individuum& individuum) { individuum.cost = costs(individuum.index); }
 };
 
-/// Calculates total cost for each individuum and ranks them.
-struct rank_population final {
-  Population population;
-
-  ANY_EXEC_UNIT void operator()() {}
-};
 }  // namespace
 
 namespace vrp {
@@ -69,11 +60,17 @@ void run_evolution<TerminationCriteria, GenerationListener>::operator()(const Pr
   auto context = EvolutionContext{0, __FLT_MAX__, -1};
   auto individuums = vector<Individuum>(static_cast<size_t>(settings.populationSize));
   auto population = Population{tasks.getShadow(), individuums.data()};
+  auto costs = calculate_total_cost{Solution::Shadow{problem.getShadow(), tasks.getShadow()}};
 
-  init_population{population}(settings.populationSize);
+  // init population
+  thrust::transform(exec_unit, thrust::make_counting_iterator(0),
+                    thrust::make_counting_iterator(settings.populationSize), population.individuums,
+                    init_individuum{});
 
   do {
-    // TODO
+    // estimate costs
+    thrust::for_each(exec_unit, individuums.begin(), individuums.end(), estimate_individuum{costs});
+
     // Elitism
     // Selection
     // Crossover
