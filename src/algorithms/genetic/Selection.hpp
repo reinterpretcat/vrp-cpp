@@ -17,7 +17,7 @@ struct select_individuums final {
   Crossover crossover;
   Mutator mutator;
   thrust::minstd_rand rng;
-  void operator()(const Selection& selection);
+  void operator()(const EvolutionContext& ctx, const Selection& selection);
 };
 
 }  // namespace genetic

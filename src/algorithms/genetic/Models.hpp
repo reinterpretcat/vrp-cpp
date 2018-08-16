@@ -41,18 +41,16 @@ struct Selection final {
   thrust::pair<int, vrp::algorithms::convolutions::Settings> crossovers;
   /// Amount of mutations within settings.
   thrust::pair<int, vrp::algorithms::convolutions::Settings> mutations;
-  /// Last index.
-  int last;
 };
 
 /// Defines evolution context.
 struct EvolutionContext {
   /// Generation index.
   int generation;
-  /// Best known cost.
-  float cost;
-  /// Best known solution.
-  int solution;
+  /// Best known individuum: index nad cost.
+  thrust::pair<int, float> best;
+  /// Keeps costs of all individuums estimated for current generation.
+  vrp::runtime::vector<thrust::pair<int, float>> costs;
 };
 
 }  // namespace genetic

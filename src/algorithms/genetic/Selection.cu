@@ -11,6 +11,7 @@
 
 using namespace vrp::algorithms::genetic;
 using namespace vrp::algorithms::heuristics;
+using namespace vrp::runtime;
 using namespace vrp::utils;
 
 namespace {
@@ -51,34 +52,36 @@ bool operator==(const MutantPlan& lfs, const MutantPlan& rhs) { return lfs.first
 
 namespace {
 
-/// Defines selection context.
-struct SelectionContext final {
+/// Defines selection data.
+struct SelectionData final {
+  vector_ptr<thrust::pair<int,float>> costs;
+  std::unordered_set<int> candidates;
   std::unordered_set<CrossPlan> cross;
   std::unordered_set<MutantPlan> mutants;
-  std::unordered_set<int> candidates;
 };
 
-/// Finds next index from context.
+/// Finds next index from selection data.
 template<typename Distribution>
-inline int next(const SelectionContext& context,
+inline int next(const SelectionData& data,
                 Distribution& dist,
                 thrust::minstd_rand& rng,
                 int other = -1) {
   while (true) {
     auto value = dist(rng);
-    if (value != other && context.candidates.find(value) == context.candidates.end()) return value;
+    if (value != other && data.candidates.find(value) == data.candidates.end()) return value;
   }
 }
 
 /// Calls generator with parent and children distributions.
 struct with_generator final {
+  const EvolutionContext& ctx;
   const Selection& selection;
 
   template<typename Generator>
   void operator()(const Generator& generator) {
     auto start = 0;
     auto middle = selection.elite - 1;
-    auto end = selection.last;
+    auto end = ctx.costs.size() - 1;
 
     thrust::random::normal_distribution<float> dist(0.0f, 0.5f * end);
 
@@ -97,26 +100,26 @@ struct with_generator final {
 /// Assigns crossover plan.
 struct assign_crossovers final {
   const Selection& settings;
-  SelectionContext& ctx;
+  SelectionData& data;
   thrust::minstd_rand& rng;
 
   template<typename Parents, typename Children>
   void operator()(Parents& parents, Children& children) const {
-    while (ctx.cross.size() < settings.crossovers.first) {
-      auto parent1 = next(ctx, parents, rng);
-      auto parent2 = next(ctx, parents, rng, parent1);
+    while (data.cross.size() < settings.crossovers.first) {
+      auto parent1 = next(data, parents, rng);
+      auto parent2 = next(data, parents, rng, parent1);
 
-      if (ctx.cross.find({{parent1, parent2}, {0, 0}}) != ctx.cross.end()) continue;
+      if (data.cross.find({{parent1, parent2}, {0, 0}}) != data.cross.end()) continue;
 
-      ctx.candidates.insert(parent1);
-      ctx.candidates.insert(parent2);
+      data.candidates.insert(parent1);
+      data.candidates.insert(parent2);
 
-      auto child1 = next(ctx, children, rng);
-      auto child2 = next(ctx, children, rng, child1);
+      auto child1 = next(data, children, rng);
+      auto child2 = next(data, children, rng, child1);
 
-      ctx.cross.insert({{parent1, parent2}, {child1, child2}});
-      ctx.candidates.insert(child1);
-      ctx.candidates.insert(child2);
+      data.cross.insert({{parent1, parent2}, {child1, child2}});
+      data.candidates.insert(child1);
+      data.candidates.insert(child2);
     }
   }
 };
@@ -124,7 +127,7 @@ struct assign_crossovers final {
 /// Assigns crossover plan.
 struct assign_mutants final {
   const Selection& settings;
-  SelectionContext& ctx;
+  SelectionData& ctx;
   thrust::minstd_rand& rng;
 
   template<typename Parents, typename Children>
@@ -167,16 +170,16 @@ namespace algorithms {
 namespace genetic {
 
 template<typename Crossover, typename Mutator>
-void select_individuums<Crossover, Mutator>::operator()(const Selection& selection) {
-  auto ctx = SelectionContext();
+void select_individuums<Crossover, Mutator>::operator()(const EvolutionContext& ctx, const Selection& selection) {
+  auto data = SelectionData();
 
-  with_generator{selection}(assign_crossovers{selection, ctx, rng});
-  with_generator{selection}(assign_mutants{selection, ctx, rng});
+  with_generator{ctx, selection}(assign_crossovers{selection, data, rng});
+  with_generator{ctx, selection}(assign_mutants{selection, data, rng});
 
   // TODO pass convolution settings
-  thrust::for_each(exec_unit, ctx.cross.begin(), ctx.cross.end(),
+  thrust::for_each(exec_unit, data.cross.begin(), data.cross.end(),
                    apply_crossover<Crossover>{crossover});
-  thrust::for_each(exec_unit, ctx.mutants.begin(), ctx.mutants.end(),
+  thrust::for_each(exec_unit, data.mutants.begin(), data.mutants.end(),
                    apply_mutator<Mutator>{mutator});
 }
 

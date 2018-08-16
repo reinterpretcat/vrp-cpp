@@ -1,10 +1,14 @@
 #include "algorithms/costs/SolutionCosts.hpp"
+#include "algorithms/genetic/Crossovers.hpp"
 #include "algorithms/genetic/Evolution.hpp"
 #include "algorithms/genetic/Listeners.hpp"
+#include "algorithms/genetic/Mutations.hpp"
 #include "algorithms/genetic/Populations.hpp"
+#include "algorithms/genetic/Selection.hpp"
 #include "algorithms/genetic/Terminations.hpp"
 #include "algorithms/heuristics/Models.hpp"
 #include "algorithms/heuristics/NearestNeighbor.hpp"
+#include "algorithms/heuristics/RandomInsertion.hpp"
 
 #include <thrust/for_each.h>
 #include <thrust/iterator/counting_iterator.h>
@@ -20,21 +24,9 @@ using namespace vrp::runtime;
 using namespace thrust::placeholders;
 
 namespace {
-/// Keeps individuum characteristics.
-struct Individuum final {
-  /// Index in population.
-  int index;
-  /// Total cost.
-  float cost;
-};
 
-/// Keeps population characteristics.
-struct Population final {
-  /// Population data.
-  Tasks::Shadow tasks;
-  /// Keeps all individuums characteristics.
-  vector_ptr<Individuum> individuums;
-};
+/// Keeps individuum characteristics: index and cost.
+using Individuum = thrust::pair<int, float>;
 
 /// Creates individuum.
 struct init_individuum final {
@@ -44,14 +36,14 @@ struct init_individuum final {
 /// Estimates individuum cost.
 struct estimate_individuum final {
   calculate_total_cost costs;
-  EXEC_UNIT void operator()(Individuum& individuum) { individuum.cost = costs(individuum.index); }
+  EXEC_UNIT void operator()(Individuum& individuum) { individuum.second = costs(individuum.first); }
 };
 
 /// Sorts individuums by their cost.
 struct sort_individuums final {
   calculate_total_cost costs;
   EXEC_UNIT bool operator()(const Individuum& lfs, const Individuum& rhs) {
-    return lfs.cost < rhs.cost;
+    return lfs.second < rhs.second;
   }
 };
 
@@ -64,31 +56,39 @@ namespace genetic {
 template<typename TerminationCriteria, typename GenerationListener>
 void run_evolution<TerminationCriteria, GenerationListener>::operator()(const Problem& problem,
                                                                         const Settings& settings) {
+  // data
+  auto size = static_cast<size_t>(settings.populationSize);
   auto tasks =
     create_population<nearest_neighbor<TransitionOperator>>{problem}(settings.populationSize);
-  auto context = EvolutionContext{0, __FLT_MAX__, -1};
-  auto individuums = vector<Individuum>(static_cast<size_t>(settings.populationSize));
-  auto population = Population{tasks.getShadow(), individuums.data()};
-  auto costs = calculate_total_cost{Solution::Shadow{problem.getShadow(), tasks.getShadow()}};
+  auto solution = Solution::Shadow{problem.getShadow(), tasks.getShadow()};
+  auto ctx = EvolutionContext{0, {-1, __FLT_MAX__}, vector<Individuum>(size)};
+
+  // operators
+  auto costs = calculate_total_cost{solution};
+  auto crossover = adjusted_cost_difference<nearest_neighbor<TransitionOperator>>{solution};
+  auto mutator = create_mutant<TransitionOperator>{solution};
+  auto selection = select_individuums<decltype(crossover), decltype(mutator)>{
+    crossover, mutator, thrust::minstd_rand{}};
 
   // init individuums
   thrust::transform(exec_unit, thrust::make_counting_iterator(0),
-                    thrust::make_counting_iterator(settings.populationSize), population.individuums,
+                    thrust::make_counting_iterator(settings.populationSize), ctx.costs.begin(),
                     init_individuum{});
 
+  // TODO change settings based on population diversity
   do {
     // estimate individuums
-    thrust::for_each(exec_unit, individuums.begin(), individuums.end(), estimate_individuum{costs});
-    thrust::sort(exec_unit, individuums.begin(), individuums.end(), sort_individuums{});
+    thrust::for_each(exec_unit, ctx.costs.begin(), ctx.costs.end(), estimate_individuum{costs});
+    thrust::sort(exec_unit, ctx.costs.begin(), ctx.costs.end(), sort_individuums{});
 
-    // Elitism
-    // Selection
-    // Crossover
-    // Mutation
+    // selection
+    // TODO pass sorted by cost indices
+    // TODO define settings
+    selection(ctx, {});
 
-    listener(context);
-    ++context.generation;
-  } while (!termination(context));
+    listener(ctx);
+    ++ctx.generation;
+  } while (!termination(ctx));
 }
 
 // NOTE explicit specialization to make linker happy.
