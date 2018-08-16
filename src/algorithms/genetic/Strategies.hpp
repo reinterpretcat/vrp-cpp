@@ -6,7 +6,6 @@
 #include "algorithms/genetic/Mutations.hpp"
 #include "algorithms/heuristics/NearestNeighbor.hpp"
 #include "algorithms/heuristics/RandomInsertion.hpp"
-
 #include "models/Problem.hpp"
 #include "models/Tasks.hpp"
 
@@ -15,7 +14,7 @@ namespace algorithms {
 namespace genetic {
 
 class LinearStrategy {
- public:
+public:
   typedef adjusted_cost_difference<
     vrp::algorithms::heuristics::nearest_neighbor<vrp::algorithms::heuristics::TransitionOperator>>
     Crossover;

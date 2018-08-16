@@ -4,7 +4,6 @@
 #include "algorithms/genetic/Strategies.hpp"
 #include "algorithms/heuristics/Models.hpp"
 
-
 #include <thrust/for_each.h>
 #include <thrust/iterator/counting_iterator.h>
 #include <thrust/sort.h>

@@ -85,10 +85,11 @@ struct with_generator final {
 
     thrust::random::normal_distribution<float> dist(0.0f, 0.5f * end);
 
-    auto tp =
-      transformed(dist, [](float value) -> int { return std::abs(static_cast<int>(value)); });
-    auto tc = transformed(
-      dist, [end](float value) -> int { return std::abs(static_cast<int>(end - value)); });
+    auto tp = transformed(
+      dist, [&](float value) -> int { return std::abs(ctx.costs[static_cast<int>(value)].first); });
+    auto tc = transformed(dist, [&](float value) -> int {
+      return std::abs(ctx.costs[static_cast<int>(end - value)].first);
+    });
 
     auto parents = filtered(tp, [=](int value) { return !(value > end || value < start); });
     auto children = filtered(tc, [=](int value) { return !(value > end || value < middle); });

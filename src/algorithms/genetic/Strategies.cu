@@ -1,6 +1,6 @@
 #include "Strategies.hpp"
-#include "algorithms/genetic/Strategies.hpp"
 #include "algorithms/genetic/Populations.hpp"
+#include "algorithms/genetic/Strategies.hpp"
 
 using namespace vrp::algorithms::heuristics;
 using namespace vrp::models;
