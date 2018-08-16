@@ -33,6 +33,18 @@ struct Mutation {
   vrp::algorithms::convolutions::Settings settings;
 };
 
+/// Specifies selection settings.
+struct Selection final {
+  /// Individuums belong to elite group.
+  int elite;
+  /// Amount of crossover operations with settings.
+  thrust::pair<int, vrp::algorithms::convolutions::Settings> crossovers;
+  /// Amount of mutations within settings.
+  thrust::pair<int, vrp::algorithms::convolutions::Settings> mutations;
+  /// Last index.
+  int last;
+};
+
 /// Defines evolution context.
 struct EvolutionContext {
   /// Generation index.

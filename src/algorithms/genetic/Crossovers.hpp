@@ -19,6 +19,11 @@ struct adjusted_cost_difference final {
   EXEC_UNIT void operator()(const Generation& generation) const;
 };
 
+/// Do nothing.
+struct empty_crossover final {
+  ANY_EXEC_UNIT void operator()(const Generation& generation) const {}
+};
+
 }  // namespace genetic
 }  // namespace algorithms
 }  // namespace vrp

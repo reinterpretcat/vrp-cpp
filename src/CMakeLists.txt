@@ -23,6 +23,7 @@ set(HEADER_FILES
         algorithms/genetic/Models.hpp
         algorithms/genetic/Mutations.hpp
         algorithms/genetic/Populations.hpp
+        algorithms/genetic/Selection.hpp
         algorithms/genetic/Terminations.hpp
 
         algorithms/heuristics/Dummy.hpp
@@ -55,6 +56,10 @@ set(HEADER_FILES
         streams/output/GeoJsonWriter.hpp
         streams/output/MatrixTextWriter.hpp
 
+        utils/random/FilteredDistribution.hpp
+        utils/random/TransformedDistribution.hpp
+        utils/random/Visualizer.hpp
+
         utils/validation/SolutionChecker.hpp
         )
 
@@ -73,6 +78,7 @@ set(SOURCE_FILES
         algorithms/genetic/Listeners.cu
         algorithms/genetic/Mutations.cu
         algorithms/genetic/Populations.cu
+        algorithms/genetic/Selection.cu
         algorithms/genetic/Terminations.cu
 
         algorithms/heuristics/Dummy.cu

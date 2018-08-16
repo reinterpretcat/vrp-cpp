@@ -71,7 +71,7 @@ void run_evolution<TerminationCriteria, GenerationListener>::operator()(const Pr
   auto population = Population{tasks.getShadow(), individuums.data()};
   auto costs = calculate_total_cost{Solution::Shadow{problem.getShadow(), tasks.getShadow()}};
 
-  // init population
+  // init individuums
   thrust::transform(exec_unit, thrust::make_counting_iterator(0),
                     thrust::make_counting_iterator(settings.populationSize), population.individuums,
                     init_individuum{});

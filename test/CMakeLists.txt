@@ -26,6 +26,7 @@ add_executable(${LIBRARY_TEST}
         algorithms/genetic/EvolutionTest.cu
         algorithms/genetic/MutationTest.cu
         algorithms/genetic/PopulationTest.cu
+        algorithms/genetic/SelectionTest.cu
 
         algorithms/heuristics/NearestNeighborTest.cu
         algorithms/heuristics/RandomInsertionTest.cu
