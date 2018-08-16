@@ -1,14 +1,9 @@
 #include "algorithms/costs/SolutionCosts.hpp"
-#include "algorithms/genetic/Crossovers.hpp"
 #include "algorithms/genetic/Evolution.hpp"
-#include "algorithms/genetic/Listeners.hpp"
-#include "algorithms/genetic/Mutations.hpp"
-#include "algorithms/genetic/Populations.hpp"
 #include "algorithms/genetic/Selection.hpp"
-#include "algorithms/genetic/Terminations.hpp"
+#include "algorithms/genetic/Strategies.hpp"
 #include "algorithms/heuristics/Models.hpp"
-#include "algorithms/heuristics/NearestNeighbor.hpp"
-#include "algorithms/heuristics/RandomInsertion.hpp"
+
 
 #include <thrust/for_each.h>
 #include <thrust/iterator/counting_iterator.h>
@@ -53,46 +48,40 @@ namespace vrp {
 namespace algorithms {
 namespace genetic {
 
-template<typename TerminationCriteria, typename GenerationListener>
-void run_evolution<TerminationCriteria, GenerationListener>::operator()(const Problem& problem,
-                                                                        const Settings& settings) {
-  // data
-  auto size = static_cast<size_t>(settings.populationSize);
-  auto tasks =
-    create_population<nearest_neighbor<TransitionOperator>>{problem}(settings.populationSize);
-  auto solution = Solution::Shadow{problem.getShadow(), tasks.getShadow()};
-  auto ctx = EvolutionContext{0, {-1, __FLT_MAX__}, vector<Individuum>(size)};
-
-  // operators
-  auto costs = calculate_total_cost{solution};
-  auto crossover = adjusted_cost_difference<nearest_neighbor<TransitionOperator>>{solution};
-  auto mutator = create_mutant<TransitionOperator>{solution};
-  auto selection = select_individuums<decltype(crossover), decltype(mutator)>{
-    crossover, mutator, thrust::minstd_rand{}};
+template<typename Strategy>
+void run_evolution<Strategy>::operator()(const Problem& problem) {
+  auto tasks = strategy.population(problem);
+  auto ctx = EvolutionContext{0,
+                              {problem.getShadow(), tasks.getShadow()},
+                              {-1, __FLT_MAX__},
+                              vector<Individuum>(static_cast<size_t>(tasks.population()))};
+  auto rng = thrust::minstd_rand();
+  auto costs = calculate_total_cost{ctx.solution};
 
   // init individuums
   thrust::transform(exec_unit, thrust::make_counting_iterator(0),
-                    thrust::make_counting_iterator(settings.populationSize), ctx.costs.begin(),
+                    thrust::make_counting_iterator(tasks.population()), ctx.costs.begin(),
                     init_individuum{});
 
-  // TODO change settings based on population diversity
   do {
     // estimate individuums
     thrust::for_each(exec_unit, ctx.costs.begin(), ctx.costs.end(), estimate_individuum{costs});
     thrust::sort(exec_unit, ctx.costs.begin(), ctx.costs.end(), sort_individuums{});
 
-    // selection
-    // TODO pass sorted by cost indices
-    // TODO define settings
-    selection(ctx, {});
+    // get genetic operators
+    auto crossover = strategy.crossover(ctx);
+    auto mutator = strategy.mutator(ctx);
+    auto selection = strategy.selection(ctx);
 
-    listener(ctx);
-    ++ctx.generation;
-  } while (!termination(ctx));
+    // run selection and apply operators
+    select_individuums<decltype(crossover), decltype(mutator)>{crossover, mutator, rng}(ctx,
+                                                                                        selection);
+
+  } while (strategy.next(ctx));
 }
 
 // NOTE explicit specialization to make linker happy.
-template class run_evolution<max_generations, empty_listener>;
+template class run_evolution<LinearStrategy>;
 
 }  // namespace genetic
 }  // namespace algorithms

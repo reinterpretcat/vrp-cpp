@@ -2,6 +2,7 @@
 #define VRP_ALGORITHMS_GENETIC_MODELS_HPP
 
 #include "algorithms/convolutions/Models.hpp"
+#include "models/Solution.hpp"
 
 namespace vrp {
 namespace algorithms {
@@ -47,6 +48,8 @@ struct Selection final {
 struct EvolutionContext {
   /// Generation index.
   int generation;
+  /// Solution shadow.
+  vrp::models::Solution::Shadow solution;
   /// Best known individuum: index nad cost.
   thrust::pair<int, float> best;
   /// Keeps costs of all individuums estimated for current generation.

@@ -19,12 +19,11 @@ set(HEADER_FILES
 
         algorithms/genetic/Crossovers.hpp
         algorithms/genetic/Evolution.hpp
-        algorithms/genetic/Listeners.hpp
         algorithms/genetic/Models.hpp
         algorithms/genetic/Mutations.hpp
         algorithms/genetic/Populations.hpp
         algorithms/genetic/Selection.hpp
-        algorithms/genetic/Terminations.hpp
+        algorithms/genetic/Strategies.hpp
 
         algorithms/heuristics/Dummy.hpp
         algorithms/heuristics/Models.hpp
@@ -75,11 +74,10 @@ set(SOURCE_FILES
 
         algorithms/genetic/Crossovers.cu
         algorithms/genetic/Evolution.cu
-        algorithms/genetic/Listeners.cu
         algorithms/genetic/Mutations.cu
         algorithms/genetic/Populations.cu
         algorithms/genetic/Selection.cu
-        algorithms/genetic/Terminations.cu
+        algorithms/genetic/Strategies.cu
 
         algorithms/heuristics/Dummy.cu
         algorithms/heuristics/NearestNeighbor.cu

@@ -9,12 +9,11 @@ namespace algorithms {
 namespace genetic {
 
 /** Runs evolutions and terminates based on termination criteria. */
-template<typename TerminationCriteria, typename GenerationListener>
+template<typename Strategy>
 struct run_evolution final {
-  TerminationCriteria termination;
-  GenerationListener listener;
+  Strategy strategy;
 
-  void operator()(const vrp::models::Problem& problem, const Settings& settings);
+  void operator()(const vrp::models::Problem& problem);
 };
 
 }  // namespace genetic

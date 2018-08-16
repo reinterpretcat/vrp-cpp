@@ -54,7 +54,7 @@ namespace {
 
 /// Defines selection data.
 struct SelectionData final {
-  vector_ptr<thrust::pair<int,float>> costs;
+  vector_ptr<thrust::pair<int, float>> costs;
   std::unordered_set<int> candidates;
   std::unordered_set<CrossPlan> cross;
   std::unordered_set<MutantPlan> mutants;
@@ -170,7 +170,8 @@ namespace algorithms {
 namespace genetic {
 
 template<typename Crossover, typename Mutator>
-void select_individuums<Crossover, Mutator>::operator()(const EvolutionContext& ctx, const Selection& selection) {
+void select_individuums<Crossover, Mutator>::operator()(const EvolutionContext& ctx,
+                                                        const Selection& selection) {
   auto data = SelectionData();
 
   with_generator{ctx, selection}(assign_crossovers{selection, data, rng});
