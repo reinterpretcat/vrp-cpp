@@ -64,10 +64,10 @@ struct SelectionData final {
 template<typename Distribution>
 inline int next(const SelectionData& data,
                 Distribution& dist,
-                thrust::minstd_rand& rng,
+                const thrust::minstd_rand& rng,
                 int other = -1) {
   while (true) {
-    auto value = dist(rng);
+    auto value = dist(const_cast<thrust::minstd_rand&>(rng));
     if (value != other && data.candidates.find(value) == data.candidates.end()) return value;
   }
 }
@@ -100,23 +100,23 @@ struct with_generator final {
 
 /// Assigns crossover plan.
 struct assign_crossovers final {
+  const EvolutionContext& ctx;
   const Selection& settings;
   SelectionData& data;
-  thrust::minstd_rand& rng;
 
   template<typename Parents, typename Children>
   void operator()(Parents& parents, Children& children) const {
     while (data.cross.size() < settings.crossovers.first) {
-      auto parent1 = next(data, parents, rng);
-      auto parent2 = next(data, parents, rng, parent1);
+      auto parent1 = next(data, parents, ctx.rng);
+      auto parent2 = next(data, parents, ctx.rng, parent1);
 
       if (data.cross.find({{parent1, parent2}, {0, 0}}) != data.cross.end()) continue;
 
       data.candidates.insert(parent1);
       data.candidates.insert(parent2);
 
-      auto child1 = next(data, children, rng);
-      auto child2 = next(data, children, rng, child1);
+      auto child1 = next(data, children, ctx.rng);
+      auto child2 = next(data, children, ctx.rng, child1);
 
       data.cross.insert({{parent1, parent2}, {child1, child2}});
       data.candidates.insert(child1);
@@ -127,23 +127,23 @@ struct assign_crossovers final {
 
 /// Assigns crossover plan.
 struct assign_mutants final {
+  const EvolutionContext& ctx;
   const Selection& settings;
-  SelectionData& ctx;
-  thrust::minstd_rand& rng;
+  SelectionData& data;
 
   template<typename Parents, typename Children>
   void operator()(Parents& parents, Children& children) const {
-    while (ctx.mutants.size() < settings.mutations.first) {
-      auto parent = next(ctx, parents, rng);
+    while (data.mutants.size() < settings.mutations.first) {
+      auto parent = next(data, parents, ctx.rng);
 
-      if (ctx.mutants.find({parent, 0}) != ctx.mutants.end()) continue;
+      if (data.mutants.find({parent, 0}) != data.mutants.end()) continue;
 
-      ctx.candidates.insert(parent);
+      data.candidates.insert(parent);
 
-      auto child = next(ctx, children, rng);
+      auto child = next(data, children, ctx.rng);
 
-      ctx.mutants.insert({parent, child});
-      ctx.candidates.insert(child);
+      data.mutants.insert({parent, child});
+      data.candidates.insert(child);
     }
   }
 };
@@ -175,8 +175,8 @@ void select_individuums<Crossover, Mutator>::operator()(const EvolutionContext& 
                                                         const Selection& selection) {
   auto data = SelectionData();
 
-  with_generator{ctx, selection}(assign_crossovers{selection, data, rng});
-  with_generator{ctx, selection}(assign_mutants{selection, data, rng});
+  with_generator{ctx, selection}(assign_crossovers{ctx, selection, data});
+  with_generator{ctx, selection}(assign_mutants{ctx, selection, data});
 
   // TODO pass convolution settings
   thrust::for_each(exec_unit, data.cross.begin(), data.cross.end(),

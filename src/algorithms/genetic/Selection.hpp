@@ -16,7 +16,6 @@ template<typename Crossover, typename Mutator>
 struct select_individuums final {
   Crossover crossover;
   Mutator mutator;
-  thrust::minstd_rand rng;
   void operator()(const EvolutionContext& ctx, const Selection& selection);
 };
 

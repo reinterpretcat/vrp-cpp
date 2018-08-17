@@ -53,8 +53,8 @@ void run_evolution<Strategy>::operator()(const Problem& problem) {
   auto ctx = EvolutionContext{0,
                               {problem.getShadow(), tasks.getShadow()},
                               {-1, __FLT_MAX__},
-                              vector<Individuum>(static_cast<size_t>(tasks.population()))};
-  auto rng = thrust::minstd_rand();
+                              vector<Individuum>(static_cast<size_t>(tasks.population())),
+                              thrust::minstd_rand()};
   auto costs = calculate_total_cost{ctx.solution};
 
   // init individuums
@@ -73,8 +73,7 @@ void run_evolution<Strategy>::operator()(const Problem& problem) {
     auto selection = strategy.selection(ctx);
 
     // run selection and apply operators
-    select_individuums<decltype(crossover), decltype(mutator)>{crossover, mutator, rng}(ctx,
-                                                                                        selection);
+    select_individuums<decltype(crossover), decltype(mutator)>{crossover, mutator}(ctx, selection);
 
   } while (strategy.next(ctx));
 }

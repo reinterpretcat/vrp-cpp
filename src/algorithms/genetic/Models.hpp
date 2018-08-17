@@ -4,6 +4,8 @@
 #include "algorithms/convolutions/Models.hpp"
 #include "models/Solution.hpp"
 
+#include <thrust/random/linear_congruential_engine.h>
+
 namespace vrp {
 namespace algorithms {
 namespace genetic {
@@ -54,6 +56,8 @@ struct EvolutionContext {
   thrust::pair<int, float> best;
   /// Keeps costs of all individuums estimated for current generation.
   vrp::runtime::vector<thrust::pair<int, float>> costs;
+  /// Random number generator.
+  thrust::minstd_rand rng;
 };
 
 }  // namespace genetic
