@@ -12,8 +12,8 @@ namespace convolutions {
 struct Settings final {
   /// Specifies median ratio.
   float MedianRatio;
-  /// Specifies ratio which controls threshold for grouping tasks.
-  float ConvolutionRatio;
+  /// Specifies size of convolution group.
+  int ConvolutionSize;
 };
 
 /// Specifies convolutions collection acquired from pool with its real size.

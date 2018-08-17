@@ -111,7 +111,7 @@ struct estimate_convolutions final {
 /// Creates convolutions based on estimation.
 struct create_convolutions final {
   Solution::Shadow solution;
-  float convolutionRatio;
+  int convolutionSize;
   size_t size;
   size_t groups;
 
@@ -161,13 +161,11 @@ struct create_convolutions final {
                               const vector_ptr<thrust::tuple<bool, int>> output,
                               const vector_ptr<int> lengths,
                               vector_ptr<Convolution> convolutions) const {
-    auto limit = vrp::runtime::round(solution.problem.size * convolutionRatio);
-
     auto newEnd = thrust::remove_copy_if(
       exec_unit_policy{}, thrust::make_zip_iterator(thrust::make_tuple(output, lengths)),
       thrust::make_zip_iterator(thrust::make_tuple(output + groups, lengths + groups)),
       thrust::make_transform_output_iterator(convolutions, map_group{solution, base}),
-      filter_group{limit});
+      filter_group{convolutionSize});
 
     // TODO simplify this
     return static_cast<size_t>(thrust::distance(
@@ -197,7 +195,7 @@ EXEC_UNIT Convolutions create_best_convolutions::operator()(const Settings& sett
 
   auto convolutions = make_unique_ptr_data<Convolution>(size);
   auto resultSize =
-    create_convolutions{solution, settings.ConvolutionRatio, size, groups}.operator()(
+    create_convolutions{solution, settings.ConvolutionSize, size, groups}.operator()(
       static_cast<int>(begin), *output, *lengths, *convolutions);
 
   return {resultSize, std::move(convolutions)};

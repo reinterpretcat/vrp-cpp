@@ -64,7 +64,7 @@ EXEC_UNIT JointPairs create_joint_convolutions::operator()(const Settings& setti
   tiled_range<decltype(leftData)> tiled(rightData, rightData + rightSize, rightSize);
 
   // theoretical max convolution size in each group
-  auto size = static_cast<int>(1 / settings.ConvolutionRatio);
+  auto size = solution.tasks.customers / settings.ConvolutionSize;
   auto pairs = make_unique_ptr_data<JointPair>(static_cast<size_t>(size * size));
 
   // create all possible combinations from two group

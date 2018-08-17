@@ -47,9 +47,9 @@ void test(const Mutation& mutation) {
 }  // namespace
 
 SCENARIO("Can mutate c101 individuum keeping convolutions.", "[genetic][mutation][c101]") {
-  test<create_c101_problem_stream, 25>(Mutation{0, 1, {0.75, 0.05}});
+  test<create_c101_problem_stream, 25>(Mutation{0, 1, {0.75, 2}});
 }
 
 SCENARIO("Can mutate rc1_10_1 individuum keeping convolutions.", "[genetic][mutation][rc1_10_1]") {
-  test<rc1_10_1_problem_stream, 1000>(Mutation{0, 1, {0.75, 0.003}});
+  test<rc1_10_1_problem_stream, 1000>(Mutation{0, 1, {0.75, 3}});
 }

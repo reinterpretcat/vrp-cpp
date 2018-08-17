@@ -34,7 +34,7 @@ struct run_crossover final {
 SCENARIO("Can create offsprings", "[genetic][crossover][acdc][one_offspring]") {
   int populationSize = 4;
   auto solution = getPopulation(populationSize);
-  auto generation = Generation{{0, 1}, {2, 3}, {0.75, 0.05}};
+  auto generation = Generation{{0, 1}, {2, 3}, {0.75, 1}};
 
   thrust::for_each(exec_unit, thrust::make_counting_iterator(0), thrust::make_counting_iterator(1),
                    run_crossover{solution.getShadow(), generation});
@@ -59,7 +59,7 @@ SCENARIO("Can process multiple offsprings", "[genetic][crossover][acdc][multiple
   int populationSize = 4;
   auto solution = getPopulation(populationSize);
   auto settings = std::vector<vrp::algorithms::convolutions::Settings>{
-    {0.50, 0.09}, {0.55, 0.08}, {0.60, 0.07}, {0.65, 0.06}, {0.70, 0.05}};
+    {0.50, 4}, {0.55, 4}, {0.60, 3}, {0.65, 3}, {0.70, 2}};
 
   for (int i = 0; i < settings.size(); ++i) {
     auto generation =

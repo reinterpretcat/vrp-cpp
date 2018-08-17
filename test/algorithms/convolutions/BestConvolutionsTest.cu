@@ -60,7 +60,7 @@ SCENARIO("Can create best convolutions with 25 customers with two convolutions",
   auto solution = createBasicSolution();
   auto output = vector<Convolution>(size);
 
-  auto runner = run_best_convolutions{solution.getShadow(), {0.75, 0.1}, output.data()};
+  auto runner = run_best_convolutions{solution.getShadow(), {0.75, 3}, output.data()};
   auto result = thrust::transform_reduce(exec_unit, thrust::make_counting_iterator(0),
                                          thrust::make_counting_iterator(1), runner, 0, runner);
   REQUIRE(result == size);
@@ -74,7 +74,7 @@ SCENARIO("Can create best convolutions with 25 customers with three convolutions
   auto solution = createBasicSolution();
   auto output = vector<Convolution>(size);
 
-  auto runner = run_best_convolutions{solution.getShadow(), {0.9, 0.1}, output.data()};
+  auto runner = run_best_convolutions{solution.getShadow(), {0.9, 3}, output.data()};
   auto result = thrust::transform_reduce(exec_unit, thrust::make_counting_iterator(0),
                                          thrust::make_counting_iterator(1), runner, 0, runner);
   REQUIRE(result == 3);

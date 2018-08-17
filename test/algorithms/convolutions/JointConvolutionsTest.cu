@@ -70,7 +70,7 @@ Result getResult(Solution& solution,
 
   auto runner =
     run_joint_convolutions{solution.getShadow(),
-                           {0.75, 0.1},
+                           {0.75, 3},
                            {leftDev.size(), leftDev.data()},
                            {rightDev.size(), rightDev.data()},
                            vrp::runtime::allocate<JoinPairResult>({{0, 0}, resultData.data()})};
@@ -84,7 +84,7 @@ Result getResult(Solution& solution,
 
 }  // namespace
 
-SCENARIO("Can create joint convolution pair from two convolutions", "[convolution][join_pairs]") {
+SCENARIO("Can create joint convolution pair from two convolutions", "[joint_convolutions]") {
   Solution solution = createBasicSolution();
   std::vector<Convolution> left = {{0, 1, 1, {1, 4}, {}, {1, 4}},
                                    {0, 2, 2, {7, 13}, {}, {7, 13}},

@@ -42,7 +42,7 @@ struct run_sliced_convolutions final {
     auto jointPairs = make_unique_ptr_data<JointPair>(customers);
     thrust::copy(exec_unit_policy{}, data, data + dimens.first * dimens.second, *jointPairs);
 
-    auto sliced = create_sliced_convolutions{solution}({0.2, 0.2}, {dimens, std::move(jointPairs)});
+    auto sliced = create_sliced_convolutions{solution}({0.2, 4}, {dimens, std::move(jointPairs)});
 
     auto resultPtr = raw_pointer_cast(result);
 
@@ -61,7 +61,7 @@ thrust::host_vector<Convolution> getResult(Solution& solution,
 
   auto runner =
     run_sliced_convolutions{solution.getShadow(),
-                            {0.2, 0.2},
+                            {0.2, 4},
                             dimens,
                             jointPairs.data(),
                             vrp::runtime::allocate<ConvolutionResult>({0, resultData.data()})};
@@ -77,7 +77,7 @@ thrust::host_vector<Convolution> getResult(Solution& solution,
 
 }  // namespace
 
-SCENARIO("Can create sliced convolutions from joint pairs", "[convolution][sliced]") {
+SCENARIO("Can create sliced convolutions from joint pairs", "[sliced_convolutions]") {
   auto solution = createBasicSolution();
 
   std::vector<Convolution> left = {{0, 1, 1, {1, 4}, {}, {1, 4}},
