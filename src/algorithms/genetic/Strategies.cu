@@ -38,7 +38,7 @@ inline int getCross(EvolutionContext& ctx) {
 /// Returns mutant group size.
 inline int getMutants(EvolutionContext& ctx, int left) {
   assert (left >= 2);
-  return generateInt(ctx, left / 2);
+  return left == 2 ? 1 : generateInt(ctx, left / 2);
 }
 
 /// Returns convolution settings.
