@@ -152,8 +152,9 @@ struct assign_mutants final {
 template<typename Crossover>
 struct apply_crossover final {
   Crossover crossover;
+  vrp::algorithms::convolutions::Settings settings;
   EXEC_UNIT void operator()(CrossPlan plan) {
-    crossover(Generation{plan.parents, plan.children, {}});
+    crossover(Generation{plan.parents, plan.children, settings});
   }
 };
 
@@ -161,7 +162,8 @@ struct apply_crossover final {
 template<typename Mutator>
 struct apply_mutator final {
   Mutator mutator;
-  EXEC_UNIT void operator()(MutantPlan plan) { mutator(Mutation{plan.first, plan.second, {}}); }
+  vrp::algorithms::convolutions::Settings settings;
+  EXEC_UNIT void operator()(MutantPlan plan) { mutator(Mutation{plan.first, plan.second, settings}); }
 };
 
 }  // namespace
@@ -180,9 +182,9 @@ void select_individuums<Crossover, Mutator>::operator()(const EvolutionContext& 
 
   // TODO pass convolution settings
   thrust::for_each(exec_unit, data.cross.begin(), data.cross.end(),
-                   apply_crossover<Crossover>{crossover});
+                   apply_crossover<Crossover>{crossover, selection.crossovers.second});
   thrust::for_each(exec_unit, data.mutants.begin(), data.mutants.end(),
-                   apply_mutator<Mutator>{mutator});
+                   apply_mutator<Mutator>{mutator, selection.mutations.second});
 }
 
 /// NOTE Make linker happy
