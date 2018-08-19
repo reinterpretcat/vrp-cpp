@@ -33,11 +33,29 @@ struct estimate_individuum final {
   EXEC_UNIT void operator()(Individuum& individuum) { individuum.second = costs(individuum.first); }
 };
 
-/// Sorts individuums by their cost.
-struct sort_individuums final {
-  calculate_total_cost costs;
+/// Compares individuums by their cost.
+struct compare_individuums final {
+
   EXEC_UNIT bool operator()(const Individuum& lfs, const Individuum& rhs) {
     return lfs.second < rhs.second;
+  }
+};
+
+/// Sorts individuums by their cost.
+struct sort_individuums final {
+  void operator()(EvolutionContext& ctx) {
+    auto costs = calculate_total_cost{ctx.solution};
+    thrust::for_each(exec_unit, ctx.costs.begin(), ctx.costs.end(), estimate_individuum{costs});
+    thrust::sort(exec_unit, ctx.costs.begin(), ctx.costs.end(), compare_individuums{});
+  }
+};
+
+struct init_individuums final {
+  void operator()(Tasks& tasks, EvolutionContext& ctx) {
+    thrust::transform(exec_unit, thrust::make_counting_iterator(0),
+                      thrust::make_counting_iterator(tasks.population()), ctx.costs.begin(),
+                      init_individuum{});
+    sort_individuums{}(ctx);
   }
 };
 
@@ -55,18 +73,10 @@ void run_evolution<Strategy>::operator()(const Problem& problem) {
                               {-1, __FLT_MAX__},
                               vector<Individuum>(static_cast<size_t>(tasks.population())),
                               thrust::minstd_rand()};
-  auto costs = calculate_total_cost{ctx.solution};
 
-  // init individuums
-  thrust::transform(exec_unit, thrust::make_counting_iterator(0),
-                    thrust::make_counting_iterator(tasks.population()), ctx.costs.begin(),
-                    init_individuum{});
+  init_individuums{}(tasks, ctx);
 
-  do {
-    // estimate individuums
-    thrust::for_each(exec_unit, ctx.costs.begin(), ctx.costs.end(), estimate_individuum{costs});
-    thrust::sort(exec_unit, ctx.costs.begin(), ctx.costs.end(), sort_individuums{});
-
+  while (strategy.next(ctx)) {
     // get genetic operators
     auto crossover = strategy.crossover(ctx);
     auto mutator = strategy.mutator(ctx);
@@ -75,7 +85,8 @@ void run_evolution<Strategy>::operator()(const Problem& problem) {
     // run selection and apply operators
     select_individuums<decltype(crossover), decltype(mutator)>{crossover, mutator}(ctx, selection);
 
-  } while (strategy.next(ctx));
+    sort_individuums{}(ctx);
+  }
 }
 
 // NOTE explicit specialization to make linker happy.
