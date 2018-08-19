@@ -32,7 +32,7 @@ SCENARIO("Can use selection", "[genetic][selection]") {
   auto costs = vector<thrust::pair<int, float>>(12);
   thrust::transform(exec_unit, thrust::make_counting_iterator(0),
                     thrust::make_counting_iterator(12), costs.begin(), init_costs{});
-  auto ctx = EvolutionContext{0, {}, {}, costs};
+  auto ctx = EvolutionContext{0, {}, costs};
 
   select_individuums<empty_crossover, empty_mutator>()(ctx, selection);
 }

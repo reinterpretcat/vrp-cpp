@@ -52,8 +52,6 @@ struct EvolutionContext {
   int generation;
   /// Solution shadow.
   vrp::models::Solution::Shadow solution;
-  /// Best known individuum: index and cost.
-  thrust::pair<int, float> best;
   /// Keeps costs of all individuums estimated for current generation.
   vrp::runtime::vector<thrust::pair<int, float>> costs;
   /// Random number generator.

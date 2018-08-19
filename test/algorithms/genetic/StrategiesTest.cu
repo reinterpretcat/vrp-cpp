@@ -12,7 +12,6 @@ SCENARIO("Can use linear strategy's selection and next", "[genetic][strategy]") 
   auto strategy = LinearStrategy{ {16} };
   auto ctx = EvolutionContext{0,
                               {},
-                              {-1, __FLT_MAX__},
                               vector<thrust::pair<int, float>>(static_cast<size_t>(16)),
                               thrust::minstd_rand()};
 

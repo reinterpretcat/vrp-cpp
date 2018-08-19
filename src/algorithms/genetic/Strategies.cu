@@ -91,7 +91,7 @@ Selection LinearStrategy::selection(const EvolutionContext& ctx) {
 }
 
 bool LinearStrategy::next(EvolutionContext& ctx) {
-  std::cout << "generation: " << ctx.generation << " best cost:" << ctx.best.second << std::endl;
+  std::cout << "generation: " << ctx.generation << " best cost:" << ctx.costs.front().second << std::endl;
   ctx.generation++;
   return ctx.generation < 5;
 }

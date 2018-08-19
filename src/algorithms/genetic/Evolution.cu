@@ -70,7 +70,6 @@ void run_evolution<Strategy>::operator()(const Problem& problem) {
   auto tasks = strategy.population(problem);
   auto ctx = EvolutionContext{0,
                               {problem.getShadow(), tasks.getShadow()},
-                              {-1, __FLT_MAX__},
                               vector<Individuum>(static_cast<size_t>(tasks.population())),
                               thrust::minstd_rand()};
 
