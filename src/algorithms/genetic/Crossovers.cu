@@ -135,6 +135,10 @@ EXEC_UNIT void adjusted_cost_difference<Heuristic>::operator()(const Generation&
     create_best_convolutions{solution}.operator()(generation.settings, generation.parents.first);
   auto right =
     create_best_convolutions{solution}.operator()(generation.settings, generation.parents.second);
+
+  if (left.size == 0 || right.size == 0)
+    return;
+
   auto pairs = create_joint_convolutions{solution}.operator()(generation.settings, left, right);
 
   auto convolutions = create_sliced_convolutions{solution}.operator()(generation.settings, pairs);
