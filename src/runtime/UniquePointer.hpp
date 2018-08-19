@@ -12,7 +12,7 @@ namespace runtime {
 template<typename T>
 struct default_delete final {
   EXEC_UNIT void operator()(T* ptr) const {
-    printf("default_delete: deallocate value\n");
+    //printf("default_delete: deallocate value\n");
     deallocate(ptr);
   }
 };
@@ -24,7 +24,7 @@ struct default_delete<T[]> final {
   EXEC_UNIT typename std::enable_if<std::is_convertible<Arr (*)[], T (*)[]>::value>::type
   operator()(Arr* ptr) const {
     // TODO investigate how this case is handled now.
-    printf("default_delete: deallocate array\n");
+    //printf("default_delete: deallocate array\n");
     delete[] ptr;
   }
 };

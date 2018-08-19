@@ -16,7 +16,7 @@ template<typename T>
 thrust::pair<thrust::pointer<T, exec_unit_policy>, std::ptrdiff_t> get_temporary_buffer(
   exec_unit_policy exec_unit,
   std::ptrdiff_t n) {
-  std::cout << "get_temporary_buffer(exec_unit_policy): host" << std::endl;
+  //std::cout << "get_temporary_buffer(exec_unit_policy): host" << std::endl;
 
   // ask device_malloc for storage
   thrust::pointer<T, exec_unit_policy> result(thrust::malloc<T>(exec_unit, n).get());
@@ -27,7 +27,7 @@ thrust::pair<thrust::pointer<T, exec_unit_policy>, std::ptrdiff_t> get_temporary
 
 template<typename Pointer>
 void return_temporary_buffer(exec_unit_policy exec_unit, Pointer p) {
-  std::cout << "return_temporary_buffer(exec_unit_policy): host" << std::endl;
+  //std::cout << "return_temporary_buffer(exec_unit_policy): host" << std::endl;
 
   thrust::free(exec_unit, p.get());
 }
@@ -35,7 +35,7 @@ void return_temporary_buffer(exec_unit_policy exec_unit, Pointer p) {
 /// Allocates buffer dynamically in host memory.
 template<typename T>
 EXEC_UNIT T* allocate_data(size_t size) {
-  printf("allocate on host\n");
+  //printf("allocate on host\n");
   return thrust::malloc<T>(thrust::host, size).get();
 }
 
