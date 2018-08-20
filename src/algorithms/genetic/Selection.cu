@@ -6,6 +6,8 @@
 #include "utils/random/FilteredDistribution.hpp"
 #include "utils/random/TransformedDistribution.hpp"
 
+#include <algorithm>
+#include <iostream>
 #include <thrust/random/normal_distribution.h>
 #include <unordered_set>
 
@@ -163,8 +165,34 @@ template<typename Mutator>
 struct apply_mutator final {
   Mutator mutator;
   vrp::algorithms::convolutions::Settings settings;
-  EXEC_UNIT void operator()(MutantPlan plan) { mutator(Mutation{plan.first, plan.second, settings}); }
+  EXEC_UNIT void operator()(MutantPlan plan) {
+    mutator(Mutation{plan.first, plan.second, settings});
+  }
 };
+
+inline void logSelection(const Selection& selection, const SelectionData& data) {
+  std::cout << std::endl << std::endl;
+  std::cout << "elite: " << selection.elite << std::endl;
+  std::cout << "crossovers: " << selection.crossovers.first
+            << " median: " << selection.crossovers.second.MedianRatio
+            << " size: " << selection.crossovers.second.ConvolutionSize << std::endl;
+
+  std::cout << "cross:\n";
+  std::for_each(data.cross.begin(), data.cross.end(), [](const CrossPlan& plan) {
+    std::cout << plan.parents.first << " " << plan.parents.second << " " << plan.children.first
+              << " " << plan.children.second << std::endl;
+  });
+
+  std::cout << "mutants:\n";
+  std::for_each(data.mutants.begin(), data.mutants.end(), [](const MutantPlan& plan) {
+    std::cout << plan.first << " " << plan.second << std::endl;
+  });
+
+  std::cout << "candidates:\n";
+  std::copy(data.candidates.begin(), data.candidates.end(),
+            std::ostream_iterator<int>(std::cout, ", "));
+  std::cout << std::endl;
+}
 
 }  // namespace
 
@@ -180,7 +208,8 @@ void select_individuums<Crossover, Mutator>::operator()(const EvolutionContext& 
   with_generator{ctx, selection}(assign_crossovers{ctx, selection, data});
   with_generator{ctx, selection}(assign_mutants{ctx, selection, data});
 
-  // TODO pass convolution settings
+  logSelection(selection, data);
+
   thrust::for_each(exec_unit, data.cross.begin(), data.cross.end(),
                    apply_crossover<Crossover>{crossover, selection.crossovers.second});
   thrust::for_each(exec_unit, data.mutants.begin(), data.mutants.end(),

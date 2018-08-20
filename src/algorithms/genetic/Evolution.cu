@@ -35,7 +35,6 @@ struct estimate_individuum final {
 
 /// Compares individuums by their cost.
 struct compare_individuums final {
-
   EXEC_UNIT bool operator()(const Individuum& lfs, const Individuum& rhs) {
     return lfs.second < rhs.second;
   }

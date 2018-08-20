@@ -37,7 +37,7 @@ inline int getCross(EvolutionContext& ctx) {
 
 /// Returns mutant group size.
 inline int getMutants(EvolutionContext& ctx, int left) {
-  assert (left >= 2);
+  assert(left >= 2);
   return left == 2 ? 1 : generateInt(ctx, left / 2);
 }
 
@@ -57,12 +57,8 @@ Selection createSelection(EvolutionContext& ctx) {
   auto crossSetting = getConvolutionSettings(ctx);
   auto mutantSetting = getConvolutionSettings(ctx);
 
-  assert (elite + cross * 4 + mutants * 2 <= ctx.costs.size());
-  return {
-      elite,
-      {cross, crossSetting},
-      {mutants, mutantSetting}
-  };
+  assert(elite + cross * 4 + mutants * 2 <= ctx.costs.size());
+  return {elite, {cross, crossSetting}, {mutants, mutantSetting}};
 }
 
 }  // namespace
@@ -91,9 +87,10 @@ Selection LinearStrategy::selection(const EvolutionContext& ctx) {
 }
 
 bool LinearStrategy::next(EvolutionContext& ctx) {
-  std::cout << "generation: " << ctx.generation << " best cost:" << ctx.costs.front().second << std::endl;
+  std::cout << "generation: " << ctx.generation << " best cost:" << ctx.costs.front().second
+            << std::endl;
   ctx.generation++;
-  return ctx.generation < 5;
+  return ctx.generation < 50;
 }
 
 }  // namespace genetic
