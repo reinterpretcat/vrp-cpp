@@ -46,11 +46,8 @@ struct sort_individuums final {
   void operator()(EvolutionContext& ctx) {
     auto costs = calculate_total_cost{ctx.solution};
     thrust::for_each(exec_unit, ctx.costs.begin(), ctx.costs.end(), estimate_individuum{costs});
-    std::for_each(ctx.costs.begin(), ctx.costs.end(), [](const Individuum& individuum) {
-      std::cout << "(" << individuum.first << ", " << individuum.second << ") ";
-    });
-    std::cout << std::endl;
     thrust::sort(exec_unit, ctx.costs.begin(), ctx.costs.end(), compare_individuums{});
+
     std::for_each(ctx.costs.begin(), ctx.costs.end(), [](const Individuum& individuum) {
       std::cout << "(" << individuum.first << ", " << individuum.second << ") ";
     });

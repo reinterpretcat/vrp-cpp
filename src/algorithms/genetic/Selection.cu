@@ -63,11 +63,12 @@ struct Allocation {
 /// Defines selection data.
 struct SelectionData final {
   SelectionData(const EvolutionContext& ctx, const Selection& selection) :
-    alloc{0, selection.elite - 1, static_cast<int>(ctx.costs.size() - 1)}, costs(), candidates(),
-    cross(), mutants() {}
+    alloc{0, selection.elite - 1, static_cast<int>(ctx.costs.size() - 1)},
+    costs{const_cast<vector_ptr<thrust::pair<int, float>>>(ctx.costs.data())},
+    candidates(), cross(), mutants() {}
 
   Allocation alloc;
-  vector_ptr<thrust::pair<int, float>> costs;
+  const vector_ptr<thrust::pair<int, float>> costs;
   std::unordered_set<int> candidates;
   std::unordered_set<CrossPlan> cross;
   std::unordered_set<MutantPlan> mutants;
@@ -92,7 +93,7 @@ inline int next(const SelectionData& data,
     if (isNext(data, i, other)) return i;
 
   // search next with increasing priority
-  for (int i = value; i >= data.alloc.middle; --i)
+  for (int i = value; i > data.alloc.middle; --i)
     if (isNext(data, i, other)) return i;
 
   throw std::runtime_error("Cannot get next index.");
@@ -100,7 +101,6 @@ inline int next(const SelectionData& data,
 
 /// Calls generator with parent and children distributions.
 struct with_generator final {
-  const EvolutionContext& ctx;
   const SelectionData& data;
 
   template<typename Generator>
@@ -111,14 +111,8 @@ struct with_generator final {
 
     thrust::random::normal_distribution<float> dist(0.0f, 0.5f * end);
 
-    auto fp = filtered(dist, [=](int value) { return value >= start && value <= end; });
-    auto fc = filtered(dist, [=](int value) { return value > middle && value <= end; });
-
-    auto parents =
-      transformed(fp, [&](int value) -> int { return std::abs(ctx.costs[value].first); });
-
-    auto children =
-      transformed(fc, [&](int value) -> int { return std::abs(ctx.costs[value].first); });
+    auto parents = filtered(dist, [=](int value) { return value >= start && value <= end; });
+    auto children = filtered(dist, [=](int value) { return value > middle && value <= end; });
 
     generator(parents, children);
   }
@@ -179,8 +173,12 @@ template<typename Crossover>
 struct apply_crossover final {
   Crossover crossover;
   vrp::algorithms::convolutions::Settings settings;
+  vector_ptr<thrust::pair<int, float>> index;
+
   EXEC_UNIT void operator()(CrossPlan plan) {
-    crossover(Generation{plan.parents, plan.children, settings});
+    thrust::pair<int, int> parents = {index[plan.parents.first].first, index[plan.parents.second].first};
+    thrust::pair<int, int> children = {index[plan.children.first].first, index[plan.children.second].first};
+    crossover(Generation{parents, children, settings});
   }
 };
 
@@ -189,8 +187,10 @@ template<typename Mutator>
 struct apply_mutator final {
   Mutator mutator;
   vrp::algorithms::convolutions::Settings settings;
+  vector_ptr<thrust::pair<int, float>> index;
+
   EXEC_UNIT void operator()(MutantPlan plan) {
-    mutator(Mutation{plan.first, plan.second, settings});
+    mutator(Mutation{index[plan.first].first, index[plan.second].first, settings});
   }
 };
 
@@ -229,15 +229,15 @@ void select_individuums<Crossover, Mutator>::operator()(const EvolutionContext& 
                                                         const Selection& selection) {
   auto data = SelectionData(ctx, selection);
 
-  with_generator{ctx, data}(assign_crossovers{ctx, selection, data});
-  with_generator{ctx, data}(assign_mutants{ctx, selection, data});
+  with_generator{data}(assign_crossovers{ctx, selection, data});
+  with_generator{data}(assign_mutants{ctx, selection, data});
 
   logSelection(selection, data);
 
   thrust::for_each(exec_unit, data.cross.begin(), data.cross.end(),
-                   apply_crossover<Crossover>{crossover, selection.crossovers.second});
+                   apply_crossover<Crossover>{crossover, selection.crossovers.second, data.costs});
   thrust::for_each(exec_unit, data.mutants.begin(), data.mutants.end(),
-                   apply_mutator<Mutator>{mutator, selection.mutations.second});
+                   apply_mutator<Mutator>{mutator, selection.mutations.second, data.costs});
 }
 
 /// NOTE Make linker happy
