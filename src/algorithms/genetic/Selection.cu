@@ -54,13 +54,28 @@ bool operator==(const MutantPlan& lfs, const MutantPlan& rhs) { return lfs.first
 
 namespace {
 
+struct Allocation {
+  int start;
+  int middle;
+  int end;
+};
+
 /// Defines selection data.
 struct SelectionData final {
+  SelectionData(const EvolutionContext& ctx, const Selection& selection) :
+    alloc{0, selection.elite - 1, static_cast<int>(ctx.costs.size() - 1)}, costs(), candidates(),
+    cross(), mutants() {}
+
+  Allocation alloc;
   vector_ptr<thrust::pair<int, float>> costs;
   std::unordered_set<int> candidates;
   std::unordered_set<CrossPlan> cross;
   std::unordered_set<MutantPlan> mutants;
 };
+
+inline bool isNext(const SelectionData& data, int value, int other = -1) {
+  return value != other && data.candidates.find(value) == data.candidates.end();
+}
 
 /// Finds next index from selection data.
 template<typename Distribution>
@@ -68,33 +83,42 @@ inline int next(const SelectionData& data,
                 Distribution& dist,
                 const thrust::minstd_rand& rng,
                 int other = -1) {
-  while (true) {
-    auto value = dist(const_cast<thrust::minstd_rand&>(rng));
-    if (value != other && data.candidates.find(value) == data.candidates.end()) return value;
-  }
+  auto value = dist(const_cast<thrust::minstd_rand&>(rng));
+
+  if (isNext(data, value, other)) return value;
+
+  // search next with decreasing priority
+  for (int i = value; i <= data.alloc.end; ++i)
+    if (isNext(data, i, other)) return i;
+
+  // search next with increasing priority
+  for (int i = value; i >= data.alloc.middle; --i)
+    if (isNext(data, i, other)) return i;
+
+  throw std::runtime_error("Cannot get next index.");
 }
 
 /// Calls generator with parent and children distributions.
 struct with_generator final {
   const EvolutionContext& ctx;
-  const Selection& selection;
+  const SelectionData& data;
 
   template<typename Generator>
   void operator()(const Generator& generator) {
-    auto start = 0;
-    auto middle = selection.elite - 1;
-    auto end = ctx.costs.size() - 1;
+    auto start = data.alloc.start;
+    auto middle = data.alloc.middle;
+    auto end = data.alloc.end;
 
     thrust::random::normal_distribution<float> dist(0.0f, 0.5f * end);
 
-    auto tp = transformed(
-      dist, [&](float value) -> int { return std::abs(ctx.costs[static_cast<int>(value)].first); });
-    auto tc = transformed(dist, [&](float value) -> int {
-      return std::abs(ctx.costs[static_cast<int>(end - value)].first);
-    });
+    auto fp = filtered(dist, [=](int value) { return value >= start && value <= end; });
+    auto fc = filtered(dist, [=](int value) { return value > middle && value <= end; });
 
-    auto parents = filtered(tp, [=](int value) { return !(value > end || value < start); });
-    auto children = filtered(tc, [=](int value) { return !(value > end || value < middle); });
+    auto parents =
+      transformed(fp, [&](int value) -> int { return std::abs(ctx.costs[value].first); });
+
+    auto children =
+      transformed(fc, [&](int value) -> int { return std::abs(ctx.costs[value].first); });
 
     generator(parents, children);
   }
@@ -203,10 +227,10 @@ namespace genetic {
 template<typename Crossover, typename Mutator>
 void select_individuums<Crossover, Mutator>::operator()(const EvolutionContext& ctx,
                                                         const Selection& selection) {
-  auto data = SelectionData();
+  auto data = SelectionData(ctx, selection);
 
-  with_generator{ctx, selection}(assign_crossovers{ctx, selection, data});
-  with_generator{ctx, selection}(assign_mutants{ctx, selection, data});
+  with_generator{ctx, data}(assign_crossovers{ctx, selection, data});
+  with_generator{ctx, data}(assign_mutants{ctx, selection, data});
 
   logSelection(selection, data);
 
