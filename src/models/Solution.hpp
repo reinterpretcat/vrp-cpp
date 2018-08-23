@@ -11,6 +11,7 @@ namespace models {
 struct Solution final {
   /// Stores shadow data.
   struct Shadow final {
+    int population;
     Problem::Shadow problem;
     Tasks::Shadow tasks;
   };
@@ -32,7 +33,7 @@ struct Solution final {
   Tasks tasks;
 
   /// Returns shadow object.
-  Shadow getShadow() { return {problem.getShadow(), tasks.getShadow()}; }
+  Shadow getShadow() { return {tasks.population(), problem.getShadow(), tasks.getShadow()}; }
 };
 
 }  // namespace models
