@@ -119,7 +119,7 @@ struct check_tours final {
   int index;
 
   void operator()(int begin, int end) {
-    auto errors = result.errors.size();
+    auto errors = static_cast<int>(result.errors.size());
     auto tasks =
       Tasks(solution.problem.size(), solution.tasks.population() * solution.problem.size());
 
@@ -127,37 +127,31 @@ struct check_tours final {
     auto executor = perform_transition{solution.problem.getShadow(), tasks.getShadow()};
     auto costs = calculate_transition_cost{solution.problem.getShadow(), tasks.getShadow()};
 
-    int from = 0;
-    int to = from + 1;
-    int vehicle = 0;
+    createDepotTask(tasks, begin);
+    std::for_each(
+      thrust::make_counting_iterator(begin), thrust::make_counting_iterator(end - 1),
+      [&](int task) {
+        auto customer = variant<int, Convolution>::create<int>(solution.tasks.ids[task + 1]);
+        auto vehicle = solution.tasks.vehicles[task + 1];
 
-    createDepotTask(tasks, begin + from);
-
-    do {
-      auto wrapped = variant<int, Convolution>::create<int>(solution.tasks.ids[begin + to]);
-
-      auto transition = factory({begin, from, to, wrapped, vehicle});
-
-      if (!transition.isValid()) {
-        // do we have to use next vehicle?
-        if (solution.tasks.vehicles[begin + to] == vehicle + 1) {
-          spawnNewVehicle(tasks, begin + to, ++vehicle);
+        int from = task % solution.problem.size();
+        int to = from + 1;
+        if (from > 0 && vehicle != solution.tasks.vehicles[task]) {
           from = 0;
-          continue;
+          spawnNewVehicle(tasks, begin + to, vehicle);
         }
 
-        addError(result, index,
-                 (std::string("Cannot serve customer at ") + std::to_string(to) + " task").c_str());
-        return;
-      }
+        auto transition = factory({begin, from, to, customer, vehicle});
+        if (!transition.isValid()) {
+          addError(
+            result, index,
+            (std::string("Cannot serve customer at ") + std::to_string(to) + " task").c_str());
+          return;
+        }
 
-      executor(transition, costs(transition));
-
-      ensureConstraints(tasks, begin + to, vehicle);
-
-      from = to++;
-
-    } while (to < solution.problem.size());
+        executor(transition, costs(transition));
+        ensureConstraints(tasks, begin + to, vehicle);
+      });
 
     verify_tasks{result}(solution.tasks, tasks, begin, end);
 
