@@ -1,13 +1,17 @@
 #include "algorithms/genetic/Populations.hpp"
 #include "algorithms/genetic/Strategies.hpp"
+#include "streams/output/MatrixTextWriter.hpp"
 #include "utils/random/FilteredDistribution.hpp"
+#include "utils/validation/SolutionChecker.hpp"
 
+#include <algorithm>
 #include <thrust/random/uniform_int_distribution.h>
 #include <thrust/random/uniform_real_distribution.h>
 
 using namespace vrp::algorithms::genetic;
 using namespace vrp::algorithms::heuristics;
 using namespace vrp::models;
+using namespace vrp::utils;
 
 namespace {
 
@@ -61,6 +65,28 @@ Selection createSelection(EvolutionContext& ctx) {
   return {elite, {cross, crossSetting}, {mutants, mutantSetting}};
 }
 
+inline void logContext(const EvolutionContext& ctx) {
+  // general
+  std::cout << "generation: " << ctx.generation << " best cost:" << ctx.costs.front().second
+            << std::endl;
+  // all costs
+  std::for_each(ctx.costs.begin(), ctx.costs.end(), [](const thrust::pair<int, float>& individuum) {
+    std::cout << "(" << individuum.first << ", " << individuum.second << ") ";
+  });
+  std::cout << std::endl << std::endl;
+}
+
+inline void validateSolution(const EvolutionContext& ctx) {
+  auto result = SolutionChecker::check(ctx.solution);
+  if (!result.isValid()) {
+    std::copy(result.errors.begin(), result.errors.end(),
+              std::ostream_iterator<std::string>(std::cout, "\n"));
+    vrp::streams::MatrixTextWriter::write(std::cout, ctx.solution.tasks);
+    throw std::runtime_error(std::string("Invalid solution: generation ") +
+                             std::to_string(ctx.generation));
+  }
+}
+
 }  // namespace
 
 namespace vrp {
@@ -85,8 +111,9 @@ LinearStrategy::Mutator LinearStrategy::mutator(EvolutionContext& ctx) {
 Selection LinearStrategy::selection(EvolutionContext& ctx) { return createSelection(ctx); }
 
 bool LinearStrategy::next(EvolutionContext& ctx) {
-  std::cout << "generation: " << ctx.generation << " best cost:" << ctx.costs.front().second
-            << std::endl;
+  logContext(ctx);
+  validateSolution(ctx);
+
   ctx.generation++;
   return ctx.generation < 50;
 }

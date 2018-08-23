@@ -3,10 +3,7 @@
 #include "algorithms/genetic/Selection.hpp"
 #include "algorithms/genetic/Strategies.hpp"
 #include "algorithms/heuristics/Models.hpp"
-#include "streams/output/MatrixTextWriter.hpp"
-#include "utils/validation/SolutionChecker.hpp"
 
-#include <algorithm>
 #include <thrust/for_each.h>
 #include <thrust/iterator/counting_iterator.h>
 #include <thrust/sort.h>
@@ -54,20 +51,12 @@ struct compare_individuums final {
   }
 };
 
-inline void logCosts(const EvolutionContext& ctx) {
-  std::for_each(ctx.costs.begin(), ctx.costs.end(), [](const Individuum& individuum) {
-    std::cout << "(" << individuum.first << ", " << individuum.second << ") ";
-  });
-  std::cout << std::endl << std::endl;
-}
-
 /// Sorts individuums by their cost.
 struct sort_individuums final {
   void operator()(EvolutionContext& ctx) {
     auto costs = calculate_total_cost{ctx.solution.getShadow()};
     thrust::for_each(exec_unit, ctx.costs.begin(), ctx.costs.end(), estimate_individuum{costs});
     thrust::sort(exec_unit, ctx.costs.begin(), ctx.costs.end(), compare_individuums{});
-    logCosts(ctx);
   }
 };
 
@@ -79,17 +68,6 @@ struct init_individuums final {
     sort_individuums{}(ctx);
   }
 };
-
-inline void validateSolution(const EvolutionContext& ctx, const Solution& solution) {
-  auto result = vrp::utils::SolutionChecker::check(solution);
-  if (!result.isValid()) {
-    std::copy(result.errors.begin(), result.errors.end(),
-              std::ostream_iterator<std::string>(std::cout, "\n"));
-    vrp::streams::MatrixTextWriter::write(std::cout, solution.tasks);
-    throw std::runtime_error(std::string("Invalid solution: generation ") +
-                             std::to_string(ctx.generation));
-  }
-}
 
 }  // namespace
 
@@ -112,8 +90,6 @@ void run_evolution<Strategy>::operator()(const Problem& problem) {
 
     // run selection and apply operators
     select_individuums<decltype(crossover), decltype(mutator)>{crossover, mutator}(ctx, selection);
-
-    validateSolution(ctx, ctx.solution);
 
     sort_individuums{}(ctx);
   }
