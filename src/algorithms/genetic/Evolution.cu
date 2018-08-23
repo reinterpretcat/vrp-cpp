@@ -3,6 +3,8 @@
 #include "algorithms/genetic/Selection.hpp"
 #include "algorithms/genetic/Strategies.hpp"
 #include "algorithms/heuristics/Models.hpp"
+#include "streams/output/MatrixTextWriter.hpp"
+#include "utils/validation/SolutionChecker.hpp"
 
 #include <algorithm>
 #include <thrust/for_each.h>
@@ -41,17 +43,20 @@ struct compare_individuums final {
   }
 };
 
+inline void logCosts(const EvolutionContext& ctx) {
+  std::for_each(ctx.costs.begin(), ctx.costs.end(), [](const Individuum& individuum) {
+    std::cout << "(" << individuum.first << ", " << individuum.second << ") ";
+  });
+  std::cout << std::endl << std::endl;
+}
+
 /// Sorts individuums by their cost.
 struct sort_individuums final {
   void operator()(EvolutionContext& ctx) {
     auto costs = calculate_total_cost{ctx.solution};
     thrust::for_each(exec_unit, ctx.costs.begin(), ctx.costs.end(), estimate_individuum{costs});
     thrust::sort(exec_unit, ctx.costs.begin(), ctx.costs.end(), compare_individuums{});
-
-    std::for_each(ctx.costs.begin(), ctx.costs.end(), [](const Individuum& individuum) {
-      std::cout << "(" << individuum.first << ", " << individuum.second << ") ";
-    });
-    std::cout << std::endl << std::endl;
+    logCosts(ctx);
   }
 };
 
@@ -64,6 +69,17 @@ struct init_individuums final {
   }
 };
 
+inline void validateSolution(const EvolutionContext& ctx, const Solution& solution) {
+  auto result = vrp::utils::SolutionChecker::check(solution);
+  if (!result.isValid()) {
+    std::copy(result.errors.begin(), result.errors.end(),
+              std::ostream_iterator<std::string>(std::cout, "\n"));
+    vrp::streams::MatrixTextWriter::write(std::cout, solution.tasks);
+    throw std::runtime_error(std::string("Invalid solution: generation ") +
+                             std::to_string(ctx.generation));
+  }
+}
+
 }  // namespace
 
 namespace vrp {
@@ -72,13 +88,12 @@ namespace genetic {
 
 template<typename Strategy>
 void run_evolution<Strategy>::operator()(const Problem& problem) {
-  auto tasks = strategy.population(problem);
-  auto ctx = EvolutionContext{0,
-                              {problem.getShadow(), tasks.getShadow()},
-                              vector<Individuum>(static_cast<size_t>(tasks.population())),
+  auto solution = Solution{static_cast<Problem>(problem), strategy.population(problem)};
+  auto ctx = EvolutionContext{0, solution.getShadow(),
+                              vector<Individuum>(static_cast<size_t>(solution.tasks.population())),
                               thrust::minstd_rand()};
 
-  init_individuums{}(tasks, ctx);
+  init_individuums{}(solution.tasks, ctx);
 
   while (strategy.next(ctx)) {
     // get genetic operators
@@ -88,6 +103,8 @@ void run_evolution<Strategy>::operator()(const Problem& problem) {
 
     // run selection and apply operators
     select_individuums<decltype(crossover), decltype(mutator)>{crossover, mutator}(ctx, selection);
+
+    validateSolution(ctx, solution);
 
     sort_individuums{}(ctx);
   }

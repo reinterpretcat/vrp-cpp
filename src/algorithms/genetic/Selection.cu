@@ -64,8 +64,8 @@ struct Allocation {
 struct SelectionData final {
   SelectionData(const EvolutionContext& ctx, const Selection& selection) :
     alloc{0, selection.elite - 1, static_cast<int>(ctx.costs.size() - 1)},
-    costs{const_cast<vector_ptr<thrust::pair<int, float>>>(ctx.costs.data())},
-    candidates(), cross(), mutants() {}
+    costs{const_cast<vector_ptr<thrust::pair<int, float>>>(ctx.costs.data())}, candidates(),
+    cross(), mutants() {}
 
   Allocation alloc;
   const vector_ptr<thrust::pair<int, float>> costs;
@@ -176,8 +176,10 @@ struct apply_crossover final {
   vector_ptr<thrust::pair<int, float>> index;
 
   EXEC_UNIT void operator()(CrossPlan plan) {
-    thrust::pair<int, int> parents = {index[plan.parents.first].first, index[plan.parents.second].first};
-    thrust::pair<int, int> children = {index[plan.children.first].first, index[plan.children.second].first};
+    thrust::pair<int, int> parents = {index[plan.parents.first].first,
+                                      index[plan.parents.second].first};
+    thrust::pair<int, int> children = {index[plan.children.first].first,
+                                       index[plan.children.second].first};
     crossover(Generation{parents, children, settings});
   }
 };
@@ -202,19 +204,18 @@ inline void logSelection(const Selection& selection, const SelectionData& data) 
             << " size: " << selection.crossovers.second.ConvolutionSize << std::endl;
 
   std::cout << "cross:\n";
-  std::for_each(data.cross.begin(), data.cross.end(), [](const CrossPlan& plan) {
-    std::cout << plan.parents.first << " " << plan.parents.second << " " << plan.children.first
-              << " " << plan.children.second << std::endl;
+  std::for_each(data.cross.begin(), data.cross.end(), [&](const CrossPlan& plan) {
+    std::cout << data.costs[plan.parents.first].first << " "
+              << data.costs[plan.parents.second].first << " "
+              << data.costs[plan.children.first].first << " "
+              << data.costs[plan.children.second].first << std::endl;
   });
 
   std::cout << "mutants:\n";
-  std::for_each(data.mutants.begin(), data.mutants.end(), [](const MutantPlan& plan) {
-    std::cout << plan.first << " " << plan.second << std::endl;
+  std::for_each(data.mutants.begin(), data.mutants.end(), [&](const MutantPlan& plan) {
+    std::cout << data.costs[plan.first].first << " " << data.costs[plan.second].first << std::endl;
   });
 
-  std::cout << "candidates:\n";
-  std::copy(data.candidates.begin(), data.candidates.end(),
-            std::ostream_iterator<int>(std::cout, ", "));
   std::cout << std::endl;
 }
 
