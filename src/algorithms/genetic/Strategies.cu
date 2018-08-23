@@ -74,17 +74,15 @@ Tasks LinearStrategy::population(const Problem& problem) {
   return create_population<nearest_neighbor<TransitionOperator>>{problem}(settings.populationSize);
 }
 
-LinearStrategy::Crossover LinearStrategy::crossover(const EvolutionContext& ctx) {
-  return adjusted_cost_difference<nearest_neighbor<TransitionOperator>>{ctx.solution};
+LinearStrategy::Crossover LinearStrategy::crossover(EvolutionContext& ctx) {
+  return adjusted_cost_difference<nearest_neighbor<TransitionOperator>>{ctx.solution.getShadow()};
 }
 
-LinearStrategy::Mutator LinearStrategy::mutator(const EvolutionContext& ctx) {
-  return create_mutant<TransitionOperator>{ctx.solution};
+LinearStrategy::Mutator LinearStrategy::mutator(EvolutionContext& ctx) {
+  return create_mutant<TransitionOperator>{ctx.solution.getShadow()};
 }
 
-Selection LinearStrategy::selection(const EvolutionContext& ctx) {
-  return createSelection(const_cast<EvolutionContext&>(ctx));
-}
+Selection LinearStrategy::selection(EvolutionContext& ctx) { return createSelection(ctx); }
 
 bool LinearStrategy::next(EvolutionContext& ctx) {
   std::cout << "generation: " << ctx.generation << " best cost:" << ctx.costs.front().second

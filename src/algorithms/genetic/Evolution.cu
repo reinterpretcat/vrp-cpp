@@ -30,6 +30,17 @@ struct init_individuum final {
   EXEC_UNIT Individuum operator()(int index) { return {index, __FLT_MAX__}; }
 };
 
+/// Creates evolution context.
+template<typename Strategy>
+struct create_context final {
+  EvolutionContext operator()(const Problem& problem, Strategy& strategy) {
+    auto tasks = strategy.population(problem);
+    auto population = static_cast<size_t>(tasks.population());
+    return EvolutionContext{0, Solution{static_cast<Problem>(problem), std::move(tasks)},
+                            vector<Individuum>(population), thrust::minstd_rand()};
+  }
+};
+
 /// Estimates individuum cost.
 struct estimate_individuum final {
   calculate_total_cost costs;
@@ -53,7 +64,7 @@ inline void logCosts(const EvolutionContext& ctx) {
 /// Sorts individuums by their cost.
 struct sort_individuums final {
   void operator()(EvolutionContext& ctx) {
-    auto costs = calculate_total_cost{ctx.solution};
+    auto costs = calculate_total_cost{ctx.solution.getShadow()};
     thrust::for_each(exec_unit, ctx.costs.begin(), ctx.costs.end(), estimate_individuum{costs});
     thrust::sort(exec_unit, ctx.costs.begin(), ctx.costs.end(), compare_individuums{});
     logCosts(ctx);
@@ -61,10 +72,10 @@ struct sort_individuums final {
 };
 
 struct init_individuums final {
-  void operator()(Tasks& tasks, EvolutionContext& ctx) {
+  void operator()(EvolutionContext& ctx) {
     thrust::transform(exec_unit, thrust::make_counting_iterator(0),
-                      thrust::make_counting_iterator(tasks.population()), ctx.costs.begin(),
-                      init_individuum{});
+                      thrust::make_counting_iterator(ctx.solution.tasks.population()),
+                      ctx.costs.begin(), init_individuum{});
     sort_individuums{}(ctx);
   }
 };
@@ -88,12 +99,10 @@ namespace genetic {
 
 template<typename Strategy>
 void run_evolution<Strategy>::operator()(const Problem& problem) {
-  auto solution = Solution{static_cast<Problem>(problem), strategy.population(problem)};
-  auto ctx = EvolutionContext{0, solution.getShadow(),
-                              vector<Individuum>(static_cast<size_t>(solution.tasks.population())),
-                              thrust::minstd_rand()};
+  // TODO pass problem with &&
+  auto ctx = create_context<Strategy>{}(problem, strategy);
 
-  init_individuums{}(solution.tasks, ctx);
+  init_individuums{}(ctx);
 
   while (strategy.next(ctx)) {
     // get genetic operators
@@ -104,7 +113,7 @@ void run_evolution<Strategy>::operator()(const Problem& problem) {
     // run selection and apply operators
     select_individuums<decltype(crossover), decltype(mutator)>{crossover, mutator}(ctx, selection);
 
-    validateSolution(ctx, solution);
+    validateSolution(ctx, ctx.solution);
 
     sort_individuums{}(ctx);
   }

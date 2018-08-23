@@ -7,11 +7,14 @@
 
 using namespace vrp::algorithms::genetic;
 using namespace vrp::runtime;
+using namespace vrp::models;
 
 SCENARIO("Can use linear strategy's selection and next", "[genetic][strategy]") {
   auto strategy = LinearStrategy{{16}};
-  auto ctx = EvolutionContext{
-    0, {}, vector<thrust::pair<int, float>>(static_cast<size_t>(16)), thrust::minstd_rand()};
+  auto ctx = EvolutionContext{0,
+                              {Problem(), Tasks()},
+                              vector<thrust::pair<int, float>>(static_cast<size_t>(16)),
+                              thrust::minstd_rand()};
 
   std::for_each(thrust::make_counting_iterator(0), thrust::make_counting_iterator(5), [&](int i) {
     strategy.selection(ctx);

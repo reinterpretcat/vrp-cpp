@@ -27,13 +27,13 @@ public:
   vrp::models::Tasks population(const vrp::models::Problem& problem);
 
   /// Creates crossover.
-  Crossover crossover(const EvolutionContext& ctx);
+  Crossover crossover(EvolutionContext& ctx);
 
   /// Creates mutator.
-  Mutator mutator(const EvolutionContext& ctx);
+  Mutator mutator(EvolutionContext& ctx);
 
   /// Creates selection settings.
-  Selection selection(const EvolutionContext& ctx);
+  Selection selection(EvolutionContext& ctx);
 
   /// Loops to next generation.
   bool next(EvolutionContext& ctx);
