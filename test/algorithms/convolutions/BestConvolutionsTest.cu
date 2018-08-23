@@ -29,10 +29,8 @@ struct run_best_convolutions final {
   EXEC_UNIT size_t operator()(size_t left, size_t right) const { return right; }
 };
 
-Solution createBasicSolution() {
-  int customers = 25 + 1;
+Problem createBasicProblem() {
   auto problem = Problem();
-  auto tasks = Tasks(customers);
   problem.customers.demands = create({0,  10, 30, 10, 10, 10, 20, 20, 20, 10, 10, 10, 20,
                                       30, 10, 40, 40, 20, 20, 10, 10, 20, 20, 10, 10, 40});
   problem.customers.services = create({0,  90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90,
@@ -40,6 +38,14 @@ Solution createBasicSolution() {
   problem.customers.starts =
     create({0,  912, 825, 65,  727, 15,  621, 170, 255, 534, 357, 448, 652,
             30, 567, 384, 475, 99,  179, 278, 10,  914, 812, 732, 65,  169});
+  return std::move(problem);
+}
+
+Solution createBasicSolution() {
+  int customers = 25 + 1;
+  auto problem = createBasicProblem();
+  auto tasks = Tasks(customers);
+
   tasks.ids = create(
     {0, 1, 20, 21, 22, 23, 2, 24, 25, 10, 11, 9, 6, 4, 5, 3, 7, 8, 12, 13, 17, 18, 19, 15, 16, 14});
   tasks.vehicles =
