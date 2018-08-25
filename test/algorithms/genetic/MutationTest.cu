@@ -89,7 +89,6 @@ SCENARIO("Can mutate specific individuum.", "[genetic][mutation][c101][specific]
 
   thrust::for_each(exec_unit, thrust::make_counting_iterator(0), thrust::make_counting_iterator(1),
                    run_mutation{solution.getShadow(), mutation});
-
-  MatrixTextWriter::write(std::cout, solution);
+  
   REQUIRE(SolutionChecker::check(solution).isValid());
 }
