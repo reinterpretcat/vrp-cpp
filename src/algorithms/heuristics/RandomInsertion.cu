@@ -350,23 +350,23 @@ private:
     int end = search.base + search.last + shift - 1;
     auto tasks = search.context.tasks;
 
-    for (int i = 0; i < shift; ++i) {
-      // shift everything to the right
-      shiftRight(tasks.ids + begin, tasks.ids + end);
-      shiftRight(tasks.costs + begin, tasks.costs + end);
-      shiftRight(tasks.vehicles + begin, tasks.vehicles + end);
-      shiftRight(tasks.capacities + begin, tasks.capacities + end);
-      shiftRight(tasks.times + begin, tasks.times + end);
-    }
+    // shift everything to the right
+    shiftRight(tasks.ids + begin, tasks.ids + end, shift);
+    shiftRight(tasks.costs + begin, tasks.costs + end, shift);
+    shiftRight(tasks.vehicles + begin, tasks.vehicles + end, shift);
+    shiftRight(tasks.capacities + begin, tasks.capacities + end, shift);
+    shiftRight(tasks.times + begin, tasks.times + end, shift);
 
     return shift;
   }
 
   /// Shifts to the right all data.
   template<typename T>
-  EXEC_UNIT void shiftRight(T begin, T end) {
-    for (auto iter = end - 1; iter >= begin; --iter) {
-      *(iter + 1) = *iter;
+  EXEC_UNIT void shiftRight(T begin, T end, int shift) {
+    for (int i = 0; i < shift; ++i) {
+      for (auto iter = end - 1; iter >= begin; --iter) {
+        *(iter + 1) = *iter;
+      }
     }
   }
 
