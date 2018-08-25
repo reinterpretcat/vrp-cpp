@@ -118,12 +118,12 @@ struct state_processor final {
 
     auto index = base + point;
 
-    int capacity = index == 0 ? static_cast<int>(context.problem.resources.capacities[vehicle])
+    int capacity = point == 0 ? static_cast<int>(context.problem.resources.capacities[vehicle])
                               : context.tasks.capacities[index];
 
-    int time = index == 0 ? 0 : context.tasks.times[index];
+    int time = point == 0 ? 0 : context.tasks.times[index];
 
-    cost = index == 0 ? 0 : context.tasks.costs[index];
+    cost = point == 0 ? 0 : context.tasks.costs[index];
 
     state.customer = context.tasks.ids[index];
     state.capacity = capacity;
