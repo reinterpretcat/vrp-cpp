@@ -141,7 +141,6 @@ struct create_convolutions final {
       auto start = base + seq;
       auto end = start + length - 1;
       auto firstCustomerService = problem.customers.services[tasks.ids[start]];
-      auto tw = tasks.times[start] - firstCustomerService;
 
       auto demand = thrust::transform_reduce(exec_unit_policy{}, tasks.ids + start,
                                              tasks.ids + end + 1, *this, 0, thrust::plus<int>());
@@ -150,8 +149,9 @@ struct create_convolutions final {
                          tasks.times[end] - tasks.times[start] + firstCustomerService,
                          // get fist and last customer
                          thrust::make_pair<int, int>(tasks.ids[start], tasks.ids[end]),
-                         // get TW which is limited by first customer ETA
-                         thrust::make_pair<int, int>(tw, tw),
+                         // get TW which is [first customer TW start, first customer ETA]
+                         thrust::make_pair<int, int>(problem.customers.starts[tasks.ids[start]],
+                                                     tasks.times[start] - firstCustomerService),
                          // calculate task range (all inclusive)
                          thrust::make_pair<int, int>(start - base, end - base)};
     };

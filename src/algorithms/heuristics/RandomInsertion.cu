@@ -144,10 +144,16 @@ struct state_processor final {
   EXEC_UNIT int perform(Customer customer, int task, int base, int vehicle) {
     auto details = Transition::Details{search.base, task, task + 1, customer, vehicle};
     Transition transition = transitionOp.create(details, state);
-    // TODO Performance: merge analyze and perform steps (or simply use restore?)
-    transitionOp.analyze(transition, state);
     auto cost = transitionOp.estimate(transition);
-    return transitionOp.perform(transition, cost);
+    auto current = transitionOp.perform(transition, cost);
+
+    // NOTE analyze cannot be used here due to TW
+    auto index = search.base + current;
+    state.capacity = search.context.tasks.capacities[index];
+    state.customer = search.context.tasks.ids[index];
+    state.time = search.context.tasks.times[index];
+
+    return current;
   }
 
   EXEC_UNIT Customer customer(int task) {
