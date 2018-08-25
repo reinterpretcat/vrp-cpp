@@ -65,6 +65,7 @@ struct create_cost_differences final {
 /// is lower than median value.
 struct create_partial_plan final {
   float medianRatio;
+  int begin;
   size_t size;
 
   EXEC_UNIT void operator()(const vector_ptr<int> vehicles,
@@ -76,7 +77,7 @@ struct create_partial_plan final {
 
     // sort and get median
     thrust::sort(exec_unit_policy{}, medians, medians + size);
-    float median = medians[static_cast<int>((size - vehicles[size - 1]) * medianRatio)];
+    float median = medians[static_cast<int>((size - vehicles[begin + size - 1]) * medianRatio)];
 
     // create plan using median
     thrust::transform(exec_unit_policy{}, differences, differences + size, plan, _1 <= median);
@@ -186,8 +187,8 @@ EXEC_UNIT Convolutions create_best_convolutions::operator()(const Settings& sett
 
   auto medians = make_unique_ptr_data<float>(size);
   auto plan = make_unique_ptr_data<bool>(size);
-  create_partial_plan{settings.MedianRatio, size}.operator()(solution.tasks.vehicles, *differences,
-                                                             *medians, *plan);
+  create_partial_plan{settings.MedianRatio, begin, size}.operator()(solution.tasks.vehicles,
+                                                                    *differences, *medians, *plan);
 
   auto output = make_unique_ptr_data<thrust::tuple<bool, int>>(size);
   auto lengths = make_unique_ptr_data<int>(size);

@@ -176,8 +176,13 @@ struct apply_crossover final {
   vector_ptr<thrust::pair<int, float>> index;
 
   EXEC_UNIT void operator()(CrossPlan plan) {
-    thrust::pair<int, int> parents = {index[plan.parents.first].first,
-                                      index[plan.parents.second].first};
+    auto parent1 = index[plan.parents.first];
+    auto parent2 = index[plan.parents.second];
+
+    /// NOTE quick test for similarity
+    if (parent1.second == parent2.second) return;
+
+    thrust::pair<int, int> parents = {parent1.first, parent2.first};
     thrust::pair<int, int> children = {index[plan.children.first].first,
                                        index[plan.children.second].first};
     crossover(Generation{parents, children, settings});

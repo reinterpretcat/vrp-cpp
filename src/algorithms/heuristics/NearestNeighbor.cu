@@ -144,7 +144,7 @@ void nearest_neighbor<TransitionOp>::operator()(const Context& context, int inde
       to = from + 1;
     } else {
       // NOTE cannot find any further customer to serve within vehicle
-      if (from == 0 || vehicle == context.problem.resources.vehicles - 1) break;
+      assert(from != 0 && vehicle != context.problem.resources.vehicles - 1);
 
       from = 0;
       spawnNewVehicle(context.problem, context.tasks, from, ++vehicle);

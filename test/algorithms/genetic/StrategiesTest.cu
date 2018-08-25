@@ -19,8 +19,7 @@ SCENARIO("Can use linear strategy's selection and next", "[genetic][strategy]") 
   auto stream = create_sequential_problem_stream{}();
   auto solution = createPopulation<nearest_neighbor<TransitionOperator>>(stream, 2);
   auto strategy = LinearStrategy{{16}};
-  auto ctx = EvolutionContext{0,
-                              std::move(solution),
+  auto ctx = EvolutionContext{0, std::move(solution),
                               vector<thrust::pair<int, float>>(static_cast<size_t>(16)),
                               thrust::minstd_rand()};
 
