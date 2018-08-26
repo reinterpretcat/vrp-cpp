@@ -25,6 +25,7 @@ set(HEADER_FILES
         algorithms/genetic/Selection.hpp
         algorithms/genetic/Strategies.hpp
 
+        algorithms/heuristics/CheapestInsertion.hpp
         algorithms/heuristics/Dummy.hpp
         algorithms/heuristics/Models.hpp
         algorithms/heuristics/NearestNeighbor.hpp
@@ -79,6 +80,7 @@ set(SOURCE_FILES
         algorithms/genetic/Selection.cu
         algorithms/genetic/Strategies.cu
 
+        algorithms/heuristics/CheapestInsertion.cu
         algorithms/heuristics/Dummy.cu
         algorithms/heuristics/NearestNeighbor.cu
         algorithms/heuristics/RandomInsertion.cu
