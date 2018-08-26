@@ -12,14 +12,14 @@ struct vector_allocator : thrust::device_malloc_allocator<T> {
   typedef typename super_t::size_type size_type;
 
   __host__ pointer allocate(size_type n) {
-    //printf("vector_allocator::allocate() on device\n");
+    // printf("vector_allocator::allocate() on device\n");
 
     return super_t::allocate(n);
   }
 
   // customize deallocate
   __host__ void deallocate(pointer p, size_type n) {
-    //printf("vector_allocator::deallocate() on device\n");
+    // printf("vector_allocator::deallocate() on device\n");
 
     super_t::deallocate(p, n);
   }

@@ -19,7 +19,7 @@ template<typename T>
 thrust::pair<thrust::pointer<T, exec_unit_policy>, std::ptrdiff_t> get_temporary_buffer(
   exec_unit_policy,
   std::ptrdiff_t n) {
-  //printf("get_temporary_buffer(exec_unit_policy): calling device_malloc\n");
+  // printf("get_temporary_buffer(exec_unit_policy): calling device_malloc\n");
 
   // ask device_malloc for storage
   thrust::pointer<T, exec_unit_policy> result(thrust::device_malloc<T>(n).get());
@@ -31,7 +31,7 @@ thrust::pair<thrust::pointer<T, exec_unit_policy>, std::ptrdiff_t> get_temporary
 /// Returns back temporary buffer.
 template<typename Pointer>
 void return_temporary_buffer(exec_unit_policy, Pointer p) {
-  //printf("return_temporary_buffer(exec_unit_policy): calling device_free\n");
+  // printf("return_temporary_buffer(exec_unit_policy): calling device_free\n");
 
   thrust::device_free(thrust::device_pointer_cast(p.get()));
 }
@@ -39,7 +39,7 @@ void return_temporary_buffer(exec_unit_policy, Pointer p) {
 /// Allocates buffer dynamically in device memory.
 template<typename T>
 EXEC_UNIT T* allocate_data(size_t size) {
-  //printf("allocate on device\n");
+  // printf("allocate on device\n");
   return thrust::malloc<T>(thrust::device, size).get();
 }
 
@@ -54,7 +54,7 @@ EXEC_UNIT T* allocate_value(const T& value) {
 /// Deallocates dynamically allocated buffer.
 template<typename T>
 EXEC_UNIT void deallocate(T* ptr) {
-  //printf("deallocate on device\n");
+  // printf("deallocate on device\n");
   thrust::free(thrust::device, ptr);
 }
 
