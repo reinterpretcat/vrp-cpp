@@ -61,6 +61,13 @@ inline bool isDepot(const Customer& customer) {
   return customer.is<int>() && customer.get<int>() == 0;
 }
 
+/// Creates state for current task
+EXEC_UNIT Transition::State createState(const SearchContext& search, int task) {
+  auto index = search.base + task;
+  return {search.context.tasks.ids[index], search.context.tasks.capacities[index],
+          search.context.tasks.times[index]};
+}
+
 template<typename TransitionOp>
 struct state_processor final {
   const SearchContext search;
@@ -105,10 +112,7 @@ struct state_processor final {
     auto current = transitionOp.perform(transition, cost);
 
     // NOTE analyze cannot be used here due to TW
-    auto index = search.base + current;
-    state.capacity = search.context.tasks.capacities[index];
-    state.customer = search.context.tasks.ids[index];
-    state.time = search.context.tasks.times[index];
+    state = createState(search, current);
 
     return current;
   }
@@ -307,7 +311,7 @@ private:
 
   /// Shifts data to right in order to allow insert new customer(-s).
   EXEC_UNIT int shiftData(const SearchContext& search, const InsertionResult& result) {
-    int shift = getShiftCount(search.customer);
+    int shift = getShiftCount(search, result);
 
     int begin = search.base + result.point;
     int end = search.base + search.last + shift - 1;
@@ -334,13 +338,19 @@ private:
   }
 
   /// Calculates how much data should be shifted to the right.
-  EXEC_UNIT int getShiftCount(const Customer& customer) const {
-    if (customer.is<int>()) return 1;
+  EXEC_UNIT int getShiftCount(const SearchContext& search, const InsertionResult& result) const {
+    if (search.customer.is<int>()) return 1;
 
-    auto convolution = customer.get<Convolution>();
-    // NOTE assumption that all customers from convolution can be inserted!
-    // TODO use analyze to remove assumption (more expensive)
-    return convolution.tasks.second - convolution.tasks.first + 1;
+    auto convolution = search.customer.get<Convolution>();
+    auto div = convolution.tasks.second - convolution.tasks.first + 1;
+    //   return div;
+    auto details = Transition::Details{search.base, result.point, result.point + 1,
+                                       result.data.customer, result.data.vehicle};
+    auto transition = transitionOp.create(details);
+    auto state = createState(search, details.from);
+    auto next = transitionOp.analyze(transition, state);
+
+    return next - details.from;
   }
 };
 

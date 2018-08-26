@@ -31,9 +31,10 @@ struct assign_convolution {
 
     int customer = solution.tasks.ids[convolution.base + task];
     Plan current = solution.tasks.plan[base + customer];
-    if (customer != 0)
+    if (customer != 0) {
       solution.tasks.plan[base + customer] =
         Plan::reserve(current.hasConvolution() && preferFirst ? current.convolution() : index);
+    }
   }
 };
 
@@ -118,6 +119,9 @@ struct improve_individuum final {
           index);
         break;
       }
+      default:
+        assert(false);
+        break;
     }
   }
 };
