@@ -70,8 +70,8 @@ SCENARIO("Can create best convolutions with 25 customers with two convolutions",
   auto result = thrust::transform_reduce(exec_unit, thrust::make_counting_iterator(0),
                                          thrust::make_counting_iterator(1), runner, 0, runner);
   REQUIRE(result == size);
-  compare(output[0], {0, 50, 367, {11, 4}, {450, 450}, {10, 13}});
-  compare(output[1], {0, 140, 560, {17, 14}, {124, 124}, {20, 25}});
+  compare(output[0], {0, 50, 367, {11, 4}, {448, 450}, {10, 13}});
+  compare(output[1], {0, 140, 560, {17, 14}, {99, 124}, {20, 25}});
 }
 
 SCENARIO("Can create best convolutions with 25 customers with three convolutions",
@@ -85,6 +85,6 @@ SCENARIO("Can create best convolutions with 25 customers with three convolutions
                                          thrust::make_counting_iterator(1), runner, 0, runner);
   REQUIRE(result == 3);
   compare(output[0], {0, 100, 648, {25, 4}, {169, 169}, {8, 13}});
-  compare(output[1], {0, 70, 636, {3, 12}, {106, 106}, {15, 18}});
-  compare(output[2], {0, 140, 560, {17, 14}, {124, 124}, {20, 25}});
+  compare(output[1], {0, 70, 636, {3, 12}, {65, 106}, {15, 18}});
+  compare(output[2], {0, 140, 560, {17, 14}, {99, 124}, {20, 25}});
 }
