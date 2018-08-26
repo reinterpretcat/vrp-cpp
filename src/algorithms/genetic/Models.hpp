@@ -56,6 +56,13 @@ struct EvolutionContext {
   vrp::runtime::vector<thrust::pair<int, float>> costs;
   /// Random number generator.
   thrust::minstd_rand rng;
+
+  // Disable copying
+  EvolutionContext(const EvolutionContext&) = delete;
+  EvolutionContext& operator=(const EvolutionContext&) = delete;
+
+  // Allow move
+  EvolutionContext(EvolutionContext&&) = default;
 };
 
 }  // namespace genetic

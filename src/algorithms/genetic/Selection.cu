@@ -10,6 +10,7 @@
 #include <iostream>
 #include <thrust/random/normal_distribution.h>
 #include <unordered_set>
+#include <vector>
 
 using namespace vrp::algorithms::genetic;
 using namespace vrp::algorithms::heuristics;
@@ -62,12 +63,20 @@ struct Allocation {
   int end;
 };
 
+/// Copies data on host to vector
+/// NOTE mostly needed because unordered set does not provide random access iterator.
+template<typename T>
+thrust::host_vector<T> copy(const std::unordered_set<T>& source) {
+  auto data = thrust::host_vector<T>(source.size());
+  std::copy(source.begin(), source.end(), data.begin());
+  return std::move(data);
+}
+
 /// Defines selection data.
 struct SelectionData final {
   SelectionData(const EvolutionContext& ctx, const Selection& selection) :
     alloc{0, selection.elite - 1, static_cast<int>(ctx.costs.size() - 1)},
-    costs(const_cast<EvolutionContext&>(ctx).costs.data()), candidates(),
-    cross(), mutants() {}
+    costs(const_cast<EvolutionContext&>(ctx).costs.data()), candidates(), cross(), mutants() {}
 
   Allocation alloc;
   vector_ptr<Individuum> costs;
@@ -181,7 +190,7 @@ struct apply_crossover final {
     Individuum parent1 = index[plan.parents.first];
     Individuum parent2 = index[plan.parents.second];
 
-    /// NOTE quick test for similarity
+    /// NOTE quick test for similarity to avoid crossover call
     if (parent1.second == parent2.second) return;
 
     Individuum child1 = index[plan.children.first];
@@ -247,10 +256,12 @@ void select_individuums<Crossover, Mutator>::operator()(const EvolutionContext& 
 
   logSelection(selection, data);
 
-//  thrust::for_each(exec_unit, data.cross.begin(), data.cross.end(),
-//                   apply_crossover<Crossover>{crossover, selection.crossovers.second, data.costs});
-//  thrust::for_each(exec_unit, data.mutants.begin(), data.mutants.end(),
-//                   apply_mutator<Mutator>{mutator, selection.mutations.second, data.costs});
+  auto crossPlan = copy(data.cross);
+  thrust::for_each(exec_unit, crossPlan.begin(), crossPlan.end(),
+                   apply_crossover<Crossover>{crossover, selection.crossovers.second, data.costs});
+  auto mutantPlan = copy(data.mutants);
+  thrust::for_each(exec_unit, mutantPlan.begin(), mutantPlan.end(),
+                   apply_mutator<Mutator>{mutator, selection.mutations.second, data.costs});
 }
 
 /// NOTE Make linker happy

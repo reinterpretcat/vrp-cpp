@@ -17,7 +17,7 @@ namespace vrp {
 namespace algorithms {
 namespace heuristics {
 
-find_random_customer::find_random_customer(const Context& context, int base) :
+EXEC_UNIT find_random_customer::find_random_customer(const Context& context, int base) :
   context(context), base(base), maxCustomer(context.tasks.customers - 1), dist(1, maxCustomer),
   rng() {}
 
