@@ -16,7 +16,8 @@ namespace genetic {
 class LinearStrategy {
 public:
   typedef adjusted_cost_difference<
-    vrp::algorithms::heuristics::nearest_neighbor<vrp::algorithms::heuristics::TransitionOperator>>
+    vrp::algorithms::heuristics::nearest_neighbor<vrp::algorithms::heuristics::TransitionOperator>,
+    vrp::algorithms::heuristics::random_insertion<vrp::algorithms::heuristics::TransitionOperator>>
     Crossover;
 
   typedef create_mutant<vrp::algorithms::heuristics::TransitionOperator> Mutator;

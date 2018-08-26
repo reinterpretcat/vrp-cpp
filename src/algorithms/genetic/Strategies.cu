@@ -102,7 +102,8 @@ Tasks LinearStrategy::population(const Problem& problem) {
 }
 
 LinearStrategy::Crossover LinearStrategy::crossover(EvolutionContext& ctx) {
-  return adjusted_cost_difference<nearest_neighbor<TransitionOperator>>{ctx.solution.getShadow()};
+  return adjusted_cost_difference<nearest_neighbor<TransitionOperator>,
+                                  random_insertion<TransitionOperator>>{ctx.solution.getShadow()};
 }
 
 LinearStrategy::Mutator LinearStrategy::mutator(EvolutionContext& ctx) {

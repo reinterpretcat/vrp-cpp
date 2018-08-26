@@ -1,5 +1,6 @@
 #include "algorithms/genetic/Crossovers.hpp"
 #include "algorithms/heuristics/NearestNeighbor.hpp"
+#include "algorithms/heuristics/RandomInsertion.hpp"
 #include "test_utils/PopulationFactory.hpp"
 #include "test_utils/ProblemStreams.hpp"
 #include "test_utils/VectorUtils.hpp"
@@ -25,7 +26,8 @@ struct run_crossover final {
   Solution::Shadow solution;
   const Generation generation;
   EXEC_UNIT void operator()(int index) {
-    adjusted_cost_difference<nearest_neighbor<TransitionOperator>>{solution}(generation);
+    adjusted_cost_difference<nearest_neighbor<TransitionOperator>,
+                             random_insertion<TransitionOperator>>{solution}(generation);
   }
 };
 

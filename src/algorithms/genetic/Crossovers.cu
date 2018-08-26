@@ -10,7 +10,6 @@
 #include <thrust/iterator/constant_iterator.h>
 #include <thrust/iterator/counting_iterator.h>
 #include <thrust/iterator/zip_iterator.h>
-
 #include <tuple>
 
 using namespace vrp::algorithms::convolutions;
@@ -104,10 +103,22 @@ struct improve_individuum final {
   thrust::pair<int, int> offspring;
 
   EXEC_UNIT void operator()(int order) {
-    using Heuristic = typename std::tuple_element<0, std::tuple<Heuristics...> >::type;
+    assert(order == 0 || order == 1);
     int index = order == 0 ? offspring.first : offspring.second;
-    create_individuum<Heuristic>{solution.problem, solution.tasks, convolutions, 0}.operator()(
-      index);
+    switch (order) {
+      case 0: {
+        using First = typename std::tuple_element<0, std::tuple<Heuristics...>>::type;
+        create_individuum<First>{solution.problem, solution.tasks, convolutions, 0}.operator()(
+          index);
+        break;
+      }
+      case 1: {
+        using Second = typename std::tuple_element<1, std::tuple<Heuristics...>>::type;
+        create_individuum<Second>{solution.problem, solution.tasks, convolutions, 0}.operator()(
+          index);
+        break;
+      }
+    }
   }
 };
 
@@ -132,7 +143,8 @@ namespace algorithms {
 namespace genetic {
 
 template<typename... Heuristics>
-EXEC_UNIT void adjusted_cost_difference<Heuristics...>::operator()(const Generation& generation) const {
+EXEC_UNIT void adjusted_cost_difference<Heuristics...>::operator()(
+  const Generation& generation) const {
   // find convolutions
   auto left =
     create_best_convolutions{solution}.operator()(generation.settings, generation.parents.first);
@@ -154,10 +166,10 @@ EXEC_UNIT void adjusted_cost_difference<Heuristics...>::operator()(const Generat
 
 // NOTE explicit specialization to make linker happy.
 using TransitionOperator = vrp::algorithms::heuristics::TransitionOperator;
-template class adjusted_cost_difference<vrp::algorithms::heuristics::dummy<TransitionOperator>>;
+template class adjusted_cost_difference<vrp::algorithms::heuristics::dummy<TransitionOperator>,
+                                        vrp::algorithms::heuristics::dummy<TransitionOperator>>;
 template class adjusted_cost_difference<
-  vrp::algorithms::heuristics::nearest_neighbor<TransitionOperator>>;
-template class adjusted_cost_difference<
+  vrp::algorithms::heuristics::nearest_neighbor<TransitionOperator>,
   vrp::algorithms::heuristics::random_insertion<TransitionOperator>>;
 
 }  // namespace genetic
