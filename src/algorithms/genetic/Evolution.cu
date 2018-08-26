@@ -33,10 +33,10 @@ struct create_context final {
   EvolutionContext operator()(const Problem& problem, Strategy& strategy) {
     auto tasks = strategy.population(problem);
     auto population = static_cast<size_t>(tasks.population());
-    return std::move(EvolutionContext{0,
-                                      {static_cast<Problem>(problem), std::move(tasks)},
-                                      vector<Individuum>(population),
-                                      thrust::minstd_rand()});
+    return {0,
+            {static_cast<Problem>(problem), std::move(tasks)},
+            vector<Individuum>(population),
+            thrust::minstd_rand()};
   }
 };
 

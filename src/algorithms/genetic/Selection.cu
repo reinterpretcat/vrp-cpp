@@ -66,8 +66,8 @@ struct Allocation {
 /// Copies data on host to vector
 /// NOTE mostly needed because unordered set does not provide random access iterator.
 template<typename T>
-thrust::host_vector<T> copy(const std::unordered_set<T>& source) {
-  auto data = thrust::host_vector<T>(source.size());
+vector<T> copy(const std::unordered_set<T>& source) {
+  auto data = vector<T>(source.size());
   std::copy(source.begin(), source.end(), data.begin());
   return std::move(data);
 }
