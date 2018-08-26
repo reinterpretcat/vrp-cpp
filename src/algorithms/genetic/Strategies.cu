@@ -67,10 +67,11 @@ Selection createSelection(EvolutionContext& ctx) {
 
 inline void logContext(const EvolutionContext& ctx) {
   // general
-  std::cout << "generation: " << ctx.generation << " best cost:" << ctx.costs.front().second
+  std::cout << "generation: " << ctx.generation
+            << " best cost:" << static_cast<thrust::pair<int,float>>(ctx.costs.front()).second
             << std::endl;
   // all costs
-  std::for_each(ctx.costs.begin(), ctx.costs.end(), [](const thrust::pair<int, float>& individuum) {
+  std::for_each(ctx.costs.begin(), ctx.costs.end(), [](thrust::pair<int, float> individuum) {
     std::cout << "(" << individuum.first << ", " << individuum.second << ") ";
   });
   std::cout << std::endl << std::endl;

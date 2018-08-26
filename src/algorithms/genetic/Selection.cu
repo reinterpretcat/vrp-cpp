@@ -26,6 +26,8 @@ struct CrossPlan final {
 
 /// Mutant selection plan.
 using MutantPlan = thrust::pair<int, int>;
+/// Individuum index with its cost.
+using Individuum = thrust::pair<int, float>;
 
 }  // namespace
 
@@ -64,11 +66,11 @@ struct Allocation {
 struct SelectionData final {
   SelectionData(const EvolutionContext& ctx, const Selection& selection) :
     alloc{0, selection.elite - 1, static_cast<int>(ctx.costs.size() - 1)},
-    costs{const_cast<vector_ptr<thrust::pair<int, float>>>(ctx.costs.data())}, candidates(),
+    costs(const_cast<EvolutionContext&>(ctx).costs.data()), candidates(),
     cross(), mutants() {}
 
   Allocation alloc;
-  const vector_ptr<thrust::pair<int, float>> costs;
+  vector_ptr<Individuum> costs;
   std::unordered_set<int> candidates;
   std::unordered_set<CrossPlan> cross;
   std::unordered_set<MutantPlan> mutants;
@@ -176,15 +178,17 @@ struct apply_crossover final {
   vector_ptr<thrust::pair<int, float>> index;
 
   EXEC_UNIT void operator()(CrossPlan plan) {
-    auto parent1 = index[plan.parents.first];
-    auto parent2 = index[plan.parents.second];
+    Individuum parent1 = index[plan.parents.first];
+    Individuum parent2 = index[plan.parents.second];
 
     /// NOTE quick test for similarity
     if (parent1.second == parent2.second) return;
 
+    Individuum child1 = index[plan.children.first];
+    Individuum child2 = index[plan.children.second];
+
     thrust::pair<int, int> parents = {parent1.first, parent2.first};
-    thrust::pair<int, int> children = {index[plan.children.first].first,
-                                       index[plan.children.second].first};
+    thrust::pair<int, int> children = {child1.first, child2.first};
     crossover(Generation{parents, children, settings});
   }
 };
@@ -197,7 +201,9 @@ struct apply_mutator final {
   vector_ptr<thrust::pair<int, float>> index;
 
   EXEC_UNIT void operator()(MutantPlan plan) {
-    mutator(Mutation{index[plan.first].first, index[plan.second].first, settings});
+    Individuum source = index[plan.first];
+    Individuum destination = index[plan.second];
+    mutator(Mutation{source.first, destination.first, settings});
   }
 };
 
@@ -210,15 +216,16 @@ inline void logSelection(const Selection& selection, const SelectionData& data) 
 
   std::cout << "cross:\n";
   std::for_each(data.cross.begin(), data.cross.end(), [&](const CrossPlan& plan) {
-    std::cout << data.costs[plan.parents.first].first << " "
-              << data.costs[plan.parents.second].first << " "
-              << data.costs[plan.children.first].first << " "
-              << data.costs[plan.children.second].first << std::endl;
+    std::cout << static_cast<Individuum>(data.costs[plan.parents.first]).first << " "
+              << static_cast<Individuum>(data.costs[plan.parents.second]).first << " "
+              << static_cast<Individuum>(data.costs[plan.children.first]).first << " "
+              << static_cast<Individuum>(data.costs[plan.children.second]).first << std::endl;
   });
 
   std::cout << "mutants:\n";
   std::for_each(data.mutants.begin(), data.mutants.end(), [&](const MutantPlan& plan) {
-    std::cout << data.costs[plan.first].first << " " << data.costs[plan.second].first << std::endl;
+    std::cout << static_cast<Individuum>(data.costs[plan.first]).first << " "
+              << static_cast<Individuum>(data.costs[plan.second]).first << std::endl;
   });
 
   std::cout << std::endl;
@@ -240,10 +247,10 @@ void select_individuums<Crossover, Mutator>::operator()(const EvolutionContext& 
 
   logSelection(selection, data);
 
-  thrust::for_each(exec_unit, data.cross.begin(), data.cross.end(),
-                   apply_crossover<Crossover>{crossover, selection.crossovers.second, data.costs});
-  thrust::for_each(exec_unit, data.mutants.begin(), data.mutants.end(),
-                   apply_mutator<Mutator>{mutator, selection.mutations.second, data.costs});
+//  thrust::for_each(exec_unit, data.cross.begin(), data.cross.end(),
+//                   apply_crossover<Crossover>{crossover, selection.crossovers.second, data.costs});
+//  thrust::for_each(exec_unit, data.mutants.begin(), data.mutants.end(),
+//                   apply_mutator<Mutator>{mutator, selection.mutations.second, data.costs});
 }
 
 /// NOTE Make linker happy
