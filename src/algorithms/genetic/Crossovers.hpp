@@ -11,7 +11,7 @@ namespace algorithms {
 namespace genetic {
 
 /// Implements Adjusted Cost Difference Convolution crossover.
-template<typename Heuristic>
+template<typename... Heuristics>
 struct adjusted_cost_difference final {
   /// Solution shadow.
   vrp::models::Solution::Shadow solution;

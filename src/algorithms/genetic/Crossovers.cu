@@ -11,6 +11,8 @@
 #include <thrust/iterator/counting_iterator.h>
 #include <thrust/iterator/zip_iterator.h>
 
+#include <tuple>
+
 using namespace vrp::algorithms::convolutions;
 using namespace vrp::algorithms::genetic;
 using namespace vrp::models;
@@ -95,20 +97,21 @@ struct prepare_plans final {
   }
 };
 
-template<typename Heuristic>
+template<typename... Heuristics>
 struct improve_individuum final {
   Solution::Shadow solution;
   const vector_ptr<Convolution> convolutions;
   thrust::pair<int, int> offspring;
 
   EXEC_UNIT void operator()(int order) {
+    using Heuristic = typename std::tuple_element<0, std::tuple<Heuristics...> >::type;
     int index = order == 0 ? offspring.first : offspring.second;
     create_individuum<Heuristic>{solution.problem, solution.tasks, convolutions, 0}.operator()(
       index);
   }
 };
 
-template<typename Heuristic>
+template<typename... Heuristics>
 struct improve_individuums final {
   Solution::Shadow solution;
   const vector_ptr<Convolution> convolutions;
@@ -118,7 +121,7 @@ struct improve_individuums final {
     // TODO try thrust::seq
     thrust::for_each(exec_unit_policy{}, thrust::make_counting_iterator(0),
                      thrust::make_counting_iterator(2),
-                     improve_individuum<Heuristic>{solution, convolutions, offspring});
+                     improve_individuum<Heuristics...>{solution, convolutions, offspring});
   }
 };
 
@@ -128,8 +131,8 @@ namespace vrp {
 namespace algorithms {
 namespace genetic {
 
-template<typename Heuristic>
-EXEC_UNIT void adjusted_cost_difference<Heuristic>::operator()(const Generation& generation) const {
+template<typename... Heuristics>
+EXEC_UNIT void adjusted_cost_difference<Heuristics...>::operator()(const Generation& generation) const {
   // find convolutions
   auto left =
     create_best_convolutions{solution}.operator()(generation.settings, generation.parents.first);
@@ -146,7 +149,7 @@ EXEC_UNIT void adjusted_cost_difference<Heuristic>::operator()(const Generation&
 
   prepare_plans{solution, wrapper, generation.offspring}();
 
-  improve_individuums<Heuristic>{solution, *convolutions.data.get(), generation.offspring}();
+  improve_individuums<Heuristics...>{solution, *convolutions.data.get(), generation.offspring}();
 }
 
 // NOTE explicit specialization to make linker happy.
