@@ -4,6 +4,9 @@
 #include <thrust/execution_policy.h>
 #include <thrust/sequence.h>
 
+#include <thrust/random/linear_congruential_engine.h>
+#include <thrust/random/uniform_int_distribution.h>
+
 using namespace vrp::models;
 using namespace vrp::runtime;
 using namespace vrp::algorithms::convolutions;
@@ -15,6 +18,7 @@ template<typename Iterator>
 EXEC_UNIT void swap_values(Iterator a, Iterator b) {
   // TODO why I cannot simply use Iterator::value_type or auto?
   vector<int>::value_type tmp = *a;
+
   *a = *b;
   *b = tmp;
 }
@@ -52,6 +56,22 @@ EXEC_UNIT bool next_permutation(BidirectionalIterator first,
       reverse_values(first, last);
       return false;
     }
+  }
+}
+
+template <typename RandomIterator>
+EXEC_UNIT void random_shuffle(RandomIterator first, RandomIterator last) {
+  typename std::iterator_traits<RandomIterator>::difference_type i, n;
+  n = last - first;
+
+  // TODO pass generator outside
+  auto rand = thrust::minstd_rand();
+  auto dist = thrust::random::uniform_int_distribution<int>(0, static_cast<int>(n - 1));
+
+  for (i = n-1; i > 0; --i) {
+    RandomIterator a = first + i;
+    RandomIterator b = first + dist(rand) % (i+1);
+    swap_values(a, b);
   }
 }
 
@@ -103,6 +123,33 @@ struct rank_sliced_pairs final {
   }
 };
 
+/// Scans all possible permutations and finds the best.
+EXEC_UNIT void findBest(const vector_ptr<JointPair> pairs,
+                       const vector_ptr<int> keyBegin,
+                       const vector_ptr<int> keyEnd,
+                       const thrust::pair<size_t, size_t> dimens,
+                       vector_ptr<Convolution> convolutions) {
+  int maxRank = -1;
+  do {
+    auto rank = rank_sliced_pairs{dimens}(keyBegin, keyEnd, pairs, rank_pair{});
+    if (rank > maxRank) {
+      maxRank = rank;
+      rank_sliced_pairs{dimens}(keyBegin, keyEnd, pairs, copy_pair{convolutions, 0});
+    }
+  } while (next_permutation(keyBegin, keyEnd, thrust::less<int>()));
+}
+
+/// Shuffles keys in random order.
+EXEC_UNIT void iAmLucky(const vector_ptr<JointPair> pairs,
+                        const vector_ptr<int> keyBegin,
+                        const vector_ptr<int> keyEnd,
+                        const thrust::pair<size_t, size_t> dimens,
+                        vector_ptr<Convolution> convolutions) {
+
+  random_shuffle(keyBegin, keyEnd);
+  rank_sliced_pairs{dimens}(keyBegin, keyEnd, pairs, copy_pair{convolutions, 0});
+}
+
 /// Finds and sets the best pairs slice to convolution container.
 EXEC_UNIT void setBestSlice(const vector_ptr<JointPair> pairs,
                             const vector_ptr<int> keys,
@@ -112,14 +159,9 @@ EXEC_UNIT void setBestSlice(const vector_ptr<JointPair> pairs,
   auto keyBegin = keys;
   auto keyEnd = keys + size;
 
-  int maxRank = -1;
-  do {
-    auto rank = rank_sliced_pairs{dimens}(keyBegin, keyEnd, pairs, rank_pair{});
-    if (rank > maxRank) {
-      maxRank = rank;
-      rank_sliced_pairs{dimens}(keyBegin, keyEnd, pairs, copy_pair{convolutions, 0});
-    }
-  } while (next_permutation(keyBegin, keyEnd, thrust::less<int>()));
+  // NOTE we have size! permutations, so limit its usage
+  if (size > 7) iAmLucky(pairs, keyBegin, keyEnd, dimens, convolutions);
+  else findBest(pairs, keyBegin, keyEnd, dimens, convolutions);
 }
 
 }  // namespace
