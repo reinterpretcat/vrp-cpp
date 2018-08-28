@@ -22,9 +22,13 @@ using namespace thrust::placeholders;
 
 namespace {
 
+/// Contains information about route leg: vehicle, its cost, and
+/// is it good for convolution or not (plan).
+using CostRouteLeg = thrust::tuple<int, float, bool>;
+
 /// Creates cost differences (gradients) as cost change
 /// between two customers.
-struct create_cost_differences final {
+struct create_cost_legs final {
   /// Base index.
   size_t begin;
   /// Last index.
@@ -33,57 +37,54 @@ struct create_cost_differences final {
   /// Creates a gradient of costs between tasks.
   struct make_gradient final {
     template<typename Tuple>
-    EXEC_UNIT Tuple operator()(const Tuple& left, const Tuple& right) const {
-      // NOTE use big number for cost as barrier between vehicles
-      const float CostBarrier = 3.4E37;
-      return thrust::get<0>(left) == thrust::get<0>(right)
-               ? thrust::make_tuple(thrust::get<0>(left),
-                                    thrust::get<1>(left) - thrust::get<1>(right))
-               : thrust::make_tuple(thrust::get<0>(left), CostBarrier);
+    EXEC_UNIT CostRouteLeg operator()(const Tuple& left, const Tuple& right) const {
+      auto cost = thrust::get<0>(left) == thrust::get<0>(right)
+                    ? thrust::get<1>(left) - thrust::get<1>(right)
+                    : thrust::get<1>(left);
+      return {thrust::get<0>(left), cost, false};
     }
   };
 
-  /// Maps cost gradient info to cost.
-  struct map_gradient final {
-    template<typename Tuple>
-    EXEC_UNIT float operator()(const Tuple& tuple) const {
-      return thrust::get<1>(tuple);
-    }
-  };
-
-  EXEC_UNIT void operator()(const Tasks::Shadow& tasks, vector_ptr<float> differences) const {
+  EXEC_UNIT void operator()(const Tasks::Shadow& tasks, vector_ptr<CostRouteLeg> legs) const {
     thrust::adjacent_difference(
       exec_unit_policy{},
-      thrust::make_zip_iterator(thrust::make_tuple(tasks.vehicles + begin, tasks.costs + begin)),
-      thrust::make_zip_iterator(thrust::make_tuple(tasks.vehicles + end, tasks.costs + end)),
-      thrust::make_transform_output_iterator(differences, map_gradient()), make_gradient());
+      thrust::make_zip_iterator(thrust::make_tuple(tasks.vehicles + begin, tasks.costs + begin,
+                                                   thrust::make_constant_iterator(false))),
+      thrust::make_zip_iterator(thrust::make_tuple(tasks.vehicles + end, tasks.costs + end,
+                                                   thrust::make_constant_iterator(false))),
+      legs, make_gradient{});
   }
 };
 
-/// Creates partial plan taking into account median of
-/// cost differences: customer is served only if cost change
-/// is lower than median value.
-struct create_partial_plan final {
+/// Fills leg plan taking into account median of cost differences: customer is
+/// served only if cost change is lower than median value.
+struct fill_leg_plan final {
   float medianRatio;
   int begin;
   size_t size;
 
-  EXEC_UNIT void operator()(const vector_ptr<int> vehicles,
-                            vector_ptr<float> differences,
-                            vector_ptr<float> medians,
-                            vector_ptr<bool> plan) const {
+  EXEC_UNIT void operator()(const vector_ptr<CostRouteLeg> legs, vector_ptr<float> medians) const {
     // initialize medians
-    thrust::copy(exec_unit_policy{}, differences, differences + size, medians);
+    thrust::transform(exec_unit_policy{}, legs, legs + size, medians, extract_cost{});
 
     // sort and get median
     thrust::sort(exec_unit_policy{}, medians, medians + size);
-
-    auto count = vehicles[begin + size - 1];
-    float median = medians[static_cast<int>((size - count - 1) * medianRatio)];
+    float median = medians[static_cast<int>((size - 1) * medianRatio)];
 
     // create plan using median
-    thrust::transform(exec_unit_policy{}, differences, differences + size, plan, _1 <= median);
+    thrust::for_each(exec_unit_policy{}, legs, legs + size, prepare_plan{median});
   }
+
+  struct extract_cost final {
+    EXEC_UNIT float operator()(const CostRouteLeg& leg) { return thrust::get<1>(leg); }
+  };
+
+  struct prepare_plan final {
+    float median;
+    EXEC_UNIT void operator()(CostRouteLeg& leg) {
+      thrust::get<2>(leg) = thrust::get<1>(leg) <= median;
+    }
+  };
 };
 
 /// Estimates convolutions based on partial plan.
@@ -93,21 +94,35 @@ struct estimate_convolutions final {
   struct compare_plan final {
     template<typename Tuple>
     EXEC_UNIT bool operator()(const Tuple& left, const Tuple& right) const {
-      return thrust::get<0>(left) == thrust::get<0>(right);
+      // same vehicle, same plan
+      const auto& leftLeg = thrust::get<0>(left);
+      const auto& rightLeg = thrust::get<0>(right);
+      return thrust::get<0>(leftLeg) == thrust::get<0>(rightLeg) &&
+             thrust::get<2>(leftLeg) == thrust::get<2>(rightLeg);
     }
   };
 
-  EXEC_UNIT size_t operator()(const vector_ptr<bool> plan,
+  struct map_leg final {
+    template<typename Tuple>
+    EXEC_UNIT thrust::tuple<bool, int> operator()(const Tuple& tuple) {
+      return {thrust::get<2>(thrust::get<0>(tuple)), thrust::get<1>(tuple)};
+    }
+  };
+
+  EXEC_UNIT size_t operator()(const vector_ptr<CostRouteLeg> legs,
                               vector_ptr<thrust::tuple<bool, int>> output,
                               vector_ptr<int> lengths) const {
+    auto make_iterator = [&]() {
+      return thrust::make_transform_output_iterator(output, map_leg{});
+    };
     auto result = thrust::reduce_by_key(
       exec_unit_policy{},
-      thrust::make_zip_iterator(thrust::make_tuple(plan, thrust::make_counting_iterator(0))),
+      thrust::make_zip_iterator(thrust::make_tuple(legs, thrust::make_counting_iterator(0))),
       thrust::make_zip_iterator(
-        thrust::make_tuple(plan + size, thrust::make_counting_iterator(static_cast<int>(size)))),
-      thrust::constant_iterator<int>(1), output, lengths, compare_plan());
+        thrust::make_tuple(legs + size, thrust::make_counting_iterator(static_cast<int>(size)))),
+      thrust::constant_iterator<int>(1), make_iterator(), lengths, compare_plan{});
 
-    return static_cast<size_t>(result.first - output);
+    return static_cast<size_t>(thrust::distance(make_iterator(), result.first));
   }
 };
 
@@ -184,17 +199,15 @@ EXEC_UNIT Convolutions create_best_convolutions::operator()(const Settings& sett
   auto begin = index * size;
   auto end = begin + size;
 
-  auto differences = make_unique_ptr_data<float>(size);
-  create_cost_differences{begin, end}.operator()(solution.tasks, *differences);
+  auto legs = make_unique_ptr_data<CostRouteLeg>(size);
+  create_cost_legs{begin, end}.operator()(solution.tasks, *legs);
 
   auto medians = make_unique_ptr_data<float>(size);
-  auto plan = make_unique_ptr_data<bool>(size);
-  create_partial_plan{settings.MedianRatio, begin, size}.operator()(solution.tasks.vehicles,
-                                                                    *differences, *medians, *plan);
+  fill_leg_plan{settings.MedianRatio, begin, size}.operator()(*legs, *medians);
 
   auto output = make_unique_ptr_data<thrust::tuple<bool, int>>(size);
   auto lengths = make_unique_ptr_data<int>(size);
-  auto groups = estimate_convolutions{size}.operator()(*plan, *output, *lengths);
+  auto groups = estimate_convolutions{size}.operator()(*legs, *output, *lengths);
 
   auto convolutions = make_unique_ptr_data<Convolution>(size);
   auto resultSize =

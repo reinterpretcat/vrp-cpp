@@ -92,3 +92,40 @@ SCENARIO("Can mutate specific individuum.", "[genetic][mutation][c101][specific]
 
   REQUIRE(SolutionChecker::check(solution).isValid());
 }
+
+SCENARIO("Can escape local minimum.", "[genetic][mutation][c101][specific]") {
+  auto solution = createPopulation(
+    createProblem<create_c101_problem_stream>(),
+
+    {0, 20, 24, 25, 23, 22, 21, 5, 3, 7, 8, 11, 9, 6, 4, 2, 1, 10, 13, 17, 18, 19, 15, 16, 14, 12,
+     0, 0,  0,  0,  0,  0,  0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0,  0,  0,  0,  0,  0,  0,  0,  0},
+
+    {0,          10,         15,         17,         21.2426414, 24.2426414, 26.2426414, 15.1327457,
+     16.1327457, 18.1327457, 20.9611721, 24.1234493, 27.2857265, 29.5217953, 31.757864,  35.3634148,
+     37.3634148, 16.7630539, 30.8058434, 34.8058434, 37.8058434, 42.8058434, 47.8058434, 52.8058434,
+     54.8058434, 57.8058434, 0,          0,          0,          0,          0,          0,
+     0,          0,          0,          0,          0,          0,          0,          0,
+     0,          0,          0,          0,          0,          0,          0,          0,
+     0,          0,          0,          0},
+
+    {0,   100, 195, 287, 822, 915, 1007, 105, 196, 288, 380, 538, 631, 723, 817, 915, 1007, 447,
+     120, 214, 307, 402, 497, 592, 684,  777, 0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
+     0,   0,   0,   0,   0,   0,   0,    0,   0,   0,   0,   0,   0,   0,   0,   0},
+
+    {200, 190, 180, 140, 130, 110, 90, 190, 180, 160, 140, 130, 120, 100, 90, 60, 50, 190,
+     170, 150, 130, 120, 80,  40,  30, 10,  200, 0,   0,   0,   0,   0,   0,  0,  0,  0,
+     0,   0,   0,   0,   0,   0,   0,  0,   0,   0,   0,   0,   0,   0,   0,  0},
+
+    {0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 3, 3, 3, 3, 3, 3, 3,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+
+    {T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
+     T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F});
+  auto mutation = Mutation{0, 1, {1, 2}};
+
+  thrust::for_each(exec_unit, thrust::make_counting_iterator(0), thrust::make_counting_iterator(1),
+                   run_mutation{solution.getShadow(), mutation});
+
+  REQUIRE(SolutionChecker::check(solution).isValid());
+  REQUIRE(solution.tasks.vehicles.back() == 2);
+}
