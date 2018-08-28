@@ -77,7 +77,9 @@ struct create_partial_plan final {
 
     // sort and get median
     thrust::sort(exec_unit_policy{}, medians, medians + size);
-    float median = medians[static_cast<int>((size - vehicles[begin + size - 1]) * medianRatio)];
+
+    auto count = vehicles[begin + size - 1];
+    float median = medians[static_cast<int>((size - count - 1) * medianRatio)];
 
     // create plan using median
     thrust::transform(exec_unit_policy{}, differences, differences + size, plan, _1 <= median);
