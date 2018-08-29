@@ -114,6 +114,10 @@ include_directories(${MAIN_SOURCE}
         ${CMAKE_CURRENT_BINARY_DIR}
         )
 
+if (SOLVER_BACKEND STREQUAL OMP)
+    CompileOpenMP(LIBRARY_NAME)
+endif()
+
 if (CLANG_TIDY)
     add_custom_target(${LIBRARY_NAME}Tidy
         COMMAND ${CLANG_TIDY} -p ${CMAKE_CACHEFILE_DIR}/compile_commands.json

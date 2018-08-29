@@ -2,6 +2,7 @@ project(SolverTest LANGUAGES CXX CUDA)
 
 set(LIBRARY_NAME Solver)
 set(LIBRARY_TEST SolverTest)
+set(EXTRA_LINK_LIBS "")
 
 include_directories(${MAIN_SOURCE}
         ${EXTERNAL_SOURCE}
@@ -49,6 +50,10 @@ add_executable(${LIBRARY_TEST}
         utils/Validations.cu
         )
 
+if(SOLVER_BACKEND STREQUAL OMP)
+    LinkOpenMP(LIBRARY_TEST EXTRA_LINK_LIBS)
+endif()
+
 set_target_properties(${LIBRARY_TEST} PROPERTIES
         LINKER_LANGUAGE CXX
         CUDA_SEPARABLE_COMPILATION ON
@@ -56,6 +61,7 @@ set_target_properties(${LIBRARY_TEST} PROPERTIES
 
 target_link_libraries(${LIBRARY_TEST} PRIVATE
         ${LIBRARY_NAME}
+        ${EXTRA_LINK_LIBS}
         )
 
 # Define test assets path

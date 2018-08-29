@@ -1,14 +1,18 @@
 cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
 project(vrp)
 
-
-option(RUN_ON_DEVICE_PREFFERED "Runs algorithms on GPU." ON)
-if(RUN_ON_DEVICE_PREFFERED)
-    message("-- Configured to run on device.")
-    add_definitions(-DRUN_ON_DEVICE)
-else()
-    message("-- Configured to run on host.")
+# configure thrust backend
+set(SOLVER_BACKEND "OMP" CACHE STRING "Target thrust backend")
+set(SOLVER_BACKENDS HOST OMP TBB CUDA)
+set_property(CACHE SOLVER_BACKEND PROPERTY STRINGS ${SOLVER_BACKENDS})
+if(NOT SOLVER_BACKEND IN_LIST SOLVER_BACKENDS)
+    message(FATAL_ERROR "${SOLVER_BACKEND} must be one of ${SOLVER_BACKENDS}")
 endif()
+if(NOT SOLVER_BACKEND STREQUAL HOST)
+    add_definitions(-DRUN_ON_DEVICE)
+endif()
+
+message("-- Configured to run on ${SOLVER_BACKEND} backend")
 
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -18,6 +22,7 @@ set(TEST_SOURCE ${PROJECT_SOURCE_DIR}/test)
 set(EXTERNAL_SOURCE ${PROJECT_SOURCE_DIR}/external)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${EXTERNAL_SOURCE}/cmake/")
+include(UseOpenMP)
 
 add_subdirectory(src)
 add_subdirectory(test)
