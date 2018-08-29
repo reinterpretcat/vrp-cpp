@@ -341,9 +341,6 @@ private:
   EXEC_UNIT int getShiftCount(const SearchContext& search, const InsertionResult& result) const {
     if (search.customer.is<int>()) return 1;
 
-    auto convolution = search.customer.get<Convolution>();
-    auto div = convolution.tasks.second - convolution.tasks.first + 1;
-    //   return div;
     auto details = Transition::Details{search.base, result.point, result.point + 1,
                                        result.data.customer, result.data.vehicle};
     auto transition = transitionOp.create(details);
