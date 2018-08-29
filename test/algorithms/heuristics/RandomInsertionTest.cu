@@ -16,6 +16,7 @@
 #include <functional>
 #include <thrust/for_each.h>
 #include <thrust/iterator/counting_iterator.h>
+#include <thrust/sequence.h>
 
 using namespace vrp::algorithms::distances;
 using namespace vrp::algorithms::heuristics;
