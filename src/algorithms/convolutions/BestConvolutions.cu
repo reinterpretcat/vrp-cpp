@@ -92,8 +92,8 @@ struct estimate_convolutions final {
   size_t size;
   /// Convolution operator.
   struct compare_plan final {
-    template<typename Tuple>
-    EXEC_UNIT bool operator()(const Tuple& left, const Tuple& right) const {
+    EXEC_UNIT bool operator()(const thrust::tuple<CostRouteLeg, int>& left,
+        const thrust::tuple<CostRouteLeg, int>& right) const {
       // same vehicle, same plan
       const auto& leftLeg = thrust::get<0>(left);
       const auto& rightLeg = thrust::get<0>(right);
@@ -103,8 +103,7 @@ struct estimate_convolutions final {
   };
 
   struct map_leg final {
-    template<typename Tuple>
-    EXEC_UNIT thrust::tuple<bool, int> operator()(const Tuple& tuple) {
+    EXEC_UNIT thrust::tuple<bool, int> operator()(const thrust::tuple<CostRouteLeg, int>& tuple) {
       return {thrust::get<2>(thrust::get<0>(tuple)), thrust::get<1>(tuple)};
     }
   };
