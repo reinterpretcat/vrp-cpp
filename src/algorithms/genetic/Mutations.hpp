@@ -12,7 +12,7 @@ namespace genetic {
 
 /// Creates mutant from given individuum.
 template<typename TransitionOp>
-struct create_mutant final {
+struct mutate_weak_subtours final {
   /// Solution shadow.
   vrp::models::Solution::Shadow solution;
 

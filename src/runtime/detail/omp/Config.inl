@@ -20,9 +20,9 @@ struct exec_unit_policy : thrust::device_execution_policy<exec_unit_policy> {};
 }  // namespace vrp
 
 #include "runtime/detail/cpp/Atomic.inl"
+#include "runtime/detail/cpp/Operations.inl"
 #include "runtime/detail/cuda/Containers.inl"
 #include "runtime/detail/cuda/Memory.inl"
-#include "runtime/detail/cpp/Operations.inl"
 
 
 #endif  // VRP_RUNTIME_DETAIL_OMP_CONFIG_HPP

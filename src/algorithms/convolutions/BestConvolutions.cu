@@ -93,7 +93,7 @@ struct estimate_convolutions final {
   /// Convolution operator.
   struct compare_plan final {
     EXEC_UNIT bool operator()(const thrust::tuple<CostRouteLeg, int>& left,
-        const thrust::tuple<CostRouteLeg, int>& right) const {
+                              const thrust::tuple<CostRouteLeg, int>& right) const {
       // same vehicle, same plan
       const auto& leftLeg = thrust::get<0>(left);
       const auto& rightLeg = thrust::get<0>(right);

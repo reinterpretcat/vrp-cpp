@@ -27,7 +27,9 @@ struct run_mutation final {
   Solution::Shadow solution;
   const Mutation mutation;
 
-  EXEC_UNIT void operator()(int index) { create_mutant<TransitionOperator>{solution}(mutation); }
+  EXEC_UNIT void operator()(int index) {
+    mutate_weak_subtours<TransitionOperator>{solution}(mutation);
+  }
 };
 
 template<typename Problem, int Size>

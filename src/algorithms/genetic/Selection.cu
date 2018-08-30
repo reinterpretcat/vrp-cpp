@@ -268,7 +268,7 @@ void select_individuums<Crossover, Mutator>::operator()(const EvolutionContext& 
 template class select_individuums<empty_crossover, empty_mutator>;
 template class select_individuums<adjusted_cost_difference<nearest_neighbor<TransitionOperator>,
                                                            random_insertion<TransitionOperator>>,
-                                  create_mutant<TransitionOperator>>;
+                                  mutate_weak_subtours<TransitionOperator>>;
 
 }  // namespace genetic
 }  // namespace algorithms

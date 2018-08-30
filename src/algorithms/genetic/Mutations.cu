@@ -36,7 +36,7 @@ namespace algorithms {
 namespace genetic {
 
 template<typename TransitionOp>
-EXEC_UNIT void create_mutant<TransitionOp>::operator()(const Mutation& mutation) const {
+EXEC_UNIT void mutate_weak_subtours<TransitionOp>::operator()(const Mutation& mutation) const {
   // NOTE RA implementation cannot work in place with convolutions
   assert(mutation.source != mutation.destination);
 
@@ -60,7 +60,7 @@ EXEC_UNIT void create_mutant<TransitionOp>::operator()(const Mutation& mutation)
 }
 
 /// NOTE make linker happy.
-template class create_mutant<TransitionOperator>;
+template class mutate_weak_subtours<TransitionOperator>;
 
 }  // namespace genetic
 }  // namespace algorithms

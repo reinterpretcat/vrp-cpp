@@ -20,7 +20,7 @@ public:
     vrp::algorithms::heuristics::random_insertion<vrp::algorithms::heuristics::TransitionOperator>>
     Crossover;
 
-  typedef create_mutant<vrp::algorithms::heuristics::TransitionOperator> Mutator;
+  typedef mutate_weak_subtours<vrp::algorithms::heuristics::TransitionOperator> Mutator;
 
   const Settings settings;
 

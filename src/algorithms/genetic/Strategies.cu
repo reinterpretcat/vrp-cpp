@@ -107,7 +107,7 @@ LinearStrategy::Crossover LinearStrategy::crossover(EvolutionContext& ctx) {
 }
 
 LinearStrategy::Mutator LinearStrategy::mutator(EvolutionContext& ctx) {
-  return create_mutant<TransitionOperator>{ctx.solution.getShadow()};
+  return mutate_weak_subtours<TransitionOperator>{ctx.solution.getShadow()};
 }
 
 Selection LinearStrategy::selection(EvolutionContext& ctx) { return createSelection(ctx); }
