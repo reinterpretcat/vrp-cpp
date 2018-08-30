@@ -2,16 +2,13 @@ project(SolverTest LANGUAGES CXX CUDA)
 
 set(LIBRARY_NAME Solver)
 set(LIBRARY_TEST SolverTest)
-set(EXTRA_LINK_LIBS "")
 
 include_directories(${MAIN_SOURCE}
         ${EXTERNAL_SOURCE}
         ${TEST_SOURCE}
         ${CMAKE_CURRENT_BINARY_DIR})
 
-add_executable(${LIBRARY_TEST}
-        config.hpp
-        main.cpp
+set(SOURCE_FILES
         EnvironmentTest.cu
 
         algorithms/convolutions/BestConvolutionsTest.cu
@@ -40,6 +37,18 @@ add_executable(${LIBRARY_TEST}
         streams/input/SolomonReaderTest.cu
         streams/output/GeoJsonWriterTest.cu
 
+        utils/Validations.cu
+        )
+
+set(EXTRA_LINK_LIBS "")
+if (SOLVER_BACKEND STREQUAL OMP)
+    CompileWithOpenMP()
+    LinkWithOpenMP()
+endif ()
+
+add_executable(${LIBRARY_TEST}
+        config.hpp
+        main.cpp
         test_utils/ConvolutionUtils.hpp
         test_utils/PopulationFactory.hpp
         test_utils/ProblemStreams.hpp
@@ -47,12 +56,9 @@ add_executable(${LIBRARY_TEST}
         test_utils/TaskUtils.hpp
         test_utils/VectorUtils.hpp
 
-        utils/Validations.cu
+        ${SOURCE_FILES}
         )
 
-if(SOLVER_BACKEND STREQUAL OMP)
-    LinkOpenMP(LIBRARY_TEST EXTRA_LINK_LIBS)
-endif()
 
 set_target_properties(${LIBRARY_TEST} PROPERTIES
         LINKER_LANGUAGE CXX

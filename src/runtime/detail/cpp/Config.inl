@@ -1,5 +1,5 @@
-#ifndef VRP_RUNTIME_DETAIL_HOST_CONFIG_HPP
-#define VRP_RUNTIME_DETAIL_HOST_CONFIG_HPP
+#ifndef VRP_RUNTIME_DETAIL_CPP_CONFIG_HPP
+#define VRP_RUNTIME_DETAIL_CPP_CONFIG_HPP
 
 
 #include <thrust/execution_policy.h>
@@ -7,7 +7,7 @@
 namespace vrp {
 namespace runtime {
 
-/// Exclude device policy implicitly
+/// Exclude device policy implicitly.
 #define ANY_EXEC_UNIT __host__
 
 /// Alias for device execution policy.
@@ -26,4 +26,4 @@ struct exec_unit_policy : thrust::host_execution_policy<exec_unit_policy> {};
 #include "runtime/detail/host/Operations.inl"
 
 
-#endif  // VRP_RUNTIME_DETAIL_HOST_CONFIG_HPP
+#endif  // VRP_RUNTIME_DETAIL_CPP_CONFIG_HPP

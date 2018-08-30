@@ -3,10 +3,15 @@
 
 #include <thrust/execution_policy.h>
 
-#ifdef RUN_ON_DEVICE
-#include "runtime/detail/device/Config.inl"
-#else
-#include "runtime/detail/host/Config.inl"
+
+#ifdef USE_CUDA_BACKEND
+#include "runtime/detail/cuda/Config.inl"
+
+#elif USE_OMP_BACKEND
+#include "runtime/detail/omp/Config.inl"
+
+#elif USE_CPP_BACKEND
+#include "runtime/detail/cpp/Config.inl"
 #endif
 
 /// Define execution policy once.

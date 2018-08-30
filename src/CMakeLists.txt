@@ -95,6 +95,10 @@ set(SOURCE_FILES
         utils/validation/SolutionChecker.cu
         )
 
+if (SOLVER_BACKEND STREQUAL OMP)
+    CompileWithOpenMP()
+endif()
+
 add_library(${LIBRARY_NAME} STATIC
         ${HEADER_FILES}
         ${SOURCE_FILES}
@@ -113,10 +117,6 @@ include_directories(${MAIN_SOURCE}
         ${EXTERNAL_SOURCE}
         ${CMAKE_CURRENT_BINARY_DIR}
         )
-
-if (SOLVER_BACKEND STREQUAL OMP)
-    CompileOpenMP(LIBRARY_NAME)
-endif()
 
 if (CLANG_TIDY)
     add_custom_target(${LIBRARY_NAME}Tidy

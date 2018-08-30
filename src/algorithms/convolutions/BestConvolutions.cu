@@ -202,7 +202,7 @@ EXEC_UNIT Convolutions create_best_convolutions::operator()(const Settings& sett
   create_cost_legs{begin, end}.operator()(solution.tasks, *legs);
 
   auto medians = make_unique_ptr_data<float>(size);
-  fill_leg_plan{settings.MedianRatio, begin, size}.operator()(*legs, *medians);
+  fill_leg_plan{settings.MedianRatio, static_cast<int>(begin), size}.operator()(*legs, *medians);
 
   auto output = make_unique_ptr_data<thrust::tuple<bool, int>>(size);
   auto lengths = make_unique_ptr_data<int>(size);

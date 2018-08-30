@@ -30,6 +30,12 @@ using MutantPlan = thrust::pair<int, int>;
 /// Individuum index with its cost.
 using Individuum = thrust::pair<int, float>;
 
+/// Do not allow to process items with the same parents.
+bool operator==(const CrossPlan& lfs, const CrossPlan& rhs) { return lfs.parents == rhs.parents; }
+
+/// Do not allow to process items with the same original.
+bool operator==(const MutantPlan& lfs, const MutantPlan& rhs) { return lfs.first == rhs.first; }
+
 }  // namespace
 
 namespace std {
@@ -46,12 +52,6 @@ class hash<MutantPlan> {
 public:
   size_t operator()(const MutantPlan& plan) const { return hash<int>()(plan.first); }
 };
-
-/// Do not allow to process items with the same parents.
-bool operator==(const CrossPlan& lfs, const CrossPlan& rhs) { return lfs.parents == rhs.parents; }
-
-/// Do not allow to process items with the same original.
-bool operator==(const MutantPlan& lfs, const MutantPlan& rhs) { return lfs.first == rhs.first; }
 
 }  // namespace std
 
@@ -111,10 +111,10 @@ inline int next(const SelectionData& data,
 }
 
 /// Calls generator with parent and children distributions.
+template<typename Generator>
 struct with_generator final {
   const SelectionData& data;
 
-  template<typename Generator>
   void operator()(const Generator& generator) {
     auto start = data.alloc.start;
     auto middle = data.alloc.middle;
@@ -251,8 +251,8 @@ void select_individuums<Crossover, Mutator>::operator()(const EvolutionContext& 
                                                         const Selection& selection) {
   auto data = SelectionData(ctx, selection);
 
-  with_generator{data}(assign_crossovers{ctx, selection, data});
-  with_generator{data}(assign_mutants{ctx, selection, data});
+  with_generator<assign_crossovers>{data}({ctx, selection, data});
+  with_generator<assign_mutants>{data}({ctx, selection, data});
 
   logSelection(selection, data);
 

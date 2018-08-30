@@ -1,5 +1,5 @@
-#ifndef VRP_RUNTIME_DETAIL_DEVICE_CONFIG_HPP
-#define VRP_RUNTIME_DETAIL_DEVICE_CONFIG_HPP
+#ifndef VRP_RUNTIME_DETAIL_OMP_CONFIG_HPP
+#define VRP_RUNTIME_DETAIL_OMP_CONFIG_HPP
 
 #include <thrust/device_vector.h>
 #include <thrust/execution_policy.h>
@@ -19,10 +19,10 @@ struct exec_unit_policy : thrust::device_execution_policy<exec_unit_policy> {};
 }  // namespace runtime
 }  // namespace vrp
 
-#include "runtime/detail/device/Atomic.inl"
-#include "runtime/detail/device/Containers.inl"
-#include "runtime/detail/device/Memory.inl"
-#include "runtime/detail/device/Operations.inl"
+#include "runtime/detail/cpp/Atomic.inl"
+#include "runtime/detail/cuda/Containers.inl"
+#include "runtime/detail/cuda/Memory.inl"
+#include "runtime/detail/cpp/Operations.inl"
 
 
-#endif  // VRP_RUNTIME_DETAIL_DEVICE_CONFIG_HPP
+#endif  // VRP_RUNTIME_DETAIL_OMP_CONFIG_HPP

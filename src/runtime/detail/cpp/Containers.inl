@@ -12,14 +12,14 @@ struct vector_allocator : std::allocator<T> {
   typedef typename super_t::size_type size_type;
 
   pointer allocate(size_type n) {
-    // std::cout << "vector_allocator::allocate() on host " << n << " bytes" << std::endl;
+    // std::cout << "vector_allocator::allocate() on cpp " << n << " bytes" << std::endl;
 
     return super_t::allocate(n);
   }
 
   // customize deallocate
   void deallocate(pointer p, size_type n) {
-    // std::cout << "vector_allocator::deallocate() on host " << n << "bytes" << std::endl;
+    // std::cout << "vector_allocator::deallocate() on cpp " << n << "bytes" << std::endl;
 
     super_t::deallocate(p, n);
   }
