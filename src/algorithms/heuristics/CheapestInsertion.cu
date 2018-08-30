@@ -1,3 +1,4 @@
+#include "algorithms/common/Tours.hpp"
 #include "algorithms/heuristics/CheapestInsertion.hpp"
 #include "algorithms/heuristics/RandomInsertion.hpp"
 #include "algorithms/transitions/Executors.hpp"
@@ -10,14 +11,12 @@
 #include <thrust/iterator/counting_iterator.h>
 #include <thrust/pair.h>
 
+using namespace vrp::algorithms::common;
 using namespace vrp::algorithms::heuristics;
 using namespace vrp::models;
 using namespace vrp::runtime;
 
 namespace {
-
-/// Specifies vehicle range: start, end, id, and some extra.
-using VehicleRange = thrust::tuple<int, int, int, int>;
 
 /// Alias for customer variant.
 using Customer = variant<int, Convolution>;
@@ -173,7 +172,7 @@ struct find_best_arc final {
   const TransitionOp transitionOp;
   vector_ptr<InsertionResult> results;
 
-  EXEC_UNIT InsertionResult operator()(const VehicleRange& range) const {
+  EXEC_UNIT InsertionResult operator()(const thrust::tuple<int, int, int, int>& range) const {
     if (thrust::get<0>(range) == -1) return create_invalid_data();
 
     int from = thrust::get<0>(range);
@@ -195,37 +194,6 @@ struct find_best_arc final {
   }
 };
 
-/// Represents operator which helps to create vehicle ranges without extra memory footprint.
-struct create_vehicle_ranges final {
-  EXEC_UNIT VehicleRange operator()(const VehicleRange& left, const VehicleRange& right) {
-    auto leftStart = thrust::get<0>(left);
-    auto leftEnd = thrust::get<1>(left);
-    auto leftVehicle = thrust::get<2>(left);
-    auto leftExtra = thrust::get<3>(left);
-
-    auto rightStart = thrust::get<0>(right);
-    auto rightEnd = thrust::get<1>(right);
-    auto rightVehicle = thrust::get<2>(right);
-
-    if (rightStart == 0) return {1, leftExtra != -1 ? 1 : leftEnd, 0, -1};
-
-    if (leftExtra != -1) {
-      // continue with this vehicle
-      if (leftExtra == rightVehicle) {
-        return {-1, leftStart - 1, leftExtra, -1};
-      }
-      // vehicle was used only once
-      else {
-        return {leftStart - 1, leftStart - 1, leftExtra, rightVehicle};
-      }
-    }
-
-    if (leftVehicle != rightVehicle) return {rightStart + 1, leftEnd, leftVehicle, rightVehicle};
-
-    return {-1, leftEnd, leftVehicle, -1};
-  }
-};
-
 /// Finds the "best" insertion point for given customer inside all tours.
 template<typename TransitionOp>
 struct find_insertion_point final {
@@ -234,36 +202,21 @@ struct find_insertion_point final {
 
   /// @returns Task index from which to perform transition.
   EXEC_UNIT InsertionResult operator()(const SearchContext& search, int vehicle) {
-    auto iterator = thrust::make_zip_iterator(
-      thrust::make_tuple(thrust::make_counting_iterator(0), thrust::make_constant_iterator(0),
-                         search.context.tasks.vehicles, thrust::make_constant_iterator(0)));
     auto lastVehicle = search.context.tasks.vehicles[search.base + search.last - 1];
 
     // first customer in tour
     if (search.last == 1 || lastVehicle != vehicle)
       return InsertionResult{{0, search.last, vehicle, search.customer}, search.last, 0};
 
-    thrust::exclusive_scan(
-      exec_unit_policy{},
+    auto iterator = vrp::iterators::make_aggregate_output_iterator(
+      thrust::make_zip_iterator(
+        thrust::make_tuple(thrust::make_counting_iterator(0), thrust::make_constant_iterator(0),
+                           search.context.tasks.vehicles, thrust::make_constant_iterator(0))),
+      find_best_arc<TransitionOp>{search, transitionOp, *results.get()});
 
-      thrust::make_zip_iterator(thrust::make_tuple(
-        thrust::make_reverse_iterator(thrust::make_counting_iterator(search.last)),
-        thrust::make_constant_iterator(-1),
-        thrust::make_reverse_iterator(search.context.tasks.vehicles + search.base + search.last),
-        thrust::make_constant_iterator(-1))),
-
-      thrust::make_zip_iterator(thrust::make_tuple(
-        thrust::make_reverse_iterator(thrust::make_counting_iterator(-1)),
-        thrust::make_constant_iterator(1),
-        thrust::make_reverse_iterator(search.context.tasks.vehicles + search.base),
-        thrust::make_constant_iterator(-1))),
-
-      vrp::iterators::make_aggregate_output_iterator(
-        iterator, find_best_arc<TransitionOp>{search, transitionOp, *results.get()}),
-
-      VehicleRange{-1, search.last - 1, lastVehicle, -1},
-
-      create_vehicle_ranges{});
+    find_tours<decltype(search.context.tasks.vehicles), decltype(iterator)>{lastVehicle}(
+      search.context.tasks.vehicles + search.base,
+      search.context.tasks.vehicles + search.base + search.last, iterator);
 
     return *thrust::min_element(exec_unit_policy{}, *results.get(),
                                 *results.get() + lastVehicle + 1, compare_arcs_logical{});
