@@ -9,6 +9,8 @@
 #include "models/Plan.hpp"
 #include "runtime/Config.hpp"
 
+#include <tuple>
+
 using namespace vrp::algorithms::common;
 using namespace vrp::algorithms::convolutions;
 using namespace vrp::algorithms::genetic;
@@ -77,6 +79,25 @@ namespace vrp {
 namespace algorithms {
 namespace genetic {
 
+template<typename... Mutations>
+EXEC_UNIT void mutator<Mutations...>::operator()(int order, const Mutation& mutation) const {
+  switch (order) {
+    case 0: {
+      using First = typename std::tuple_element<0, std::tuple<Mutations...>>::type;
+      First{solution}.operator()(mutation);
+      break;
+    }
+    case 1: {
+      using Second = typename std::tuple_element<1, std::tuple<Mutations...>>::type;
+      Second{solution}.operator()(mutation);
+      break;
+    }
+    default:
+      assert(false);
+      break;
+  }
+}
+
 template<typename TransitionOp>
 EXEC_UNIT void mutate_weak_subtours<TransitionOp>::operator()(const Mutation& mutation) const {
   // NOTE RA implementation cannot work in place with convolutions
@@ -144,6 +165,8 @@ EXEC_UNIT void mutate_weak_tours<TransitionOp>::operator()(const Mutation& mutat
 /// NOTE make linker happy.
 template class mutate_weak_subtours<TransitionOperator>;
 template class mutate_weak_tours<TransitionOperator>;
+template class mutator<mutate_weak_subtours<TransitionOperator>,
+                       mutate_weak_tours<TransitionOperator>>;
 
 }  // namespace genetic
 }  // namespace algorithms

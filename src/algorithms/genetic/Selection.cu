@@ -212,7 +212,7 @@ struct apply_mutator final {
   EXEC_UNIT void operator()(MutantPlan plan) {
     Individuum source = index[plan.first];
     Individuum destination = index[plan.second];
-    mutator(Mutation{source.first, destination.first, settings});
+    mutator(0, Mutation{source.first, destination.first, settings});
   }
 };
 
@@ -266,9 +266,10 @@ void select_individuums<Crossover, Mutator>::operator()(const EvolutionContext& 
 
 /// NOTE Make linker happy
 template class select_individuums<empty_crossover, empty_mutator>;
-template class select_individuums<adjusted_cost_difference<nearest_neighbor<TransitionOperator>,
-                                                           random_insertion<TransitionOperator>>,
-                                  mutate_weak_subtours<TransitionOperator>>;
+template class select_individuums<
+  adjusted_cost_difference<nearest_neighbor<TransitionOperator>,
+                           random_insertion<TransitionOperator>>,
+  mutator<mutate_weak_subtours<TransitionOperator>, mutate_weak_tours<TransitionOperator>>>;
 
 }  // namespace genetic
 }  // namespace algorithms
