@@ -5,8 +5,8 @@
 #include "config.hpp"
 #include "streams/output/MatrixTextWriter.hpp"
 #include "test_utils/PopulationFactory.hpp"
-#include "test_utils/SpecificSolutions.hpp"
 #include "test_utils/ProblemStreams.hpp"
+#include "test_utils/SpecificSolutions.hpp"
 #include "utils/validation/SolutionChecker.hpp"
 
 #include <catch/catch.hpp>
@@ -21,14 +21,12 @@ using namespace vrp::utils;
 namespace {
 
 /// Runs crossover
-template <typename Mutator>
+template<typename Mutator>
 struct run_mutation final {
   Solution::Shadow solution;
   const Mutation mutation;
 
-  EXEC_UNIT void operator()(int index) {
-    Mutator{solution}(mutation);
-  }
+  EXEC_UNIT void operator()(int index) { Mutator{solution}(mutation); }
 };
 
 template<typename Mutator, typename ProblemDesc, int Size>
@@ -48,7 +46,7 @@ void test_with_problem(const Mutation& mutation) {
   REQUIRE(SolutionChecker::check(solution).isValid());
 }
 
-template <typename Mutator, typename SolutionDesc>
+template<typename Mutator, typename SolutionDesc>
 Solution test_with_solution(const Mutation& mutation) {
   auto solution = SolutionDesc{}();
 
@@ -61,19 +59,35 @@ Solution test_with_solution(const Mutation& mutation) {
 
 }  // namespace
 
-SCENARIO("Can mutate c101 individuum keeping convolutions.", "[genetic][mutation][weak_subtours][c101]") {
-  test_with_problem<mutate_weak_subtours<TransitionOperator>, create_c101_problem_stream, 25>(Mutation{0, 1, {0.75, 2}});
+SCENARIO("Can mutate c101 individuum keeping convolutions.",
+         "[genetic][mutation][weak_subtours][c101]") {
+  test_with_problem<mutate_weak_subtours<TransitionOperator>, create_c101_problem_stream, 25>(
+    Mutation{0, 1, {0.75, 2}});
 }
 
-SCENARIO("Can mutate rc1_10_1 individuum keeping convolutions.", "[genetic][mutation][weak_subtours][rc1_10_1]") {
-  test_with_problem<mutate_weak_subtours<TransitionOperator>, rc1_10_1_problem_stream, 1000>(Mutation{0, 1, {0.75, 3}});
+SCENARIO("Can mutate rc1_10_1 individuum keeping convolutions.",
+         "[genetic][mutation][weak_subtours][rc1_10_1]") {
+  test_with_problem<mutate_weak_subtours<TransitionOperator>, rc1_10_1_problem_stream, 1000>(
+    Mutation{0, 1, {0.75, 3}});
 }
 
 SCENARIO("Can mutate specific individuum.", "[genetic][mutation][c101][weak_subtours][specific]") {
-  test_with_solution<mutate_weak_subtours<TransitionOperator>, create_c101_specific_individuum_1>({0, 1, {0.880393744, 2}});
+  test_with_solution<mutate_weak_subtours<TransitionOperator>, create_c101_specific_individuum_1>(
+    {0, 1, {0.880393744, 2}});
 }
 
-SCENARIO("Can escape local minimum.", "[genetic][mutation][c101][weak_subtours][specific]") {
-  auto solution = test_with_solution<mutate_weak_subtours<TransitionOperator>, create_c101_near_optimum>({0, 1, {1, 2}});
+SCENARIO("Can escape local minimum with weak subtours.",
+         "[genetic][mutation][c101][weak_subtours][specific]") {
+  auto solution =
+    test_with_solution<mutate_weak_subtours<TransitionOperator>, create_c101_near_optimum>(
+      {0, 1, {1, 2}});
+  REQUIRE(solution.tasks.vehicles.back() == 2);
+}
+
+SCENARIO("Can escape local minimum with weak tours.",
+         "[genetic][mutation][c101][weak_tours][specific]") {
+  auto solution =
+    test_with_solution<mutate_weak_tours<TransitionOperator>, create_c101_near_optimum>(
+      {0, 1, {0.5, 0}});
   REQUIRE(solution.tasks.vehicles.back() == 2);
 }

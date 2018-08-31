@@ -36,13 +36,12 @@ struct reserve_subtour final {
   }
 };
 
-/// Reserves tour in individuum if it good enough.
-struct reserve_good_tour final {
+/// Creates convolutions for each tour.
+struct create_convolutions final {
   Solution::Shadow solution;
-  Mutation mutation;
   vector_ptr<Convolution> convolutions;
+  vector_ptr<int> capacities;
   int srcBase;
-  int dstBase;
 
   EXEC_UNIT void operator()(const thrust::tuple<int, int, int, int>& range) {
     if (thrust::get<0>(range) == -1) return;
@@ -51,18 +50,24 @@ struct reserve_good_tour final {
     auto last = srcBase + thrust::get<1>(range);
     auto index = thrust::get<2>(range);
 
-    // filter by remaining capacity ratio
-    auto remain = getRemainCapacityRatio(index, last);
-    if (remain > mutation.settings.MedianRatio) return;
-
     auto convolution = create_convolution{solution}(srcBase, first, last);
-    reserve_subtour{solution.tasks, dstBase}({convolution, index});
     convolutions[index] = convolution;
+    capacities[index] = solution.tasks.capacities[last];
   }
+};
 
-  EXEC_UNIT float getRemainCapacityRatio(int index, int task) {
-    float total = solution.problem.resources.capacities[index];
-    return (total - solution.tasks.capacities[task]) / total;
+/// Reserves only tours where vehicle's remaining capacity below median.
+struct reserve_best_tours final {
+  Solution::Shadow solution;
+  int median;
+  int dstBase;
+
+  EXEC_UNIT void operator()(const thrust::tuple<Convolution, int>& tour) {
+    Convolution convolution = thrust::get<0>(tour);
+    int index = thrust::get<1>(tour);
+
+    int capacity = solution.tasks.capacities[convolution.base + convolution.tasks.second];
+    if (capacity < median) { reserve_subtour{solution.tasks, dstBase}({convolution, index}); }
   }
 };
 
@@ -102,23 +107,34 @@ EXEC_UNIT void mutate_weak_tours<TransitionOp>::operator()(const Mutation& mutat
 
   int srcBase = solution.problem.size * mutation.source;
   int dstBase = solution.problem.size * mutation.destination;
-  int lastVehicle = solution.tasks.vehicles[srcBase - 1];
-  auto convolutions = make_unique_ptr_data<Convolution>(static_cast<size_t>(lastVehicle + 1));
+  int lastVehicle = solution.tasks.vehicles[srcBase + solution.problem.size - 1];
+  auto size = static_cast<size_t>(lastVehicle + 1);
 
   // reset plan
   thrust::fill(exec_unit_policy{}, dstBase + solution.tasks.plan + 1,
                dstBase + solution.tasks.plan + solution.problem.size, Plan::empty());
 
   // find tours
+  auto convolutions = make_unique_ptr_data<Convolution>(size);
+  auto capacities = make_unique_ptr_data<int>(size);
   auto iterator = vrp::iterators::make_aggregate_output_iterator(
     thrust::make_zip_iterator(
       thrust::make_tuple(thrust::make_counting_iterator(0), thrust::make_constant_iterator(0),
                          solution.tasks.vehicles, thrust::make_constant_iterator(0))),
-    reserve_good_tour{solution, mutation, *convolutions.get(), srcBase, dstBase});
+    create_convolutions{solution, *convolutions.get(), *capacities.get(), srcBase});
 
   find_tours<decltype(solution.tasks.vehicles), decltype(iterator)>{lastVehicle}(
     solution.tasks.vehicles + srcBase, solution.tasks.vehicles + srcBase + solution.problem.size,
     iterator);
+
+  // reset weak tours keeping others
+  thrust::sort(exec_unit_policy{}, *capacities.get(), *capacities.get() + lastVehicle);
+  auto index = static_cast<int>(size * mutation.settings.MedianRatio);
+  int median = (*capacities.get())[index];
+  thrust::for_each_n(exec_unit_policy{},
+                     thrust::make_zip_iterator(
+                       thrust::make_tuple(*convolutions.get(), thrust::make_counting_iterator(0))),
+                     size, reserve_best_tours{solution, median, dstBase});
 
   // run RA
   auto context = Context{solution.problem, solution.tasks, *convolutions.get()};
