@@ -10,9 +10,18 @@ namespace vrp {
 namespace algorithms {
 namespace genetic {
 
-/// Creates mutant from given individuum.
+/// Creates mutant from given individuum using best convolutions.
 template<typename TransitionOp>
 struct mutate_weak_subtours final {
+  /// Solution shadow.
+  vrp::models::Solution::Shadow solution;
+
+  EXEC_UNIT void operator()(const Mutation& mutation) const;
+};
+
+/// Creates mutant from given individuum destroying specific tours.
+template<typename TransitionOp>
+struct mutate_weak_tours final {
   /// Solution shadow.
   vrp::models::Solution::Shadow solution;
 
