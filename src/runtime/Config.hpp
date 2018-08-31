@@ -10,8 +10,8 @@
 #elif USE_OMP_BACKEND
 #include "runtime/detail/omp/Config.inl"
 
-#elif USE_CPP_BACKEND
-#include "runtime/detail/cpp/Config.inl"
+#elif USE_HOST_BACKEND
+#include "runtime/detail/host/Config.inl"
 #endif
 
 /// Define execution policy once.

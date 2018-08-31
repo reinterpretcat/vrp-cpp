@@ -1,4 +1,4 @@
-#include "runtime/detail/cpp/Config.inl"
+#include "runtime/detail/host/Config.inl"
 
 #include <thrust/memory.h>
 
