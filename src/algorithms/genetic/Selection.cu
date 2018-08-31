@@ -212,7 +212,8 @@ struct apply_mutator final {
   EXEC_UNIT void operator()(MutantPlan plan) {
     Individuum source = index[plan.first];
     Individuum destination = index[plan.second];
-    mutator(0, Mutation{source.first, destination.first, settings});
+    int order = plan.first % 2;
+    mutator(order, Mutation{source.first, destination.first, settings});
   }
 };
 
