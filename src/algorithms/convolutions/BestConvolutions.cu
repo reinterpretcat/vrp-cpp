@@ -1,3 +1,4 @@
+#include "algorithms/common/Convolutions.hpp"
 #include "algorithms/convolutions/BestConvolutions.hpp"
 #include "iterators/CartesianProduct.hpp"
 
@@ -146,31 +147,14 @@ struct create_convolutions final {
     Solution::Shadow solution;
     int base;
 
-    EXEC_UNIT int operator()(int id) const { return *(solution.problem.customers.demands + id); }
-
     EXEC_UNIT Convolution operator()(const thrust::tuple<thrust::tuple<bool, int>, int>& tuple) {
-      auto problem = solution.problem;
-      auto tasks = solution.tasks;
-
       int seq = thrust::get<1>(thrust::get<0>(tuple));
       int length = thrust::get<1>(tuple);
 
-      auto start = base + seq;
-      auto end = start + length - 1;
-      auto firstCustomerService = problem.customers.services[tasks.ids[start]];
+      auto first = base + seq;
+      auto last = first + length - 1;
 
-      auto demand = thrust::transform_reduce(exec_unit_policy{}, tasks.ids + start,
-                                             tasks.ids + end + 1, *this, 0, thrust::plus<int>());
-      return Convolution{base, demand,
-                         // new service time from total duration
-                         tasks.times[end] - tasks.times[start] + firstCustomerService,
-                         // get fist and last customer
-                         thrust::make_pair<int, int>(tasks.ids[start], tasks.ids[end]),
-                         // get TW which is [first customer TW start, first customer ETA]
-                         thrust::make_pair<int, int>(problem.customers.starts[tasks.ids[start]],
-                                                     tasks.times[start] - firstCustomerService),
-                         // calculate task range (all inclusive)
-                         thrust::make_pair<int, int>(start - base, end - base)};
+      return vrp::algorithms::common::create_convolution{solution}(base, first, last);
     };
   };
 

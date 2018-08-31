@@ -6,6 +6,7 @@ find_package(ClangTidy)
 set(LIBRARY_NAME Solver)
 
 set(HEADER_FILES
+        algorithms/common/Convolutions.hpp
         algorithms/common/Tours.hpp
 
         algorithms/convolutions/BestConvolutions.hpp
