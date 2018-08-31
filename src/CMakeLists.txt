@@ -63,6 +63,9 @@ set(HEADER_FILES
         utils/random/TransformedDistribution.hpp
         utils/random/Visualizer.hpp
 
+        utils/templates/IndexOf.hpp
+        utils/templates/OneOf.hpp
+
         utils/validation/SolutionChecker.hpp
         )
 

@@ -1,35 +1,14 @@
 #ifndef VRP_RUNTIME_DETAIL_VARIANTHELPERS_HPP
 #define VRP_RUNTIME_DETAIL_VARIANTHELPERS_HPP
 
+#include "utils/templates/IndexOf.hpp"
+#include "utils/templates/OneOf.hpp"
+
 #include <thrust/execution_policy.h>
-#include <type_traits>
 
 namespace vrp {
 namespace runtime {
 namespace detail {
-
-template<typename...>
-struct one_of {
-  static constexpr bool value = false;
-};
-
-template<typename T, typename S, typename... Ts>
-struct one_of<T, S, Ts...> {
-  static constexpr bool value = std::is_same<T, S>::value || one_of<T, Ts...>::value;
-};
-
-#include <type_traits>
-
-template<typename...>
-struct index_of;
-
-template<class T, class... Rest>
-struct index_of<T, T, Rest...> : std::integral_constant<std::size_t, 0u> {};
-
-template<class T, class Other, class... Rest>
-struct index_of<T, Other, Rest...>
-  : std::integral_constant<std::size_t, 1 + index_of<T, Rest...>::value> {};
-
 
 template<class... Ts>
 struct VariantHelper;

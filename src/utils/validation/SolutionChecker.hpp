@@ -27,4 +27,4 @@ public:
 }  // namespace utils
 }  // namespace vrp
 
-#endif  // VRP_SOLUTIONCHECKER_HPP
+#endif  // VRP_UTILS_SOLUTIONCHECKER_HPP

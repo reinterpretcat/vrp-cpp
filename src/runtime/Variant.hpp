@@ -6,7 +6,6 @@
 
 #include <cassert>
 #include <thrust/execution_policy.h>
-#include <type_traits>
 #include <utility>
 
 namespace vrp {
@@ -36,18 +35,18 @@ public:
 
   template<class T,
            class... Args,
-           class = typename std::enable_if<detail::one_of<T, Ts...>::value>::type>
+           class = typename std::enable_if<utils::one_of<T, Ts...>::value>::type>
   ANY_EXEC_UNIT void set(Args&&... args);
 
-  template<class T, class = typename std::enable_if<detail::one_of<T, Ts...>::value>::type>
+  template<class T, class = typename std::enable_if<utils::one_of<T, Ts...>::value>::type>
   ANY_EXEC_UNIT const T& get() const;
 
-  template<class T, class = typename std::enable_if<detail::one_of<T, Ts...>::value>::type>
+  template<class T, class = typename std::enable_if<utils::one_of<T, Ts...>::value>::type>
   ANY_EXEC_UNIT T& get();
 
   ANY_EXEC_UNIT void reset();
 
-  template<class T, class = typename std::enable_if<detail::one_of<T, Ts...>::value>::type>
+  template<class T, class = typename std::enable_if<utils::one_of<T, Ts...>::value>::type>
   ANY_EXEC_UNIT static variant<Ts...> create(T value) {
     variant<Ts...> v;
     v.set<T>(value);

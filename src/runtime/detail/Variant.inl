@@ -86,7 +86,7 @@ variant<Ts...>& variant<Ts...>::operator=(variant<Ts...>&& other) {
 template<class... Ts>
 template<class T>
 bool variant<Ts...>::is() const {
-  return index == detail::index_of<T, void, Ts...>::value;
+  return index == utils::index_of<T, void, Ts...>::value;
 }
 
 template<class... Ts>
@@ -101,11 +101,11 @@ void variant<Ts...>::set(Args&&... args) {
   if (valid()) Helper::destroy(index - 1u, &data);
 
   new (&data) T(std::forward<Args>(args)...);
-  index = detail::index_of<T, void, Ts...>::value;
+  index = utils::index_of<T, void, Ts...>::value;
 }
 
 // TODO check in getters
-// index==detail::index_of<T, void, Ts...>::value;
+// index==utils::index_of<T, void, Ts...>::value;
 
 template<class... Ts>
 template<class T, class>
