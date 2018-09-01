@@ -98,7 +98,7 @@ void run_evolution<Strategy>::operator()(const Problem& problem) {
 }
 
 // NOTE explicit specialization to make linker happy.
-template class run_evolution<LinearStrategy>;
+template class run_evolution<GuidedStrategy>;
 
 }  // namespace genetic
 }  // namespace algorithms

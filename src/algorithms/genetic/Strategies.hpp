@@ -1,6 +1,7 @@
 #ifndef VRP_ALGORITHMS_GENETIC_STRATEGIES_HPP
 #define VRP_ALGORITHMS_GENETIC_STRATEGIES_HPP
 
+#include "algorithms/convolutions/Models.hpp"
 #include "algorithms/genetic/Crossovers.hpp"
 #include "algorithms/genetic/Models.hpp"
 #include "algorithms/genetic/Mutations.hpp"
@@ -9,11 +10,14 @@
 #include "models/Problem.hpp"
 #include "models/Tasks.hpp"
 
+
 namespace vrp {
 namespace algorithms {
 namespace genetic {
 
-class LinearStrategy {
+/// Implements a strategy where evolution of each individdum is guided
+/// through multiple generation.
+class GuidedStrategy {
 public:
   typedef adjusted_cost_difference<
     vrp::algorithms::heuristics::nearest_neighbor<vrp::algorithms::heuristics::TransitionOperator>,

@@ -94,24 +94,24 @@ namespace vrp {
 namespace algorithms {
 namespace genetic {
 
-Tasks LinearStrategy::population(const Problem& problem) {
+Tasks GuidedStrategy::population(const Problem& problem) {
   // NOTE Minimum population: 2 for elite, 2 * 4 for crossover, 2 for mutation.
   assert(settings.populationSize >= 12);
 
   return create_population<nearest_neighbor<TransitionOperator>>{problem}(settings.populationSize);
 }
 
-LinearStrategy::Crossover LinearStrategy::crossover(EvolutionContext& ctx) {
+GuidedStrategy::Crossover GuidedStrategy::crossover(EvolutionContext& ctx) {
   return Crossover{ctx.solution.getShadow()};
 }
 
-LinearStrategy::Mutator LinearStrategy::mutator(EvolutionContext& ctx) {
+GuidedStrategy::Mutator GuidedStrategy::mutator(EvolutionContext& ctx) {
   return Mutator{ctx.solution.getShadow()};
 }
 
-Selection LinearStrategy::selection(EvolutionContext& ctx) { return createSelection(ctx); }
+Selection GuidedStrategy::selection(EvolutionContext& ctx) { return createSelection(ctx); }
 
-bool LinearStrategy::next(EvolutionContext& ctx) {
+bool GuidedStrategy::next(EvolutionContext& ctx) {
   logContext(ctx);
   validateSolution(ctx);
 
