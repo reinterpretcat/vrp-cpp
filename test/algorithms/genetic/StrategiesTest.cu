@@ -15,7 +15,7 @@ using namespace vrp::models;
 using namespace vrp::streams;
 using namespace vrp::test;
 
-SCENARIO("Can use linear strategy's selection and next", "[genetic][strategy]") {
+SCENARIO("Can use guided strategy's selection and next", "[genetic][strategy]") {
   auto stream = create_sequential_problem_stream{}();
   auto solution = createPopulation<nearest_neighbor<TransitionOperator>>(stream, 2);
   auto strategy = GuidedStrategy{{16}};
