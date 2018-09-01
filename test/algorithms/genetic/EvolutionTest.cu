@@ -12,8 +12,8 @@ using namespace vrp::algorithms::genetic;
 using namespace vrp::streams;
 using namespace vrp::test;
 
-SCENARIO("Can run evolution", "[genetic][evolution]") {
-  auto stream = rc1_10_1_problem_stream{}();
+SCENARIO("Can run evolution", "[genetic][c101][evolution]") {
+  auto stream = create_c101_problem_stream{}();
   auto problem = SolomonReader().read(stream, cartesian_distance());
 
   run_evolution<GuidedStrategy>{{16}}(problem);
