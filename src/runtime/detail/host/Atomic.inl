@@ -7,13 +7,13 @@ namespace runtime {
 static std::mutex mx;
 
 template<typename T>
-__host__ inline void add(T* accumulator, T value) {
+EXEC_UNIT inline void add(T* accumulator, T value) {
   std::lock_guard<std::mutex> lock{mx};
   *accumulator += value;
 }
 
 template<typename T>
-__host__ inline void max(T* oldValue, T newValue) {
+EXEC_UNIT inline void max(T* oldValue, T newValue) {
   std::lock_guard<std::mutex> lock{mx};
   if (*oldValue < newValue) *oldValue = newValue;
 }

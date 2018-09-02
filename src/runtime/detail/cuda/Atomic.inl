@@ -5,7 +5,7 @@ namespace runtime {
 /// and stores the result back to memory at the same address. These three operations are performed
 /// in one atomic transaction. The function returns old.
 template<typename T>
-__device__ inline void add(T* accumulator, T value) {
+EXEC_UNIT inline void add(T* accumulator, T value) {
   atomicAdd(accumulator, value);
 }
 
@@ -13,7 +13,7 @@ __device__ inline void add(T* accumulator, T value) {
 /// computes the maximum of old and val, and stores the result back to memory at the same address.
 /// These three operations are performed in one atomic transaction.
 template<typename T>
-__device__ inline void max(T* oldValue, T newValue) {
+EXEC_UNIT inline void max(T* oldValue, T newValue) {
   atomicMax(oldValue, newValue);
 }
 
