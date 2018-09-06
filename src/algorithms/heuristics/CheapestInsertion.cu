@@ -1,5 +1,6 @@
 #include "algorithms/common/Tours.hpp"
 #include "algorithms/heuristics/CheapestInsertion.hpp"
+#include "algorithms/heuristics/ConvolutionInsertion.hpp"
 #include "algorithms/heuristics/RandomInsertion.hpp"
 #include "algorithms/transitions/Executors.hpp"
 #include "iterators/Aggregates.hpp"
@@ -346,6 +347,7 @@ operator()(const Context& context, int index, int shift) {
 
 /// NOTE make linker happy.
 template class cheapest_insertion<TransitionOperator, find_random_customer>;
+template class cheapest_insertion<TransitionOperator, find_convolution_customer>;
 
 }  // namespace heuristics
 }  // namespace algorithms
