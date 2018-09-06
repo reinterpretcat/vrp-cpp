@@ -53,8 +53,10 @@ EXEC_UNIT Customer find_convolution_customer::operator()() {
     auto index = *(*ids.get() + last);
     auto plan = *(context.tasks.plan + base + index);
 
-    if (!plan.isAssigned()) return Customer::create<int>(last);
-
+    if (!plan.isAssigned())
+      return plan.hasConvolution()
+               ? Customer::create<Convolution>(*(context.convolutions + plan.convolution()))
+               : Customer::create<int>(index);
     last++;
   }
 

@@ -3,9 +3,9 @@
 #include "algorithms/convolutions/SlicedConvolutions.hpp"
 #include "algorithms/genetic/Crossovers.hpp"
 #include "algorithms/genetic/Populations.hpp"
+#include "algorithms/heuristics/ConvolutionInsertion.hpp"
 #include "algorithms/heuristics/Dummy.hpp"
 #include "algorithms/heuristics/NearestNeighbor.hpp"
-#include "algorithms/heuristics/RandomInsertion.hpp"
 
 #include <thrust/iterator/constant_iterator.h>
 #include <thrust/iterator/counting_iterator.h>
@@ -174,7 +174,7 @@ template class adjusted_cost_difference<vrp::algorithms::heuristics::dummy<Trans
                                         vrp::algorithms::heuristics::dummy<TransitionOperator>>;
 template class adjusted_cost_difference<
   vrp::algorithms::heuristics::nearest_neighbor<TransitionOperator>,
-  vrp::algorithms::heuristics::random_insertion<TransitionOperator>>;
+  vrp::algorithms::heuristics::convolution_insertion<TransitionOperator>>;
 
 }  // namespace genetic
 }  // namespace algorithms

@@ -1,8 +1,8 @@
 #include "algorithms/genetic/Crossovers.hpp"
 #include "algorithms/genetic/Mutations.hpp"
 #include "algorithms/genetic/Selection.hpp"
+#include "algorithms/heuristics/ConvolutionInsertion.hpp"
 #include "algorithms/heuristics/NearestNeighbor.hpp"
-#include "algorithms/heuristics/RandomInsertion.hpp"
 #include "utils/random/FilteredDistribution.hpp"
 #include "utils/random/TransformedDistribution.hpp"
 
@@ -269,7 +269,7 @@ void select_individuums<Crossover, Mutator>::operator()(const EvolutionContext& 
 template class select_individuums<empty_crossover, empty_mutator>;
 template class select_individuums<
   adjusted_cost_difference<nearest_neighbor<TransitionOperator>,
-                           random_insertion<TransitionOperator>>,
+                           convolution_insertion<TransitionOperator>>,
   mutator<mutate_weak_subtours<TransitionOperator>, mutate_weak_tours<TransitionOperator>>>;
 
 }  // namespace genetic

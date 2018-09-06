@@ -7,6 +7,7 @@
 #include "algorithms/transitions/Factories.hpp"
 #include "models/Transition.hpp"
 
+#include <algorithms/heuristics/ConvolutionInsertion.hpp>
 #include <thrust/execution_policy.h>
 #include <thrust/for_each.h>
 #include <thrust/iterator/counting_iterator.h>
@@ -110,10 +111,14 @@ EXEC_UNIT void create_individuum<Heuristic>::operator()(int index) {
 template class create_population<vrp::algorithms::heuristics::dummy<TransitionOperator>>;
 template class create_population<vrp::algorithms::heuristics::nearest_neighbor<TransitionOperator>>;
 template class create_population<vrp::algorithms::heuristics::random_insertion<TransitionOperator>>;
+template class create_population<
+  vrp::algorithms::heuristics::convolution_insertion<TransitionOperator>>;
 
 template class create_individuum<vrp::algorithms::heuristics::dummy<TransitionOperator>>;
 template class create_individuum<vrp::algorithms::heuristics::nearest_neighbor<TransitionOperator>>;
 template class create_individuum<vrp::algorithms::heuristics::random_insertion<TransitionOperator>>;
+template class create_individuum<
+  vrp::algorithms::heuristics::convolution_insertion<TransitionOperator>>;
 
 }  // namespace genetic
 }  // namespace algorithms
