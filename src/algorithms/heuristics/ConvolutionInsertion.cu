@@ -4,6 +4,7 @@
 
 #include <thrust/iterator/transform_output_iterator.h>
 #include <thrust/sort.h>
+#include <thrust/sequence.h>
 
 using namespace vrp::algorithms::convolutions;
 using namespace vrp::algorithms::heuristics;
@@ -20,14 +21,14 @@ struct sort_customers final {
   int base;
 
   EXEC_UNIT bool operator()(int left, int right) {
-    auto leftPlan = *(context.tasks.plan + base + left);
-    auto rightPlan = *(context.tasks.plan + base + right);
+    Plan leftPlan = *(context.tasks.plan + base + left);
+    Plan rightPlan = *(context.tasks.plan + base + right);
 
     if (leftPlan.hasConvolution()) return true;
     if (rightPlan.hasConvolution()) return false;
 
-    auto leftStart = *(context.problem.customers.starts + base + left);
-    auto rightStart = *(context.problem.customers.starts + base + right);
+    int leftStart = *(context.problem.customers.starts + base + left);
+    int rightStart = *(context.problem.customers.starts + base + right);
 
     return leftStart < rightStart;
   }
@@ -50,8 +51,8 @@ EXEC_UNIT find_convolution_customer::find_convolution_customer(const Context& co
 
 EXEC_UNIT Customer find_convolution_customer::operator()() {
   while (last < context.problem.size) {
-    auto index = *(*ids.get() + last);
-    auto plan = *(context.tasks.plan + base + index);
+    int index = *(*ids.get() + last);
+    Plan plan = *(context.tasks.plan + base + index);
 
     if (!plan.isAssigned())
       return plan.hasConvolution()
