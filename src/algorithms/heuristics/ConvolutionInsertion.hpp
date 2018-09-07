@@ -8,7 +8,7 @@ namespace vrp {
 namespace algorithms {
 namespace heuristics {
 
-/// A helper class which provides the way to get a random customer from solution.
+/// A helper class which provides the way to get first convolutions and them other customers.
 struct find_convolution_customer {
   EXEC_UNIT find_convolution_customer(const Context& context, int base);
   EXEC_UNIT vrp::runtime::variant<int, vrp::models::Convolution> operator()();
@@ -20,7 +20,7 @@ private:
   int last;
 };
 
-/// Implements algorithm of random insertion heuristic.
+/// Implements algorithm of convolution insertion heuristic.
 template<typename TransitionOp>
 struct convolution_insertion final {
   /// Populates individuum with given index starting from task defined by shift.
