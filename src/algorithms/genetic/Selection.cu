@@ -19,6 +19,8 @@ using namespace vrp::utils;
 
 namespace {
 
+constexpr int BestKnown = 0;
+
 /// Crossover selection plan.
 struct CrossPlan final {
   thrust::pair<int, int> parents;
@@ -143,8 +145,8 @@ struct assign_crossovers final {
 
       if (data.cross.find({{parent1, parent2}, {0, 0}}) != data.cross.end()) continue;
 
-      data.candidates.insert(parent1);
-      data.candidates.insert(parent2);
+      if (parent1 != BestKnown) data.candidates.insert(parent1);
+      if (parent2 != BestKnown) data.candidates.insert(parent2);
 
       auto child1 = next(data, children, ctx.rng);
       auto child2 = next(data, children, ctx.rng, child1);
@@ -169,7 +171,7 @@ struct assign_mutants final {
 
       if (data.mutants.find({parent, 0}) != data.mutants.end()) continue;
 
-      data.candidates.insert(parent);
+      if (parent != BestKnown) data.candidates.insert(parent);
 
       auto child = next(data, children, ctx.rng);
 
