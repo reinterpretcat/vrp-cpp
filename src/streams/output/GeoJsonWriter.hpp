@@ -16,6 +16,9 @@ public:
 
   /// Writes geo json to stream.
   void write(std::ostream& out, const vrp::models::Tasks& tasks, const LocationResolver& resolver);
+
+  /// Writes geo json to stream.
+  void write(std::ostream& out, const vrp::models::Tasks& tasks, const LocationResolver& resolver, int solutionId);
 };
 
 }  // namespace streams
