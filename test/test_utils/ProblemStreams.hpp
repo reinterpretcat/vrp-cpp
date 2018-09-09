@@ -132,6 +132,19 @@ struct rc1_10_1_problem_stream final {
   }
 };
 
+struct create_c101_100_problem_stream final {
+  std::stringstream operator()() {
+    std::ifstream file("../../resources/data/solomon/benchmarks/c101.100.txt");
+    if (file) {
+      std::stringstream buffer;
+
+      buffer << file.rdbuf();
+      return buffer;
+    }
+    throw std::invalid_argument("Cannot open file.");
+  }
+};
+
 }  // namespace test
 }  // namespace vrp
 
