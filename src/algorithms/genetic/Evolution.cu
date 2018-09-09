@@ -78,7 +78,7 @@ namespace algorithms {
 namespace genetic {
 
 template<typename Strategy>
-Solution run_evolution<Strategy>::operator()(Problem&& problem) {
+EvolutionContext run_evolution<Strategy>::operator()(Problem&& problem) {
   // TODO pass problem with &&
   auto ctx = create_context<Strategy>{}(std::move(problem), strategy);
 
@@ -96,7 +96,7 @@ Solution run_evolution<Strategy>::operator()(Problem&& problem) {
     sort_individuums{}(ctx);
   }
 
-  return std::move(ctx.solution);
+  return std::move(ctx);
 }
 
 // NOTE explicit specialization to make linker happy.

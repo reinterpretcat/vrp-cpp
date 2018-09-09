@@ -3,7 +3,6 @@
 
 #include "algorithms/genetic/Models.hpp"
 #include "models/Problem.hpp"
-#include "models/Solution.hpp"
 
 namespace vrp {
 namespace algorithms {
@@ -14,7 +13,7 @@ template<typename Strategy>
 struct run_evolution final {
   Strategy strategy;
 
-  vrp::models::Solution operator()(vrp::models::Problem&& problem);
+  EvolutionContext operator()(vrp::models::Problem&& problem);
 };
 
 }  // namespace genetic

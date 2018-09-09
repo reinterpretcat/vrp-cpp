@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 project(vrp)
 
 # configure thrust backend
-set(SOLVER_BACKEND "HOST" CACHE STRING "Target thrust backend")
+set(SOLVER_BACKEND "OMP" CACHE STRING "Target thrust backend")
 set(SOLVER_BACKENDS HOST OMP TBB CUDA)
 set_property(CACHE SOLVER_BACKEND PROPERTY STRINGS ${SOLVER_BACKENDS})
 if(NOT SOLVER_BACKEND IN_LIST SOLVER_BACKENDS)

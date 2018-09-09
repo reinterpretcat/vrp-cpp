@@ -3,8 +3,8 @@
 #include "algorithms/heuristics/ConvolutionInsertion.hpp"
 
 #include <thrust/iterator/transform_output_iterator.h>
-#include <thrust/sort.h>
 #include <thrust/sequence.h>
+#include <thrust/sort.h>
 
 using namespace vrp::algorithms::convolutions;
 using namespace vrp::algorithms::heuristics;

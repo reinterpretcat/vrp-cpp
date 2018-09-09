@@ -155,7 +155,10 @@ void GeoJsonWriter::write(std::ostream& out,
            .dump();
 }
 
-void GeoJsonWriter::write(std::ostream &out, const vrp::models::Tasks &tasks, const LocationResolver &resolver, int solutionId) {
+void GeoJsonWriter::write(std::ostream& out,
+                          const vrp::models::Tasks& tasks,
+                          const LocationResolver& resolver,
+                          int solutionId) {
   Json json = Json::object{{"type", "FeatureCollection"}, {"features", Json::array()}};
   out << mergeSolution(json, materialize_solution{tasks, resolver}(solutionId)).dump();
 }
