@@ -16,5 +16,5 @@ SCENARIO("Can run evolution", "[genetic][c101][evolution]") {
   auto stream = create_c101_problem_stream{}();
   auto problem = SolomonReader().read(stream, cartesian_distance());
 
-  run_evolution<GuidedStrategy>{{16}}(problem);
+  run_evolution<GuidedStrategy>{{12}}(std::move(problem));
 }

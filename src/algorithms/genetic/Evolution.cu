@@ -30,11 +30,11 @@ struct init_individuum final {
 /// Creates evolution context.
 template<typename Strategy>
 struct create_context final {
-  EvolutionContext operator()(const Problem& problem, Strategy& strategy) {
+  EvolutionContext operator()(Problem&& problem, Strategy& strategy) {
     auto tasks = strategy.population(problem);
     auto population = static_cast<size_t>(tasks.population());
     return {0,
-            {static_cast<Problem>(problem), std::move(tasks)},
+            {std::move(problem), std::move(tasks)},
             vector<Individuum>(population),
             thrust::minstd_rand()};
   }
@@ -78,9 +78,9 @@ namespace algorithms {
 namespace genetic {
 
 template<typename Strategy>
-void run_evolution<Strategy>::operator()(const Problem& problem) {
+Solution run_evolution<Strategy>::operator()(Problem&& problem) {
   // TODO pass problem with &&
-  auto ctx = create_context<Strategy>{}(problem, strategy);
+  auto ctx = create_context<Strategy>{}(std::move(problem), strategy);
 
   init_individuums{}(ctx);
 
@@ -95,6 +95,8 @@ void run_evolution<Strategy>::operator()(const Problem& problem) {
 
     sort_individuums{}(ctx);
   }
+
+  return std::move(ctx.solution);
 }
 
 // NOTE explicit specialization to make linker happy.
