@@ -15,12 +15,22 @@ The following VRP variation is addressed:
 
 # Algorithm
 
-The main idea is to use genetic algorithm variation with original crossover operator.
+The main idea is to use genetic algorithm variation with original crossover and mutation operators.
 
 
 # Status
 
-In development. Not ready for use.
+Research. Not ready for use.
+
+## Supported backends
+
+* CUDA
+* OMP
+
+## Known Issues
+
+* Weak selection algorithm
+* Memory leak
 
 
 # Docker
