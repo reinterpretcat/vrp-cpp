@@ -2,7 +2,7 @@
 
 #include "models/common/Location.hpp"
 #include "models/common/Schedule.hpp"
-#include "models/common/Unit.hpp"
+#include "models/common/Dimension.hpp"
 #include "models/problem/fleet/Costs.hpp"
 #include "models/problem/fleet/Driver.hpp"
 
@@ -26,8 +26,8 @@ struct Vehicle final {
   /// Specifies departure/arrival schedule limits.
   vrp::models::common::Schedule schedule;
 
-  /// Multiple unit of measure.
-  std::vector<vrp::models::common::Unit> dimensions;
+  /// Specifies dimensions supported by vehicle.
+  vrp::models::common::Dimensions dimensions;
 
   /// Start vehicle location.
   vrp::models::common::Location start;
