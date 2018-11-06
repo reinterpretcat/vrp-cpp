@@ -10,6 +10,14 @@ set(HEADER_FILES
 
 set(SOURCE_FILES
         Stub.cc
+
+        models/common/Location.hpp
+        models/common/Schedule.hpp
+        models/common/Timestamp.hpp
+        models/common/Unit.hpp
+        models/problem/fleet/Costs.hpp
+        models/problem/fleet/Driver.hpp
+        models/problem/fleet/Vehicle.hpp
         )
 
 add_library(${LIBRARY_NAME} STATIC

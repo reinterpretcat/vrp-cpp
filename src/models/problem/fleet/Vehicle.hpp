@@ -1,0 +1,39 @@
+#pragma once
+
+#include "models/common/Location.hpp"
+#include "models/common/Schedule.hpp"
+#include "models/common/Unit.hpp"
+#include "models/problem/fleet/Costs.hpp"
+#include "models/problem/fleet/Driver.hpp"
+
+#include <optional>
+#include <string>
+#include <vector>
+
+namespace vrp::models::problem::fleet {
+
+/// Represents a vehicle.
+struct Vehicle final {
+  /// Vehicle id.
+  std::string id;
+
+  /// Vehicle profile.
+  std::string profile;
+
+  /// Specifies vehicle costs.
+  Costs costs;
+
+  /// Specifies departure/arrival schedule limits.
+  vrp::models::common::Schedule schedule;
+
+  /// Multiple unit of measure.
+  std::vector<vrp::models::common::Unit> dimensions;
+
+  /// Start vehicle location.
+  vrp::models::common::Location start;
+
+  /// End vehicle location.
+  std::optional<vrp::models::common::Location> end;
+};
+
+}  // namespace vrp::models::problem::fleet
