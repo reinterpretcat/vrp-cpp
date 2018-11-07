@@ -4,11 +4,8 @@ find_package(ClangTidy)
 
 set(LIBRARY_NAME Solver)
 
-set(HEADER_FILES
-        Stub.hpp
-        )
-
 set(SOURCE_FILES
+        Stub.hpp
         Stub.cc
 
         models/common/Dimension.hpp
@@ -17,6 +14,7 @@ set(SOURCE_FILES
         models/common/Schedule.hpp
         models/common/Timestamp.hpp
         models/common/TimeWindow.hpp
+
         models/problem/Costs.hpp
         models/problem/Driver.hpp
         models/problem/Vehicle.hpp
@@ -24,10 +22,15 @@ set(SOURCE_FILES
         models/problem/JobVisitor.hpp
         models/problem/Service.hpp
         models/problem/Shipment.hpp
+
+        models/solution/Activity.hpp
+        models/solution/Route.hpp
+        models/solution/Solution.hpp
+        models/solution/Statistic.hpp
+        models/solution/Tour.hpp
         )
 
 add_library(${LIBRARY_NAME} STATIC
-        ${HEADER_FILES}
         ${SOURCE_FILES}
         )
 
