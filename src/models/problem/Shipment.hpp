@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Service.hpp"
 #include "Job.hpp"
+#include "Service.hpp"
 
 #include <optional>
 
@@ -9,7 +9,6 @@ namespace vrp::models::problem {
 
 /// Represents a job associated with two locations.
 struct Shipment final : public Job {
-
   /// Represents a work which has to be performed.
   struct Service final {
     /// Location of the service.
@@ -31,9 +30,7 @@ struct Shipment final : public Job {
   /// Dimensions which simulates work requirements.
   vrp::models::common::Dimensions dimensions;
 
-  void accept(JobVisitor &visitor) const override {
-    visitor.visit(*this);
-  }
+  void accept(JobVisitor& visitor) const override { visitor.visit(*this); }
 };
 
-}
+}  // namespace vrp::models::problem

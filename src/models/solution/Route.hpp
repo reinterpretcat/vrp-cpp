@@ -19,4 +19,4 @@ struct Route final {
   Tour tour;
 };
 
-}
+}  // namespace vrp::models::solution

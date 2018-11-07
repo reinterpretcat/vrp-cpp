@@ -1,10 +1,10 @@
 #pragma once
 
-#include "models/common/Location.hpp"
-#include "models/common/Schedule.hpp"
-#include "models/common/Dimension.hpp"
 #include "Costs.hpp"
 #include "Driver.hpp"
+#include "models/common/Dimension.hpp"
+#include "models/common/Location.hpp"
+#include "models/common/Schedule.hpp"
 
 #include <optional>
 #include <string>
@@ -36,4 +36,4 @@ struct Vehicle final {
   std::optional<vrp::models::common::Location> end;
 };
 
-}  // namespace vrp::models::problem::fleet
+}  // namespace vrp::models::problem

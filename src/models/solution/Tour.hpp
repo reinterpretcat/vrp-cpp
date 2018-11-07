@@ -5,8 +5,6 @@
 
 namespace vrp::models::solution {
 
-struct Tour final {
+struct Tour final {};
 
-};
-
-}
+}  // namespace vrp::models::solution

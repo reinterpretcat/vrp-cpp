@@ -17,4 +17,4 @@ struct Driver {
   vrp::models::common::Schedule schedule;
 };
 
-}  // namespace vrp::models::problem::fleet
+}  // namespace vrp::models::problem

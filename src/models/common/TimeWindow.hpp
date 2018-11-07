@@ -9,4 +9,4 @@ struct TimeWindow final {
   Timestamp end;
 };
 
-}
+}  // namespace vrp::models::common

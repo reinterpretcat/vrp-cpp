@@ -1,8 +1,8 @@
 #pragma once
 
 #include "models/problem/Job.hpp"
-#include "models/solution/Statistic.hpp"
 #include "models/solution/Route.hpp"
+#include "models/solution/Statistic.hpp"
 
 #include <memory>
 #include <vector>
@@ -21,4 +21,4 @@ struct Solution final {
   std::vector<std::shared_ptr<vrp::models::problem::Job>> unassignedJobs;
 };
 
-}
+}  // namespace vrp::models::solution

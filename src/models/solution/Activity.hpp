@@ -1,7 +1,7 @@
 #pragma once
 
-#include "models/common/Schedule.hpp"
 #include "models/common/Location.hpp"
+#include "models/common/Schedule.hpp"
 #include "models/problem/Job.hpp"
 
 #include <memory>
@@ -11,7 +11,6 @@ namespace vrp::models::solution {
 
 /// Represents activity which is needed to be performed.
 struct Activity final {
-
   /// Specifies activity schedule.
   vrp::models::common::Schedule schedule;
 
@@ -22,4 +21,4 @@ struct Activity final {
   std::variant<std::monostate, std::shared_ptr<vrp::models::problem::Job>> job;
 };
 
-}
+}  // namespace vrp::models::solution

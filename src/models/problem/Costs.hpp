@@ -20,4 +20,4 @@ struct Costs final {
   double perServiceTime;
 };
 
-}  // namespace vrp::models::problem::fleet
+}  // namespace vrp::models::problem
