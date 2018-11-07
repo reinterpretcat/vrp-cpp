@@ -1,6 +1,9 @@
 #pragma once
 
-namespace vrp::models::problem::fleet {
+#include "models/common/Schedule.hpp"
+#include "models/problem/Costs.hpp"
+
+namespace vrp::models::problem {
 
 /// Represents a driver, person who drives Vehicle
 /// Introduced to allow future extensions:

@@ -1,16 +1,18 @@
 #pragma once
 
+#include <any>
 #include <cstdint>
 #include <unordered_map>
 
 namespace vrp::models::common {
 
-/// Named dimension which represents:
+/// Dimension which can represents anything:
 /// * unit of measure, e.g. volume, mass, size, etc.
-/// * skills
-using Dimension = std::pair<std::string, std::int64_t>;
+/// * set of skills
+/// * tag
+using Dimension = std::any;
 
-/// Multiple unit of measures.
-using Dimensions = std::unordered_map<std::string, std::int64_t>;
+/// Multiple named dimensions.
+using Dimensions = std::unordered_map<std::string, Dimension>;
 
 }  // namespace vrp::models::common

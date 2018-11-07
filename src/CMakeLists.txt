@@ -17,14 +17,13 @@ set(SOURCE_FILES
         models/common/Schedule.hpp
         models/common/Timestamp.hpp
         models/common/TimeWindow.hpp
-        models/problem/fleet/Costs.hpp
-        models/problem/fleet/Driver.hpp
-        models/problem/fleet/Vehicle.hpp
-        models/problem/plan/Break.hpp
-        models/problem/plan/Job.hpp
-        models/problem/plan/JobVisitor.hpp
-        models/problem/plan/Service.hpp
-        models/problem/plan/Shipment.hpp
+        models/problem/Costs.hpp
+        models/problem/Driver.hpp
+        models/problem/Vehicle.hpp
+        models/problem/Job.hpp
+        models/problem/JobVisitor.hpp
+        models/problem/Service.hpp
+        models/problem/Shipment.hpp
         )
 
 add_library(${LIBRARY_NAME} STATIC

@@ -1,14 +1,11 @@
 #pragma once
 
-namespace vrp::models::problem::plan {
+namespace vrp::models::problem {
 
-struct Break;
 struct Service;
 struct Shipment;
 
 struct JobVisitor {
-
-  virtual void visit(const Break&) = 0;
 
   virtual void visit(const Service&) = 0;
 

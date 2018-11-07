@@ -1,6 +1,6 @@
 #pragma once
 
-namespace vrp::models::problem::fleet {
+namespace vrp::models::problem {
 
 /// Represents costs for actor.
 struct Costs final {

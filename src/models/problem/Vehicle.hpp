@@ -3,14 +3,14 @@
 #include "models/common/Location.hpp"
 #include "models/common/Schedule.hpp"
 #include "models/common/Dimension.hpp"
-#include "models/problem/fleet/Costs.hpp"
-#include "models/problem/fleet/Driver.hpp"
+#include "Costs.hpp"
+#include "Driver.hpp"
 
 #include <optional>
 #include <string>
 #include <vector>
 
-namespace vrp::models::problem::fleet {
+namespace vrp::models::problem {
 
 /// Represents a vehicle.
 struct Vehicle final {
