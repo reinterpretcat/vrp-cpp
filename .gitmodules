@@ -1,0 +1,3 @@
+[submodule "external/rxcpp"]
+	path = external/rxcpp
+	url = git@github.com:ReactiveX/RxCpp.git

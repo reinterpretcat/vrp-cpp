@@ -43,7 +43,7 @@ set_target_properties(${LIBRARY_NAME} PROPERTIES
         )
 
 include_directories(${MAIN_SOURCE}
-        ${EXTERNAL_SOURCE}
+        ${EXTERNAL_SOURCE}/rxcpp/Rx/v2/src
         ${CMAKE_CURRENT_BINARY_DIR}
         )
 
