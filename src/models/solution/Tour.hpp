@@ -35,7 +35,7 @@ public:
     size_t removed = jobs_.erase(job);
     assert(removed == 1);
 
-    ranges::action::remove_if(activities_, [&](const auto& activity) { return activity->job == job; });
+    ranges::action::remove_if(activities_, [&](const auto& a) { return a->job == job; });
 
     return *this;
   }
