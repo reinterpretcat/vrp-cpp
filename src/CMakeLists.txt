@@ -20,9 +20,11 @@ set(SOURCE_FILES
         models/extensions/solution/Comparators.hpp
         models/extensions/solution/Factories.hpp
 
+        models/problem/Actor.hpp
         models/problem/Costs.hpp
         models/problem/Driver.hpp
         models/problem/Vehicle.hpp
+        models/problem/Matrix.hpp
         models/problem/Job.hpp
         models/problem/JobVisitor.hpp
         models/problem/Service.hpp
