@@ -25,6 +25,8 @@ public:
 
   Activity&& owned() { return std::move(activity_); }
 
+  std::shared_ptr<Activity> shared() { return std::make_shared<Activity>(std::move(activity_)); }
+
 private:
   Activity activity_;
 };

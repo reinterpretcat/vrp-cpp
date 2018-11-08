@@ -30,7 +30,7 @@ public:
   }
 };
 
-vrp::models::solution::Activity DefaultActivity = test_build_activity{}.owned();
+std::shared_ptr<vrp::models::solution::Activity> DefaultActivity = test_build_activity{}.shared();
 
 }  // namespace vrp::test
 

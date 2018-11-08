@@ -15,34 +15,45 @@ namespace vrp::models::solution {
 /// Represents a tour, a smart container for jobs with their associated activities.
 class Tour final {
 public:
+  using Activity = std::shared_ptr<solution::Activity>;
+
   /// Adds activity within its job to end of tour.
-  Tour& add(const solution::Activity& activity) {
+  Tour& add(const Tour::Activity& activity) {
     insert(activity, activities_.size());
     return *this;
   }
 
   /// Inserts activity within its job at specified index.
-  Tour& insert(const solution::Activity& activity, size_t index) {
+  Tour& insert(const Tour::Activity& activity, size_t index) {
     activities_.insert(activities_.begin() + index, activity);
 
-    if (activity.job.has_value()) { jobs_.insert(activity.job.value()); }
+    if (activity->job.has_value()) { jobs_.insert(activity->job.value()); }
 
     return *this;
   }
 
   /// Removes job within its activities from the tour.
-  Tour& remove(std::shared_ptr<const problem::Job>& job) { return *this; }
+  Tour& remove(const solution::Activity::Job& job) {
+    size_t removed = jobs_.erase(job);
+    assert(removed == 1);
 
-  auto activities() const { return ranges::v3::view::all(activities_); }
+    ranges::action::remove_if(activities_, [&](const auto& activity) { return activity->job == job; });
 
-  auto jobs() const { return ranges::v3::view::all(jobs_); }
+    return *this;
+  }
+
+  /// Returns range view of all activities.
+  auto activities() const { return ranges::view::all(activities_); }
+
+  /// Returns range view of all jobs.
+  auto jobs() const { return ranges::view::all(jobs_); }
 
 private:
   /// Stores activities in the order the performed.
-  std::vector<solution::Activity> activities_;
+  std::vector<Tour::Activity> activities_;
 
   /// Stores jobs in the order of their activities added.
-  std::set<Activity::Job, problem::compare_jobs> jobs_;
+  std::set<solution::Activity::Job, problem::compare_jobs> jobs_;
 };
 
 }  // namespace vrp::models::solution

@@ -6,7 +6,6 @@
 
 #include <catch/catch.hpp>
 
-using namespace ranges::v3;
 using namespace vrp::models::problem;
 using namespace vrp::models::solution;
 
@@ -20,28 +19,35 @@ SCENARIO("tour can handle activities with job relations", "[models][tour]") {
     WHEN("activity with service job is added") {
       tour.add(DefaultActivity);
 
-      THEN("has only one job") {
+      THEN("jobs has only one job") {
         auto actual = size(tour.jobs());
 
         REQUIRE(1 == actual);
       }
 
-      THEN("has only one activity") {
+      THEN("activities has only one activity") {
         auto actual = size(tour.activities());
 
         REQUIRE(1 == actual);
       }
 
-      THEN("returns sequence with original job") {
-        std::vector<Activity::Job> actual = tour.jobs() | view::take(1);
+      THEN("jobs returns range with original job") {
+        std::vector<Activity::Job> actual = tour.jobs() | ranges::view::take(1);
 
         REQUIRE(DefaultService == actual[0]);
       }
 
-      THEN("returns sequence with original activity") {
-        std::vector<Activity> actual = tour.activities() | view::take(1);
+      THEN("activities returns range with original activity") {
+        std::vector<Tour::Activity> actual = tour.activities() | ranges::view::take(1);
 
-        CHECK_THAT(actual[0], ActivityMatcher(DefaultActivity));
+        CHECK_THAT(*actual[0], ActivityMatcher(*DefaultActivity));
+      }
+
+      THEN("remove activity removes both activity and its job") {
+        tour.remove(DefaultActivity->job.value());
+
+        REQUIRE(0 == size(tour.jobs()));
+        REQUIRE(0 == size(tour.activities()));
       }
     }
   }
