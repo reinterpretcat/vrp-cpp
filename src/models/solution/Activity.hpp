@@ -18,7 +18,7 @@ struct Activity final {
   vrp::models::common::Location location;
 
   /// Specifies job relation. Empty if it has no relation to job.
-  std::variant<std::monostate, std::shared_ptr<vrp::models::problem::Job>> job;
+  std::variant<std::monostate, std::shared_ptr<const vrp::models::problem::Job>> job;
 };
 
 }  // namespace vrp::models::solution

@@ -20,7 +20,7 @@ struct Service final : public Job {
   std::vector<vrp::models::common::TimeWindow> times;
 
   /// Dimensions which simulates work requirements.
-  vrp::models::common::Dimensions dimensions;
+  vrp::models::common::Dimensions dimens;
 
   void accept(JobVisitor& visitor) const override { visitor.visit(*this); }
 };

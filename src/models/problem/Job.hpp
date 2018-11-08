@@ -8,6 +8,8 @@
 #include <vector>
 
 namespace vrp::models::problem {
+
+/// Represents job.
 struct Job {
   /// Job id.
   std::string id;
@@ -16,4 +18,6 @@ struct Job {
 
   virtual ~Job() = default;
 };
+
+
 }  // namespace vrp::models::problem

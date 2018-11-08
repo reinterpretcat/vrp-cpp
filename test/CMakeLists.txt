@@ -9,7 +9,7 @@ include_directories(${MAIN_SOURCE}
         ${CMAKE_CURRENT_BINARY_DIR})
 
 set(SOURCE_FILES
-        )
+        models/solution/TourTest.cc testUtils/models/Factories.hpp)
 
 add_executable(${LIBRARY_TEST}
         main.cpp

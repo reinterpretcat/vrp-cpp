@@ -15,6 +15,10 @@ set(SOURCE_FILES
         models/common/Timestamp.hpp
         models/common/TimeWindow.hpp
 
+        models/extensions/problem/Comparators.hpp
+        models/extensions/solution/Comparators.hpp
+        models/extensions/Factories.hpp
+
         models/problem/Costs.hpp
         models/problem/Driver.hpp
         models/problem/Vehicle.hpp
