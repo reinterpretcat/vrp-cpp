@@ -19,7 +19,7 @@ public:
   }
 
   build_activity& withJob(std::shared_ptr<const vrp::models::problem::Job> job) {
-    activity_.job = std::variant<std::monostate, decltype(job)>(job);
+    activity_.job = job;
     return *this;
   }
 

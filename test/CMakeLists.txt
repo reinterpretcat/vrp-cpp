@@ -4,12 +4,15 @@ set(LIBRARY_NAME Solver)
 set(LIBRARY_TEST SolverTest)
 
 include_directories(${MAIN_SOURCE}
-        ${EXTERNAL_SOURCE}
+        ${EXTERNAL_SOURCE}/catch/src
+        ${EXTERNAL_SOURCE}/range-v3/include
         ${TEST_SOURCE}
         ${CMAKE_CURRENT_BINARY_DIR})
 
 set(SOURCE_FILES
-        models/solution/TourTest.cc testUtils/models/Factories.hpp)
+        test_utils/models/Factories.hpp
+        models/solution/TourTest.cc
+        test_utils/models/Matchers.hpp)
 
 add_executable(${LIBRARY_TEST}
         main.cpp

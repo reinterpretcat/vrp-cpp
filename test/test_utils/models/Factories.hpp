@@ -15,10 +15,7 @@ const vrp::models::common::Dimension DefaultDimension = {"capacity", 1};
 class test_build_service : public vrp::models::problem::build_service {
 public:
   explicit test_build_service() : vrp::models::problem::build_service() {
-    withId("service")
-      .withLocation({DefaultLocation})
-      .withTimes({DefaultTimeWindow})
-      .withDimensions({DefaultDimension});
+    withId("service").withLocation({DefaultLocation}).withTimes({DefaultTimeWindow}).withDimensions({DefaultDimension});
   }
 };
 
@@ -28,12 +25,12 @@ class test_build_activity : public vrp::models::solution::build_activity {
 public:
   explicit test_build_activity() : vrp::models::solution::build_activity() {
     withLocation(static_cast<vrp::models::common::Location>(DefaultLocation))
-    .withSchedule(static_cast<vrp::models::common::Schedule>(DefaultSchedule))
-    .withJob(DefaultService);
+      .withSchedule(static_cast<vrp::models::common::Schedule>(DefaultSchedule))
+      .withJob(DefaultService);
   }
 };
 
-const vrp::models::solution::Activity DefaultActivity = test_build_activity{}.owned();
+vrp::models::solution::Activity DefaultActivity = test_build_activity{}.owned();
 
 }  // namespace vrp::test
 

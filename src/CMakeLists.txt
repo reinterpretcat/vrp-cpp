@@ -48,7 +48,7 @@ set_target_properties(${LIBRARY_NAME} PROPERTIES
         )
 
 include_directories(${MAIN_SOURCE}
-        ${EXTERNAL_SOURCE}/rxcpp/Rx/v2/src
+        ${EXTERNAL_SOURCE}/range-v3/include
         ${CMAKE_CURRENT_BINARY_DIR}
         )
 

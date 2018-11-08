@@ -24,7 +24,7 @@ BraceWrapping:
   AfterNamespace: false
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: AfterColon
-ColumnLimit:    100
+ColumnLimit:    120
 CompactNamespaces: false
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 ConstructorInitializerIndentWidth: 2
