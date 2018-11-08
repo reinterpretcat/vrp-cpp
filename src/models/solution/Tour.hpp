@@ -1,11 +1,9 @@
 #pragma once
 
 #include "models/extensions/problem/Comparators.hpp"
-#include "models/extensions/solution/Comparators.hpp"
 #include "models/problem/Job.hpp"
 #include "models/solution/Activity.hpp"
 
-#include <memory>
 #include <range/v3/all.hpp>
 #include <set>
 #include <vector>
