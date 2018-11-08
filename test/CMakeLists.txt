@@ -10,9 +10,12 @@ include_directories(${MAIN_SOURCE}
         ${CMAKE_CURRENT_BINARY_DIR})
 
 set(SOURCE_FILES
-        test_utils/models/Factories.hpp
         models/solution/TourTest.cc
-        test_utils/models/Matchers.hpp)
+        models/algorithms/constraints/CompositeConstraintTest.cc
+
+        test_utils/models/Factories.hpp
+        test_utils/models/Matchers.hpp
+        )
 
 add_executable(${LIBRARY_TEST}
         main.cpp

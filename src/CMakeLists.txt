@@ -8,6 +8,10 @@ set(SOURCE_FILES
         Stub.hpp
         Stub.cc
 
+        algorithms/constraints/HardRouteConstraint.hpp
+        algorithms/constraints/SoftRouteConstraint.hpp
+        algorithms/constraints/CompositeConstraint.hpp
+
         models/common/Dimension.hpp
         models/common/Duration.hpp
         models/common/Location.hpp
