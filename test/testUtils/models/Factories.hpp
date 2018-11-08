@@ -2,7 +2,8 @@
 #pragma ide diagnostic ignored "cert-err58-cpp"
 #pragma once
 
-#include "models/extensions/Factories.hpp"
+#include "models/extensions/problem/Factories.hpp"
+#include "models/extensions/solution/Factories.hpp"
 
 namespace vrp::test {
 

@@ -16,8 +16,9 @@ set(SOURCE_FILES
         models/common/TimeWindow.hpp
 
         models/extensions/problem/Comparators.hpp
+        models/extensions/problem/Factories.hpp
         models/extensions/solution/Comparators.hpp
-        models/extensions/Factories.hpp
+        models/extensions/solution/Factories.hpp
 
         models/problem/Costs.hpp
         models/problem/Driver.hpp
