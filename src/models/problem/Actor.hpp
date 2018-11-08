@@ -9,7 +9,10 @@ namespace vrp::models::problem {
 
 /// Represents an actor.
 struct Actor final {
+  /// A vehicle associated within actor.
   std::shared_ptr<const Vehicle> vehicle;
+
+  /// A driver associated within actor.
   std::shared_ptr<const Driver> driver;
 };
 

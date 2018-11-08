@@ -24,7 +24,7 @@ set(SOURCE_FILES
         models/problem/Costs.hpp
         models/problem/Driver.hpp
         models/problem/Vehicle.hpp
-        models/problem/Matrix.hpp
+        models/problem/Routing.hpp
         models/problem/Job.hpp
         models/problem/JobVisitor.hpp
         models/problem/Service.hpp
