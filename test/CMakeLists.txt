@@ -1,5 +1,7 @@
 project(SolverTest LANGUAGES CXX)
 
+set(CMAKE_CXX_COMPILER "g++")
+
 set(LIBRARY_NAME Solver)
 set(LIBRARY_TEST SolverTest)
 
@@ -10,8 +12,8 @@ include_directories(${MAIN_SOURCE}
         ${CMAKE_CURRENT_BINARY_DIR})
 
 set(SOURCE_FILES
+        models/algorithms/construction/InsertionConstraintTest.cc
         models/solution/TourTest.cc
-        models/algorithms/constraints/CompositeConstraintTest.cc
 
         test_utils/models/Factories.hpp
         test_utils/models/Matchers.hpp

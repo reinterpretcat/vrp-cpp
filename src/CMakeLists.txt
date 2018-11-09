@@ -2,15 +2,13 @@ project(Solver LANGUAGES CXX)
 
 find_package(ClangTidy)
 
+set(CMAKE_CXX_COMPILER "g++")
+
 set(LIBRARY_NAME Solver)
 
 set(SOURCE_FILES
         Stub.hpp
         Stub.cc
-
-        algorithms/constraints/HardRouteConstraint.hpp
-        algorithms/constraints/SoftRouteConstraint.hpp
-        algorithms/constraints/CompositeConstraint.hpp
 
         models/common/Dimension.hpp
         models/common/Duration.hpp
@@ -39,6 +37,12 @@ set(SOURCE_FILES
         models/solution/Solution.hpp
         models/solution/Statistic.hpp
         models/solution/Tour.hpp
+        algorithms/construction/insertion/InsertionConstraint.hpp
+        algorithms/construction/insertion/InsertionContext.hpp
+        algorithms/construction/insertion/InsertionEvaluator.hpp
+        algorithms/construction/insertion/InsertionResult.hpp
+        algorithms/construction/insertion/evaluators/ServiceInsertionEvaluator.hpp
+        algorithms/construction/insertion/evaluators/ShipmentInsertionEvaluator.hpp
         )
 
 add_library(${LIBRARY_NAME} STATIC
