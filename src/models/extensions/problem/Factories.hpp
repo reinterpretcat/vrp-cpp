@@ -43,37 +43,37 @@ private:
 /// A helper class to build vehicle;
 class build_vehicle {
 public:
-  build_vehicle& withId(const std::string& id) {
+  build_vehicle& withId(std::string&& id) {
     vehicle_.id = id;
     return *this;
   }
 
-  build_vehicle& withProfile(const std::string& profile) {
+  build_vehicle& withProfile(std::string&& profile) {
     vehicle_.profile = profile;
     return *this;
   }
 
-  build_vehicle& withCosts(const Costs& costs) {
+  build_vehicle& withCosts(Costs&& costs) {
     vehicle_.costs = costs;
     return *this;
   }
 
-  build_vehicle& withSchedule(const common::Schedule& schedule) {
+  build_vehicle& withSchedule(common::Schedule&& schedule) {
     vehicle_.schedule = schedule;
     return *this;
   }
 
-  build_vehicle& withDimensions(const common::Dimensions& dimensions) {
+  build_vehicle& withDimensions(common::Dimensions&& dimensions) {
     vehicle_.dimensions = dimensions;
     return *this;
   }
 
-  build_vehicle& withStart(const common::Location& start) {
+  build_vehicle& withStart(common::Location&& start) {
     vehicle_.start = start;
     return *this;
   }
 
-  build_vehicle& withEnd(const std::optional<common::Location>& end) {
+  build_vehicle& withEnd(std::optional<common::Location>&& end) {
     vehicle_.end = end;
     return *this;
   }
@@ -89,12 +89,12 @@ private:
 /// A helper class to build driver.
 class build_driver {
 public:
-  build_driver& withCosts(const Costs& costs) {
+  build_driver& withCosts(Costs&& costs) {
     driver_.costs = costs;
     return *this;
   }
 
-  build_driver& withSchedule(const common::Schedule& schedule) {
+  build_driver& withSchedule(common::Schedule&& schedule) {
     driver_.schedule = schedule;
     return *this;
   }
