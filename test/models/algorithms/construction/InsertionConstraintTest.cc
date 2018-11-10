@@ -28,18 +28,18 @@ SCENARIO("insertion constraint can handle multiple constraints", "[algorithms][c
             .add([](const auto&) { return InsertionConstraint::HardResult {}; })
             .hard(InsertionContext{});
 
-        CHECK_THAT(result.value(),  Catch::Matchers::Equals(std::vector<int>{1}));
+        REQUIRE(result.value() == 1);
       }
     }
 
     WHEN("both not fulfilled") {
-      THEN("hard returns both codes") {
+      THEN("hard returns first code") {
         auto result = constraint
             .add([](const auto&) { return InsertionConstraint::HardResult {1}; })
             .add([](const auto&) { return InsertionConstraint::HardResult {3}; })
             .hard(InsertionContext{});
 
-        CHECK_THAT(result.value(),  Catch::Matchers::Equals(std::vector<int>{1, 3}));
+        REQUIRE(result.value() == 1);
       }
     }
   }

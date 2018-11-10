@@ -15,9 +15,6 @@ struct InsertionConstraint final {
   /// Specifies single hard constraint result.
   using HardResult = std::optional<int>;
 
-  /// Specifies aggregated hard constraint result.
-  using HardResults = std::optional<std::vector<int>>;
-
   /// Specifies hard constraint function which returns empty result or violated constraint code.
   using HardRoute = std::function<HardResult(const InsertionContext& context)>;
 
@@ -42,16 +39,14 @@ struct InsertionConstraint final {
 
   // region Implementation
 
-  HardResults hard(const InsertionContext& ctx) const {
-    auto violated = ranges::view::all(hardRouteConstraints_) |
-                    ranges::view::transform([&ctx](const auto& constraint) { return constraint(ctx); }) |
-                    ranges::view::filter([](const auto& result) { return result.has_value(); });
-
-    return ranges::distance(violated) == 0
-             ? HardResults{}
-             : HardResults{violated | ranges::view::transform([](const auto& result) { return result.value(); })};
+  HardResult hard(const InsertionContext& ctx) const {
+    return ranges::accumulate(ranges::view::all(hardRouteConstraints_) |
+                                ranges::view::transform([&ctx](const auto& constraint) { return constraint(ctx); }) |
+                                ranges::view::filter([](const auto& result) { return result.has_value(); }) |
+                                ranges::view::take(1),
+                              HardResult{},
+                              [](const auto& acc, const auto& v) { return std::make_optional(v.value()); });
   }
-
 
   double soft() const {
     // TODO

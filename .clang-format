@@ -16,6 +16,7 @@ AlwaysBreakTemplateDeclarations: true
 BinPackParameters: false
 BreakBeforeBinaryOperators: false
 BreakBeforeBraces: Custom
+BasedOnStyle: Mozilla
 BraceWrapping:
   AfterClass: false
   AfterControlStatement: false
