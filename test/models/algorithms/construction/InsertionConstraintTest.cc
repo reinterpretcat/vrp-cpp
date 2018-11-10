@@ -7,15 +7,15 @@ using namespace vrp::algorithms::construction;
 namespace vrp::test {
 
 SCENARIO("insertion constraint can handle multiple constraints", "[algorithms][constraints]") {
-  GIVEN("composite constraint with two hard constraints") {
+  GIVEN("insertion constraint with two hard constraints") {
     auto constraint = InsertionConstraint{};
 
     WHEN("both are fulfilled") {
-      THEN("hard no value") {
+      THEN("hard returns no value") {
         auto result = constraint
-            .add([]() { return InsertionConstraint::HardResult {}; })
-            .add([]() { return InsertionConstraint::HardResult {}; })
-            .hard();
+            .add([](const auto&) { return InsertionConstraint::HardResult {}; })
+            .add([](const auto&) { return InsertionConstraint::HardResult {}; })
+            .hard(InsertionContext{});
 
         REQUIRE(!result.has_value());
       }
@@ -24,9 +24,9 @@ SCENARIO("insertion constraint can handle multiple constraints", "[algorithms][c
     WHEN("one is fulfilled") {
       THEN("hard returns single code") {
         auto result = constraint
-            .add([]() { return InsertionConstraint::HardResult {1}; })
-            .add([]() { return InsertionConstraint::HardResult {}; })
-            .hard();
+            .add([](const auto&) { return InsertionConstraint::HardResult {1}; })
+            .add([](const auto&) { return InsertionConstraint::HardResult {}; })
+            .hard(InsertionContext{});
 
         CHECK_THAT(result.value(),  Catch::Matchers::Equals(std::vector<int>{1}));
       }
@@ -35,9 +35,9 @@ SCENARIO("insertion constraint can handle multiple constraints", "[algorithms][c
     WHEN("both not fulfilled") {
       THEN("hard returns both codes") {
         auto result = constraint
-            .add([]() { return InsertionConstraint::HardResult {1}; })
-            .add([]() { return InsertionConstraint::HardResult {3}; })
-            .hard();
+            .add([](const auto&) { return InsertionConstraint::HardResult {1}; })
+            .add([](const auto&) { return InsertionConstraint::HardResult {3}; })
+            .hard(InsertionContext{});
 
         CHECK_THAT(result.value(),  Catch::Matchers::Equals(std::vector<int>{1, 3}));
       }
