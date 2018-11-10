@@ -17,8 +17,12 @@ struct InsertionEvaluator final {
     serviceInsertionEvaluator(constraint), shipmentInsertionEvaluator(constraint) {}
 
   /// Evaluates possibility to preform insertion from given insertion context.
-  Result evaluate(const models::problem::Job& job, const InsertionContext& ctx, double bestKnownCost) {
-    return models::problem::visit_job<Result>(
+  InsertionResult::Variant evaluate(std::shared_ptr<const models::problem::Job> job,
+                                    const InsertionContext& ctx,
+                                    double bestKnownCost) {
+    // TODO insert start/end?
+
+    return models::problem::visit_job<InsertionResult::Variant>(
       [&](const auto& service) { return serviceInsertionEvaluator.evaluate(service, ctx, bestKnownCost); },
       [&](const auto& shipment) { return shipmentInsertionEvaluator.evaluate(shipment, ctx, bestKnownCost); },
       job);

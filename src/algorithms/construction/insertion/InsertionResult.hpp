@@ -13,6 +13,7 @@ struct InsertionResult {
 
   InsertionResult() = delete;
 
+  // TODO use variant from ranges?
   using Variant = std::variant<InsertionResult::Success, InsertionResult::Failure>;
 };
 

@@ -7,6 +7,7 @@ namespace vrp::models::problem {
 struct Service;
 struct Shipment;
 
+// TODO use variant from ranges?
 struct JobVisitor {
   virtual void visit(const Service&) = 0;
 

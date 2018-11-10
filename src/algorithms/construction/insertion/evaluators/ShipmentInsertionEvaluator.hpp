@@ -10,10 +10,10 @@ struct ShipmentInsertionEvaluator final {
   explicit ShipmentInsertionEvaluator(std::shared_ptr<const InsertionConstraint> constraint) :
     constraint_(std::move(constraint)) {}
 
-  InsertionResult::Variant evaluate(const models::problem::Shipment& shipment,
+  InsertionResult::Variant evaluate(const std::shared_ptr<const models::problem::Shipment>& shipment,
                                     const InsertionContext& ctx,
                                     double bestKnownCost) const {
-    // TODO
+    return InsertionResult::Failure{};
   }
 
 private:

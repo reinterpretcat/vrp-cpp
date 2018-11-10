@@ -4,6 +4,8 @@
 #include "models/problem/Service.hpp"
 #include "models/problem/Shipment.hpp"
 
+#include <memory>
+
 namespace vrp::models::problem {
 
 /// Simplifies the way to visit jobs.
@@ -12,11 +14,11 @@ namespace vrp::models::problem {
 /// pattern implementation.
 template<typename T>
 inline T
-visit_job(std::function<T(const Service&)> serviceFunctor,
-          std::function<T(const Shipment&)> shipmentFunctor,
+visit_job(std::function<T(std::shared_ptr<const Service>)> serviceFunctor,
+          std::function<T(std::shared_ptr<const Shipment>)> shipmentFunctor,
           const Job& job) {
-  using ServiceFunctor = std::function<T(const Service&)>;
-  using ShipmentFunctor = std::function<T(const Shipment&)>;
+  using ServiceFunctor = std::function<T(std::shared_ptr<const Service>)>;
+  using ShipmentFunctor = std::function<T(std::shared_ptr<const Shipment>)>;
 
   struct StatefulJobVisitor : private JobVisitor {
     T state;

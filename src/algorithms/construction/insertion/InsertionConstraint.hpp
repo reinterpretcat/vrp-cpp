@@ -1,6 +1,7 @@
 #pragma once
 
 #include "algorithms/construction/insertion/InsertionContext.hpp"
+#include "models/solution/Activity.hpp"
 
 #include <functional>
 #include <memory>
@@ -16,7 +17,8 @@ struct InsertionConstraint final {
   using HardResult = std::optional<int>;
 
   /// Specifies hard constraint function which returns empty result or violated constraint code.
-  using HardRoute = std::function<HardResult(const InsertionContext& context)>;
+  using HardRoute = std::function<HardResult(const InsertionContext& context,
+                                             const ranges::any_view<const models::solution::Activity>&)>;
 
   /// Specifies soft constraint function which returns additional cost penalty.
   using SoftRoute = std::function<double()>;
@@ -39,9 +41,10 @@ struct InsertionConstraint final {
 
   // region Implementation
 
-  HardResult hard(const InsertionContext& ctx) const {
+  HardResult hard(const InsertionContext& ctx, const ranges::any_view<const models::solution::Activity>& view) const {
+    // TODO use ranges_any_of ?
     return ranges::accumulate(ranges::view::all(hardRouteConstraints_) |
-                                ranges::view::transform([&ctx](const auto& constraint) { return constraint(ctx); }) |
+                                ranges::view::transform([&](const auto& constraint) { return constraint(ctx, view); }) |
                                 ranges::view::filter([](const auto& result) { return result.has_value(); }) |
                                 ranges::view::take(1),
                               HardResult{},
