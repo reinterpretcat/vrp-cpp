@@ -19,7 +19,7 @@ public:
   }
 };
 
-std::shared_ptr<const vrp::models::problem::Service> DefaultService = test_build_service{}.shared();
+inline std::shared_ptr<const vrp::models::problem::Service> DefaultService = test_build_service{}.shared();
 
 class test_build_activity : public vrp::models::solution::build_activity {
 public:
@@ -30,7 +30,7 @@ public:
   }
 };
 
-std::shared_ptr<vrp::models::solution::Activity> DefaultActivity = test_build_activity{}.shared();
+inline std::shared_ptr<vrp::models::solution::Activity> DefaultActivity = test_build_activity{}.shared();
 
 }  // namespace vrp::test
 

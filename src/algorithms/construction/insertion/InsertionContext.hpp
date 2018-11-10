@@ -12,9 +12,6 @@ namespace vrp::algorithms::construction {
 
 /// Specifies insertion context.
 struct InsertionContext final {
-  /// A job to be inserted.
-  std::shared_ptr<const models::problem::Job> job;
-
   /// A route where job is supposed to be inserted.
   std::shared_ptr<models::solution::Route> route;
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <variant>
+
 namespace vrp::algorithms::construction {
 
 struct InsertionResult {
@@ -10,6 +12,8 @@ struct InsertionResult {
   struct Failure final {};
 
   InsertionResult() = delete;
+
+  using Variant = std::variant<InsertionResult::Success, InsertionResult::Failure>;
 };
 
 

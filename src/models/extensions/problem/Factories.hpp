@@ -1,6 +1,9 @@
 #pragma once
 
+#include "models/problem/Actor.hpp"
+#include "models/problem/Driver.hpp"
 #include "models/problem/Service.hpp"
+#include "models/problem/Vehicle.hpp"
 
 #include <memory>
 
@@ -35,6 +38,94 @@ public:
 
 private:
   Service service_;
+};
+
+/// A helper class to build vehicle;
+class build_vehicle {
+public:
+  build_vehicle& withId(const std::string& id) {
+    vehicle_.id = id;
+    return *this;
+  }
+
+  build_vehicle& withProfile(const std::string& profile) {
+    vehicle_.profile = profile;
+    return *this;
+  }
+
+  build_vehicle& withCosts(const Costs& costs) {
+    vehicle_.costs = costs;
+    return *this;
+  }
+
+  build_vehicle& withSchedule(const common::Schedule& schedule) {
+    vehicle_.schedule = schedule;
+    return *this;
+  }
+
+  build_vehicle& withDimensions(const common::Dimensions& dimensions) {
+    vehicle_.dimensions = dimensions;
+    return *this;
+  }
+
+  build_vehicle& withStart(const common::Location& start) {
+    vehicle_.start = start;
+    return *this;
+  }
+
+  build_vehicle& withEnd(const std::optional<common::Location>& end) {
+    vehicle_.end = end;
+    return *this;
+  }
+
+  Vehicle&& owned() { return std::move(vehicle_); }
+
+  std::shared_ptr<Vehicle> shared() { return std::make_shared<Vehicle>(std::move(vehicle_)); }
+
+private:
+  Vehicle vehicle_;
+};
+
+/// A helper class to build driver.
+class build_driver {
+public:
+  build_driver& withCosts(const Costs& costs) {
+    driver_.costs = costs;
+    return *this;
+  }
+
+  build_driver& withSchedule(const common::Schedule& schedule) {
+    driver_.schedule = schedule;
+    return *this;
+  }
+
+  Driver&& owned() { return std::move(driver_); }
+
+  std::shared_ptr<Driver> shared() { return std::make_shared<Driver>(std::move(driver_)); }
+
+private:
+  Driver driver_;
+};
+
+/// A helper class to build actor.
+class build_actor {
+public:
+  build_actor& withDriver(const std::shared_ptr<const Driver>& driver) {
+    actor_.driver = driver;
+    return *this;
+  }
+
+  build_actor& withVehicle(const std::shared_ptr<const Vehicle>& vehicle) {
+    actor_.vehicle = vehicle;
+    return *this;
+  }
+
+  Actor&& owned() { return std::move(actor_); }
+
+  std::shared_ptr<Actor> shared() { return std::make_shared<Actor>(std::move(actor_)); }
+
+private:
+  Actor actor_;
 };
 
 }  // namespace vrp::models::problem
