@@ -1,7 +1,5 @@
 project(SolverTest LANGUAGES CXX)
 
-set(CMAKE_CXX_COMPILER "g++")
-
 set(LIBRARY_NAME Solver)
 set(LIBRARY_TEST SolverTest)
 

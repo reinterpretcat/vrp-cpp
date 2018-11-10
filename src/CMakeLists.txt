@@ -2,8 +2,6 @@ project(Solver LANGUAGES CXX)
 
 find_package(ClangTidy)
 
-set(CMAKE_CXX_COMPILER "g++")
-
 set(LIBRARY_NAME Solver)
 
 set(SOURCE_FILES
