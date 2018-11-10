@@ -37,7 +37,6 @@ public:
 
 inline std::shared_ptr<vrp::models::solution::Activity> DefaultActivity = test_build_activity{}.shared();
 
-
 class test_build_vehicle : public vrp::models::problem::build_vehicle {
 public:
   explicit test_build_vehicle() : vrp::models::problem::build_vehicle() {
@@ -59,10 +58,21 @@ public:
   }
 };
 
+inline std::shared_ptr<const vrp::models::problem::Driver> DefaultDriver = test_build_driver{}.shared();
+
 class test_build_actor : public vrp::models::problem::build_actor {
 public:
   explicit test_build_actor() : vrp::models::problem::build_actor() {
     withDriver(test_build_driver{}.shared()).withVehicle(test_build_vehicle{}.shared());
+  }
+};
+
+inline std::shared_ptr<const vrp::models::problem::Actor> DefaultActor = test_build_actor{}.shared();
+
+class test_build_route : public vrp::models::solution::build_route {
+public:
+  explicit test_build_route() : vrp::models::solution::build_route() {
+    withActor(test_build_actor{}.owned());
   }
 };
 

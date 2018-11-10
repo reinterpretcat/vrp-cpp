@@ -1,11 +1,13 @@
 #pragma once
 
 #include "models/solution/Activity.hpp"
+#include "models/solution/Route.hpp"
 
 #include <memory>
 
 namespace vrp::models::solution {
 
+/// A helper class to build activity.
 class build_activity {
 public:
   build_activity& withSchedule(common::Schedule&& schedule) {
@@ -18,7 +20,7 @@ public:
     return *this;
   }
 
-  build_activity& withJob(std::shared_ptr<const vrp::models::problem::Job> job) {
+  build_activity& withJob(std::shared_ptr<const models::problem::Job> job) {
     activity_.job = job;
     return *this;
   }
@@ -29,6 +31,23 @@ public:
 
 private:
   Activity activity_;
+};
+
+/// A helper class to build route.
+class build_route {
+public:
+  build_route& withActor(problem::Actor&& actor) {
+    route_.actor = actor;
+    return *this;
+  }
+
+  build_route& withTour(solution::Tour&& tour) {
+    route_.tour = tour;
+    return *this;
+  }
+
+private:
+  Route route_;
 };
 
 }  // namespace vrp::models::solution
