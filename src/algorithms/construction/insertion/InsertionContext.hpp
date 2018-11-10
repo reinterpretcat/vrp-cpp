@@ -12,11 +12,11 @@ namespace vrp::algorithms::construction {
 
 /// Specifies insertion context.
 struct InsertionContext final {
-  /// A route where job is supposed to be inserted.
-  std::shared_ptr<models::solution::Route> route;
-
   /// A proposed actor to be used.
   std::shared_ptr<models::problem::Actor> actor;
+
+  /// A route where job is supposed to be inserted.
+  std::shared_ptr<models::solution::Route> route;
 
   /// Moment in time (departure from last activity).
   models::common::Timestamp time;

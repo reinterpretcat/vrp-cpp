@@ -8,6 +8,7 @@ set(SOURCE_FILES
         Stub.hpp
         Stub.cc
 
+        algorithms/construction/extensions/Insertions.hpp
         algorithms/construction/insertion/InsertionConstraint.hpp
         algorithms/construction/insertion/InsertionContext.hpp
         algorithms/construction/insertion/InsertionEvaluator.hpp

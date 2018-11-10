@@ -13,7 +13,7 @@ struct ServiceInsertionEvaluator final {
   InsertionResult::Variant evaluate(const models::problem::Service& service,
                                     const InsertionContext& ctx,
                                     double bestKnownCost) const {
-    // TODO
+    return InsertionResult::Failure{};
   }
 
 private:

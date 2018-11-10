@@ -7,6 +7,7 @@
 
 namespace vrp::test {
 
+constexpr vrp::models::common::Timestamp DefaultTime = 0;
 constexpr vrp::models::common::Location DefaultActorLocation = 0;
 constexpr vrp::models::common::Location DefaultJobLocation = 1;
 constexpr vrp::models::common::TimeWindow DefaultTimeWindow = {0, 1000};
@@ -42,8 +43,8 @@ public:
   explicit test_build_vehicle() : vrp::models::problem::build_vehicle() {
     withId("vehicle1")
       .withProfile("car")
-      .withStart(static_cast<vrp::models::common::Location>(DefaultJobLocation))
-      .withEnd(static_cast<vrp::models::common::Location>(DefaultJobLocation))
+      .withStart(static_cast<vrp::models::common::Location>(DefaultActorLocation))
+      .withEnd(static_cast<vrp::models::common::Location>(DefaultActorLocation))
       .withSchedule(static_cast<vrp::models::common::Schedule>(DefaultSchedule))
       .withDimensions({DefaultDimension})
       .withCosts(static_cast<vrp::models::problem::Costs>(DefaultCosts));
@@ -67,13 +68,11 @@ public:
   }
 };
 
-inline std::shared_ptr<const vrp::models::problem::Actor> DefaultActor = test_build_actor{}.shared();
+inline std::shared_ptr<vrp::models::problem::Actor> DefaultActor = test_build_actor{}.shared();
 
 class test_build_route : public vrp::models::solution::build_route {
 public:
-  explicit test_build_route() : vrp::models::solution::build_route() {
-    withActor(test_build_actor{}.owned());
-  }
+  explicit test_build_route() : vrp::models::solution::build_route() { withActor(test_build_actor{}.owned()); }
 };
 
 }  // namespace vrp::test

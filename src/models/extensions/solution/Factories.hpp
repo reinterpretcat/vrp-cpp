@@ -46,6 +46,10 @@ public:
     return *this;
   }
 
+  Route&& owned() { return std::move(route_); }
+
+  std::shared_ptr<Route> shared() { return std::make_shared<Route>(std::move(route_)); }
+
 private:
   Route route_;
 };
