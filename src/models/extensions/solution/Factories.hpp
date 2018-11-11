@@ -20,8 +20,8 @@ public:
     return *this;
   }
 
-  build_activity& withJob(std::shared_ptr<const models::problem::Job> job) {
-    activity_.job = job;
+  build_activity& withJob(const problem::Job& job) {
+    activity_.job = std::make_optional<problem::Job>(job);
     return *this;
   }
 

@@ -31,7 +31,7 @@ public:
   }
 
   /// Removes job within its activities from the tour.
-  Tour& remove(const solution::Activity::Job& job) {
+  Tour& remove(const problem::Job& job) {
     size_t removed = jobs_.erase(job);
     assert(removed == 1);
 
@@ -51,7 +51,7 @@ private:
   std::vector<Tour::Activity> activities_;
 
   /// Stores jobs in the order of their activities added.
-  std::set<solution::Activity::Job, problem::compare_jobs> jobs_;
+  std::set<problem::Job, problem::compare_jobs> jobs_;
 };
 
 }  // namespace vrp::models::solution

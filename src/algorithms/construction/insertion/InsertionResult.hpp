@@ -1,21 +1,16 @@
 #pragma once
 
-#include <variant>
+#include <range/v3/utility/variant.hpp>
 
 namespace vrp::algorithms::construction {
 
-struct InsertionResult {
-  /// Specifies insertion result needed to insert job into tour.
-  struct Success final {};
+/// Specifies insertion result needed to insert job into tour.
+struct InsertionSuccess final {};
 
-  /// Specifies insertion failure.
-  struct Failure final {};
+/// Specifies insertion failure.
+struct InsertionFailure final {};
 
-  InsertionResult() = delete;
-
-  // TODO use variant from ranges?
-  using Variant = std::variant<InsertionResult::Success, InsertionResult::Failure>;
-};
+using InsertionResult = ranges::variant<InsertionSuccess, InsertionFailure>;
 
 
 }  // namespace vrp::algorithms::construction

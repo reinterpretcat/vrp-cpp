@@ -16,7 +16,7 @@ SCENARIO("service insertion evaluator", "[algorithms][constraints]") {
     auto route = test_build_route{}.owned();
 
     WHEN("evaluate insertion context with empty tour") {
-      auto result = evaluator.evaluate(DefaultService,
+      auto result = evaluator.evaluate(ranges::get<0>(DefaultService),
                                        test_build_insertion_context{}.owned(), 1000);
 
       THEN("returns insertion success") {

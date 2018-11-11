@@ -25,7 +25,7 @@ public:
   }
 };
 
-inline std::shared_ptr<const vrp::models::problem::Service> DefaultService = test_build_service{}.shared();
+inline vrp::models::problem::Job DefaultService = vrp::models::problem::as_job(test_build_service{}.shared());
 
 class test_build_activity : public vrp::models::solution::build_activity {
 public:

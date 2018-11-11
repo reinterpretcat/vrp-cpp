@@ -1,14 +1,16 @@
 #pragma once
 
-#include "Job.hpp"
-#include "Service.hpp"
+#include "models/common/Dimension.hpp"
+#include "models/common/Duration.hpp"
+#include "models/common/Location.hpp"
+#include "models/common/TimeWindow.hpp"
 
-#include <optional>
+#include <vector>
 
 namespace vrp::models::problem {
 
 /// Represents a job associated with two locations.
-struct Shipment final : public Job {
+struct Shipment final {
   /// Represents a work which has to be performed.
   struct Service final {
     /// Location of the service.
@@ -21,6 +23,9 @@ struct Shipment final : public Job {
     std::vector<vrp::models::common::TimeWindow> times;
   };
 
+  /// Specifies shipment id.
+  std::string id;
+
   /// Pickup service performed before delivery.
   Service pickup;
 
@@ -29,8 +34,6 @@ struct Shipment final : public Job {
 
   /// Dimensions which simulates work requirements.
   vrp::models::common::Dimensions dimensions;
-
-  void accept(JobVisitor& visitor) const override { visitor.visit(*this); }
 };
 
 }  // namespace vrp::models::problem

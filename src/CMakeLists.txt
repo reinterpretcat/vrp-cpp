@@ -23,7 +23,6 @@ set(SOURCE_FILES
         models/common/Timestamp.hpp
         models/common/TimeWindow.hpp
 
-        models/extensions/problem/Adaptors.hpp
         models/extensions/problem/Comparators.hpp
         models/extensions/problem/Factories.hpp
         models/extensions/solution/Comparators.hpp
@@ -35,7 +34,6 @@ set(SOURCE_FILES
         models/problem/Vehicle.hpp
         models/problem/Routing.hpp
         models/problem/Job.hpp
-        models/problem/JobVisitor.hpp
         models/problem/Service.hpp
         models/problem/Shipment.hpp
 
@@ -45,7 +43,7 @@ set(SOURCE_FILES
         models/solution/Statistic.hpp
         models/solution/Tour.hpp
 
-        )
+        utils/Extensions.hpp)
 
 add_library(${LIBRARY_NAME} STATIC
         ${SOURCE_FILES}

@@ -13,14 +13,16 @@ struct ServiceInsertionEvaluator final {
   explicit ServiceInsertionEvaluator(std::shared_ptr<const InsertionConstraint> constraint) :
     constraint_(std::move(constraint)) {}
 
-  InsertionResult::Variant evaluate(const std::shared_ptr<const models::problem::Service>& service,
-                                    const InsertionContext& ctx,
-                                    double bestKnownCost) const {
-    auto activity = models::solution::build_activity{}.withJob(service).withSchedule({0, 0}).owned();
+  InsertionResult evaluate(const std::shared_ptr<const models::problem::Service>& service,
+                           const InsertionContext& ctx,
+                           double bestKnownCost) const {
+    auto activity = models::solution::build_activity{}  //.withJob(service)
+                      .withSchedule({0, 0})
+                      .owned();
 
     auto fulfilled = constraint_->hard(ctx, ranges::view::single(activity));
-
-    return InsertionResult::Failure{};
+    //
+    //    return { InsertionFailure{} };
   }
 
 private:

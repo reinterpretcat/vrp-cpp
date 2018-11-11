@@ -2,12 +2,26 @@
 
 #include "models/problem/Actor.hpp"
 #include "models/problem/Driver.hpp"
+#include "models/problem/Job.hpp"
 #include "models/problem/Service.hpp"
 #include "models/problem/Vehicle.hpp"
 
 #include <memory>
+#include <range/v3/utility/variant.hpp>
 
 namespace vrp::models::problem {
+
+/// Creates job from service.
+inline Job
+as_job(const std::shared_ptr<const Service>& service) {
+  return {ranges::emplaced_index<0>, service};
+}
+
+/// Creates job from shipment.
+inline Job
+as_job(const std::shared_ptr<const Shipment>& shipment) {
+  return {ranges::emplaced_index<1>, shipment};
+}
 
 /// A helper class to create service job.
 class build_service {

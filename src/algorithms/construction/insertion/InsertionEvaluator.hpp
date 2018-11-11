@@ -5,7 +5,6 @@
 #include "algorithms/construction/insertion/InsertionResult.hpp"
 #include "algorithms/construction/insertion/evaluators/ServiceInsertionEvaluator.hpp"
 #include "algorithms/construction/insertion/evaluators/ShipmentInsertionEvaluator.hpp"
-#include "models/extensions/problem/Adaptors.hpp"
 
 #include <variant>
 
@@ -17,15 +16,11 @@ struct InsertionEvaluator final {
     serviceInsertionEvaluator(constraint), shipmentInsertionEvaluator(constraint) {}
 
   /// Evaluates possibility to preform insertion from given insertion context.
-  InsertionResult::Variant evaluate(std::shared_ptr<const models::problem::Job> job,
-                                    const InsertionContext& ctx,
-                                    double bestKnownCost) {
+  InsertionResult evaluate(const models::problem::Job& job, const InsertionContext& ctx, double bestKnownCost) {
     // TODO insert start/end?
-
-    return models::problem::visit_job<InsertionResult::Variant>(
+    return job.visit(ranges::overload(
       [&](const auto& service) { return serviceInsertionEvaluator.evaluate(service, ctx, bestKnownCost); },
-      [&](const auto& shipment) { return shipmentInsertionEvaluator.evaluate(shipment, ctx, bestKnownCost); },
-      job);
+      [&](const auto& shipment) { return shipmentInsertionEvaluator.evaluate(shipment, ctx, bestKnownCost); }));
   }
 
 private:
