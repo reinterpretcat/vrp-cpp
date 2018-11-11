@@ -21,7 +21,7 @@ struct InsertionConstraint final {
                                              const ranges::any_view<const models::solution::Activity>&)>;
 
   /// Specifies soft constraint function which returns additional cost penalty.
-  using SoftRoute = std::function<double()>;
+  using SoftRoute = std::function<double(const InsertionContext& context)>;
 
   // region Add
 
@@ -41,6 +41,8 @@ struct InsertionConstraint final {
 
   // region Implementation
 
+  /// Checks whether all hard route constraints are fulfilled.
+  /// Returns the code of first failed constraint or empty value.
   HardResult hard(const InsertionContext& ctx, const ranges::any_view<const models::solution::Activity>& view) const {
     return ranges::accumulate(ranges::view::all(hardRouteConstraints_) |
                                 ranges::view::transform([&](const auto& constraint) { return constraint(ctx, view); }) |
@@ -50,9 +52,11 @@ struct InsertionConstraint final {
                               [](const auto& acc, const auto& v) { return std::make_optional(v.value()); });
   }
 
-  double soft() const {
-    // TODO
-    return 0;
+  /// Checks soft route constraints and aggregates associated penalties.
+  double soft(const InsertionContext& ctx) const {
+    return ranges::accumulate(ranges::view::all(softRouteConstraints_) |
+                                ranges::view::transform([&](const auto& constraint) { return constraint(ctx); }),
+                              0.0);
   }
 
   // endregion
