@@ -17,7 +17,7 @@ SCENARIO("service insertion evaluator", "[algorithms][constraints]") {
 
     bool failed = false;
     constraint->add([&failed](const auto&, const auto&) {
-      return failed ? InsertionConstraint::HardResult{42} : InsertionConstraint::HardResult{};
+      return failed ? InsertionConstraint::HardRouteResult{42} : InsertionConstraint::HardRouteResult{};
     });
 
     WHEN("evaluate insertion context with empty tour and failed constraint") {

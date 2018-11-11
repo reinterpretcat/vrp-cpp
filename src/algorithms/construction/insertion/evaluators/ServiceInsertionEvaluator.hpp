@@ -14,7 +14,7 @@ struct ServiceInsertionEvaluator final {
     constraint_(std::move(constraint)) {}
 
   InsertionResult evaluate(const std::shared_ptr<const models::problem::Service>& service,
-                           const InsertionContext& ctx,
+                           const InsertionRouteContext& ctx,
                            double bestKnownCost) const {
     auto activity = models::solution::build_activity{}            //
                       .withJob(models::problem::as_job(service))  //

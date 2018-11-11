@@ -1,6 +1,6 @@
 #pragma once
 
-#include "algorithms/construction/insertion/InsertionContext.hpp"
+#include "algorithms/construction/insertion/InsertionRouteContext.hpp"
 
 namespace vrp::algorithms::construction {
 
@@ -21,9 +21,9 @@ public:
     return *this;
   }
 
-  InsertionContext&& owned() { return std::move(context_); }
+  InsertionRouteContext&& owned() { return std::move(context_); }
 
 private:
-  InsertionContext context_;
+  InsertionRouteContext context_;
 };
 }

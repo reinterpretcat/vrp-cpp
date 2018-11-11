@@ -11,7 +11,7 @@ struct ShipmentInsertionEvaluator final {
     constraint_(std::move(constraint)) {}
 
   InsertionResult evaluate(const std::shared_ptr<const models::problem::Shipment>& shipment,
-                           const InsertionContext& ctx,
+                           const InsertionRouteContext& ctx,
                            double bestKnownCost) const {
     //    return InsertionResult::Failure{};
   }

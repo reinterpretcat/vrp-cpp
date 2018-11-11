@@ -1,6 +1,6 @@
 #pragma once
 
-#include "algorithms/construction/insertion/InsertionContext.hpp"
+#include "algorithms/construction/insertion/InsertionRouteContext.hpp"
 #include "models/solution/Activity.hpp"
 
 #include <functional>
@@ -14,14 +14,14 @@ namespace vrp::algorithms::construction {
 /// An insertion constraint which encapsulates behaviour of all possible constraint types.
 struct InsertionConstraint final {
   /// Specifies single hard constraint result.
-  using HardResult = std::optional<int>;
+  using HardRouteResult = std::optional<int>;
 
   /// Specifies hard constraint function which returns empty result or violated constraint code.
-  using HardRoute = std::function<HardResult(const InsertionContext& context,
+  using HardRoute = std::function<HardRouteResult(const InsertionRouteContext& context,
                                              const ranges::any_view<const models::solution::Activity>&)>;
 
   /// Specifies soft constraint function which returns additional cost penalty.
-  using SoftRoute = std::function<double(const InsertionContext& context)>;
+  using SoftRoute = std::function<double(const InsertionRouteContext& context)>;
 
   // region Add
 
@@ -43,17 +43,18 @@ struct InsertionConstraint final {
 
   /// Checks whether all hard route constraints are fulfilled.
   /// Returns the code of first failed constraint or empty value.
-  HardResult hard(const InsertionContext& ctx, const ranges::any_view<const models::solution::Activity>& view) const {
+  HardRouteResult hard(const InsertionRouteContext& ctx,
+                  const ranges::any_view<const models::solution::Activity>& view) const {
     return ranges::accumulate(ranges::view::all(hardRouteConstraints_) |
                                 ranges::view::transform([&](const auto& constraint) { return constraint(ctx, view); }) |
                                 ranges::view::filter([](const auto& result) { return result.has_value(); }) |
                                 ranges::view::take(1),
-                              HardResult{},
+                              HardRouteResult{},
                               [](const auto& acc, const auto& v) { return std::make_optional(v.value()); });
   }
 
   /// Checks soft route constraints and aggregates associated penalties.
-  double soft(const InsertionContext& ctx) const {
+  double soft(const InsertionRouteContext& ctx) const {
     return ranges::accumulate(ranges::view::all(softRouteConstraints_) |
                                 ranges::view::transform([&](const auto& constraint) { return constraint(ctx); }),
                               0.0);

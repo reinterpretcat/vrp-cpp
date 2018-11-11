@@ -9,8 +9,10 @@ set(SOURCE_FILES
         Stub.cc
 
         algorithms/construction/extensions/Insertions.hpp
+
+        algorithms/construction/insertion/InsertionActivityContext.hpp
         algorithms/construction/insertion/InsertionConstraint.hpp
-        algorithms/construction/insertion/InsertionContext.hpp
+        algorithms/construction/insertion/InsertionRouteContext.hpp
         algorithms/construction/insertion/InsertionEvaluator.hpp
         algorithms/construction/insertion/InsertionResult.hpp
         algorithms/construction/insertion/evaluators/ServiceInsertionEvaluator.hpp
@@ -43,7 +45,9 @@ set(SOURCE_FILES
         models/solution/Statistic.hpp
         models/solution/Tour.hpp
 
-        utils/Extensions.hpp)
+        utils/Extensions.hpp
+
+        )
 
 add_library(${LIBRARY_NAME} STATIC
         ${SOURCE_FILES}

@@ -10,8 +10,8 @@
 
 namespace vrp::algorithms::construction {
 
-/// Specifies insertion context.
-struct InsertionContext final {
+/// Specifies insertion context for route.
+struct InsertionRouteContext final {
   /// A proposed actor to be used.
   std::shared_ptr<models::problem::Actor> actor;
 

@@ -1,8 +1,8 @@
 #pragma once
 
 #include "algorithms/construction/insertion/InsertionConstraint.hpp"
-#include "algorithms/construction/insertion/InsertionContext.hpp"
 #include "algorithms/construction/insertion/InsertionResult.hpp"
+#include "algorithms/construction/insertion/InsertionRouteContext.hpp"
 #include "algorithms/construction/insertion/evaluators/ServiceInsertionEvaluator.hpp"
 #include "algorithms/construction/insertion/evaluators/ShipmentInsertionEvaluator.hpp"
 
@@ -16,7 +16,7 @@ struct InsertionEvaluator final {
     serviceInsertionEvaluator(constraint), shipmentInsertionEvaluator(constraint) {}
 
   /// Evaluates possibility to preform insertion from given insertion context.
-  InsertionResult evaluate(const models::problem::Job& job, const InsertionContext& ctx, double bestKnownCost) {
+  InsertionResult evaluate(const models::problem::Job& job, const InsertionRouteContext& ctx, double bestKnownCost) {
     // TODO insert start/end?
     return job.visit(ranges::overload(
       [&](const auto& service) { return serviceInsertionEvaluator.evaluate(service, ctx, bestKnownCost); },
