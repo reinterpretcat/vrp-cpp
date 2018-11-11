@@ -42,7 +42,6 @@ struct InsertionConstraint final {
   // region Implementation
 
   HardResult hard(const InsertionContext& ctx, const ranges::any_view<const models::solution::Activity>& view) const {
-    // TODO use ranges_any_of ?
     return ranges::accumulate(ranges::view::all(hardRouteConstraints_) |
                                 ranges::view::transform([&](const auto& constraint) { return constraint(ctx, view); }) |
                                 ranges::view::filter([](const auto& result) { return result.has_value(); }) |

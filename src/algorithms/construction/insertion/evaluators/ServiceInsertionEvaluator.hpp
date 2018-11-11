@@ -21,7 +21,9 @@ struct ServiceInsertionEvaluator final {
                       .withSchedule({0, 0})                       //
                       .owned();
 
-    auto fulfilled = constraint_->hard(ctx, ranges::view::single(activity));
+    auto error = constraint_->hard(ctx, ranges::view::single(activity));
+    if (error.has_value()) { return {ranges::emplaced_index<1>, InsertionFailure{error.value()}}; }
+
 
     return {ranges::emplaced_index<1>, InsertionFailure{}};
   }

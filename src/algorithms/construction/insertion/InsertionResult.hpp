@@ -8,8 +8,12 @@ namespace vrp::algorithms::construction {
 struct InsertionSuccess final {};
 
 /// Specifies insertion failure.
-struct InsertionFailure final {};
+struct InsertionFailure final {
+  /// Failed constraint code
+  int constraint;
+};
 
+/// Specifies all possible insertion results.
 using InsertionResult = ranges::variant<InsertionSuccess, InsertionFailure>;
 
 
