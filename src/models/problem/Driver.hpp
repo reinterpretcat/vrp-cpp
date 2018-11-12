@@ -1,5 +1,6 @@
 #pragma once
 
+#include "models/common/Dimension.hpp"
 #include "models/common/Schedule.hpp"
 #include "models/problem/Costs.hpp"
 
@@ -13,8 +14,8 @@ struct Driver {
   /// Specifies driver costs.
   Costs costs;
 
-  /// Specifies departure/arrival schedule limits.
-  vrp::models::common::Schedule schedule;
+  /// Specifies dimensions supported by driver.
+  vrp::models::common::Dimensions dimensions;
 };
 
 }  // namespace vrp::models::problem

@@ -23,9 +23,6 @@ struct Vehicle final {
   /// Specifies vehicle costs.
   Costs costs;
 
-  /// Specifies departure/arrival schedule limits.
-  vrp::models::common::Schedule schedule;
-
   /// Specifies dimensions supported by vehicle.
   vrp::models::common::Dimensions dimensions;
 

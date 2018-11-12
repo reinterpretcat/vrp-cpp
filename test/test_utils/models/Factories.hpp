@@ -45,7 +45,6 @@ public:
       .withProfile("car")
       .withStart(static_cast<vrp::models::common::Location>(DefaultActorLocation))
       .withEnd(static_cast<vrp::models::common::Location>(DefaultActorLocation))
-      .withSchedule(static_cast<vrp::models::common::Schedule>(DefaultSchedule))
       .withDimensions({DefaultDimension})
       .withCosts(static_cast<vrp::models::problem::Costs>(DefaultCosts));
   }
@@ -54,8 +53,7 @@ public:
 class test_build_driver : public vrp::models::problem::build_driver {
 public:
   explicit test_build_driver() : vrp::models::problem::build_driver() {
-    withSchedule(static_cast<vrp::models::common::Schedule>(DefaultSchedule))
-      .withCosts(static_cast<vrp::models::problem::Costs>(DefaultCosts));
+    withCosts(static_cast<vrp::models::problem::Costs>(DefaultCosts));
   }
 };
 

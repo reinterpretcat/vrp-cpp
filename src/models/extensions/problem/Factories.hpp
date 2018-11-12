@@ -72,11 +72,6 @@ public:
     return *this;
   }
 
-  build_vehicle& withSchedule(common::Schedule&& schedule) {
-    vehicle_.schedule = schedule;
-    return *this;
-  }
-
   build_vehicle& withDimensions(common::Dimensions&& dimensions) {
     vehicle_.dimensions = dimensions;
     return *this;
@@ -105,11 +100,6 @@ class build_driver {
 public:
   build_driver& withCosts(Costs&& costs) {
     driver_.costs = costs;
-    return *this;
-  }
-
-  build_driver& withSchedule(common::Schedule&& schedule) {
-    driver_.schedule = schedule;
     return *this;
   }
 

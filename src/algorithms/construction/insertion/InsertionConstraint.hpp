@@ -18,7 +18,7 @@ struct InsertionConstraint final {
 
   /// Specifies hard constraint function which returns empty result or violated constraint code.
   using HardRoute = std::function<HardRouteResult(const InsertionRouteContext& context,
-                                             const ranges::any_view<const models::solution::Activity>&)>;
+                                                  const ranges::any_view<const models::solution::Activity>&)>;
 
   /// Specifies soft constraint function which returns additional cost penalty.
   using SoftRoute = std::function<double(const InsertionRouteContext& context)>;
@@ -44,7 +44,7 @@ struct InsertionConstraint final {
   /// Checks whether all hard route constraints are fulfilled.
   /// Returns the code of first failed constraint or empty value.
   HardRouteResult hard(const InsertionRouteContext& ctx,
-                  const ranges::any_view<const models::solution::Activity>& view) const {
+                       const ranges::any_view<const models::solution::Activity>& view) const {
     return ranges::accumulate(ranges::view::all(hardRouteConstraints_) |
                                 ranges::view::transform([&](const auto& constraint) { return constraint(ctx, view); }) |
                                 ranges::view::filter([](const auto& result) { return result.has_value(); }) |
