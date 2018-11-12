@@ -34,7 +34,7 @@ struct InsertionConstraint final {
 
   // endregion
 
-  // Activity types
+  // region Activity types
 
   /// Specifies hard activity constraint function which returns empty result or violated constraint code.
   using HardActivity = std::function<ConstraintStatus(const InsertionRouteContext&, const InsertionActivityContext&)>;

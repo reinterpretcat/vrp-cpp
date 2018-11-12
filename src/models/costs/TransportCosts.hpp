@@ -14,13 +14,13 @@ struct TransportCosts {
   virtual common::Duration duration(const problem::Actor& actor,
                                     const common::Location& from,
                                     const common::Location& to,
-                                    const common::Timestamp& departure) = 0;
+                                    const common::Timestamp& departure) const = 0;
 
   /// Returns transport cost between two locations.
   virtual common::Cost cost(const problem::Actor& actor,
                             const common::Location& from,
                             const common::Location& to,
-                            const common::Timestamp& departure) = 0;
+                            const common::Timestamp& departure) const = 0;
 };
 
 }  // namespace vrp::models::problem
