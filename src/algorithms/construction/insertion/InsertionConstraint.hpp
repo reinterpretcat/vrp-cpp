@@ -2,6 +2,7 @@
 
 #include "algorithms/construction/insertion/InsertionActivityContext.hpp"
 #include "algorithms/construction/insertion/InsertionRouteContext.hpp"
+#include "algorithms/construction/insertion/InsertionResult.hpp"
 #include "models/solution/Activity.hpp"
 
 #include <functional>
@@ -17,6 +18,8 @@ struct InsertionConstraint final {
   /// Specifies activities collection.
   using Activities = ranges::any_view<const models::solution::Activity>;
 
+  // region Route types
+
   /// Specifies single hard constraint result.
   using HardRouteResult = std::optional<int>;
 
@@ -26,18 +29,27 @@ struct InsertionConstraint final {
   /// Specifies soft route constraint function which returns additional cost penalty.
   using SoftRoute = std::function<double(const InsertionRouteContext& context, const Activities&)>;
 
+  // endregion
+
+  // Activity types
+
   /// Specifies hard activity constraint function which returns empty result or violated constraint code.
-  using HardActivity = std::function<HardRouteResult(const InsertionRouteContext&, const InsertionActivityContext&)>;
+  using HardActivity = std::function<ConstraintStatus(const InsertionRouteContext&, const InsertionActivityContext&)>;
 
-  // region Add
+  /// Specifies soft activity constraint function which returns additional cost penalty.
+  using SoftActivity = std::function<double(const InsertionRouteContext&, const InsertionActivityContext&)>;
 
-  /// Adds hard route constraints.
+  // endregion
+
+  // region Add route
+
+  /// Adds hard route constraints
   InsertionConstraint& addHardRoute(HardRoute constraint) {
     hardRouteConstraints_.push_back(constraint);
     return *this;
   }
 
-  /// Adds soft route constraints.
+  /// Adds soft route constraint.
   InsertionConstraint& addSoftRoute(SoftRoute constraint) {
     softRouteConstraints_.push_back(constraint);
     return *this;
@@ -45,7 +57,23 @@ struct InsertionConstraint final {
 
   // endregion
 
-  // region Implementation
+  // region Add activity
+
+  /// Adds hard activity constraint.
+  InsertionConstraint& addHardActivity(HardActivity constraint) {
+    hardActivityConstraints_.push_back(constraint);
+    return *this;
+  }
+
+  /// Adds soft activity constraint.
+  InsertionConstraint& addSoftActivity(SoftActivity constraint) {
+    softActivityConstraints_.push_back(constraint);
+    return *this;
+  }
+
+  // endregion
+
+  // region Route evaluations
 
   /// Checks whether all hard route constraints are fulfilled.
   /// Returns the code of first failed constraint or empty value.
@@ -70,6 +98,8 @@ struct InsertionConstraint final {
 private:
   std::vector<HardRoute> hardRouteConstraints_;
   std::vector<SoftRoute> softRouteConstraints_;
+  std::vector<HardActivity> hardActivityConstraints_;
+  std::vector<SoftActivity> softActivityConstraints_;
 };
 
 }  // namespace vrp::algorithms::construction
