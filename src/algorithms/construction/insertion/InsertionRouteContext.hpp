@@ -18,7 +18,7 @@ struct InsertionRouteContext final {
   /// A route where job is supposed to be inserted.
   std::shared_ptr<models::solution::Route> route;
 
-  /// Moment in time (departure from last activity).
+  /// New departure time.
   models::common::Timestamp time;
 };
 

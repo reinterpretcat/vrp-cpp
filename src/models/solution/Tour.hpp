@@ -46,8 +46,17 @@ public:
   /// Returns range view of all jobs.
   auto jobs() const { return ranges::view::all(jobs_); }
 
-  /// Returns tour length.
-  size_t length() const { return activities_.size(); }
+  /// Returns activity by its index in tour.
+  Activity get(size_t index) const { return activities_[index]; }
+
+  /// Returns first activity in tour.
+  Activity first() const { return activities_.front(); }
+
+  /// Returns last activity in tour.
+  Activity last() const { return activities_.back(); }
+
+  /// Checks whether tour is empty.
+  bool empty() const { return activities_.empty(); }
 
 private:
   /// Stores activities in the order the performed.
