@@ -12,13 +12,14 @@ set(SOURCE_FILES
 
 
         algorithms/construction/insertion/constraints/VehicleActivityTimeWindow.hpp
+        algorithms/construction/insertion/evaluators/JobInsertionEvaluator.hpp
+        algorithms/construction/insertion/evaluators/ServiceInsertionEvaluator.hpp
+        algorithms/construction/insertion/evaluators/ShipmentInsertionEvaluator.hpp
         algorithms/construction/insertion/InsertionActivityContext.hpp
         algorithms/construction/insertion/InsertionConstraint.hpp
         algorithms/construction/insertion/InsertionRouteContext.hpp
         algorithms/construction/insertion/InsertionEvaluator.hpp
         algorithms/construction/insertion/InsertionResult.hpp
-        algorithms/construction/insertion/evaluators/ServiceInsertionEvaluator.hpp
-        algorithms/construction/insertion/evaluators/ShipmentInsertionEvaluator.hpp
 
         models/common/Cost.hpp
         models/common/Dimension.hpp
@@ -49,6 +50,7 @@ set(SOURCE_FILES
         models/solution/Solution.hpp
         models/solution/Statistic.hpp
         models/solution/Tour.hpp
+        models/solution/Stop.hpp
 
         utils/Extensions.hpp
 

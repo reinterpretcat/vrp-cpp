@@ -6,7 +6,7 @@
 #include "models/common/Timestamp.hpp"
 #include "models/problem/Actor.hpp"
 
-namespace vrp::models::behavioral {
+namespace vrp::models::costs {
 
 /// Provides the way to get routing information for specific locations.
 struct TransportCosts {

@@ -10,18 +10,13 @@ namespace vrp::models::solution {
 /// A helper class to build activity.
 class build_activity {
 public:
-  build_activity& withSchedule(common::Schedule&& schedule) {
-    activity_.schedule = schedule;
+  build_activity& withInterval(common::TimeWindow&& interval) {
+    activity_.interval = interval;
     return *this;
   }
 
-  build_activity& withOperational(common::Schedule&& operational) {
-    activity_.operational = operational;
-    return *this;
-  }
-
-  build_activity& withLocation(common::Location&& location) {
-    activity_.location = location;
+  build_activity& withStop(solution::Stop&& stop) {
+    activity_.stop = stop;
     return *this;
   }
 

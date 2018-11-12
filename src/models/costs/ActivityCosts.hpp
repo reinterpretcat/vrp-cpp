@@ -6,7 +6,7 @@
 #include "models/solution/Activity.hpp"
 #include "models/solution/Tour.hpp"
 
-namespace vrp::models::behavioral {
+namespace vrp::models::costs {
 
 /// Provides the way to get cost information for specific activities.
 struct ActivityCosts {

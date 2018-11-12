@@ -14,9 +14,9 @@ public:
   explicit ActivityMatcher(vrp::models::solution::Activity activity) : activity_(std::move(activity)) {}
 
   bool match(const vrp::models::solution::Activity& activity) const override {
-    return activity.job == activity_.job && activity.location == activity_.location &&
-           activity.schedule.arrival == activity_.schedule.arrival &&
-           activity.schedule.departure == activity_.schedule.departure;
+    return activity.job == activity_.job && activity.stop.location == activity_.stop.location &&
+           activity.stop.schedule.arrival == activity_.stop.schedule.arrival &&
+           activity.stop.schedule.departure == activity_.stop.schedule.departure;
   }
 
   std::string describe() const override {

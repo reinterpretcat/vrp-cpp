@@ -30,8 +30,8 @@ inline vrp::models::problem::Job DefaultService = vrp::models::problem::as_job(t
 class test_build_activity : public vrp::models::solution::build_activity {
 public:
   explicit test_build_activity() : vrp::models::solution::build_activity() {
-    withLocation(static_cast<vrp::models::common::Location>(DefaultJobLocation))
-      .withSchedule(static_cast<vrp::models::common::Schedule>(DefaultSchedule))
+    withStop({static_cast<vrp::models::common::Schedule>(DefaultSchedule),
+              static_cast<vrp::models::common::Location>(DefaultJobLocation)})
       .withJob(DefaultService);
   }
 };
