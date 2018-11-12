@@ -4,6 +4,7 @@
 #include "models/common/Duration.hpp"
 #include "models/problem/Actor.hpp"
 #include "models/solution/Activity.hpp"
+#include "models/solution/Tour.hpp"
 
 namespace vrp::models::behavioral {
 
@@ -19,6 +20,6 @@ struct ActivityCosts {
                             const models::problem::Actor& actor,
                             models::common::Timestamp arrival) const = 0;
 
-  virtual ~Costs() = default;
+  virtual ~ActivityCosts() = default;
 };
 }

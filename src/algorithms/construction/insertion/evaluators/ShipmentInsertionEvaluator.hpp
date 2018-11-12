@@ -2,6 +2,7 @@
 
 #include "algorithms/construction/insertion/InsertionConstraint.hpp"
 #include "algorithms/construction/insertion/InsertionResult.hpp"
+#include "models/common/Cost.hpp"
 #include "models/problem/Service.hpp"
 
 namespace vrp::algorithms::construction {
@@ -12,7 +13,7 @@ struct ShipmentInsertionEvaluator final {
 
   InsertionResult evaluate(const std::shared_ptr<const models::problem::Shipment>& shipment,
                            const InsertionRouteContext& ctx,
-                           double bestKnownCost) const {
+                           models::common::Cost bestKnown) const {
     //    return InsertionResult::Failure{};
   }
 

@@ -3,6 +3,7 @@
 #include "algorithms/construction/insertion/InsertionConstraint.hpp"
 #include "algorithms/construction/insertion/InsertionResult.hpp"
 #include "models/extensions/problem/Factories.hpp"
+#include "models/common/Cost.hpp"
 #include "models/problem/Service.hpp"
 
 #include <models/extensions/solution/Factories.hpp>
@@ -15,7 +16,7 @@ struct ServiceInsertionEvaluator final {
 
   InsertionResult evaluate(const std::shared_ptr<const models::problem::Service>& service,
                            const InsertionRouteContext& ctx,
-                           double bestKnownCost) const {
+                           models::common::Cost bestKnown) const {
     auto activity = models::solution::build_activity{}            //
                       .withJob(models::problem::as_job(service))  //
                       .withSchedule({0, 0})                       //
