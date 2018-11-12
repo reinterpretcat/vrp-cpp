@@ -46,6 +46,9 @@ public:
   /// Returns range view of all jobs.
   auto jobs() const { return ranges::view::all(jobs_); }
 
+  /// Returns tour length.
+  size_t length() const { return activities_.size(); }
+
 private:
   /// Stores activities in the order the performed.
   std::vector<Tour::Activity> activities_;

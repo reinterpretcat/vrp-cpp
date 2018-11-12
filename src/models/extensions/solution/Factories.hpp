@@ -41,6 +41,16 @@ public:
     return *this;
   }
 
+  build_route& withStart(solution::Stop&& start) {
+    route_.start = start;
+    return *this;
+  }
+
+  build_route& withEnd(solution::Stop&& end) {
+    route_.end = end;
+    return *this;
+  }
+
   build_route& withTour(solution::Tour&& tour) {
     route_.tour = tour;
     return *this;
