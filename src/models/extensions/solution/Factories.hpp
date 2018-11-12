@@ -15,6 +15,11 @@ public:
     return *this;
   }
 
+  build_activity& withOperational(common::Schedule&& operational) {
+    activity_.operational = operational;
+    return *this;
+  }
+
   build_activity& withLocation(common::Location&& location) {
     activity_.location = location;
     return *this;

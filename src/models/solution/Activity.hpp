@@ -11,8 +11,14 @@ namespace vrp::models::solution {
 
 /// Represents activity which is needed to be performed.
 struct Activity final {
-  /// Specifies activity schedule.
+
+  /// Specifies activity schedule: actual arrival and
+  /// departure time.
   common::Schedule schedule;
+
+  /// Specifies activity's operational time: a time when job is
+  /// allowed to be performed.
+  common::Schedule operational;
 
   /// Location where activity is performed.
   common::Location location;
