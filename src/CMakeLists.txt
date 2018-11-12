@@ -20,12 +20,16 @@ set(SOURCE_FILES
         algorithms/construction/insertion/evaluators/ServiceInsertionEvaluator.hpp
         algorithms/construction/insertion/evaluators/ShipmentInsertionEvaluator.hpp
 
+        models/common/Cost.hpp
         models/common/Dimension.hpp
         models/common/Duration.hpp
         models/common/Location.hpp
         models/common/Schedule.hpp
         models/common/Timestamp.hpp
         models/common/TimeWindow.hpp
+
+        models/costs/ActivityCosts.hpp
+        models/costs/TransportCosts.hpp
 
         models/extensions/problem/Comparators.hpp
         models/extensions/problem/Factories.hpp
@@ -36,7 +40,6 @@ set(SOURCE_FILES
         models/problem/Costs.hpp
         models/problem/Driver.hpp
         models/problem/Vehicle.hpp
-        models/problem/Routing.hpp
         models/problem/Job.hpp
         models/problem/Service.hpp
         models/problem/Shipment.hpp

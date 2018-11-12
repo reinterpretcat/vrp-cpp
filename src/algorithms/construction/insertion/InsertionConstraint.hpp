@@ -1,8 +1,9 @@
 #pragma once
 
 #include "algorithms/construction/insertion/InsertionActivityContext.hpp"
-#include "algorithms/construction/insertion/InsertionRouteContext.hpp"
 #include "algorithms/construction/insertion/InsertionResult.hpp"
+#include "algorithms/construction/insertion/InsertionRouteContext.hpp"
+#include "models/common/Cost.hpp"
 #include "models/solution/Activity.hpp"
 
 #include <functional>
@@ -18,6 +19,8 @@ struct InsertionConstraint final {
   /// Specifies activities collection.
   using Activities = ranges::any_view<const models::solution::Activity>;
 
+  using Cost = models::common::Cost;
+
   // region Route types
 
   /// Specifies single hard constraint result.
@@ -27,7 +30,7 @@ struct InsertionConstraint final {
   using HardRoute = std::function<HardRouteResult(const InsertionRouteContext&, const Activities&)>;
 
   /// Specifies soft route constraint function which returns additional cost penalty.
-  using SoftRoute = std::function<double(const InsertionRouteContext& context, const Activities&)>;
+  using SoftRoute = std::function<Cost(const InsertionRouteContext& context, const Activities&)>;
 
   // endregion
 
@@ -37,7 +40,7 @@ struct InsertionConstraint final {
   using HardActivity = std::function<ConstraintStatus(const InsertionRouteContext&, const InsertionActivityContext&)>;
 
   /// Specifies soft activity constraint function which returns additional cost penalty.
-  using SoftActivity = std::function<double(const InsertionRouteContext&, const InsertionActivityContext&)>;
+  using SoftActivity = std::function<Cost(const InsertionRouteContext&, const InsertionActivityContext&)>;
 
   // endregion
 
@@ -87,7 +90,7 @@ struct InsertionConstraint final {
   }
 
   /// Checks soft route constraints and aggregates associated penalties.
-  double soft(const InsertionRouteContext& ctx, const Activities& acts) const {
+  Cost soft(const InsertionRouteContext& ctx, const Activities& acts) const {
     return ranges::accumulate(ranges::view::all(softRouteConstraints_) |
                                 ranges::view::transform([&](const auto& constraint) { return constraint(ctx, acts); }),
                               0.0);

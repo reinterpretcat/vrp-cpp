@@ -17,10 +17,6 @@ struct InsertionFailure final {
 using InsertionResult = ranges::variant<InsertionSuccess, InsertionFailure>;
 
 //// Specifies hard activity constraint check status.
-enum class ConstraintStatus {
-  Fulfilled,
-  NotFulfilledContinue,
-  NotFulfilledBreak
-};
+enum class ConstraintStatus { Fulfilled, NotFulfilledContinue, NotFulfilledBreak };
 
 }  // namespace vrp::algorithms::construction
