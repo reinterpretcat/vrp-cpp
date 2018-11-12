@@ -16,7 +16,7 @@ struct InsertionActivityContext final {
   /// Previous activity.
   models::solution::Tour::Activity previous;
 
-  /// Traget activity.
+  /// Target activity.
   models::solution::Tour::Activity target;
 
   /// Next activity.

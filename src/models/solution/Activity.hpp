@@ -11,7 +11,6 @@ namespace vrp::models::solution {
 
 /// Represents activity which is needed to be performed.
 struct Activity final {
-
   /// Specifies activity schedule: actual arrival and
   /// departure time.
   common::Schedule schedule;

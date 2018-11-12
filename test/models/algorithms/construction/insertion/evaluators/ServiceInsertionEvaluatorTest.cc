@@ -16,7 +16,7 @@ SCENARIO("service insertion evaluator", "[algorithms][constraints]") {
     auto route = test_build_route{}.owned();
 
     bool failed = false;
-    constraint->add([&failed](const auto&, const auto&) {
+    constraint->addHardRoute([&failed](const auto&, const auto&) {
       return failed ? InsertionConstraint::HardRouteResult{42} : InsertionConstraint::HardRouteResult{};
     });
 

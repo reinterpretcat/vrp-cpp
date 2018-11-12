@@ -10,6 +10,8 @@ set(SOURCE_FILES
 
         algorithms/construction/extensions/Insertions.hpp
 
+
+        algorithms/construction/insertion/constraints/VehicleActivityTimeWindow.hpp
         algorithms/construction/insertion/InsertionActivityContext.hpp
         algorithms/construction/insertion/InsertionConstraint.hpp
         algorithms/construction/insertion/InsertionRouteContext.hpp
