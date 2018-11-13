@@ -10,11 +10,11 @@ struct InsertionActivityContext final {
   /// Insertion index.
   int index;
 
-  /// Proposed activity schedule
-  models::common::Schedule schedule;
+  /// Previous activity departure time.
+  models::common::Timestamp time;
 
   /// Previous activity.
-  models::solution::Tour::Activity previous;
+  models::solution::Tour::Activity prev;
 
   /// Target activity.
   models::solution::Tour::Activity target;

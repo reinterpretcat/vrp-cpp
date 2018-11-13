@@ -36,8 +36,11 @@ struct InsertionConstraint final {
 
   // region Activity types
 
+  /// Specifies single activity constraint result: int for code, bool to continue
+  using HardActivityResult = std::optional<std::tuple<bool, int>>;
+
   /// Specifies hard activity constraint function which returns empty result or violated constraint code.
-  using HardActivity = std::function<ConstraintStatus(const InsertionRouteContext&, const InsertionActivityContext&)>;
+  using HardActivity = std::function<HardActivityResult(const InsertionRouteContext&, const InsertionActivityContext&)>;
 
   /// Specifies soft activity constraint function which returns additional cost penalty.
   using SoftActivity = std::function<Cost(const InsertionRouteContext&, const InsertionActivityContext&)>;
@@ -76,7 +79,7 @@ struct InsertionConstraint final {
 
   // endregion
 
-  // region Route evaluations
+  // region Route level evaluations
 
   /// Checks whether all hard route constraints are fulfilled.
   /// Returns the code of first failed constraint or empty value.
@@ -94,6 +97,20 @@ struct InsertionConstraint final {
     return ranges::accumulate(ranges::view::all(softRouteConstraints_) |
                                 ranges::view::transform([&](const auto& constraint) { return constraint(ctx, acts); }),
                               0.0);
+  }
+
+  // endregion
+
+  // region Activity level evaluations
+
+  HardActivityResult hard(const InsertionRouteContext& routeCtx, const InsertionActivityContext& actCtx) const {
+    // TODO
+    return HardActivityResult{};
+  }
+
+  Cost soft(const InsertionRouteContext& routeCtx, const InsertionActivityContext& actCtx) const {
+    // TODO
+    return 0;
   }
 
   // endregion

@@ -12,8 +12,8 @@ namespace vrp::models::solution {
 /// A helper class to build activity.
 class build_activity {
 public:
-  build_activity& withInterval(common::TimeWindow&& interval) {
-    activity_.interval = interval;
+  build_activity& withTime(common::TimeWindow&& time) {
+    activity_.time = time;
     return *this;
   }
 

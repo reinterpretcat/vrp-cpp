@@ -24,7 +24,7 @@ SCENARIO("service insertion evaluator", "[algorithms][constraints]") {
     WHEN("evaluate insertion context with empty tour and failed constraint") {
       failed = true;
       auto result = evaluator.evaluate(ranges::get<0>(DefaultService),
-                                       test_build_insertion_context{}.owned(), 1000);
+                                       test_build_insertion_context{}.owned(), {});
 
       THEN("returns insertion failure") {
          REQUIRE (result.index() == 1);

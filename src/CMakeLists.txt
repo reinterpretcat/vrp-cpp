@@ -16,9 +16,10 @@ set(SOURCE_FILES
         algorithms/construction/insertion/evaluators/ShipmentInsertionEvaluator.hpp
         algorithms/construction/insertion/InsertionActivityContext.hpp
         algorithms/construction/insertion/InsertionConstraint.hpp
-        algorithms/construction/insertion/InsertionRouteContext.hpp
         algorithms/construction/insertion/InsertionEvaluator.hpp
         algorithms/construction/insertion/InsertionResult.hpp
+        algorithms/construction/insertion/InsertionProgress.hpp
+        algorithms/construction/insertion/InsertionRouteContext.hpp
 
         models/common/Cost.hpp
         models/common/Dimension.hpp

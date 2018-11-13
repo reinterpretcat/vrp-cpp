@@ -13,7 +13,7 @@ struct ShipmentInsertionEvaluator final {
 
   InsertionResult evaluate(const std::shared_ptr<const models::problem::Shipment>& shipment,
                            const InsertionRouteContext& ctx,
-                           models::common::Cost bestKnown) const {
+                           const InsertionProgress& progress) const {
     //    return InsertionResult::Failure{};
   }
 

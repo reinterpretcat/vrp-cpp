@@ -18,7 +18,7 @@ struct Activity final {
   common::Schedule schedule;
 
   /// Specifies activity's time window: an interval when job is allowed to be started.
-  common::TimeWindow interval;
+  common::TimeWindow time;
 
   /// Specifies job relation. Empty if it has no relation to job.
   std::optional<problem::Job> job;

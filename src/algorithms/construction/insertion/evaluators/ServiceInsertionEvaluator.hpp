@@ -1,5 +1,6 @@
 #pragma once
 
+#include "algorithms/construction/insertion/InsertionActivityContext.hpp"
 #include "algorithms/construction/insertion/InsertionConstraint.hpp"
 #include "algorithms/construction/insertion/InsertionResult.hpp"
 #include "algorithms/construction/insertion/evaluators/JobInsertionEvaluator.hpp"
@@ -11,61 +12,87 @@
 #include "models/problem/Service.hpp"
 
 #include <numeric>
+#include <range/v3/all.hpp>
+#include <tuple>
 #include <utility>
 
 namespace vrp::algorithms::construction {
 
 struct ServiceInsertionEvaluator final : private JobInsertionEvaluator {
-  /// Keeps insertion context data.
-  struct Context final {
-    /// Insertion index.
-    int index;
-    /// Violated constraint codes.
-    std::vector<int> violations;
-    /// Service time windows.
-    models::common::TimeWindow time;
-  };
-
-public:
   ServiceInsertionEvaluator(std::shared_ptr<const models::costs::TransportCosts> transportCosts,
                             std::shared_ptr<const InsertionConstraint> constraint) :
     JobInsertionEvaluator(std::move(transportCosts)),
     constraint_(std::move(constraint)) {}
 
+  /// Evaluates service insertion possibility.
   InsertionResult evaluate(const std::shared_ptr<const models::problem::Service>& service,
                            const InsertionRouteContext& ctx,
-                           models::common::Cost bestKnown) const {
+                           const InsertionProgress& progress) const {
     auto activity = models::solution::build_activity{}            //
                       .withJob(models::problem::as_job(service))  //
-                      .owned();
+                      .shared();
 
     // check hard constraints on route level.
-    auto error = constraint_->hard(ctx, ranges::view::single(activity));
+    auto error = constraint_->hard(ctx, ranges::view::single(*activity));
     if (error.has_value()) { return {ranges::emplaced_index<1>, InsertionFailure{error.value()}}; }
 
     // calculate additional costs on route level.
-    auto additionalCosts = constraint_->soft(ctx, ranges::view::single(activity)) + vehicleSwitchCost(ctx);
+    auto additionalCosts = constraint_->soft(ctx, ranges::view::single(*activity)) + extraCosts(ctx);
+
+    auto result = analyze(activity, *service, ctx, progress);
 
     return {ranges::emplaced_index<1>, InsertionFailure{}};
   }
 
 private:
   using Activity = models::solution::Tour::Activity;
+  using Result = std::tuple<int, size_t, models::common::TimeWindow>;
 
   /// Analyzes tour trying to find best insertion index.
-  Context analyze(models::solution::Activity& activity,
-                  const InsertionRouteContext& ctx,
-                  models::common::Cost bestKnown) {
-    using namespace vrp::utils;
-    using namespace vrp::models;
+  InsertionResult analyze(models::solution::Tour::Activity& activity,
+                          const models::problem::Service& service,
+                          const InsertionRouteContext& routeCtx,
+                          const InsertionProgress& progress) const {
+    using namespace ranges;
 
-    auto [start, end] = waypoints(ctx);
+    // form route legs from a new route view.
+    auto [start, end] = waypoints(routeCtx);
+    auto tour = view::concat(view::single(start), routeCtx.route->tour.activities(), view::single(end));
+    auto legs = view::zip(tour | view::sliding(2), view::iota(0));
+    auto departure = routeCtx.time;
 
+    // analyze insertion possibility in route legs
+    auto result = ranges::accumulate(legs, Result{}, [&](const auto& outer, const auto& view) {
+      if (std::get<0>(outer) >= 0) return outer;
+
+      // TODO recalculate departure
+
+      auto [items, index] = view;
+      auto [prev, next] = std::tie(*std::begin(items), *(std::begin(items) + 1));
+      auto actCtx = InsertionActivityContext{index, departure, prev, activity, next};
+
+      return ranges::accumulate(view::all(service.times), outer, [&](const auto& inner, const auto& time) {
+        if (std::get<0>(inner) >= 0) return inner;
+
+        activity->time = time;
+
+        // check hard activity constraint
+        auto status = constraint_->hard(routeCtx, actCtx);
+        if (status.has_value()) return std::get<0>(status.value()) ? Result{std::get<1>(status.value()), 0, {}} : inner;
+
+        // calculate all costs on activity level
+        auto activityCosts = constraint_->soft(routeCtx, actCtx) + extraCosts(routeCtx, actCtx, progress);
+
+        return inner;
+      });
+    });
+
+    // TODO analyze result
     return {};
-  };
+  }
 
   /// Creates start/end stops of vehicle.
-  std::pair<Activity, Activity> waypoints(const InsertionRouteContext& ctx) {
+  std::pair<Activity, Activity> waypoints(const InsertionRouteContext& ctx) const {
     using namespace vrp::utils;
     using namespace vrp::models;
 

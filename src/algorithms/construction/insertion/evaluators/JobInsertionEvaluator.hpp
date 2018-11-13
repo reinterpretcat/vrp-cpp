@@ -1,5 +1,7 @@
 #pragma once
 
+#include "algorithms/construction/insertion/InsertionActivityContext.hpp"
+#include "algorithms/construction/insertion/InsertionProgress.hpp"
 #include "algorithms/construction/insertion/InsertionRouteContext.hpp"
 #include "models/common/Cost.hpp"
 #include "models/costs/TransportCosts.hpp"
@@ -15,8 +17,8 @@ struct JobInsertionEvaluator {
   virtual ~JobInsertionEvaluator() = default;
 
 protected:
-  /// Estimates vehicle switch cost if when new vehicle is used.
-  models::common::Cost vehicleSwitchCost(const InsertionRouteContext& ctx) const {
+  /// Estimates extra costs on route level.
+  models::common::Cost extraCosts(const InsertionRouteContext& ctx) const {
     models::common::Cost deltaFirst = 0.0;
     models::common::Cost deltaLast = 0.0;
 
@@ -52,6 +54,14 @@ protected:
     }
 
     return deltaFirst + deltaLast;
+  }
+
+  /// Estimates extra costs on route level.
+  models::common::Cost extraCosts(const InsertionRouteContext& routeCtx,
+                                  const InsertionActivityContext& actCtx,
+                                  const InsertionProgress& progress) const {
+    // TODO LocalActivityInsertionCostsCalculator
+    return 0;
   }
 
 private:
