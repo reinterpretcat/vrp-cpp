@@ -9,25 +9,6 @@
 
 namespace vrp::models::solution {
 
-/// A helper class to build stop.
-class build_stop {
-public:
-  build_stop& withLocation(const common::Location& location) {
-    stop_.location = location;
-    return *this;
-  }
-
-  build_stop& withSchedule(const common::Schedule& schedule) {
-    stop_.schedule = schedule;
-    return *this;
-  }
-
-  Stop&& owned() { return std::move(stop_); }
-
-private:
-  Stop stop_;
-};
-
 /// A helper class to build activity.
 class build_activity {
 public:
@@ -36,8 +17,13 @@ public:
     return *this;
   }
 
-  build_activity& withStop(solution::Stop&& stop) {
-    activity_.stop = stop;
+  build_activity& withLocation(const common::Location& location) {
+    activity_.location = location;
+    return *this;
+  }
+
+  build_activity& withSchedule(const common::Schedule& schedule) {
+    activity_.schedule = schedule;
     return *this;
   }
 
@@ -62,13 +48,13 @@ public:
     return *this;
   }
 
-  build_route& withStart(solution::Stop&& start) {
-    route_.start = start;
+  build_route& withStart(solution::Tour::Activity start) {
+    route_.start = std::move(start);
     return *this;
   }
 
-  build_route& withEnd(solution::Stop&& end) {
-    route_.end = end;
+  build_route& withEnd(solution::Tour::Activity end) {
+    route_.end = std::move(end);
     return *this;
   }
 

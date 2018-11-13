@@ -9,7 +9,6 @@
 #include "models/extensions/problem/Factories.hpp"
 #include "models/extensions/solution/Factories.hpp"
 #include "models/problem/Service.hpp"
-#include "models/solution/Stop.hpp"
 
 #include <numeric>
 #include <utility>
@@ -51,6 +50,8 @@ public:
   }
 
 private:
+  using Activity = models::solution::Tour::Activity;
+
   /// Analyzes tour trying to find best insertion index.
   Context analyze(models::solution::Activity& activity,
                   const InsertionRouteContext& ctx,
@@ -64,19 +65,19 @@ private:
   };
 
   /// Creates start/end stops of vehicle.
-  std::pair<models::solution::Stop, models::solution::Stop> waypoints(const InsertionRouteContext& ctx) {
+  std::pair<Activity, Activity> waypoints(const InsertionRouteContext& ctx) {
     using namespace vrp::utils;
     using namespace vrp::models;
 
     // create start/end for new vehicle
-    auto start = solution::build_stop{}
+    auto start = solution::build_activity{}
                    .withLocation(ctx.actor->vehicle->start)                                                        //
                    .withSchedule({ctx.actor->vehicle->time.start, std::numeric_limits<common::Timestamp>::max()})  //
-                   .owned();
-    auto end = solution::build_stop{}
+                   .shared();
+    auto end = solution::build_activity{}
                  .withLocation(ctx.actor->vehicle->end.value_or(ctx.actor->vehicle->start))  //
                  .withSchedule({0, ctx.actor->vehicle->time.end})                            //
-                 .owned();
+                 .shared();
 
     return {start, end};
   }

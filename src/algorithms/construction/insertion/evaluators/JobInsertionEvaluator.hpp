@@ -22,29 +22,29 @@ protected:
 
     if (!ctx.route->tour.empty()) {
       double firstCostNew = transportCosts_->cost(*ctx.actor,
-                                                  ctx.actor->vehicle->start,               //
-                                                  ctx.route->tour.first()->stop.location,  //
+                                                  ctx.actor->vehicle->start,          //
+                                                  ctx.route->tour.first()->location,  //
                                                   ctx.time);
       double firstCostOld = transportCosts_->cost(ctx.route->actor,
-                                                  ctx.route->start.location,               //
-                                                  ctx.route->tour.first()->stop.location,  //
-                                                  ctx.route->start.schedule.departure);
+                                                  ctx.route->start->location,         //
+                                                  ctx.route->tour.first()->location,  //
+                                                  ctx.route->start->schedule.departure);
 
       deltaFirst = firstCostNew - firstCostOld;
 
       if (ctx.actor->vehicle->end.has_value()) {
         auto last = ctx.route->tour.last();
-        auto lastDepartureOld = last->stop.schedule.departure;
+        auto lastDepartureOld = last->schedule.departure;
         auto lastDepartureNew = std::max(models::common::Timestamp{0},  //
-                                         lastDepartureOld + (ctx.time - ctx.route->start.schedule.departure));
+                                         lastDepartureOld + (ctx.time - ctx.route->start->schedule.departure));
 
         auto lastCostNew = transportCosts_->cost(*ctx.actor,
-                                                 last->stop.location,              //
+                                                 last->location,                   //
                                                  ctx.actor->vehicle->end.value(),  //
                                                  lastDepartureNew);
         auto lastCostOld = transportCosts_->cost(ctx.route->actor,
-                                                 last->stop.location,      //
-                                                 ctx.route->end.location,  //
+                                                 last->location,            //
+                                                 ctx.route->end->location,  //
                                                  lastDepartureNew);
 
         deltaLast = lastCostNew - lastCostOld;

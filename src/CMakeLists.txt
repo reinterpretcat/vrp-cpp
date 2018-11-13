@@ -49,7 +49,6 @@ set(SOURCE_FILES
         models/solution/Solution.hpp
         models/solution/Statistic.hpp
         models/solution/Tour.hpp
-        models/solution/Stop.hpp
 
         utils/extensions/Variant.hpp
         )

@@ -1,7 +1,8 @@
 #pragma once
 
+#include "models/common/Location.hpp"
+#include "models/common/Schedule.hpp"
 #include "models/problem/Job.hpp"
-#include "models/solution/Stop.hpp"
 
 #include <memory>
 #include <optional>
@@ -10,8 +11,11 @@ namespace vrp::models::solution {
 
 /// Represents activity which is needed to be performed.
 struct Activity final {
-  /// Specifies activity's stop.
-  solution::Stop stop;
+  /// Location where stop is performed.
+  common::Location location;
+
+  /// Specifies stop's schedule: actual arrival and departure time.
+  common::Schedule schedule;
 
   /// Specifies activity's time window: an interval when job is allowed to be started.
   common::TimeWindow interval;
