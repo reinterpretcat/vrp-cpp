@@ -12,6 +12,7 @@
 #include "models/solution/Stop.hpp"
 
 #include <numeric>
+#include <utility>
 
 namespace vrp::algorithms::construction {
 
@@ -57,6 +58,16 @@ private:
     using namespace vrp::utils;
     using namespace vrp::models;
 
+    auto [start, end] = waypoints(ctx);
+
+    return {};
+  };
+
+  /// Creates start/end stops of vehicle.
+  std::pair<models::solution::Stop, models::solution::Stop> waypoints(const InsertionRouteContext& ctx) {
+    using namespace vrp::utils;
+    using namespace vrp::models;
+
     // create start/end for new vehicle
     auto start = solution::build_stop{}
                    .withLocation(ctx.actor->vehicle->start)                                                        //
@@ -67,8 +78,8 @@ private:
                  .withSchedule({0, ctx.actor->vehicle->time.end})                            //
                  .owned();
 
-    return {};
-  };
+    return {start, end};
+  }
 
   std::shared_ptr<const InsertionConstraint> constraint_;
 };
