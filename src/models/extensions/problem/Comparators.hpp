@@ -1,7 +1,7 @@
 #pragma once
 
 #include "models/problem/Job.hpp"
-#include "utils/Extensions.hpp"
+#include "utils/extensions/Variant.hpp"
 
 #include <memory>
 

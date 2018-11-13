@@ -1,11 +1,32 @@
 #pragma once
 
+#include "models/common/Location.hpp"
+#include "models/common/Schedule.hpp"
 #include "models/solution/Activity.hpp"
 #include "models/solution/Route.hpp"
 
 #include <memory>
 
 namespace vrp::models::solution {
+
+/// A helper class to build stop.
+class build_stop {
+public:
+  build_stop& withLocation(const common::Location& location) {
+    stop_.location = location;
+    return *this;
+  }
+
+  build_stop& withSchedule(const common::Schedule& schedule) {
+    stop_.schedule = schedule;
+    return *this;
+  }
+
+  Stop&& owned() { return std::move(stop_); }
+
+private:
+  Stop stop_;
+};
 
 /// A helper class to build activity.
 class build_activity {

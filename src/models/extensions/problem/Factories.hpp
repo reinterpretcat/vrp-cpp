@@ -82,7 +82,7 @@ public:
     return *this;
   }
 
-  build_vehicle& withEnd(std::optional<common::Location>&& end) {
+  build_vehicle& withEnd(common::Location&& end) {
     vehicle_.end = end;
     return *this;
   }

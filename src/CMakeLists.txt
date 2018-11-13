@@ -10,7 +10,6 @@ set(SOURCE_FILES
 
         algorithms/construction/extensions/Insertions.hpp
 
-
         algorithms/construction/insertion/constraints/VehicleActivityTimeWindow.hpp
         algorithms/construction/insertion/evaluators/JobInsertionEvaluator.hpp
         algorithms/construction/insertion/evaluators/ServiceInsertionEvaluator.hpp
@@ -52,8 +51,7 @@ set(SOURCE_FILES
         models/solution/Tour.hpp
         models/solution/Stop.hpp
 
-        utils/Extensions.hpp
-
+        utils/extensions/Variant.hpp
         )
 
 add_library(${LIBRARY_NAME} STATIC

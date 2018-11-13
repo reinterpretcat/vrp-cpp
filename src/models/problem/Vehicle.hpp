@@ -5,6 +5,7 @@
 #include "models/common/Dimension.hpp"
 #include "models/common/Location.hpp"
 #include "models/common/Schedule.hpp"
+#include "models/common/TimeWindow.hpp"
 
 #include <optional>
 #include <string>
@@ -22,6 +23,9 @@ struct Vehicle final {
 
   /// Specifies vehicle costs.
   Costs costs;
+
+  /// Specifies time window when vehicle can be used.
+  vrp::models::common::TimeWindow time;
 
   /// Specifies dimensions supported by vehicle.
   vrp::models::common::Dimensions dimensions;
