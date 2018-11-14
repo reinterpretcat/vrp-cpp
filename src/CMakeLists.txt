@@ -18,8 +18,9 @@ set(SOURCE_FILES
         algorithms/construction/insertion/InsertionConstraint.hpp
         algorithms/construction/insertion/InsertionEvaluator.hpp
         algorithms/construction/insertion/InsertionResult.hpp
-        algorithms/construction/insertion/InsertionProgress.hpp
         algorithms/construction/insertion/InsertionRouteContext.hpp
+        algorithms/construction/insertion/InsertionRouteState.hpp
+        algorithms/construction/insertion/InsertionProgress.hpp
 
         models/common/Cost.hpp
         models/common/Dimension.hpp
@@ -52,6 +53,7 @@ set(SOURCE_FILES
         models/solution/Tour.hpp
 
         utils/extensions/Variant.hpp
+
         )
 
 add_library(${LIBRARY_NAME} STATIC

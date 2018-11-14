@@ -11,6 +11,12 @@ namespace vrp::models::solution {
 
 /// Represents activity which is needed to be performed.
 struct Activity final {
+  /// Specifies type of activity.
+  enum class Type { Start, Job, End };
+
+  /// Specifies activity type.
+  Activity::Type type;
+
   /// Location where stop is performed.
   common::Location location;
 

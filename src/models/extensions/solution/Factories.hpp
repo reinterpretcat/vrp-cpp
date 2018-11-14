@@ -12,6 +12,11 @@ namespace vrp::models::solution {
 /// A helper class to build activity.
 class build_activity {
 public:
+  build_activity& withType(const Activity::Type& type) {
+    activity_.type = type;
+    return *this;
+  }
+
   build_activity& withTime(common::TimeWindow&& time) {
     activity_.time = time;
     return *this;
@@ -29,6 +34,7 @@ public:
 
   build_activity& withJob(const problem::Job& job) {
     activity_.job = std::make_optional<problem::Job>(job);
+    activity_.type = Activity::Type::Job;
     return *this;
   }
 

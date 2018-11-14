@@ -6,6 +6,7 @@
 #include "algorithms/construction/insertion/evaluators/JobInsertionEvaluator.hpp"
 #include "models/common/Cost.hpp"
 #include "models/common/TimeWindow.hpp"
+#include "models/costs/ActivityCosts.hpp"
 #include "models/costs/TransportCosts.hpp"
 #include "models/extensions/problem/Factories.hpp"
 #include "models/extensions/solution/Factories.hpp"
@@ -20,8 +21,9 @@ namespace vrp::algorithms::construction {
 
 struct ServiceInsertionEvaluator final : private JobInsertionEvaluator {
   ServiceInsertionEvaluator(std::shared_ptr<const models::costs::TransportCosts> transportCosts,
+                            std::shared_ptr<const models::costs::ActivityCosts> activityCosts,
                             std::shared_ptr<const InsertionConstraint> constraint) :
-    JobInsertionEvaluator(std::move(transportCosts)),
+    JobInsertionEvaluator(std::move(transportCosts), std::move(activityCosts)),
     constraint_(std::move(constraint)) {}
 
   /// Evaluates service insertion possibility.

@@ -2,6 +2,7 @@
 
 #include "test_utils/algorithms/construction/Insertions.hpp"
 #include "test_utils/models/Factories.hpp"
+#include "test_utils/fakes/TestActivityCosts.hpp"
 #include "test_utils/fakes/TestTransportCosts.hpp"
 
 #include <catch/catch.hpp>
@@ -12,9 +13,11 @@ namespace vrp::test {
 
 SCENARIO("service insertion evaluator", "[algorithms][constraints]") {
   GIVEN("insertable service with location") {
-    auto constraint = std::make_shared<InsertionConstraint>();
-    auto evaluator = ServiceInsertionEvaluator(std::make_shared<TestTransportCosts>(), constraint);
     auto route = test_build_route{}.owned();
+    auto constraint = std::make_shared<InsertionConstraint>();
+    auto evaluator = ServiceInsertionEvaluator(std::make_shared<TestTransportCosts>(),
+        std::make_shared<TestActivityCosts>(),
+        constraint);
 
     bool failed = false;
     constraint->addHardRoute([&failed](const auto&, const auto&) {

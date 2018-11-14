@@ -1,5 +1,6 @@
 #pragma once
 
+#include "algorithms/construction/insertion/InsertionRouteState.hpp"
 #include "models/common/Timestamp.hpp"
 #include "models/problem/Actor.hpp"
 #include "models/problem/Job.hpp"
@@ -20,6 +21,9 @@ struct InsertionRouteContext final {
 
   /// New departure time.
   models::common::Timestamp time;
+
+  /// Contains information about arbitrary state.
+  std::shared_ptr<InsertionRouteState> state;
 };
 
 }  // namespace vrp::algorithms::construction
