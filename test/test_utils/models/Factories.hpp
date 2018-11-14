@@ -7,6 +7,7 @@
 
 namespace vrp::test {
 
+constexpr vrp::models::common::Duration DefaultDuration = 1;
 constexpr vrp::models::common::Timestamp DefaultTime = 0;
 constexpr vrp::models::common::Location DefaultActorLocation = 0;
 constexpr vrp::models::common::Location DefaultJobLocation = 1;
@@ -14,14 +15,12 @@ constexpr vrp::models::common::TimeWindow DefaultTimeWindow = {0, 1000};
 constexpr vrp::models::problem::Costs DefaultCosts = {100, 1, 1, 1, 1};
 const vrp::models::common::Schedule DefaultSchedule = {5, 10};
 const vrp::models::common::Dimension DefaultDimension = {"capacity", 1};
+const vrp::models::problem::Detail DefaultDetail = {{DefaultJobLocation}, DefaultDuration, {DefaultTimeWindow}};
 
 class test_build_service : public vrp::models::problem::build_service {
 public:
   explicit test_build_service() : vrp::models::problem::build_service() {
-    withId("service")
-      .withLocation({DefaultJobLocation})
-      .withTimes({DefaultTimeWindow})
-      .withDimensions({DefaultDimension});
+    withId("service").withDetails({DefaultDetail}).withDimensions({DefaultDimension});
   }
 };
 

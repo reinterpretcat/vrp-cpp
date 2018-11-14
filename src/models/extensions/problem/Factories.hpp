@@ -1,6 +1,7 @@
 #pragma once
 
 #include "models/problem/Actor.hpp"
+#include "models/problem/Detail.hpp"
 #include "models/problem/Driver.hpp"
 #include "models/problem/Job.hpp"
 #include "models/problem/Service.hpp"
@@ -31,13 +32,8 @@ public:
     return *this;
   }
 
-  build_service& withLocation(std::optional<common::Location>&& location) {
-    service_.location = location;
-    return *this;
-  }
-
-  build_service& withTimes(std::vector<common::TimeWindow>&& times) {
-    service_.times = times;
+  build_service& withDetails(std::vector<problem::Detail>&& details) {
+    service_.details = details;
     return *this;
   }
 

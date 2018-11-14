@@ -40,6 +40,7 @@ set(SOURCE_FILES
 
         models/problem/Actor.hpp
         models/problem/Costs.hpp
+        models/problem/Detail.hpp
         models/problem/Driver.hpp
         models/problem/Vehicle.hpp
         models/problem/Job.hpp

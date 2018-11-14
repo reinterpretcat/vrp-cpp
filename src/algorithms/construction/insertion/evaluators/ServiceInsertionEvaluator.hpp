@@ -69,38 +69,43 @@ private:
       if (outer.isInvalid()) return outer;
 
       // TODO recalculate departure
-
       auto [items, index] = view;
       auto [prev, next] = std::tie(*std::begin(items), *(std::begin(items) + 1));
       auto actCtx = InsertionActivityContext{index, prev, activity, next};
 
-      // 2. analyze time windows
-      return ranges::accumulate(view::all(service.times), outer, [&](const auto& inner1, const auto& time) {
+      // 2. analyze service details
+      return ranges::accumulate(view::all(service.details), outer, [&](const auto& inner1, const auto& detail) {
         if (inner1.isInvalid()) return inner1;
-        activity->time = time;
 
-        auto locations = service.location.has_value()
-          ? static_cast<any_view<common::Location>>(view::single(service.location.value()))
-          : view::concat(view::single(actCtx.prev->location), view::single(actCtx.next->location));
-
-        // 3. analyze possible locations
-        ranges::accumulate(locations, inner1, [&](const auto& inner2, const auto& location) {  //
+        // 3. analyze detail time windows
+        return ranges::accumulate(view::all(detail.times), inner1, [&](const auto& inner2, const auto& time) {
           if (inner2.isInvalid()) return inner2;
 
-          activity->location = location;
+          activity->time = time;
+          activity->duration = detail.duration;
 
-          // check hard activity constraint
-          auto status = constraint_->hard(routeCtx, actCtx);
-          if (status.has_value())
-            return std::get<0>(status.value()) ? EvaluationContext::make_invalid(std::get<1>(status.value())) : inner2;
+          auto locations = detail.location.has_value()
+            ? static_cast<any_view<common::Location>>(view::single(detail.location.value()))
+            : view::concat(view::single(actCtx.prev->location), view::single(actCtx.next->location));
 
-          // calculate all costs on activity level
-          auto activityCosts = constraint_->soft(routeCtx, actCtx) + extraCosts(routeCtx, actCtx, progress);
+          // 4. analyze possible locations
+          return ranges::accumulate(view::all(locations), inner2, [&](const auto& inner3, const auto& location) {
+            if (inner3.isInvalid()) return inner3;
 
-          return inner2;
+            activity->location = location;
+
+            // check hard activity constraint
+            auto status = constraint_->hard(routeCtx, actCtx);
+            if (status.has_value())
+              return std::get<0>(status.value()) ? EvaluationContext::make_invalid(std::get<1>(status.value()))
+                                                 : inner2;
+
+            // calculate all costs on activity level
+            auto activityCosts = constraint_->soft(routeCtx, actCtx) + extraCosts(routeCtx, actCtx, progress);
+
+            return inner3;
+          });
         });
-
-        return inner1;
       });
     });
 
