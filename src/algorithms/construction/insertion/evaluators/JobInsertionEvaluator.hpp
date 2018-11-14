@@ -24,20 +24,35 @@ struct JobInsertionEvaluator {
 protected:
   /// Specifies evaluation context.
   struct EvaluationContext final {
-    /// Insertion index.
-    size_t index = 0;
     /// Violation code.
     int code = -1;
+    /// Insertion index.
+    size_t index = 0;
+    /// Best cost.
+    models::common::Cost bestCost;
     /// Vehicle departure time.
     models::common::Timestamp departure = 0;
     /// Activity location.
     models::common::Location location = 0;
     /// Activity arrival and departure limits.
     models::common::TimeWindow tw = {0, 0};
-    /// Checks whether context is invalidaded.
+
+    /// Checks whether context is invalidated.
     bool isInvalid() const { return code >= 0; }
+
     /// Creates invalidated context.
-    static EvaluationContext make_invalid(int code) { return EvaluationContext{0, code, 0, 0, {0, 0}}; }
+    static EvaluationContext make_invalid(int code) {
+      return EvaluationContext{code, 0, std::numeric_limits<models::common::Cost>::max(), 0, 0, {0, 0}};
+    }
+
+    /// Creates new context.
+    static EvaluationContext make_one(size_t index,
+                                      const models::common::Cost& bestCost,
+                                      const models::common::Timestamp& departure,
+                                      const models::common::Location& location,
+                                      const models::common::TimeWindow& tw) {
+      return {-1, index, bestCost, departure, location, tw};
+    }
   };
 
   /// Estimates extra costs on route level.

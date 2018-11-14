@@ -41,7 +41,7 @@ struct ServiceInsertionEvaluator final : private JobInsertionEvaluator {
     // calculate additional costs on route level.
     auto additionalCosts = constraint_->soft(ctx, ranges::view::single(*activity)) + extraCosts(ctx);
 
-    auto result = analyze(activity, *service, ctx, progress);
+    auto result = analyze(activity, *service, ctx, progress, additionalCosts);
 
     return {ranges::emplaced_index<1>, InsertionFailure{}};
   }
@@ -54,7 +54,8 @@ private:
   InsertionResult analyze(models::solution::Tour::Activity& activity,
                           const models::problem::Service& service,
                           const InsertionRouteContext& routeCtx,
-                          const InsertionProgress& progress) const {
+                          const InsertionProgress& progress,
+                          models::common::Cost additionalCosts) const {
     using namespace ranges;
     using namespace vrp::models;
 
@@ -62,10 +63,10 @@ private:
     auto [start, end] = waypoints(routeCtx);
     auto tour = view::concat(view::single(start), routeCtx.route->tour.activities(), view::single(end));
     auto legs = view::zip(tour | view::sliding(2), view::iota(0));
-    auto departure = routeCtx.time;
+    auto evalCtx = EvaluationContext::make_one(0, additionalCosts, routeCtx.time, 0, {});
 
     // 1. analyze route legs
-    auto result = ranges::accumulate(legs, EvaluationContext{}, [&](const auto& outer, const auto& view) {
+    auto result = ranges::accumulate(legs, evalCtx, [&](const auto& outer, const auto& view) {
       if (outer.isInvalid()) return outer;
 
       // TODO recalculate departure
@@ -98,12 +99,16 @@ private:
             auto status = constraint_->hard(routeCtx, actCtx);
             if (status.has_value())
               return std::get<0>(status.value()) ? EvaluationContext::make_invalid(std::get<1>(status.value()))
-                                                 : inner2;
+                                                 : inner3;
 
             // calculate all costs on activity level
             auto activityCosts = constraint_->soft(routeCtx, actCtx) + extraCosts(routeCtx, actCtx, progress);
+            auto totalCosts = additionalCosts + activityCosts;
 
-            return inner3;
+            return totalCosts < progress.bestCost
+              // TODO is departure value valid here?
+              ? EvaluationContext::make_one(actCtx.index, totalCosts, inner3.departure, location, time)
+              : inner3;
           });
         });
       });
