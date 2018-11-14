@@ -13,6 +13,7 @@ AllowShortIfStatementsOnASingleLine: true
 AllowShortLoopsOnASingleLine: false
 AlwaysBreakBeforeMultilineStrings: false
 AlwaysBreakTemplateDeclarations: true
+AlignOperands: false
 BinPackParameters: false
 BreakBeforeBinaryOperators: false
 BreakBeforeBraces: Custom
