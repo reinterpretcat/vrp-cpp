@@ -46,7 +46,7 @@ struct ServiceInsertionEvaluator final : private JobInsertionEvaluator {
 
 private:
   using Activity = models::solution::Tour::Activity;
-  using Result = std::tuple<int, size_t, models::common::TimeWindow>;
+  using EvaluationContext = JobInsertionEvaluator::EvaluationContext;
 
   /// Analyzes tour trying to find best insertion index.
   InsertionResult analyze(models::solution::Tour::Activity& activity,
@@ -63,8 +63,8 @@ private:
     auto departure = routeCtx.time;
 
     // 1. analyze route legs
-    auto result = ranges::accumulate(legs, Result{}, [&](const auto& outer, const auto& view) {
-      if (std::get<0>(outer) >= 0) return outer;
+    auto result = ranges::accumulate(legs, EvaluationContext{}, [&](const auto& outer, const auto& view) {
+      if (outer.isInvalid()) return outer;
 
       // TODO recalculate departure
 
@@ -74,7 +74,7 @@ private:
 
       // 2. analyze time windows
       return ranges::accumulate(view::all(service.times), outer, [&](const auto& inner1, const auto& time) {
-        if (std::get<0>(inner1) >= 0) return inner1;
+        if (inner1.isInvalid()) return inner1;
         activity->time = time;
 
         auto locations = service.location.has_value()
@@ -83,14 +83,14 @@ private:
 
         // 3. analyze possible locations
         ranges::accumulate(locations, inner1, [&](const auto& inner2, const auto& location) {  //
-          if (std::get<0>(inner2) >= 0) return inner2;
+          if (inner2.isInvalid()) return inner2;
 
           activity->location = location;
 
           // check hard activity constraint
           auto status = constraint_->hard(routeCtx, actCtx);
           if (status.has_value())
-            return std::get<0>(status.value()) ? Result{std::get<1>(status.value()), 0, {}} : inner2;
+            return std::get<0>(status.value()) ? EvaluationContext::make_invalid(std::get<1>(status.value())) : inner2;
 
           // calculate all costs on activity level
           auto activityCosts = constraint_->soft(routeCtx, actCtx) + extraCosts(routeCtx, actCtx, progress);

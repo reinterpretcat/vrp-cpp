@@ -7,6 +7,7 @@
 #include "models/costs/TransportCosts.hpp"
 
 #include <algorithm>
+#include <limits>
 
 namespace vrp::algorithms::construction {
 
@@ -17,6 +18,24 @@ struct JobInsertionEvaluator {
   virtual ~JobInsertionEvaluator() = default;
 
 protected:
+  /// Specifies evaluation context.
+  struct EvaluationContext final {
+    /// Insertion index.
+    size_t index = 0;
+    /// Violation code.
+    int code = -1;
+    /// Vehicle departure time.
+    models::common::Timestamp departure = 0;
+    /// Activity location.
+    models::common::Location location = 0;
+    /// Activity arrival and departure limits.
+    models::common::TimeWindow tw = {0, 0};
+    /// Checks whether context is invalidaded.
+    bool isInvalid() const { return code >= 0; }
+    /// Creates invalidated context.
+    static EvaluationContext make_invalid(int code) { return EvaluationContext{0, code, 0, 0, {0, 0}}; }
+  };
+
   /// Estimates extra costs on route level.
   models::common::Cost extraCosts(const InsertionRouteContext& ctx) const {
     models::common::Cost deltaFirst = 0.0;
