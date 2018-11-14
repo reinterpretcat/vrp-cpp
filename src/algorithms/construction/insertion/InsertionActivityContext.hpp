@@ -10,9 +10,6 @@ struct InsertionActivityContext final {
   /// Insertion index.
   int index;
 
-  /// Previous activity departure time.
-  models::common::Timestamp time;
-
   /// Previous activity.
   models::solution::Tour::Activity prev;
 

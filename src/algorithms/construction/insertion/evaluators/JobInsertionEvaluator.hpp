@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <tuple>
 
 namespace vrp::algorithms::construction {
 
@@ -85,61 +86,54 @@ protected:
     using namespace vrp::models::common;
     using namespace vrp::models::solution;
 
-    // TODO extract to function which returns pair
+    const auto& prev = *actCtx.prev;
+    const auto& target = *actCtx.target;
+    const auto& next = *actCtx.next;
+    auto time = actCtx.prev->schedule.departure;
 
-    auto tp_costs_prevAct_newAct =
-      transportCosts_->cost(*routeCtx.actor, actCtx.prev->location, actCtx.next->location, actCtx.time);
-    auto tp_time_prevAct_newAct =
-      transportCosts_->duration(*routeCtx.actor, actCtx.prev->location, actCtx.next->location, actCtx.time);
-
-    auto newAct_arrTime = actCtx.time + tp_time_prevAct_newAct;
-    auto newAct_endTime = std::max(newAct_arrTime, actCtx.target->time.start) +
-      activityCosts_->duration(*routeCtx.actor, *actCtx.target, newAct_arrTime);
-
-    auto act_costs_newAct = activityCosts_->cost(*routeCtx.actor, *actCtx.target, newAct_arrTime);
+    auto [tpCostLeft, actCostLeft, depTimeLeft] = analyzeLeg(*routeCtx.actor, prev, target, time);
 
     // next location is the end which is not depot
     if (actCtx.next->type == Activity::Type::End && routeCtx.actor->vehicle->end.has_value())
-      return tp_costs_prevAct_newAct + progress.completeness * act_costs_newAct;
+      return tpCostLeft + progress.completeness * actCostLeft;
 
-    auto tp_costs_newAct_nextAct =
-      transportCosts_->cost(*routeCtx.actor, actCtx.target->location, actCtx.next->location, newAct_endTime);
-    auto tp_time_newAct_nextAct =
-      transportCosts_->duration(*routeCtx.actor, actCtx.target->location, actCtx.next->location, newAct_endTime);
-    auto nextAct_arrTime = newAct_endTime + tp_time_newAct_nextAct;
-    auto endTime_nextAct_new = std::max(nextAct_arrTime, actCtx.next->time.start) +
-      activityCosts_->duration(*routeCtx.actor, *actCtx.next, newAct_arrTime);
-    auto act_costs_nextAct = activityCosts_->cost(*routeCtx.actor, *actCtx.next, nextAct_arrTime);
+    auto [tpCostRight, actCostRight, depTimeRight] = analyzeLeg(*routeCtx.actor, target, next, depTimeLeft);
 
-    auto totalCosts = tp_costs_prevAct_newAct + tp_costs_newAct_nextAct +
-      progress.completeness * (act_costs_newAct + act_costs_nextAct);
-
+    auto totalCosts = tpCostLeft + tpCostRight + progress.completeness * (actCostLeft + actCostRight);
     auto oldCosts = 0.;
+
     if (routeCtx.route->tour.empty()) {
-      oldCosts += transportCosts_->cost(*routeCtx.actor, actCtx.prev->location, actCtx.next->location, actCtx.time);
+      oldCosts += transportCosts_->cost(*routeCtx.actor, prev.location, next.location, time);
     } else {
-      auto tp_costs_prevAct_nextAct = transportCosts_->cost(
-        routeCtx.route->actor, actCtx.prev->location, actCtx.next->location, actCtx.prev->schedule.departure);
-      auto arrTime_nextAct = actCtx.time +
-        transportCosts_->duration(
-          routeCtx.route->actor, actCtx.prev->location, actCtx.next->location, actCtx.prev->schedule.departure);
-      auto endTime_nextAct_old = std::max(arrTime_nextAct, actCtx.next->time.start) +
-        activityCosts_->duration(routeCtx.route->actor, *actCtx.next, arrTime_nextAct);
-      auto actCost_nextAct = activityCosts_->cost(routeCtx.route->actor, *actCtx.next, arrTime_nextAct);
+      auto [tpCostOld, actCostOld, depTimeOld] = analyzeLeg(routeCtx.route->actor, prev, next, prev.schedule.departure);
 
-      auto endTimeDelay_nextAct = std::max(Timestamp{0}, endTime_nextAct_new - endTime_nextAct_old);
+      auto delayTime = std::max(Timestamp{0}, depTimeRight - depTimeOld);
+      auto futureWaiting = routeCtx.state->get<Timestamp>(InsertionRouteState::FutureWaiting, next).value_or(0);
+      auto timeCostSavings = std::min(futureWaiting, delayTime) * routeCtx.route->actor.vehicle->costs.perWaitingTime;
 
-      auto futureWaiting = routeCtx.state->get<Timestamp>(InsertionRouteState::FutureWaiting, *actCtx.next).value_or(0);
-      auto waitingTime_savings_timeUnit = std::min(futureWaiting, endTimeDelay_nextAct);
-      auto waitingTime_savings = waitingTime_savings_timeUnit * routeCtx.route->actor.vehicle->costs.perWaitingTime;
-      oldCosts += progress.completeness * waitingTime_savings;
-      oldCosts += tp_costs_prevAct_nextAct + progress.completeness * actCost_nextAct;
+      oldCosts += tpCostOld + progress.completeness * (actCostOld + timeCostSavings);
     }
 
     return totalCosts - oldCosts;
   }
 
 private:
+  using Cost = models::common::Cost;
+  using Timestamp = models::common::Timestamp;
+
+  std::tuple<Cost, Cost, Timestamp> analyzeLeg(const models::problem::Actor& actor,
+                                               const models::solution::Activity& start,
+                                               const models::solution::Activity& end,
+                                               models::common::Timestamp time) const {
+    auto arrival = time + transportCosts_->duration(actor, start.location, end.location, time);
+    auto departure = std::max(arrival, end.time.start) + activityCosts_->duration(actor, end, arrival);
+
+    auto transportCost = transportCosts_->cost(actor, start.location, end.location, time);
+    auto activityCost = activityCosts_->cost(actor, end, arrival);
+
+    return std::make_tuple(transportCost, activityCost, departure);
+  }
+
   std::shared_ptr<const models::costs::TransportCosts> transportCosts_;
   std::shared_ptr<const models::costs::ActivityCosts> activityCosts_;
 };

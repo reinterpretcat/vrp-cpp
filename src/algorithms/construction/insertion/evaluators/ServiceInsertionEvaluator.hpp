@@ -72,7 +72,7 @@ private:
 
       auto [items, index] = view;
       auto [prev, next] = std::tie(*std::begin(items), *(std::begin(items) + 1));
-      auto actCtx = InsertionActivityContext{index, departure, prev, activity, next};
+      auto actCtx = InsertionActivityContext{index, prev, activity, next};
 
       // 2. analyze time windows
       return ranges::accumulate(view::all(service.times), outer, [&](const auto& inner1, const auto& time) {
