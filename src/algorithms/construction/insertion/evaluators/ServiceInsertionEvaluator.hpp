@@ -62,7 +62,7 @@ private:
     // form route legs from a new route view.
     auto [start, end] = waypoints(routeCtx);
     auto tour = view::concat(view::single(start), routeCtx.route->tour.activities(), view::single(end));
-    auto legs = view::zip(tour | view::sliding(2), view::iota(0));
+    auto legs = view::zip(tour | view::sliding(2), view::iota(static_cast<size_t>(0)));
     auto evalCtx = EvaluationContext::make_one(0, additionalCosts, routeCtx.time, 0, {});
 
     // 1. analyze route legs
@@ -78,6 +78,7 @@ private:
       return ranges::accumulate(view::all(service.details), outer, [&](const auto& inner1, const auto& detail) {
         if (inner1.isInvalid()) return inner1;
 
+        // TODO check whether tw is empty
         // 3. analyze detail time windows
         return ranges::accumulate(view::all(detail.times), inner1, [&](const auto& inner2, const auto& time) {
           if (inner2.isInvalid()) return inner2;

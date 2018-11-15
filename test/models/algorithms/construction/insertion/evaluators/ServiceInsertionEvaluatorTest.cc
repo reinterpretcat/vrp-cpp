@@ -11,7 +11,7 @@ using namespace vrp::algorithms::construction;
 
 namespace vrp::test {
 
-SCENARIO("service insertion evaluator", "[algorithms][constraints]") {
+SCENARIO("service insertion evaluator", "[algorithms][insertion]") {
   GIVEN("insertable service with location") {
     auto route = test_build_route{}.owned();
     auto constraint = std::make_shared<InsertionConstraint>();
@@ -27,7 +27,7 @@ SCENARIO("service insertion evaluator", "[algorithms][constraints]") {
     WHEN("evaluate insertion context with empty tour and failed constraint") {
       failed = true;
       auto result = evaluator.evaluate(ranges::get<0>(DefaultService),
-                                       test_build_insertion_context{}.owned(), {});
+                                       test_build_insertion_route_context{}.owned(), {});
 
       THEN("returns insertion failure") {
          REQUIRE (result.index() == 1);

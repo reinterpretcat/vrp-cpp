@@ -14,8 +14,8 @@
 namespace vrp::algorithms::construction {
 
 struct JobInsertionEvaluator {
-  explicit JobInsertionEvaluator(std::shared_ptr<const models::costs::TransportCosts> transportCosts,
-                                 std::shared_ptr<const models::costs::ActivityCosts> activityCosts) :
+  JobInsertionEvaluator(std::shared_ptr<const models::costs::TransportCosts> transportCosts,
+                        std::shared_ptr<const models::costs::ActivityCosts> activityCosts) :
     transportCosts_(std::move(transportCosts)),
     activityCosts_(std::move(activityCosts)) {}
 
@@ -94,7 +94,7 @@ protected:
     return deltaFirst + deltaLast;
   }
 
-  /// Estimates extra costs on route level.
+  /// Estimates extra costs on activity level.
   models::common::Cost extraCosts(const InsertionRouteContext& routeCtx,
                                   const InsertionActivityContext& actCtx,
                                   const InsertionProgress& progress) const {

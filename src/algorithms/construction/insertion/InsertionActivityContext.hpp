@@ -8,7 +8,7 @@ namespace vrp::algorithms::construction {
 /// Specifies insertion context for activity.
 struct InsertionActivityContext final {
   /// Insertion index.
-  int index;
+  size_t index;
 
   /// Previous activity.
   models::solution::Tour::Activity prev;
