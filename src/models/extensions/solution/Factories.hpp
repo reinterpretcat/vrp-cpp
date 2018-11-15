@@ -60,11 +60,13 @@ public:
   }
 
   build_route& withStart(solution::Tour::Activity start) {
+    assert(start->type == Activity::Type::Start);
     route_.start = std::move(start);
     return *this;
   }
 
   build_route& withEnd(solution::Tour::Activity end) {
+    assert(end->type == Activity::Type::End);
     route_.end = std::move(end);
     return *this;
   }

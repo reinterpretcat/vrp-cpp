@@ -31,25 +31,21 @@ SCENARIO("job insertion evaluator", "[algorithms][construction][insertion]") {
   GIVEN("empty tour") {
     auto evaluator = FakeJobInsertionEvaluator(std::make_shared<TestTransportCosts>(),  //
                                                std::make_shared<TestActivityCosts>());
-
-    auto start = test_build_activity{}.withLocation(DefaultActorLocation).withType(Activity::Type::Start);
-    auto activity = test_build_activity{}.withLocation(10);
-    auto end = test_build_activity{}.withLocation(DefaultActorLocation).withType(Activity::Type::End);
+    auto target = test_build_activity{}.withLocation(5);
 
     WHEN("inserting new activity with the same actor") {
       auto progress = test_build_insertion_progress{}.owned();
       auto routeCtx = test_build_insertion_route_context{}.owned();
       auto actCtx = test_build_insertion_activity_context{}  //
-                      .withPrev(start.shared())
-                      .withTarget(activity.shared())
-                      .withNext(end.shared())
+                      .withPrev(routeCtx.route->start)
+                      .withTarget(target.shared())
+                      .withNext(routeCtx.route->end)
                       .owned();
-
 
       THEN("extra cost for activity is correct") {
         auto cost = evaluator.testExtraCosts(routeCtx, actCtx, progress);
 
-        REQUIRE(cost == 20);
+        REQUIRE(cost == 10);
       }
     }
   }

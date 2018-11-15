@@ -10,7 +10,7 @@ namespace vrp::test {
 constexpr vrp::models::common::Duration DefaultDuration = 1;
 constexpr vrp::models::common::Timestamp DefaultTime = 0;
 constexpr vrp::models::common::Location DefaultActorLocation = 0;
-constexpr vrp::models::common::Location DefaultJobLocation = 1;
+constexpr vrp::models::common::Location DefaultJobLocation = 5;
 constexpr vrp::models::common::TimeWindow DefaultTimeWindow = {0, 1000};
 constexpr vrp::models::problem::Costs DefaultCosts = {100, 1, 1, 1, 1};
 const vrp::models::common::Schedule DefaultSchedule = {5, 10};
@@ -71,7 +71,12 @@ inline std::shared_ptr<vrp::models::problem::Actor> DefaultActor = test_build_ac
 
 class test_build_route : public vrp::models::solution::build_route {
 public:
-  explicit test_build_route() : vrp::models::solution::build_route() { withActor(test_build_actor{}.owned()); }
+  explicit test_build_route() : vrp::models::solution::build_route() {
+    using namespace vrp::models::solution;
+    withActor(test_build_actor{}.owned())
+      .withStart(test_build_activity{}.withLocation(DefaultActorLocation).withType(Activity::Type::Start).shared())
+      .withEnd(test_build_activity{}.withLocation(DefaultActorLocation).withType(Activity::Type::End).shared());
+  }
 };
 
 }  // namespace vrp::test
