@@ -13,7 +13,6 @@ constexpr vrp::models::common::Location DefaultActorLocation = 0;
 constexpr vrp::models::common::Location DefaultJobLocation = 5;
 constexpr vrp::models::common::TimeWindow DefaultTimeWindow = {0, 1000};
 constexpr vrp::models::problem::Costs DefaultCosts = {100, 1, 1, 1, 1};
-const vrp::models::common::Schedule DefaultSchedule = {5, 10};
 const vrp::models::common::Dimension DefaultDimension = {"capacity", 1};
 const vrp::models::problem::Detail DefaultDetail = {{DefaultJobLocation}, DefaultDuration, {DefaultTimeWindow}};
 
@@ -29,8 +28,7 @@ inline vrp::models::problem::Job DefaultService = vrp::models::problem::as_job(t
 class test_build_activity : public models::solution::build_activity {
 public:
   explicit test_build_activity() : models::solution::build_activity() {
-    withSchedule(DefaultSchedule)
-      .withDuration(static_cast<models::common::Duration>(DefaultDuration))
+    withDuration(DefaultDuration)
       .withType(models::solution::Activity::Type::Job)
       .withLocation(DefaultJobLocation)
       .withJob(DefaultService);
@@ -45,17 +43,14 @@ public:
     withId("vehicle1")
       .withProfile("car")
       .withStart(DefaultActorLocation)
-      .withEnd(DefaultActorLocation)
       .withDimensions({DefaultDimension})
-      .withCosts(static_cast<vrp::models::problem::Costs>(DefaultCosts));
+      .withCosts(DefaultCosts);
   }
 };
 
 class test_build_driver : public vrp::models::problem::build_driver {
 public:
-  explicit test_build_driver() : vrp::models::problem::build_driver() {
-    withCosts(static_cast<vrp::models::problem::Costs>(DefaultCosts));
-  }
+  explicit test_build_driver() : vrp::models::problem::build_driver() { withCosts({0, 0, 0, 0}); }
 };
 
 inline std::shared_ptr<const vrp::models::problem::Driver> DefaultDriver = test_build_driver{}.shared();
@@ -74,8 +69,18 @@ public:
   explicit test_build_route() : vrp::models::solution::build_route() {
     using namespace vrp::models::solution;
     withActor(test_build_actor{}.owned())
-      .withStart(test_build_activity{}.withLocation(DefaultActorLocation).withType(Activity::Type::Start).shared())
-      .withEnd(test_build_activity{}.withLocation(DefaultActorLocation).withType(Activity::Type::End).shared());
+      .withStart(test_build_activity{}
+                   .withDuration(0)
+                   .withSchedule({0, 1000})
+                   .withLocation(DefaultActorLocation)
+                   .withType(Activity::Type::Start)
+                   .shared())
+      .withEnd(test_build_activity{}
+                 .withDuration(0)
+                 .withSchedule({0, 1000})
+                 .withLocation(DefaultActorLocation)
+                 .withType(Activity::Type::End)
+                 .shared());
   }
 };
 

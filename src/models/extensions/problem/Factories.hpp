@@ -63,7 +63,7 @@ public:
     return *this;
   }
 
-  build_vehicle& withCosts(Costs&& costs) {
+  build_vehicle& withCosts(const Costs& costs) {
     vehicle_.costs = costs;
     return *this;
   }
@@ -94,7 +94,7 @@ private:
 /// A helper class to build driver.
 class build_driver {
 public:
-  build_driver& withCosts(Costs&& costs) {
+  build_driver& withCosts(const Costs& costs) {
     driver_.costs = costs;
     return *this;
   }

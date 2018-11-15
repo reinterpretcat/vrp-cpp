@@ -1,6 +1,7 @@
 #include "algorithms/construction/insertion/evaluators/JobInsertionEvaluator.hpp"
+#include "models/costs/ActivityCosts.hpp"
+
 #include "test_utils/algorithms/construction/Insertions.hpp"
-#include "test_utils/fakes/TestActivityCosts.hpp"
 #include "test_utils/fakes/TestTransportCosts.hpp"
 #include "test_utils/models/Factories.hpp"
 
@@ -30,7 +31,7 @@ namespace vrp::test {
 SCENARIO("job insertion evaluator", "[algorithms][construction][insertion]") {
   GIVEN("empty tour") {
     auto evaluator = FakeJobInsertionEvaluator(std::make_shared<TestTransportCosts>(),  //
-                                               std::make_shared<TestActivityCosts>());
+                                               std::make_shared<ActivityCosts>());
     auto target = test_build_activity{}.withLocation(5);
 
     WHEN("inserting new activity with the same actor") {
@@ -45,7 +46,9 @@ SCENARIO("job insertion evaluator", "[algorithms][construction][insertion]") {
       THEN("extra cost for activity is correct") {
         auto cost = evaluator.testExtraCosts(routeCtx, actCtx, progress);
 
-        REQUIRE(cost == 10);
+        // distance: 10
+        // time: driving: 10, service: 1, waiting: 0
+        REQUIRE(cost == 21);
       }
     }
   }

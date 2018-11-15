@@ -24,6 +24,7 @@ set(SOURCE_FILES
 
         models/common/Cost.hpp
         models/common/Dimension.hpp
+        models/common/Distance.hpp
         models/common/Duration.hpp
         models/common/Location.hpp
         models/common/Schedule.hpp
