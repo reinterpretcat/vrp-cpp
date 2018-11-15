@@ -9,6 +9,7 @@
 using namespace vrp::algorithms::construction;
 using namespace vrp::models::common;
 using namespace vrp::models::costs;
+using namespace vrp::models::solution;
 
 namespace {
 struct FakeJobInsertionEvaluator final : public JobInsertionEvaluator {
@@ -26,21 +27,22 @@ struct FakeJobInsertionEvaluator final : public JobInsertionEvaluator {
 
 namespace vrp::test {
 
-SCENARIO("job insertion evaluator", "[algorithms][insertion]") {
+SCENARIO("job insertion evaluator", "[algorithms][construction][insertion]") {
   GIVEN("empty tour") {
     auto evaluator = FakeJobInsertionEvaluator(std::make_shared<TestTransportCosts>(),  //
                                                std::make_shared<TestActivityCosts>());
 
-    auto activity1 = test_build_activity{}.withLocation(0).shared();
-    auto activity2 = test_build_activity{}.withLocation(10).shared();
+    auto start = test_build_activity{}.withLocation(DefaultActorLocation).withType(Activity::Type::Start);
+    auto activity = test_build_activity{}.withLocation(10);
+    auto end = test_build_activity{}.withLocation(DefaultActorLocation).withType(Activity::Type::End);
 
     WHEN("inserting new activity with the same actor") {
       auto progress = test_build_insertion_progress{}.owned();
       auto routeCtx = test_build_insertion_route_context{}.owned();
       auto actCtx = test_build_insertion_activity_context{}  //
-                      .withPrev(activity1)
-                      .withTarget(activity2)
-                      .withNext(activity1)
+                      .withPrev(start.shared())
+                      .withTarget(activity.shared())
+                      .withNext(end.shared())
                       .owned();
 
 

@@ -73,12 +73,12 @@ public:
     return *this;
   }
 
-  build_vehicle& withStart(common::Location&& start) {
+  build_vehicle& withStart(common::Location start) {
     vehicle_.start = start;
     return *this;
   }
 
-  build_vehicle& withEnd(common::Location&& end) {
+  build_vehicle& withEnd(common::Location end) {
     vehicle_.end = end;
     return *this;
   }

@@ -6,7 +6,7 @@ using namespace vrp::algorithms::construction;
 
 namespace vrp::test {
 
-SCENARIO("insertion constraint can handle multiple constraints", "[algorithms][constraints]") {
+SCENARIO("insertion constraint can handle multiple constraints", "[algorithms][construction][insertion]") {
   GIVEN("insertion constraint") {
     auto constraint = InsertionConstraint{};
     auto view = InsertionConstraint::Activities{};

@@ -11,7 +11,7 @@ using namespace vrp::algorithms::construction;
 
 namespace vrp::test {
 
-SCENARIO("service insertion evaluator", "[algorithms][insertion]") {
+SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]") {
   GIVEN("insertable service with location") {
     auto route = test_build_route{}.owned();
     auto constraint = std::make_shared<InsertionConstraint>();

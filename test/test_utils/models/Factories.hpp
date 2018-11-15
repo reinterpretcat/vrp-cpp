@@ -26,10 +26,14 @@ public:
 
 inline vrp::models::problem::Job DefaultService = vrp::models::problem::as_job(test_build_service{}.shared());
 
-class test_build_activity : public vrp::models::solution::build_activity {
+class test_build_activity : public models::solution::build_activity {
 public:
-  explicit test_build_activity() : vrp::models::solution::build_activity() {
-    withSchedule(DefaultSchedule).withLocation(DefaultJobLocation).withJob(DefaultService);
+  explicit test_build_activity() : models::solution::build_activity() {
+    withSchedule(DefaultSchedule)
+      .withDuration(static_cast<models::common::Duration>(DefaultDuration))
+      .withType(models::solution::Activity::Type::Job)
+      .withLocation(DefaultJobLocation)
+      .withJob(DefaultService);
   }
 };
 
@@ -40,8 +44,8 @@ public:
   explicit test_build_vehicle() : vrp::models::problem::build_vehicle() {
     withId("vehicle1")
       .withProfile("car")
-      .withStart(static_cast<vrp::models::common::Location>(DefaultActorLocation))
-      .withEnd(static_cast<vrp::models::common::Location>(DefaultActorLocation))
+      .withStart(DefaultActorLocation)
+      .withEnd(DefaultActorLocation)
       .withDimensions({DefaultDimension})
       .withCosts(static_cast<vrp::models::problem::Costs>(DefaultCosts));
   }

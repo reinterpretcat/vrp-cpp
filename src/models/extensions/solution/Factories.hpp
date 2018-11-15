@@ -17,8 +17,13 @@ public:
     return *this;
   }
 
-  build_activity& withTime(common::TimeWindow&& time) {
+  build_activity& withTime(const common::TimeWindow& time) {
     activity_.time = time;
+    return *this;
+  }
+
+  build_activity& withDuration(const common::Duration& duration) {
+    activity_.duration = duration;
     return *this;
   }
 
