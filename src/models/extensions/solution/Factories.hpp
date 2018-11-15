@@ -12,33 +12,33 @@ namespace vrp::models::solution {
 /// A helper class to build activity.
 class build_activity {
 public:
-  build_activity& withType(const Activity::Type& type) {
-    activity_.type = type;
+  build_activity& type(const Activity::Type& value) {
+    activity_.type = value;
     return *this;
   }
 
-  build_activity& withTime(const common::TimeWindow& time) {
-    activity_.time = time;
+  build_activity& time(const common::TimeWindow& value) {
+    activity_.time = value;
     return *this;
   }
 
-  build_activity& withDuration(const common::Duration& duration) {
-    activity_.duration = duration;
+  build_activity& duration(const common::Duration& value) {
+    activity_.duration = value;
     return *this;
   }
 
-  build_activity& withLocation(const common::Location& location) {
-    activity_.location = location;
+  build_activity& location(const common::Location& value) {
+    activity_.location = value;
     return *this;
   }
 
-  build_activity& withSchedule(const common::Schedule& schedule) {
-    activity_.schedule = schedule;
+  build_activity& schedule(const common::Schedule& value) {
+    activity_.schedule = value;
     return *this;
   }
 
-  build_activity& withJob(const problem::Job& job) {
-    activity_.job = std::make_optional<problem::Job>(job);
+  build_activity& job(const problem::Job& value) {
+    activity_.job = std::make_optional<problem::Job>(value);
     activity_.type = Activity::Type::Job;
     return *this;
   }
@@ -54,25 +54,25 @@ private:
 /// A helper class to build route.
 class build_route {
 public:
-  build_route& withActor(problem::Actor&& actor) {
-    route_.actor = actor;
+  build_route& actor(problem::Actor&& value) {
+    route_.actor = value;
     return *this;
   }
 
-  build_route& withStart(solution::Tour::Activity start) {
-    assert(start->type == Activity::Type::Start);
-    route_.start = std::move(start);
+  build_route& start(solution::Tour::Activity value) {
+    assert(value->type == Activity::Type::Start);
+    route_.start = std::move(value);
     return *this;
   }
 
-  build_route& withEnd(solution::Tour::Activity end) {
-    assert(end->type == Activity::Type::End);
-    route_.end = std::move(end);
+  build_route& end(solution::Tour::Activity value) {
+    assert(value->type == Activity::Type::End);
+    route_.end = std::move(value);
     return *this;
   }
 
-  build_route& withTour(solution::Tour&& tour) {
-    route_.tour = tour;
+  build_route& tour(solution::Tour&& value) {
+    route_.tour = value;
     return *this;
   }
 

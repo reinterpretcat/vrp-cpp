@@ -27,18 +27,18 @@ as_job(const std::shared_ptr<const Shipment>& shipment) {
 /// A helper class to create service job.
 class build_service {
 public:
-  build_service& withId(std::string&& id) {
-    service_.id = id;
+  build_service& id(std::string&& value) {
+    service_.id = value;
     return *this;
   }
 
-  build_service& withDetails(std::vector<problem::Detail>&& details) {
-    service_.details = details;
+  build_service& details(std::vector<problem::Detail>&& value) {
+    service_.details = value;
     return *this;
   }
 
-  build_service& withDimensions(common::Dimensions&& dimens) {
-    service_.dimens = dimens;
+  build_service& dimensions(common::Dimensions&& value) {
+    service_.dimens = value;
     return *this;
   }
 
@@ -53,33 +53,33 @@ private:
 /// A helper class to build vehicle;
 class build_vehicle {
 public:
-  build_vehicle& withId(std::string&& id) {
-    vehicle_.id = id;
+  build_vehicle& id(std::string&& value) {
+    vehicle_.id = value;
     return *this;
   }
 
-  build_vehicle& withProfile(std::string&& profile) {
-    vehicle_.profile = profile;
+  build_vehicle& profile(std::string&& value) {
+    vehicle_.profile = value;
     return *this;
   }
 
-  build_vehicle& withCosts(const Costs& costs) {
-    vehicle_.costs = costs;
+  build_vehicle& costs(const Costs& value) {
+    vehicle_.costs = value;
     return *this;
   }
 
-  build_vehicle& withDimensions(common::Dimensions&& dimensions) {
-    vehicle_.dimensions = dimensions;
+  build_vehicle& dimensions(common::Dimensions&& value) {
+    vehicle_.dimensions = value;
     return *this;
   }
 
-  build_vehicle& withStart(common::Location start) {
-    vehicle_.start = start;
+  build_vehicle& start(common::Location value) {
+    vehicle_.start = value;
     return *this;
   }
 
-  build_vehicle& withEnd(common::Location end) {
-    vehicle_.end = end;
+  build_vehicle& end(common::Location value) {
+    vehicle_.end = value;
     return *this;
   }
 
@@ -94,8 +94,8 @@ private:
 /// A helper class to build driver.
 class build_driver {
 public:
-  build_driver& withCosts(const Costs& costs) {
-    driver_.costs = costs;
+  build_driver& costs(const Costs& value) {
+    driver_.costs = value;
     return *this;
   }
 
@@ -110,13 +110,13 @@ private:
 /// A helper class to build actor.
 class build_actor {
 public:
-  build_actor& withDriver(const std::shared_ptr<const Driver>& driver) {
-    actor_.driver = driver;
+  build_actor& driver(const std::shared_ptr<const Driver>& value) {
+    actor_.driver = value;
     return *this;
   }
 
-  build_actor& withVehicle(const std::shared_ptr<const Vehicle>& vehicle) {
-    actor_.vehicle = vehicle;
+  build_actor& vehicle(const std::shared_ptr<const Vehicle>& value) {
+    actor_.vehicle = value;
     return *this;
   }
 

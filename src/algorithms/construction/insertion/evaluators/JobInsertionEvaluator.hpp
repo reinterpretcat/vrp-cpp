@@ -95,6 +95,9 @@ protected:
   }
 
   /// Estimates extra costs on activity level.
+  /// Calculates activity insertion costs locally, i.e. by comparing extra costs of
+  /// insertion the new activity k between activity i and j.
+  /// Additional costs are then basically calculated as delta c = c_ik + c_kj - c_ij.
   models::common::Cost extraCosts(const InsertionRouteContext& routeCtx,
                                   const InsertionActivityContext& actCtx,
                                   const InsertionProgress& progress) const {
@@ -122,7 +125,7 @@ protected:
     } else {
       auto [tpCostOld, actCostOld, depTimeOld] = analyzeLeg(routeCtx.route->actor, prev, next, prev.schedule.departure);
 
-      auto delayTime = std::max(Timestamp{0}, depTimeRight - depTimeOld);
+      auto delayTime = depTimeRight > depTimeOld ? depTimeRight - depTimeOld : 0;
       auto futureWaiting = routeCtx.state->get<Timestamp>(InsertionRouteState::FutureWaiting, next).value_or(0);
       auto timeCostSavings = std::min(futureWaiting, delayTime) * routeCtx.route->actor.vehicle->costs.perWaitingTime;
 

@@ -19,7 +19,7 @@ const vrp::models::problem::Detail DefaultDetail = {{DefaultJobLocation}, Defaul
 class test_build_service : public vrp::models::problem::build_service {
 public:
   explicit test_build_service() : vrp::models::problem::build_service() {
-    withId("service").withDetails({DefaultDetail}).withDimensions({DefaultDimension});
+    id("service").details({DefaultDetail}).dimensions({DefaultDimension});
   }
 };
 
@@ -28,10 +28,10 @@ inline vrp::models::problem::Job DefaultService = vrp::models::problem::as_job(t
 class test_build_activity : public models::solution::build_activity {
 public:
   explicit test_build_activity() : models::solution::build_activity() {
-    withDuration(DefaultDuration)
-      .withType(models::solution::Activity::Type::Job)
-      .withLocation(DefaultJobLocation)
-      .withJob(DefaultService);
+    duration(DefaultDuration)
+      .type(models::solution::Activity::Type::Job)
+      .location(DefaultJobLocation)
+      .job(DefaultService);
   }
 };
 
@@ -40,17 +40,13 @@ inline std::shared_ptr<vrp::models::solution::Activity> DefaultActivity = test_b
 class test_build_vehicle : public vrp::models::problem::build_vehicle {
 public:
   explicit test_build_vehicle() : vrp::models::problem::build_vehicle() {
-    withId("vehicle1")
-      .withProfile("car")
-      .withStart(DefaultActorLocation)
-      .withDimensions({DefaultDimension})
-      .withCosts(DefaultCosts);
+    id("vehicle1").profile("car").start(DefaultActorLocation).dimensions({DefaultDimension}).costs(DefaultCosts);
   }
 };
 
 class test_build_driver : public vrp::models::problem::build_driver {
 public:
-  explicit test_build_driver() : vrp::models::problem::build_driver() { withCosts({0, 0, 0, 0}); }
+  explicit test_build_driver() : vrp::models::problem::build_driver() { costs({0, 0, 0, 0}); }
 };
 
 inline std::shared_ptr<const vrp::models::problem::Driver> DefaultDriver = test_build_driver{}.shared();
@@ -58,7 +54,7 @@ inline std::shared_ptr<const vrp::models::problem::Driver> DefaultDriver = test_
 class test_build_actor : public vrp::models::problem::build_actor {
 public:
   explicit test_build_actor() : vrp::models::problem::build_actor() {
-    withDriver(test_build_driver{}.shared()).withVehicle(test_build_vehicle{}.shared());
+    driver(test_build_driver{}.shared()).vehicle(test_build_vehicle{}.shared());
   }
 };
 
@@ -68,19 +64,19 @@ class test_build_route : public vrp::models::solution::build_route {
 public:
   explicit test_build_route() : vrp::models::solution::build_route() {
     using namespace vrp::models::solution;
-    withActor(test_build_actor{}.owned())
-      .withStart(test_build_activity{}
-                   .withDuration(0)
-                   .withSchedule({0, 1000})
-                   .withLocation(DefaultActorLocation)
-                   .withType(Activity::Type::Start)
-                   .shared())
-      .withEnd(test_build_activity{}
-                 .withDuration(0)
-                 .withSchedule({0, 1000})
-                 .withLocation(DefaultActorLocation)
-                 .withType(Activity::Type::End)
-                 .shared());
+    actor(test_build_actor{}.owned())
+      .start(test_build_activity{}
+               .duration(0)
+               .schedule({0, 1000})
+               .location(DefaultActorLocation)
+               .type(Activity::Type::Start)
+               .shared())
+      .end(test_build_activity{}
+             .duration(0)
+             .schedule({0, 1000})
+             .location(DefaultActorLocation)
+             .type(Activity::Type::End)
+             .shared());
   }
 };
 

@@ -30,8 +30,8 @@ struct ServiceInsertionEvaluator final : private JobInsertionEvaluator {
   InsertionResult evaluate(const std::shared_ptr<const models::problem::Service>& service,
                            const InsertionRouteContext& ctx,
                            const InsertionProgress& progress) const {
-    auto activity = models::solution::build_activity{}            //
-                      .withJob(models::problem::as_job(service))  //
+    auto activity = models::solution::build_activity{}        //
+                      .job(models::problem::as_job(service))  //
                       .shared();
 
     // check hard constraints on route level.
@@ -126,12 +126,12 @@ private:
 
     // create start/end for new vehicle
     auto start = solution::build_activity{}
-                   .withLocation(ctx.actor->vehicle->start)                                                        //
-                   .withSchedule({ctx.actor->vehicle->time.start, std::numeric_limits<common::Timestamp>::max()})  //
+                   .location(ctx.actor->vehicle->start)                                                        //
+                   .schedule({ctx.actor->vehicle->time.start, std::numeric_limits<common::Timestamp>::max()})  //
                    .shared();
     auto end = solution::build_activity{}
-                 .withLocation(ctx.actor->vehicle->end.value_or(ctx.actor->vehicle->start))  //
-                 .withSchedule({0, ctx.actor->vehicle->time.end})                            //
+                 .location(ctx.actor->vehicle->end.value_or(ctx.actor->vehicle->start))  //
+                 .schedule({0, ctx.actor->vehicle->time.end})                            //
                  .shared();
 
     return {start, end};
