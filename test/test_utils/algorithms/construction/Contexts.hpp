@@ -18,8 +18,8 @@ TestContext
 sameActor(const vrp::models::solution::Tour::Activity& prev,
           const vrp::models::solution::Tour::Activity& target,
           const vrp::models::solution::Tour::Activity& next) {
-  auto routeCtx = vrp::test::test_build_insertion_route_context{}.shared();
-  auto actCtx = vrp::test::test_build_insertion_activity_context{}  //
+  auto routeCtx = test_build_insertion_route_context{}.shared();
+  auto actCtx = test_build_insertion_activity_context{}  //
                   .prev(prev)
                   .target(target)
                   .next(next)
@@ -30,8 +30,8 @@ sameActor(const vrp::models::solution::Tour::Activity& prev,
 /// Creates insertion contexts with the same actor.
 TestContext
 sameActor(const vrp::models::solution::Tour::Activity& target) {
-  auto routeCtx = vrp::test::test_build_insertion_route_context{}.shared();
-  auto actCtx = vrp::test::test_build_insertion_activity_context{}  //
+  auto routeCtx = test_build_insertion_route_context{}.shared();
+  auto actCtx = test_build_insertion_activity_context{}  //
                   .prev(routeCtx->route->start)
                   .target(target)
                   .next(routeCtx->route->end)
@@ -42,14 +42,31 @@ sameActor(const vrp::models::solution::Tour::Activity& target) {
 /// Creates insertion contexts with different actor.
 TestContext
 differentActor(const vrp::models::solution::Tour::Activity& activity) {
-  auto routeCtx =
-    vrp::test::test_build_insertion_route_context{}
-      .actor(vrp::test::test_build_actor{}.vehicle(vrp::test::test_build_vehicle{}.start(20).shared()).shared())
-      .shared();
-  auto actCtx = vrp::test::test_build_insertion_activity_context{}  //
+  auto routeCtx = test_build_insertion_route_context{}
+                    .actor(test_build_actor{}.vehicle(test_build_vehicle{}.start(20).shared()).shared())
+                    .shared();
+  auto actCtx = test_build_insertion_activity_context{}  //
                   .prev(routeCtx->route->start)
                   .target(activity)
                   .next(routeCtx->route->end)
+                  .shared();
+  return {routeCtx, actCtx};
+}
+
+/// Creates insertion contexts with different actor.
+TestContext
+differentActor(const vrp::models::solution::Tour::Activity& prev,
+               const vrp::models::solution::Tour::Activity& target,
+               const vrp::models::solution::Tour::Activity& next,
+               int returnLocation = -1) {
+  auto vehicle = test_build_vehicle{}.start(20);
+  if (returnLocation > 0) vehicle.end(static_cast<models::common::Location>(returnLocation));
+  auto routeCtx =
+    test_build_insertion_route_context{}.actor(test_build_actor{}.vehicle(vehicle.shared()).shared()).shared();
+  auto actCtx = test_build_insertion_activity_context{}  //
+                  .prev(prev)
+                  .target(target)
+                  .next(next)
                   .shared();
   return {routeCtx, actCtx};
 }

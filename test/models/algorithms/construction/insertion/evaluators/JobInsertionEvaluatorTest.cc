@@ -20,6 +20,10 @@ struct FakeJobInsertionEvaluator final : public JobInsertionEvaluator {
                                      std::shared_ptr<const ActivityCosts> activityCosts) :
     JobInsertionEvaluator(std::move(transportCosts), std::move(activityCosts)) {}
 
+  vrp::models::common::Cost testVehicleCosts(std::shared_ptr<InsertionRouteContext> routeCtx) const {
+    return vehicleCosts(*routeCtx);
+  }
+
   vrp::models::common::Cost testActivityCosts(std::shared_ptr<InsertionRouteContext> routeCtx,
                                            std::shared_ptr<InsertionActivityContext> actCtx,
                                            const InsertionProgress& progress) const {
@@ -32,7 +36,71 @@ struct FakeJobInsertionEvaluator final : public JobInsertionEvaluator {
 namespace vrp::test {
 
 SCENARIO("job insertion evaluator estimates vehicle costs", "[algorithms][construction][insertion]") {
+  auto evaluator = FakeJobInsertionEvaluator(std::make_shared<TestTransportCosts>(),  //
+                                             std::make_shared<ActivityCosts>());
 
+  GIVEN("empty tour") {
+    auto target = test_build_activity{}.location(5);
+
+    WHEN("using the same actor") {
+      auto [routeCtx, _] = sameActor(target.shared());
+
+      THEN("cost for vehicle is zero") {
+        auto cost = evaluator.testVehicleCosts(routeCtx);
+
+        REQUIRE(cost == 0);
+      }
+    }
+
+    WHEN("using different actor") {
+      auto [routeCtx, _] = differentActor(target.shared());
+
+      THEN("cost for vehicle is zero") {
+        auto cost = evaluator.testVehicleCosts(routeCtx);
+
+        REQUIRE(cost == 0);
+      }
+    }
+  }
+
+  GIVEN("tour with two activities") {
+    auto prev = test_build_activity{}.location(5).duration(0).schedule({0, 5}).shared();
+    auto target = test_build_activity{}.location(10).shared();
+    auto next = test_build_activity{}.location(15).duration(0).shared();
+
+    WHEN("using the same actor") {
+      auto [routeCtx, _] = sameActor(prev, target, next);
+      routeCtx->route->tour.add(prev).add(next);
+
+      THEN("cost for vehicle is zero") {
+        auto cost = evaluator.testVehicleCosts(routeCtx);
+
+        REQUIRE(cost == 0);
+      }
+    }
+
+    WHEN("using different actor returning to start") {
+      auto [routeCtx, _] = differentActor(prev, target, next);
+      routeCtx->route->tour.add(prev).add(next);
+
+      THEN("cost for vehicle is correct") {
+        auto cost = evaluator.testVehicleCosts(routeCtx);
+
+        REQUIRE(cost == 20);
+      }
+    }
+
+    WHEN("using different actor returning to different location") {
+      auto [routeCtx, _] = differentActor(prev, target, next, 5);
+      routeCtx->route->tour.add(prev).add(next);
+
+      THEN("cost for vehicle is correct") {
+        auto cost = evaluator.testVehicleCosts(routeCtx);
+
+        REQUIRE(cost == 10);
+      }
+    }
+  }
 }
 
 SCENARIO("job insertion evaluator estimates activity costs", "[algorithms][construction][insertion]") {
