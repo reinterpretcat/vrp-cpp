@@ -17,6 +17,7 @@ set(SOURCE_FILES
         models/algorithms/construction/insertion/evaluators/JobInsertionEvaluatorTest.cc
 
         test_utils/algorithms/construction/Insertions.hpp
+        test_utils/algorithms/construction/Contexts.hpp
         test_utils/fakes/TestTransportCosts.hpp
         test_utils/models/Factories.hpp
         test_utils/models/Matchers.hpp

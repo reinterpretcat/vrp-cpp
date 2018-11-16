@@ -6,11 +6,11 @@ namespace vrp::models::common {
 
 /// Represents a schedule.
 struct Schedule final {
-  /// Departure time.
-  Timestamp departure;
-
   /// Arrival time.
   Timestamp arrival;
+
+  /// Departure time.
+  Timestamp departure;
 };
 
 }  // namespace vrp::models::common
