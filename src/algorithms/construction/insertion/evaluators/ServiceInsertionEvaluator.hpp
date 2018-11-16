@@ -36,14 +36,9 @@ struct ServiceInsertionEvaluator final : private JobInsertionEvaluator {
 
     // check hard constraints on route level.
     auto error = constraint_->hard(ctx, ranges::view::single(*activity));
-    if (error.has_value()) { return {ranges::emplaced_index<1>, InsertionFailure{error.value()}}; }
+    if (error.has_value()) return {ranges::emplaced_index<1>, InsertionFailure{error.value()}};
 
-    // calculate additional costs on route level.
-    auto additionalCosts = constraint_->soft(ctx, ranges::view::single(*activity)) + vehicleCosts(ctx);
-
-    auto result = analyze(activity, *service, ctx, progress, additionalCosts);
-
-    return {ranges::emplaced_index<1>, InsertionFailure{}};
+    return analyze(activity, *service, ctx, progress);
   }
 
 private:
@@ -54,16 +49,18 @@ private:
   InsertionResult analyze(models::solution::Tour::Activity& activity,
                           const models::problem::Service& service,
                           const InsertionRouteContext& routeCtx,
-                          const InsertionProgress& progress,
-                          models::common::Cost additionalCosts) const {
+                          const InsertionProgress& progress) const {
     using namespace ranges;
     using namespace vrp::models;
+
+    // calculate additional costs on route level.
+    auto routeCosts = constraint_->soft(routeCtx, view::single(*activity)) + vehicleCosts(routeCtx);
 
     // form route legs from a new route view.
     auto [start, end] = waypoints(routeCtx);
     auto tour = view::concat(view::single(start), routeCtx.route->tour.activities(), view::single(end));
     auto legs = view::zip(tour | view::sliding(2), view::iota(static_cast<size_t>(0)));
-    auto evalCtx = EvaluationContext::make_one(0, additionalCosts, routeCtx.time, 0, {});
+    auto evalCtx = EvaluationContext::make_one(0, progress.bestCost, routeCtx.time, 0, {});
 
     // 1. analyze route legs
     auto result = ranges::accumulate(legs, evalCtx, [&](const auto& outer, const auto& view) {
@@ -103,8 +100,8 @@ private:
                                                  : inner3;
 
             // calculate all costs on activity level
-            auto insertionCosts = constraint_->soft(routeCtx, actCtx) + activityCosts(routeCtx, actCtx, progress);
-            auto totalCosts = additionalCosts + insertionCosts;
+            auto actCosts = constraint_->soft(routeCtx, actCtx) + activityCosts(routeCtx, actCtx, progress);
+            auto totalCosts = routeCosts + actCosts;
 
             return totalCosts < progress.bestCost
               // TODO is departure value valid here?
@@ -115,8 +112,12 @@ private:
       });
     });
 
-    // TODO analyze result
-    return {};
+    activity->time = result.tw;
+
+    return result.isInvalid()
+      ? InsertionResult{ranges::emplaced_index<1>, InsertionFailure{result.code}}
+      : InsertionResult{ranges::emplaced_index<0>,
+                        InsertionSuccess{result.index, activity, routeCtx.actor, result.departure}};
   }
 
   /// Creates start/end stops of vehicle.
@@ -126,10 +127,12 @@ private:
 
     // create start/end for new vehicle
     auto start = solution::build_activity{}
+                   .type(solution::Activity::Type::Start)
                    .location(ctx.actor->vehicle->start)                                                        //
                    .schedule({ctx.actor->vehicle->time.start, std::numeric_limits<common::Timestamp>::max()})  //
                    .shared();
     auto end = solution::build_activity{}
+                 .type(solution::Activity::Type::End)
                  .location(ctx.actor->vehicle->end.value_or(ctx.actor->vehicle->start))  //
                  .schedule({0, ctx.actor->vehicle->time.end})                            //
                  .shared();

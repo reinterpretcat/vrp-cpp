@@ -22,7 +22,7 @@ struct test_build_insertion_activity_context : public vrp::algorithms::construct
 
 struct test_build_insertion_progress : public vrp::algorithms::construction::build_insertion_progress {
   explicit test_build_insertion_progress() : vrp::algorithms::construction::build_insertion_progress() {
-    cost(10).completeness(1);
+    cost(1000).completeness(1);
   }
 };
 }

@@ -13,9 +13,10 @@ using namespace vrp::models::costs;
 namespace vrp::test {
 
 SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]") {
-  GIVEN("insertable service with location") {
-    auto route = test_build_route{}.owned();
+  GIVEN("empty route") {
+    auto progress = test_build_insertion_progress{}.owned();
     auto constraint = std::make_shared<InsertionConstraint>();
+    auto route = test_build_route{}.owned();
     auto evaluator = ServiceInsertionEvaluator(std::make_shared<TestTransportCosts>(),
         std::make_shared<ActivityCosts>(),
         constraint);
@@ -25,7 +26,7 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
       return failed ? InsertionConstraint::HardRouteResult{42} : InsertionConstraint::HardRouteResult{};
     });
 
-    WHEN("evaluate insertion context with empty tour and failed constraint") {
+    WHEN("service has failed constraint") {
       failed = true;
       auto result = evaluator.evaluate(ranges::get<0>(DefaultService),
                                        test_build_insertion_route_context{}.owned(), {});
@@ -36,6 +37,24 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
 
       THEN("returns failed constraint code") {
          REQUIRE (ranges::get<1>(result).constraint == 42);
+      }
+    }
+
+    WHEN("service is ok") {
+      auto result = evaluator.evaluate(ranges::get<0>(DefaultService),
+                                       test_build_insertion_route_context{}.owned(),
+                                       progress);
+
+      THEN("returns insertion success") {
+        REQUIRE (result.index() == 0);
+      }
+
+      THEN("returns correct index") {
+        REQUIRE (ranges::get<0>(result).index == 0);
+      }
+
+      THEN("returns correct departure time") {
+        REQUIRE (ranges::get<0>(result).departure == 0);
       }
     }
   }
