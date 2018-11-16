@@ -56,6 +56,10 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
       THEN("returns correct departure time") {
         REQUIRE (ranges::get<0>(result).departure == 0);
       }
+
+      THEN("returns correct activity location") {
+        REQUIRE (ranges::get<0>(result).activity->location == DefaultJobLocation);
+      }
     }
   }
 }
