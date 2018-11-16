@@ -55,8 +55,8 @@ protected:
     }
   };
 
-  /// Estimates extra costs on route level.
-  models::common::Cost extraCosts(const InsertionRouteContext& ctx) const {
+  /// Calculates vehicle specific costs.
+  models::common::Cost vehicleCosts(const InsertionRouteContext& ctx) const {
     models::common::Cost deltaFirst = 0.0;
     models::common::Cost deltaLast = 0.0;
 
@@ -94,13 +94,12 @@ protected:
     return deltaFirst + deltaLast;
   }
 
-  /// Estimates extra costs on activity level.
   /// Calculates activity insertion costs locally, i.e. by comparing extra costs of
   /// insertion the new activity k between activity i and j.
   /// Additional costs are then basically calculated as delta c = c_ik + c_kj - c_ij.
-  models::common::Cost extraCosts(const InsertionRouteContext& routeCtx,
-                                  const InsertionActivityContext& actCtx,
-                                  const InsertionProgress& progress) const {
+  models::common::Cost activityCosts(const InsertionRouteContext& routeCtx,
+                                     const InsertionActivityContext& actCtx,
+                                     const InsertionProgress& progress) const {
     using namespace vrp::models::common;
     using namespace vrp::models::solution;
 

@@ -39,7 +39,7 @@ struct ServiceInsertionEvaluator final : private JobInsertionEvaluator {
     if (error.has_value()) { return {ranges::emplaced_index<1>, InsertionFailure{error.value()}}; }
 
     // calculate additional costs on route level.
-    auto additionalCosts = constraint_->soft(ctx, ranges::view::single(*activity)) + extraCosts(ctx);
+    auto additionalCosts = constraint_->soft(ctx, ranges::view::single(*activity)) + vehicleCosts(ctx);
 
     auto result = analyze(activity, *service, ctx, progress, additionalCosts);
 
@@ -103,8 +103,8 @@ private:
                                                  : inner3;
 
             // calculate all costs on activity level
-            auto activityCosts = constraint_->soft(routeCtx, actCtx) + extraCosts(routeCtx, actCtx, progress);
-            auto totalCosts = additionalCosts + activityCosts;
+            auto insertionCosts = constraint_->soft(routeCtx, actCtx) + activityCosts(routeCtx, actCtx, progress);
+            auto totalCosts = additionalCosts + insertionCosts;
 
             return totalCosts < progress.bestCost
               // TODO is departure value valid here?

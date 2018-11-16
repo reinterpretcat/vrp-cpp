@@ -20,10 +20,10 @@ struct FakeJobInsertionEvaluator final : public JobInsertionEvaluator {
                                      std::shared_ptr<const ActivityCosts> activityCosts) :
     JobInsertionEvaluator(std::move(transportCosts), std::move(activityCosts)) {}
 
-  vrp::models::common::Cost testExtraCosts(std::shared_ptr<InsertionRouteContext> routeCtx,
+  vrp::models::common::Cost testActivityCosts(std::shared_ptr<InsertionRouteContext> routeCtx,
                                            std::shared_ptr<InsertionActivityContext> actCtx,
                                            const InsertionProgress& progress) const {
-    return extraCosts(*routeCtx, *actCtx, progress);
+    return activityCosts(*routeCtx, *actCtx, progress);
   }
 };
 
@@ -31,7 +31,11 @@ struct FakeJobInsertionEvaluator final : public JobInsertionEvaluator {
 
 namespace vrp::test {
 
-SCENARIO("job insertion evaluator", "[algorithms][construction][insertion]") {
+SCENARIO("job insertion evaluator estimates vehicle costs", "[algorithms][construction][insertion]") {
+
+}
+
+SCENARIO("job insertion evaluator estimates activity costs", "[algorithms][construction][insertion]") {
   auto evaluator = FakeJobInsertionEvaluator(std::make_shared<TestTransportCosts>(),  //
                                              std::make_shared<ActivityCosts>());
 
@@ -44,8 +48,8 @@ SCENARIO("job insertion evaluator", "[algorithms][construction][insertion]") {
     WHEN("inserting new activity with the same actor") {
       auto [routeCtx, actCtx] = sameActor(target.shared());
 
-      THEN("extra cost for activity is correct") {
-        auto cost = evaluator.testExtraCosts(routeCtx, actCtx, progress);
+      THEN("cost for activity is correct") {
+        auto cost = evaluator.testActivityCosts(routeCtx, actCtx, progress);
 
         REQUIRE(cost == 21);
       }
@@ -54,8 +58,8 @@ SCENARIO("job insertion evaluator", "[algorithms][construction][insertion]") {
     WHEN("inserting new activity with different actor") {
       auto [routeCtx, actCtx] = differentActor(target.shared());
 
-      THEN("extra cost for activity is correct") {
-        auto cost = evaluator.testExtraCosts(routeCtx, actCtx, progress);
+      THEN("cost for activity is correct") {
+        auto cost = evaluator.testActivityCosts(routeCtx, actCtx, progress);
 
         REQUIRE(cost == 21);
       }
@@ -74,8 +78,8 @@ SCENARIO("job insertion evaluator", "[algorithms][construction][insertion]") {
       auto [routeCtx, actCtx] = sameActor(prev, target, next);
       routeCtx->route->tour.add(prev).add(next);
 
-      THEN("extra cost for activity is correct") {
-        auto cost = evaluator.testExtraCosts(routeCtx, actCtx, progress);
+      THEN("cost for activity is correct") {
+        auto cost = evaluator.testActivityCosts(routeCtx, actCtx, progress);
 
         REQUIRE(cost == 30);
       }
