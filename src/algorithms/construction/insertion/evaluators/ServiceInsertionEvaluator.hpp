@@ -103,7 +103,7 @@ private:
             auto actCosts = constraint_->soft(routeCtx, actCtx) + activityCosts(routeCtx, actCtx, progress);
             auto totalCosts = routeCosts + actCosts;
 
-            return totalCosts < progress.bestCost
+            return totalCosts < inner3.bestCost
               // TODO is departure value valid here?
               ? EvaluationContext::make_one(actCtx.index, totalCosts, inner3.departure, location, time)
               : inner3;
