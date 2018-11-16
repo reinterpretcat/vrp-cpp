@@ -21,13 +21,8 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
         std::make_shared<ActivityCosts>(),
         constraint);
 
-    bool failed = false;
-    constraint->addHardRoute([&failed](const auto&, const auto&) {
-      return failed ? InsertionConstraint::HardRouteResult{42} : InsertionConstraint::HardRouteResult{};
-    });
-
     WHEN("service has failed constraint") {
-      failed = true;
+      constraint->addHardRoute([](const auto&, const auto&) { return InsertionConstraint::HardRouteResult{42}; });
       auto result = evaluator.evaluate(ranges::get<0>(DefaultService),
                                        test_build_insertion_route_context{}.owned(), {});
 
@@ -59,6 +54,27 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
 
       THEN("returns correct activity location") {
         REQUIRE (ranges::get<0>(result).activity->location == DefaultJobLocation);
+      }
+    }
+
+    WHEN("service has no location") {
+      auto service = test_build_service{}.details({{{}, DefaultDuration, {DefaultTimeWindow}}}).shared();
+      auto result = evaluator.evaluate(service, test_build_insertion_route_context{}.owned(), progress);
+
+      THEN("returns insertion success") {
+        REQUIRE (result.index() == 0);
+      }
+
+      THEN("returns correct index") {
+        REQUIRE (ranges::get<0>(result).index == 0);
+      }
+
+      THEN("returns correct departure time") {
+        REQUIRE (ranges::get<0>(result).departure == 0);
+      }
+
+      THEN("returns correct activity location") {
+        REQUIRE (ranges::get<0>(result).activity->location == 0);
       }
     }
   }
