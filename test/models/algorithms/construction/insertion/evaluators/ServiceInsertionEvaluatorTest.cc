@@ -85,7 +85,8 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
 
     auto [location, tws, index] = GENERATE(std::make_tuple(3, times({DefaultTimeWindow}), 0),
                                            std::make_tuple(8, times({DefaultTimeWindow}), 1),
-                                           std::make_tuple(7, times({TimeWindow{15, 20}}), 2));
+                                           std::make_tuple(7, times({{15, 20}}), 2),
+                                           std::make_tuple(7, times({{15, 20}, {7, 8}}), 1));
 
     WHEN("service is inserted") {
       auto service = test_build_service{}.details({{{location}, 0, tws}}).shared();
