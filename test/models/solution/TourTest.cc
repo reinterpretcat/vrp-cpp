@@ -1,6 +1,6 @@
-#include "models/problem/Service.hpp"
 #include "models/solution/Tour.hpp"
 
+#include "models/problem/Service.hpp"
 #include "test_utils/models/Factories.hpp"
 #include "test_utils/models/Matchers.hpp"
 
@@ -12,7 +12,6 @@ using namespace vrp::models::solution;
 namespace vrp::test {
 
 SCENARIO("tour can handle activities with job relations", "[models][tour]") {
-
   GIVEN("A tour model") {
     auto tour = Tour();
 
@@ -52,5 +51,4 @@ SCENARIO("tour can handle activities with job relations", "[models][tour]") {
     }
   }
 }
-
 }

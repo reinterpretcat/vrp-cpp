@@ -1,8 +1,8 @@
 #include "algorithms/construction/insertion/evaluators/JobInsertionEvaluator.hpp"
-#include "models/costs/ActivityCosts.hpp"
 
-#include "test_utils/algorithms/construction/Insertions.hpp"
+#include "models/costs/ActivityCosts.hpp"
 #include "test_utils/algorithms/construction/Contexts.hpp"
+#include "test_utils/algorithms/construction/Insertions.hpp"
 #include "test_utils/fakes/TestTransportCosts.hpp"
 #include "test_utils/models/Factories.hpp"
 
@@ -25,12 +25,11 @@ struct FakeJobInsertionEvaluator final : public JobInsertionEvaluator {
   }
 
   vrp::models::common::Cost testActivityCosts(std::shared_ptr<InsertionRouteContext> routeCtx,
-                                           std::shared_ptr<InsertionActivityContext> actCtx,
-                                           const InsertionProgress& progress) const {
+                                              std::shared_ptr<InsertionActivityContext> actCtx,
+                                              const InsertionProgress& progress) const {
     return activityCosts(*routeCtx, *actCtx, progress);
   }
 };
-
 }
 
 namespace vrp::test {
