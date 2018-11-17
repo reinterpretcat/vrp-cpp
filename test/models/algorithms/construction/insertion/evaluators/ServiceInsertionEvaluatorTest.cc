@@ -8,6 +8,7 @@
 #include <catch/catch.hpp>
 
 using namespace vrp::algorithms::construction;
+using namespace vrp::models::common;
 using namespace vrp::models::costs;
 using namespace vrp::models::solution;
 
@@ -74,15 +75,17 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
     }
   }
 
-  GIVEN("tour with two simple activities without time windows") {
+  GIVEN("tour with two simple activities") {
     auto prev = test_build_activity{}.location(5).duration(0).schedule({5, 5}).shared();
     auto next = test_build_activity{}.location(10).schedule({10, 10}).duration(0).shared();
     auto [routeCtx, evaluator] = createContext(prev, next);
 
-    auto[location, index] = GENERATE(std::make_tuple(3, 0), std::make_tuple(8, 1));
+    auto[location, time, index] = GENERATE(std::make_tuple(3, DefaultTimeWindow, 0),
+                                           std::make_tuple(8, DefaultTimeWindow, 1),
+                                           std::make_tuple(7, TimeWindow{15, 20}, 2));
 
     WHEN("service is inserted") {
-      auto service = test_build_service{}.details({{{location}, 0, {DefaultTimeWindow}}}).shared();
+      auto service = test_build_service{}.details({{{location}, 0, {time}}}).shared();
       auto result = evaluator->evaluate(service, *routeCtx, test_build_insertion_progress{}.owned());
 
       THEN("returns correct insertion success") {
@@ -92,10 +95,6 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
         REQUIRE (ranges::get<0>(result).activity->location == location);
       }
     }
-  }
-
-  GIVEN("tour with two simple activities with single time window") {
-
   }
 }
 
