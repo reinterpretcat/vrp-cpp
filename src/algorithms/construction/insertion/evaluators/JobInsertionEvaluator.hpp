@@ -137,9 +137,9 @@ protected:
   models::common::Duration departure(const models::problem::Actor& actor,
                                      const models::solution::Activity& start,
                                      const models::solution::Activity& end,
-                                     const models::common::Timestamp& time) const {
-    auto arrival = time + transportCosts_->duration(actor, start.location, end.location, time);
-    return std::max(arrival, end.time.start) + activityCosts_->duration(actor, start, arrival);
+                                     const models::common::Timestamp& depTime) const {
+    auto arrival = depTime + transportCosts_->duration(actor, start.location, end.location, depTime);
+    return std::max(arrival, end.time.start) + activityCosts_->duration(actor, end, arrival);
   }
 
 private:
