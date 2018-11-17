@@ -10,11 +10,12 @@ include_directories(${MAIN_SOURCE}
         ${CMAKE_CURRENT_BINARY_DIR})
 
 set(SOURCE_FILES
-        models/solution/TourTest.cc
 
-        models/algorithms/construction/insertion/InsertionConstraintTest.cc
-        models/algorithms/construction/insertion/evaluators/ServiceInsertionEvaluatorTest.cc
-        models/algorithms/construction/insertion/evaluators/JobInsertionEvaluatorTest.cc
+        algorithms/construction/insertion/InsertionConstraintTest.cc
+        algorithms/construction/insertion/evaluators/ServiceInsertionEvaluatorTest.cc
+        algorithms/construction/insertion/evaluators/JobInsertionEvaluatorTest.cc
+
+        models/solution/TourTest.cc
 
         test_utils/algorithms/construction/Insertions.hpp
         test_utils/algorithms/construction/Contexts.hpp
