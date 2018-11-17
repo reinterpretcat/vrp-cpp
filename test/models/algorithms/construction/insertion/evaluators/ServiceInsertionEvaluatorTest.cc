@@ -11,7 +11,10 @@
 using namespace vrp::algorithms::construction;
 using namespace vrp::models::common;
 using namespace vrp::models::costs;
+using namespace vrp::models::problem;
 using namespace vrp::models::solution;
+
+using namespace ranges;
 
 namespace {
 
@@ -29,6 +32,16 @@ createContext(const Tour::Activity& prev, const Tour::Activity& next) {
 std::vector<TimeWindow>
 times(std::initializer_list<TimeWindow> tws) {
   return tws;
+}
+
+std::vector<Location>
+locations(std::initializer_list<Location> locs) {
+  return locs;
+}
+
+std::vector<Detail>
+details(std::initializer_list<Detail> ds) {
+  return ds;
 }
 }
 
@@ -78,7 +91,7 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
     }
   }
 
-  GIVEN("tour with two simple activities") {
+  GIVEN("tour with two simple activities and service with time windows variations") {
     auto prev = test_build_activity{}.location(5).duration(0).schedule({5, 5}).shared();
     auto next = test_build_activity{}.location(10).schedule({10, 10}).duration(0).shared();
     auto [routeCtx, evaluator] = createContext(prev, next);
@@ -97,6 +110,48 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
         REQUIRE(ranges::get<0>(result).departure == 0);
         REQUIRE(ranges::get<0>(result).index == index);
         REQUIRE(ranges::get<0>(result).activity->location == location);
+      }
+    }
+  }
+
+  GIVEN("tour with two simple activities and different locations") {
+    auto prev = test_build_activity{}.location(5).duration(0).schedule({5, 5}).shared();
+    auto next = test_build_activity{}.location(10).schedule({10, 10}).duration(0).shared();
+    auto [routeCtx, evaluator] = createContext(prev, next);
+
+    auto [locs, index, loc] =
+      GENERATE(std::make_tuple(locations({3}), 0, 3), std::make_tuple(locations({20, 3}), 0, 3));
+
+    WHEN("service is inserted") {
+      auto ds = view::all(locs) | view::transform([&](const auto& l) { return Detail{{l}, 0, {DefaultTimeWindow}}; });
+      auto service = test_build_service{}.details(std::vector<Detail>{ds}).shared();
+      auto result = evaluator->evaluate(service, *routeCtx, test_build_insertion_progress{}.owned());
+
+      THEN("returns correct insertion success") {
+        REQUIRE(result.index() == 0);
+        REQUIRE(ranges::get<0>(result).index == index);
+        REQUIRE(ranges::get<0>(result).activity->location == loc);
+      }
+    }
+  }
+
+  GIVEN("tour with two simple activities and different locations") {
+    auto prev = test_build_activity{}.location(5).duration(0).schedule({5, 5}).shared();
+    auto next = test_build_activity{}.location(10).schedule({10, 10}).duration(0).shared();
+    auto [routeCtx, evaluator] = createContext(prev, next);
+
+    auto [ds, index, loc] =
+      GENERATE(std::make_tuple(details({{{3}, 0, {DefaultTimeWindow}}}), 0, 3),
+               std::make_tuple(details({{{20}, 0, {DefaultTimeWindow}}, {{3}, 0, times({{0, 2}})}}), 2, 20));
+
+    WHEN("service is inserted") {
+      auto service = test_build_service{}.details(std::vector<Detail>{ds}).shared();
+      auto result = evaluator->evaluate(service, *routeCtx, test_build_insertion_progress{}.owned());
+
+      THEN("returns correct insertion success") {
+        REQUIRE(result.index() == 0);
+        REQUIRE(ranges::get<0>(result).index == index);
+        REQUIRE(ranges::get<0>(result).activity->location == loc);
       }
     }
   }
