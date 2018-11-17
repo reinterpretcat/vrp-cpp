@@ -19,8 +19,8 @@ struct InsertionRouteContext final {
   /// A route where job is supposed to be inserted.
   std::shared_ptr<models::solution::Route> route;
 
-  /// New departure time.
-  models::common::Timestamp time;
+  /// New departure time from start.
+  models::common::Timestamp departure;
 
   /// Contains information about arbitrary state.
   std::shared_ptr<InsertionRouteState> state;

@@ -9,7 +9,7 @@ struct test_build_insertion_route_context : public vrp::algorithms::construction
   explicit test_build_insertion_route_context() : vrp::algorithms::construction::build_insertion_route_context() {
     actor(DefaultActor)
       .route(test_build_route{}.shared())
-      .time(DefaultTime)
+      .departure(DefaultTime)
       .state(std::make_shared<vrp::algorithms::construction::InsertionRouteState>());
   }
 };

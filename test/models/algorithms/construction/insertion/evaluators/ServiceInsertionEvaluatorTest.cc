@@ -13,7 +13,7 @@ using namespace vrp::models::costs;
 namespace vrp::test {
 
 SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]") {
-  GIVEN("empty route") {
+  GIVEN("empty tour") {
     auto progress = test_build_insertion_progress{}.owned();
     auto constraint = std::make_shared<InsertionConstraint>();
     auto route = test_build_route{}.owned();
@@ -59,7 +59,7 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
     }
   }
 
-  GIVEN("tour with two simple activities") {
+  GIVEN("tour with two simple activities without time windows") {
     auto prev = test_build_activity{}.location(5).duration(0).schedule({5, 5}).shared();
     auto next = test_build_activity{}.location(10).schedule({10, 10}).duration(0).shared();
 
@@ -72,7 +72,7 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
                                                std::make_shared<ActivityCosts>(),
                                                constraint);
 
-    auto[location, index] = GENERATE(std::make_tuple(3, 0), std::make_tuple(8, 1));
+    auto[location, index, departure] = GENERATE(std::make_tuple(3, 0, 20), std::make_tuple(8, 1, 20));
 
     WHEN("service is inserted") {
       auto service = test_build_service{}.details({{{location}, 0, {DefaultTimeWindow}}}).shared();
@@ -81,7 +81,7 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
       THEN("returns correct insertion success") {
         REQUIRE (result.index() == 0);
         REQUIRE (ranges::get<0>(result).index == index);
-        REQUIRE (ranges::get<0>(result).departure == 0);
+        REQUIRE (ranges::get<0>(result).departure == departure);
         REQUIRE (ranges::get<0>(result).activity->location == location);
       }
     }

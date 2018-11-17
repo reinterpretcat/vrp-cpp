@@ -60,7 +60,7 @@ private:
     auto [start, end] = waypoints(routeCtx);
     auto tour = view::concat(view::single(start), routeCtx.route->tour.activities(), view::single(end));
     auto legs = view::zip(tour | view::sliding(2), view::iota(static_cast<size_t>(0)));
-    auto evalCtx = EvaluationContext::make_one(0, progress.bestCost, routeCtx.time, 0, {});
+    auto evalCtx = EvaluationContext::make_one(0, progress.bestCost, routeCtx.departure, 0, {});
 
     // 1. analyze route legs
     auto result = ranges::accumulate(legs, evalCtx, [&](const auto& outer, const auto& view) {
@@ -69,7 +69,7 @@ private:
       // TODO recalculate departure
       auto [items, index] = view;
       auto [prev, next] = std::tie(*std::begin(items), *(std::begin(items) + 1));
-      auto actCtx = InsertionActivityContext{index, prev, activity, next};
+      auto actCtx = InsertionActivityContext{index, outer.departure, prev, activity, next};
 
       // 2. analyze service details
       return ranges::accumulate(view::all(service.details), outer, [&](const auto& inner1, const auto& detail) {
@@ -103,10 +103,13 @@ private:
             auto actCosts = constraint_->soft(routeCtx, actCtx) + activityCosts(routeCtx, actCtx, progress);
             auto totalCosts = routeCosts + actCosts;
 
+            // calculate departure for the next leg
+            auto departure = inner3.departure +
+              duration(*routeCtx.actor, actCtx.prev->location, actCtx.next->location, evalCtx.departure);
+
             return totalCosts < inner3.bestCost
-              // TODO is departure value valid here?
-              ? EvaluationContext::make_one(actCtx.index, totalCosts, inner3.departure, location, time)
-              : inner3;
+              ? EvaluationContext::make_one(actCtx.index, totalCosts, departure, location, time)
+              : EvaluationContext::make_one(inner3.index, inner3.bestCost, departure, inner3.location, inner3.tw);
           });
         });
       });

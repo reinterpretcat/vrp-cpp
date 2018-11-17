@@ -30,7 +30,7 @@ protected:
     size_t index = 0;
     /// Best cost.
     models::common::Cost bestCost;
-    /// Vehicle departure time.
+    /// Activity departure time.
     models::common::Timestamp departure = 0;
     /// Activity location.
     models::common::Location location = 0;
@@ -64,7 +64,7 @@ protected:
       double firstCostNew = transportCosts_->cost(*ctx.actor,
                                                   ctx.actor->vehicle->start,          //
                                                   ctx.route->tour.first()->location,  //
-                                                  ctx.time);
+                                                  ctx.departure);
       double firstCostOld = transportCosts_->cost(ctx.route->actor,
                                                   ctx.route->start->location,         //
                                                   ctx.route->tour.first()->location,  //
@@ -76,7 +76,7 @@ protected:
         auto last = ctx.route->tour.last();
         auto lastDepartureOld = last->schedule.departure;
         auto lastDepartureNew = std::max(models::common::Timestamp{0},  //
-                                         lastDepartureOld + (ctx.time - ctx.route->start->schedule.departure));
+                                         lastDepartureOld + (ctx.departure - ctx.route->start->schedule.departure));
 
         auto lastCostNew = transportCosts_->cost(*ctx.actor,
                                                  last->location,                   //
@@ -106,9 +106,8 @@ protected:
     const auto& prev = *actCtx.prev;
     const auto& target = *actCtx.target;
     const auto& next = *actCtx.next;
-    auto time = actCtx.prev->schedule.departure;
 
-    auto [tpCostLeft, actCostLeft, depTimeLeft] = analyzeLeg(*routeCtx.actor, prev, target, time);
+    auto [tpCostLeft, actCostLeft, depTimeLeft] = analyzeLeg(*routeCtx.actor, prev, target, actCtx.departure);
 
     // next location is the end which is not depot
     if (actCtx.next->type == Activity::Type::End && routeCtx.actor->vehicle->end.has_value())
@@ -120,7 +119,7 @@ protected:
     auto oldCosts = 0.;
 
     if (routeCtx.route->tour.empty()) {
-      oldCosts += transportCosts_->cost(*routeCtx.actor, prev.location, next.location, time);
+      oldCosts += transportCosts_->cost(*routeCtx.actor, prev.location, next.location, actCtx.departure);
     } else {
       auto [tpCostOld, actCostOld, depTimeOld] = analyzeLeg(routeCtx.route->actor, prev, next, prev.schedule.departure);
 
@@ -132,6 +131,13 @@ protected:
     }
 
     return totalCosts - oldCosts;
+  }
+
+  models::common::Duration duration(const models::problem::Actor& actor,
+                                    const models::common::Location& from,
+                                    const models::common::Location& to,
+                                    const models::common::Timestamp& departure) const {
+    return transportCosts_->duration(actor, from, to, departure);
   }
 
 private:

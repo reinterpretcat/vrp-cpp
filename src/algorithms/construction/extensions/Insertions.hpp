@@ -21,8 +21,8 @@ public:
     return *this;
   }
 
-  build_insertion_route_context& time(models::common::Timestamp value) {
-    context_.time = value;
+  build_insertion_route_context& departure(models::common::Timestamp departure) {
+    context_.departure = departure;
     return *this;
   }
 
