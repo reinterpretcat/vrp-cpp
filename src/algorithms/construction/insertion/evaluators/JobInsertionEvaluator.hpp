@@ -133,11 +133,13 @@ protected:
     return totalCosts - oldCosts;
   }
 
-  models::common::Duration duration(const models::problem::Actor& actor,
-                                    const models::common::Location& from,
-                                    const models::common::Location& to,
-                                    const models::common::Timestamp& departure) const {
-    return transportCosts_->duration(actor, from, to, departure);
+  /// Returns departure time from end activity taking into account time: departure time from start activity.
+  models::common::Duration departure(const models::problem::Actor& actor,
+                                     const models::solution::Activity& start,
+                                     const models::solution::Activity& end,
+                                     const models::common::Timestamp& time) const {
+    auto arrival = time + transportCosts_->duration(actor, start.location, end.location, time);
+    return std::max(arrival, end.time.start) + activityCosts_->duration(actor, start, arrival);
   }
 
 private:

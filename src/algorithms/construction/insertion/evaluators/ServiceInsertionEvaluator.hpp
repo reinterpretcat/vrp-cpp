@@ -103,13 +103,12 @@ private:
             auto actCosts = constraint_->soft(routeCtx, actCtx) + activityCosts(routeCtx, actCtx, progress);
             auto totalCosts = routeCosts + actCosts;
 
-            // calculate departure for the next leg
-            auto departure = inner3.departure +
-              duration(*routeCtx.actor, actCtx.prev->location, actCtx.next->location, evalCtx.departure);
+            // calculate end time (departure) for the next leg
+            auto endTime = inner3.departure + departure(*routeCtx.actor, *actCtx.prev, *actCtx.next, evalCtx.departure);
 
             return totalCosts < inner3.bestCost
-              ? EvaluationContext::make_one(actCtx.index, totalCosts, departure, location, time)
-              : EvaluationContext::make_one(inner3.index, inner3.bestCost, departure, inner3.location, inner3.tw);
+              ? EvaluationContext::make_one(actCtx.index, totalCosts, endTime, location, time)
+              : EvaluationContext::make_one(inner3.index, inner3.bestCost, endTime, inner3.location, inner3.tw);
           });
         });
       });
@@ -120,7 +119,7 @@ private:
     return result.isInvalid()
       ? InsertionResult{ranges::emplaced_index<1>, InsertionFailure{result.code}}
       : InsertionResult{ranges::emplaced_index<0>,
-                        InsertionSuccess{result.index, activity, routeCtx.actor, result.departure}};
+                        InsertionSuccess{result.index, activity, routeCtx.actor, routeCtx.departure}};
   }
 
   /// Creates start/end stops of vehicle.

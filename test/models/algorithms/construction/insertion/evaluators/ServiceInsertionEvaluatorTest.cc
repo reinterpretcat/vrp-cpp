@@ -72,7 +72,7 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
                                                std::make_shared<ActivityCosts>(),
                                                constraint);
 
-    auto[location, index, departure] = GENERATE(std::make_tuple(3, 0, 20), std::make_tuple(8, 1, 20));
+    auto[location, index] = GENERATE(std::make_tuple(3, 0), std::make_tuple(8, 1));
 
     WHEN("service is inserted") {
       auto service = test_build_service{}.details({{{location}, 0, {DefaultTimeWindow}}}).shared();
@@ -80,8 +80,8 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
 
       THEN("returns correct insertion success") {
         REQUIRE (result.index() == 0);
+        REQUIRE (ranges::get<0>(result).departure == 0);
         REQUIRE (ranges::get<0>(result).index == index);
-        REQUIRE (ranges::get<0>(result).departure == departure);
         REQUIRE (ranges::get<0>(result).activity->location == location);
       }
     }
