@@ -37,7 +37,7 @@ public:
     return std::make_shared<InsertionRouteContext>(std::move(context_));
   }
 
-private:
+protected:
   InsertionRouteContext context_;
 };
 

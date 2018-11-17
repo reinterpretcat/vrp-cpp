@@ -12,6 +12,11 @@ struct test_build_insertion_route_context : public vrp::algorithms::construction
       .departure(DefaultTime)
       .state(std::make_shared<vrp::algorithms::construction::InsertionRouteState>());
   }
+
+  test_build_insertion_route_context& add(const models::solution::Tour::Activity& activity) {
+    context_.route->tour.add(activity);
+    return *this;
+  }
 };
 
 struct test_build_insertion_activity_context : public vrp::algorithms::construction::build_insertion_activity_context {
