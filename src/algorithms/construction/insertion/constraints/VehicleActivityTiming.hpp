@@ -6,9 +6,11 @@
 #include "models/costs/ActivityCosts.hpp"
 #include "models/costs/TransportCosts.hpp"
 #include "models/problem/Fleet.hpp"
+#include "utils/extensions/Hash.hpp"
 
 #include <algorithm>
 #include <optional>
+#include <string>
 #include <utility>
 
 namespace vrp::algorithms::construction {
@@ -22,7 +24,10 @@ struct VehicleActivityTiming final : public HardActivityConstraint {
                         std::shared_ptr<const models::costs::ActivityCosts> activityCosts,
                         int code = 1) :
     code_(code),
-    fleet_(std::move(fleet)), transportCosts_(std::move(transportCosts)), activityCosts_(std::move(activityCosts)) {}
+    keyMapping_(), transportCosts_(std::move(transportCosts)), activityCosts_(std::move(activityCosts)) {
+    // TODO consider driver as well
+    ranges::for_each(fleet->vehicles(), [&](const auto& v) { keyMapping_[v->id] = key(*v); });
+  }
 
   /// Accept route and updates its state.
   void accept(const models::solution::Route& route, InsertionRouteState& state) const override {}
@@ -91,8 +96,17 @@ private:
   std::optional<std::tuple<bool, int>> fail() const { return {{true, code_}}; }
   std::optional<std::tuple<bool, int>> stop() const { return {{true, -1}}; }
 
+  std::string key(const models::problem::Vehicle& v) const {
+    using namespace vrp::utils;
+    using namespace vrp::models::common;
+    auto hash = size_t{0} | hash_combine<Timestamp>{v.time.start} |  //
+      hash_combine<Timestamp>{v.time.end} | hash_combine<Location>{v.start} |
+      hash_combine<Location>{v.end.value_or(std::numeric_limits<std::uint64_t>::max())};
+    return std::to_string(hash);
+  }
+
   int code_;
-  std::shared_ptr<const models::problem::Fleet> fleet_;
+  std::unordered_map<std::string, std::string> keyMapping_;
   std::shared_ptr<const models::costs::TransportCosts> transportCosts_;
   std::shared_ptr<const models::costs::ActivityCosts> activityCosts_;
 };

@@ -51,6 +51,7 @@ set(SOURCE_FILES
         models/solution/Statistic.hpp
         models/solution/Tour.hpp
 
+        utils/extensions/Hash.hpp
         utils/extensions/Variant.hpp
 
         )
