@@ -18,7 +18,7 @@ namespace vrp::algorithms::construction {
 
 /// Checks whether vehicle can serve activity taking into account their time windows.
 struct VehicleActivityTiming final : public HardActivityConstraint {
-  inline static const std::string LatestOperationStartTime = "latest_operation_start_time";
+  inline static const std::string StateKey = "vehicle_activity_timing";
 
   VehicleActivityTiming(std::shared_ptr<const models::problem::Fleet> fleet,
                         std::shared_ptr<const models::costs::TransportCosts> transportCosts,
@@ -30,7 +30,7 @@ struct VehicleActivityTiming final : public HardActivityConstraint {
     ranges::for_each(fleet->vehicles(), [&](const auto& v) { keyMapping_[v->id] = key(*v); });
   }
 
-  /// Accept route and updates its state.
+  /// Accept route and updates its insertion state.
   void accept(const models::solution::Route& route, InsertionRouteState& state) const override {
     using namespace ranges;
     const auto& stateKey = keyMapping_.find(route.actor.vehicle->id)->second;
@@ -40,8 +40,8 @@ struct VehicleActivityTiming final : public HardActivityConstraint {
       auto potentialLatest = endTime - transportCosts_->duration(route.actor, act->location, location, endTime) -
         activityCosts_->duration(route.actor, *act, endTime);
 
-      // TODO switch not feasible? if (latestArrivalTime < act->time.start)
       auto latestArrivalTime = std::min(act->time.end, potentialLatest);
+      if (latestArrivalTime < act->time.start) state.put<bool>(stateKey, true);
 
       state.put<models::common::Timestamp>(stateKey, *act, latestArrivalTime);
 
@@ -55,6 +55,8 @@ struct VehicleActivityTiming final : public HardActivityConstraint {
     using namespace vrp::models;
     using namespace vrp::models::common;
 
+    // TODO check switch feasibility
+
     const auto& prev = *actCtx.prev;
     const auto& target = *actCtx.target;
     const auto& next = *actCtx.next;
@@ -63,7 +65,7 @@ struct VehicleActivityTiming final : public HardActivityConstraint {
     auto latestArrival = routeCtx.actor->vehicle->time.end;
     auto latestArrTimeAtNextAct = next.type == solution::Activity::Type::End
       ? routeCtx.actor->vehicle->time.end
-      : routeCtx.state->get<Timestamp>(LatestOperationStartTime, next).value_or(next.time.end);
+      : routeCtx.state->get<Timestamp>(StateKey, next).value_or(next.time.end);
 
     //    |--- vehicle's operation time ---|  |--- prev or target or next ---|
     if (latestArrival < prev.time.start || latestArrival < target.time.start || latestArrival < next.time.start)
@@ -119,7 +121,7 @@ private:
     auto hash = size_t{0} | hash_combine<Timestamp>{v.time.start} |  //
       hash_combine<Timestamp>{v.time.end} | hash_combine<Location>{v.start} |
       hash_combine<Location>{v.end.value_or(std::numeric_limits<std::uint64_t>::max())};
-    return LatestOperationStartTime + std::to_string(hash);
+    return StateKey + std::to_string(hash);
   }
 
   int code_;
