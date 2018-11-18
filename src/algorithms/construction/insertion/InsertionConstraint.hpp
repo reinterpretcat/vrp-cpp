@@ -92,14 +92,6 @@ public:
 
   /// Adds hard route constraints
   InsertionConstraint& addHardRoute(HardRouteConstraint::CheckFunc constraint) {
-    //    struct CheckFunctionWrapper : HardRouteConstraint {
-    //      explicit CheckFunctionWrapper(HardRouteConstraint::CheckFunction func) : func_(std::move(func)) {}
-    //      HardRouteResult check(const InsertionRouteContext& ctx, const Activities& acts) const override {
-    //        return func_(ctx, acts);
-    //      }
-    //      HardRouteConstraint::CheckFunction func_;
-    //    };
-
     using Wrapper = CheckFunctionWrapper<HardRouteConstraint,
                                          HardRouteConstraint::Result,
                                          InsertionRouteContext,
@@ -117,14 +109,6 @@ public:
 
   /// Adds soft route constraint.
   InsertionConstraint& addSoftRoute(SoftRouteConstraint::CheckFunc constraint) {
-    //    struct CheckFunctionWrapper : SoftRouteConstraint {
-    //      explicit CheckFunctionWrapper(SoftRouteConstraint::CheckFunction func) : func_(std::move(func)) {}
-    //      models::common::Cost check(const InsertionRouteContext& ctx, const Activities& acts) const override {
-    //        return func_(ctx, acts);
-    //      }
-    //      SoftRouteConstraint::CheckFunction func_;
-    //    };
-
     using Wrapper = CheckFunctionWrapper<SoftRouteConstraint,
                                          models::common::Cost,
                                          InsertionRouteContext,
