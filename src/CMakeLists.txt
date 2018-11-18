@@ -2,11 +2,7 @@ project(Solver LANGUAGES CXX)
 
 find_package(ClangTidy)
 
-set(LIBRARY_NAME Solver)
-
 set(SOURCE_FILES
-        Stub.hpp
-        Stub.cc
 
         algorithms/construction/extensions/Insertions.hpp
 
@@ -57,18 +53,6 @@ set(SOURCE_FILES
 
         utils/extensions/Variant.hpp
 
-        )
-
-add_library(${LIBRARY_NAME} STATIC
-        ${SOURCE_FILES}
-        )
-
-target_compile_features(${LIBRARY_NAME} PRIVATE
-        cxx_std_17
-        )
-
-set_target_properties(${LIBRARY_NAME} PROPERTIES
-        LINKER_LANGUAGE CXX
         )
 
 include_directories(${MAIN_SOURCE}

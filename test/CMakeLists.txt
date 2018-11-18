@@ -1,6 +1,5 @@
 project(SolverTest LANGUAGES CXX)
 
-set(LIBRARY_NAME Solver)
 set(LIBRARY_TEST SolverTest)
 
 include_directories(${MAIN_SOURCE}
@@ -30,12 +29,6 @@ add_executable(${LIBRARY_TEST}
         ${SOURCE_FILES}
         )
 
-
 set_target_properties(${LIBRARY_TEST} PROPERTIES
         LINKER_LANGUAGE CXX
-        CUDA_SEPARABLE_COMPILATION ON
-        )
-
-target_link_libraries(${LIBRARY_TEST} PRIVATE
-        ${LIBRARY_NAME}
         )
