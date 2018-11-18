@@ -124,8 +124,8 @@ protected:
       auto [tpCostOld, actCostOld, depTimeOld] = analyzeLeg(routeCtx.route->actor, prev, next, prev.schedule.departure);
 
       auto delayTime = depTimeRight > depTimeOld ? depTimeRight - depTimeOld : 0;
-      auto futureWaiting = 0;  // routeCtx.state->get<Timestamp>("FutureWaiting", next).value_or(0);
-      auto timeCostSavings = delayTime * routeCtx.route->actor.vehicle->costs.perWaitingTime;
+      auto futureWaiting = Timestamp{0};  // routeCtx.state->get<Timestamp>("FutureWaiting", next).value_or(0);
+      auto timeCostSavings = std::min(futureWaiting, delayTime) * routeCtx.route->actor.vehicle->costs.perWaitingTime;
 
       oldCosts += tpCostOld + progress.completeness * (actCostOld + timeCostSavings);
     }
