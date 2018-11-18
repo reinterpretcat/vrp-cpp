@@ -6,7 +6,7 @@ set(SOURCE_FILES
 
         algorithms/construction/extensions/Insertions.hpp
 
-        algorithms/construction/insertion/constraints/VehicleActivityTimingTest.hpp
+        algorithms/construction/insertion/constraints/VehicleActivityTiming.hpp
         algorithms/construction/insertion/evaluators/JobInsertionEvaluator.hpp
         algorithms/construction/insertion/evaluators/ServiceInsertionEvaluator.hpp
         algorithms/construction/insertion/evaluators/ShipmentInsertionEvaluator.hpp

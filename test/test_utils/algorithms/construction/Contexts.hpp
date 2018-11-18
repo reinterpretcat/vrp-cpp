@@ -14,7 +14,7 @@ using TestInsertionContext = std::pair<std::shared_ptr<algorithms::construction:
                                        std::shared_ptr<algorithms::construction::InsertionActivityContext>>;
 
 /// Creates insertion contexts with the same actor.
-TestInsertionContext
+inline TestInsertionContext
 sameActor(const vrp::models::solution::Tour::Activity& prev,
           const vrp::models::solution::Tour::Activity& target,
           const vrp::models::solution::Tour::Activity& next) {
@@ -28,7 +28,7 @@ sameActor(const vrp::models::solution::Tour::Activity& prev,
 }
 
 /// Creates insertion contexts with the same actor.
-TestInsertionContext
+inline TestInsertionContext
 sameActor(const vrp::models::solution::Tour::Activity& target) {
   auto routeCtx = test_build_insertion_route_context{}.shared();
   auto actCtx = test_build_insertion_activity_context{}  //
@@ -40,7 +40,7 @@ sameActor(const vrp::models::solution::Tour::Activity& target) {
 }
 
 /// Creates insertion contexts with different actor.
-TestInsertionContext
+inline TestInsertionContext
 differentActor(const vrp::models::solution::Tour::Activity& activity) {
   auto routeCtx = test_build_insertion_route_context{}
                     .actor(test_build_actor{}.vehicle(test_build_vehicle{}.start(20).shared()).shared())
@@ -54,7 +54,7 @@ differentActor(const vrp::models::solution::Tour::Activity& activity) {
 }
 
 /// Creates insertion contexts with different actor.
-TestInsertionContext
+inline TestInsertionContext
 differentActor(const vrp::models::solution::Tour::Activity& prev,
                const vrp::models::solution::Tour::Activity& target,
                const vrp::models::solution::Tour::Activity& next,
