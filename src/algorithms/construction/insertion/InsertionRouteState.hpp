@@ -27,6 +27,11 @@ struct InsertionRouteState final {
     return value == activityStates_.end() ? std::optional<T>{} : std::make_optional(std::any_cast<T>(value->second));
   }
 
+  template<typename T>
+  void put(const std::string& key, const models::solution::Activity& activity, const T& value) {
+    activityStates_[std::pair{activity, key}] = value;
+  }
+
   // endregion
 
 private:

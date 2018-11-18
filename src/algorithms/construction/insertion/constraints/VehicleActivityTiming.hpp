@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <optional>
+#include <range/v3/all.hpp>
 #include <string>
 #include <utility>
 
@@ -17,7 +18,7 @@ namespace vrp::algorithms::construction {
 
 /// Checks whether vehicle can serve activity taking into account their time windows.
 struct VehicleActivityTiming final : public HardActivityConstraint {
-  constexpr static const char* LatestOperationStartTime = "latest_operation_start_time";
+  inline static const std::string LatestOperationStartTime = "latest_operation_start_time";
 
   VehicleActivityTiming(std::shared_ptr<const models::problem::Fleet> fleet,
                         std::shared_ptr<const models::costs::TransportCosts> transportCosts,
@@ -30,7 +31,23 @@ struct VehicleActivityTiming final : public HardActivityConstraint {
   }
 
   /// Accept route and updates its state.
-  void accept(const models::solution::Route& route, InsertionRouteState& state) const override {}
+  void accept(const models::solution::Route& route, InsertionRouteState& state) const override {
+    using namespace ranges;
+    const auto& stateKey = keyMapping_.find(route.actor.vehicle->id)->second;
+    auto init = std::pair{route.end->time.end, route.end->location};
+    ranges::accumulate(view::reverse(route.tour.activities()), init, [&](const auto& acc, const auto& act) {
+      auto [endTime, location] = acc;
+      auto potentialLatest = endTime - transportCosts_->duration(route.actor, act->location, location, endTime) -
+        activityCosts_->duration(route.actor, *act, endTime);
+
+      // TODO switch not feasible? if (latestArrivalTime < act->time.start)
+      auto latestArrivalTime = std::min(act->time.end, potentialLatest);
+
+      state.put<models::common::Timestamp>(stateKey, *act, latestArrivalTime);
+
+      return std::pair{latestArrivalTime, act->location};
+    });
+  }
 
   /// Checks whether proposed insertion doesn't violate time windows.
   std::optional<std::tuple<bool, int>> check(const InsertionRouteContext& routeCtx,
@@ -102,7 +119,7 @@ private:
     auto hash = size_t{0} | hash_combine<Timestamp>{v.time.start} |  //
       hash_combine<Timestamp>{v.time.end} | hash_combine<Location>{v.start} |
       hash_combine<Location>{v.end.value_or(std::numeric_limits<std::uint64_t>::max())};
-    return std::to_string(hash);
+    return LatestOperationStartTime + std::to_string(hash);
   }
 
   int code_;
