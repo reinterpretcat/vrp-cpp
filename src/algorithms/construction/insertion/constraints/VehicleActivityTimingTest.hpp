@@ -5,6 +5,7 @@
 #include "models/common/Timestamp.hpp"
 #include "models/costs/ActivityCosts.hpp"
 #include "models/costs/TransportCosts.hpp"
+#include "models/problem/Fleet.hpp"
 
 #include <algorithm>
 #include <optional>
@@ -16,11 +17,12 @@ namespace vrp::algorithms::construction {
 struct VehicleActivityTiming final : public HardActivityConstraint {
   constexpr static const char* LatestOperationStartTime = "latest_operation_start_time";
 
-  VehicleActivityTiming(std::shared_ptr<const models::costs::TransportCosts> transportCosts,
+  VehicleActivityTiming(std::shared_ptr<const models::problem::Fleet> fleet,
+                        std::shared_ptr<const models::costs::TransportCosts> transportCosts,
                         std::shared_ptr<const models::costs::ActivityCosts> activityCosts,
                         int code = 1) :
-    transportCosts_(std::move(transportCosts)),
-    activityCosts_(std::move(activityCosts)), code_(code) {}
+    code_(code),
+    fleet_(std::move(fleet)), transportCosts_(std::move(transportCosts)), activityCosts_(std::move(activityCosts)) {}
 
   /// Accept route and updates its state.
   void accept(const models::solution::Route& route, InsertionRouteState& state) const override {}
@@ -90,6 +92,7 @@ private:
   std::optional<std::tuple<bool, int>> stop() const { return {{true, -1}}; }
 
   int code_;
+  std::shared_ptr<const models::problem::Fleet> fleet_;
   std::shared_ptr<const models::costs::TransportCosts> transportCosts_;
   std::shared_ptr<const models::costs::ActivityCosts> activityCosts_;
 };

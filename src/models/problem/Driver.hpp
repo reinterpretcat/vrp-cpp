@@ -11,6 +11,9 @@ namespace vrp::models::problem {
 /// * reuse vehicle multiple times with different drivers
 /// * solve best driver-vehicle match problem.
 struct Driver {
+  /// Specifies driver id.
+  std::string id;
+
   /// Specifies driver costs.
   Costs costs;
 
