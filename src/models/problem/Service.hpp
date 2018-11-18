@@ -3,6 +3,7 @@
 #include "models/common/Dimension.hpp"
 #include "models/problem/Detail.hpp"
 
+#include <string>
 #include <vector>
 
 namespace vrp::models::problem {
