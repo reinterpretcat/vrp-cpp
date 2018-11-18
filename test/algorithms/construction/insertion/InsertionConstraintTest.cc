@@ -9,14 +9,13 @@ namespace vrp::test {
 SCENARIO("insertion constraint can handle multiple constraints", "[algorithms][construction][insertion]") {
   GIVEN("insertion constraint") {
     auto constraint = InsertionConstraint{};
-    auto view = InsertionConstraint::Activities{};
+    auto view = HardRouteConstraint::Activities{};
 
     WHEN("all two hard route constraints are fulfilled") {
       THEN("hard returns no value") {
-        auto result =
-          constraint.addHardRoute([](const auto&, const auto&) { return InsertionConstraint::HardRouteResult{}; })
-            .addHardRoute([](const auto&, const auto&) { return InsertionConstraint::HardRouteResult{}; })
-            .hard(InsertionRouteContext{}, view);
+        auto result = constraint.addHardRoute([](const auto&, const auto&) { return HardRouteConstraint::Result{}; })
+                        .addHardRoute([](const auto&, const auto&) { return HardRouteConstraint::Result{}; })
+                        .hard(InsertionRouteContext{}, view);
 
         REQUIRE(!result.has_value());
       }
@@ -24,10 +23,9 @@ SCENARIO("insertion constraint can handle multiple constraints", "[algorithms][c
 
     WHEN("one of all two hard route constraints is fulfilled") {
       THEN("hard returns single code") {
-        auto result =
-          constraint.addHardRoute([](const auto&, const auto&) { return InsertionConstraint::HardRouteResult{1}; })
-            .addHardRoute([](const auto&, const auto&) { return InsertionConstraint::HardRouteResult{}; })
-            .hard(InsertionRouteContext{}, view);
+        auto result = constraint.addHardRoute([](const auto&, const auto&) { return HardRouteConstraint::Result{1}; })
+                        .addHardRoute([](const auto&, const auto&) { return HardRouteConstraint::Result{}; })
+                        .hard(InsertionRouteContext{}, view);
 
         REQUIRE(result.value() == 1);
       }
@@ -35,10 +33,9 @@ SCENARIO("insertion constraint can handle multiple constraints", "[algorithms][c
 
     WHEN("all two hard route constraints are not fulfilled") {
       THEN("hard returns first code") {
-        auto result =
-          constraint.addHardRoute([](const auto&, const auto&) { return InsertionConstraint::HardRouteResult{1}; })
-            .addHardRoute([](const auto&, const auto&) { return InsertionConstraint::HardRouteResult{3}; })
-            .hard(InsertionRouteContext{}, view);
+        auto result = constraint.addHardRoute([](const auto&, const auto&) { return HardRouteConstraint::Result{1}; })
+                        .addHardRoute([](const auto&, const auto&) { return HardRouteConstraint::Result{3}; })
+                        .hard(InsertionRouteContext{}, view);
 
         REQUIRE(result.value() == 1);
       }

@@ -13,12 +13,6 @@ namespace vrp::algorithms::construction {
 
 /// Provides the way to associate arbirtary data within route and activity.
 struct InsertionRouteState final {
-  // region Predefined states
-
-  inline static const std::string FutureWaiting = "future_waiting";
-
-  // endregion
-
   // region State getters
 
   template<typename T>

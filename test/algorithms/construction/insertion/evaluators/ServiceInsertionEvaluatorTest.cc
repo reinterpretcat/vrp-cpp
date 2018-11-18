@@ -56,7 +56,7 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
       ServiceInsertionEvaluator(std::make_shared<TestTransportCosts>(), std::make_shared<ActivityCosts>(), constraint);
 
     WHEN("service has failed constraint") {
-      constraint->addHardRoute([](const auto&, const auto&) { return InsertionConstraint::HardRouteResult{42}; });
+      constraint->addHardRoute([](const auto&, const auto&) { return HardRouteConstraint::Result{42}; });
       auto result =
         evaluator.evaluate(ranges::get<0>(DefaultService), test_build_insertion_route_context{}.owned(), progress);
 
