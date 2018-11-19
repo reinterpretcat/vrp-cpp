@@ -54,8 +54,20 @@ SCENARIO("vehicle activity timing accepts route modifying its state", "[algorith
                             std::make_shared<ActivityCosts>())
         .accept(route, state);
 
-      auto [vehicle, activity, time] =
-        GENERATE(table<std::string, size_t, Timestamp>({{"v1", 2, 70}, {"v2", 2, 30}, {"v3", 2, 90}}));
+      auto [vehicle, activity, time] = GENERATE(table<std::string, size_t, Timestamp>({
+        {"v1", 2, 70},
+        {"v2", 2, 30},
+        {"v3", 2, 90},
+        {"v4", 2, 90},
+        {"v1", 1, 60},
+        {"v2", 1, 20},
+        {"v3", 1, 80},
+        {"v4", 1, 80},
+        {"v1", 0, 50},
+        {"v2", 0, 10},
+        {"v3", 0, 70},
+        {"v4", 0, 70}  //
+      }));
 
       THEN("should update latest operation time") {
         auto result = state.get<Timestamp>(operationTimeKey(vehicle, *fleet), *route.tour.get(activity)).value_or(0);
