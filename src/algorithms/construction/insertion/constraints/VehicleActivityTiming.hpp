@@ -29,7 +29,7 @@ struct VehicleActivityTiming final : public HardActivityConstraint {
     // TODO consider driver as well
     ranges::for_each(fleet->vehicles(), [&](const auto& v) {
       auto key = vehicleKey(StateKey, *v);
-      if (keys_.find(key) == keys_.end()) { keys_[key] = std::make_pair(v->time.end, v->end); }
+      if (keys_.find(key) == keys_.end()) { keys_[key] = std::make_pair(v->time.end, v->end.value_or(v->start)); }
     });
   }
 
@@ -39,12 +39,12 @@ struct VehicleActivityTiming final : public HardActivityConstraint {
 
     ranges::for_each(ranges::view::all(keys_), [&](const auto& pair) {
       const auto& stateKey = pair.first;
-      auto init = std::pair{pair.second.first, pair.second.second.value_or(route.end->location)};
+      auto init = std::pair{pair.second.first, pair.second.second};
 
       ranges::accumulate(view::reverse(route.tour.activities()), init, [&](const auto& acc, const auto& act) {
-        const auto& [endTime, location] = acc;
+        const auto& [endTime, prevLoc] = acc;
 
-        auto potentialLatest = endTime - transportCosts_->duration(route.actor, act->location, location, endTime) -
+        auto potentialLatest = endTime - transportCosts_->duration(route.actor, act->location, prevLoc, endTime) -
           activityCosts_->duration(route.actor, *act, endTime);
 
         auto latestArrivalTime = std::min(act->time.end, potentialLatest);
@@ -52,7 +52,7 @@ struct VehicleActivityTiming final : public HardActivityConstraint {
 
         state.put<models::common::Timestamp>(stateKey, *act, latestArrivalTime);
 
-        return std::pair{latestArrivalTime, act->location};
+        return std::make_pair(latestArrivalTime, act->location);
       });
     });
   }
@@ -124,7 +124,7 @@ private:
   std::optional<std::tuple<bool, int>> stop() const { return {{true, -1}}; }
 
   int code_;
-  std::unordered_map<std::string, std::pair<models::common::Timestamp, std::optional<models::common::Location>>> keys_;
+  std::unordered_map<std::string, std::pair<models::common::Timestamp, models::common::Location>> keys_;
   std::shared_ptr<const models::costs::TransportCosts> transportCosts_;
   std::shared_ptr<const models::costs::ActivityCosts> activityCosts_;
 };

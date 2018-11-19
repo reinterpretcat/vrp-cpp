@@ -16,6 +16,7 @@ using namespace vrp::models::common;
 using namespace vrp::models::costs;
 using namespace vrp::models::solution;
 using namespace vrp::models::problem;
+using namespace Catch::Generators;
 
 namespace {
 
@@ -53,10 +54,13 @@ SCENARIO("vehicle activity timing accepts route modifying its state", "[algorith
                             std::make_shared<ActivityCosts>())
         .accept(route, state);
 
-      THEN("should update latest operation time of third activity") {
-        auto time = state.get<Timestamp>(operationTimeKey("v1", *fleet), *route.tour.get(2)).value_or(0);
+      auto [vehicle, activity, time] =
+        GENERATE(table<std::string, size_t, Timestamp>({{"v1", 2, 70}, {"v2", 2, 30}, {"v3", 2, 90}}));
 
-        REQUIRE(time == 70);
+      THEN("should update latest operation time") {
+        auto result = state.get<Timestamp>(operationTimeKey(vehicle, *fleet), *route.tour.get(activity)).value_or(0);
+
+        REQUIRE(result == time);
       }
     }
   }
