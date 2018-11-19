@@ -5,6 +5,7 @@ find_package(ClangTidy)
 set(SOURCE_FILES
 
         algorithms/construction/extensions/Insertions.hpp
+        algorithms/construction/extensions/States.hpp
 
         algorithms/construction/insertion/constraints/VehicleActivityTiming.hpp
         algorithms/construction/insertion/evaluators/JobInsertionEvaluator.hpp

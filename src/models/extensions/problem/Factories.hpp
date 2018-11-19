@@ -50,6 +50,31 @@ private:
   Service service_;
 };
 
+class build_detail {
+public:
+  build_detail& location(common::Location value) {
+    detail_.location = value;
+    return *this;
+  }
+
+  build_detail& duration(common::Duration value) {
+    detail_.duration = value;
+    return *this;
+  }
+
+  build_detail& times(std::vector<common::TimeWindow>&& value) {
+    detail_.times = value;
+    return *this;
+  }
+
+  Detail&& owned() { return std::move(detail_); }
+
+  std::shared_ptr<Detail> shared() { return std::make_shared<Detail>(std::move(detail_)); }
+
+private:
+  Detail detail_;
+};
+
 /// A helper class to build vehicle;
 class build_vehicle {
 public:
@@ -65,6 +90,11 @@ public:
 
   build_vehicle& costs(const Costs& value) {
     vehicle_.costs = value;
+    return *this;
+  }
+
+  build_vehicle& time(common::TimeWindow&& value) {
+    vehicle_.time = value;
     return *this;
   }
 

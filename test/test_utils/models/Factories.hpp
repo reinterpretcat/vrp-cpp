@@ -7,7 +7,7 @@
 
 namespace vrp::test {
 
-constexpr vrp::models::common::Duration DefaultDuration = 1;
+constexpr vrp::models::common::Duration DefaultDuration = 0;
 constexpr vrp::models::common::Timestamp DefaultTime = 0;
 constexpr vrp::models::common::Location DefaultActorLocation = 0;
 constexpr vrp::models::common::Location DefaultJobLocation = 5;
@@ -23,6 +23,13 @@ public:
   }
 };
 
+class test_build_detail : public vrp::models::problem::build_detail {
+public:
+  explicit test_build_detail() : vrp::models::problem::build_detail() {
+    location(DefaultJobLocation).duration(DefaultDuration).times({DefaultTimeWindow});
+  }
+};
+
 inline vrp::models::problem::Job DefaultService = vrp::models::problem::as_job(test_build_service{}.shared());
 
 class test_build_activity : public models::solution::build_activity {
@@ -30,6 +37,7 @@ public:
   explicit test_build_activity() : models::solution::build_activity() {
     duration(DefaultDuration)
       .type(models::solution::Activity::Type::Job)
+      .time(DefaultTimeWindow)
       .location(DefaultJobLocation)
       .job(DefaultService);
   }
@@ -40,7 +48,12 @@ inline std::shared_ptr<vrp::models::solution::Activity> DefaultActivity = test_b
 class test_build_vehicle : public vrp::models::problem::build_vehicle {
 public:
   explicit test_build_vehicle() : vrp::models::problem::build_vehicle() {
-    id("vehicle1").profile("car").start(DefaultActorLocation).dimensions({DefaultDimension}).costs(DefaultCosts);
+    id("vehicle1")
+      .profile("car")
+      .start(DefaultActorLocation)
+      .time(static_cast<models::common::TimeWindow>(DefaultTimeWindow))
+      .dimensions({DefaultDimension})
+      .costs(DefaultCosts);
   }
 };
 

@@ -20,7 +20,7 @@ struct Fleet final {
 
   Fleet& add(const Vehicle& vehicle) {
     if (vehicles_.find(vehicle.id) != vehicles_.end())
-      throw std::invalid_argument("Driver is already added to the fleet.");
+      throw std::invalid_argument("Vehicle is already added to the fleet.");
     vehicles_.insert({vehicle.id, std::make_shared<Vehicle>(vehicle)});
     return *this;
   }
@@ -31,6 +31,12 @@ struct Fleet final {
 
   auto vehicles() const {
     return ranges::view::all(vehicles_) | ranges::view::transform([](const auto& v) { return v.second; });
+  }
+
+  std::shared_ptr<Vehicle> vehicle(const std::string& id) const {
+    auto result = vehicles_.find(id);
+    if (result == vehicles_.end()) throw std::invalid_argument(std::string("Cannot find vehicle with id:") + id);
+    return result->second;
   }
 
 private:

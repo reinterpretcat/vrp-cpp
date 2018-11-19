@@ -1,12 +1,12 @@
 #pragma once
 
+#include "algorithms/construction/extensions/States.hpp"
 #include "algorithms/construction/insertion/InsertionConstraint.hpp"
 #include "models/common/Location.hpp"
 #include "models/common/Timestamp.hpp"
 #include "models/costs/ActivityCosts.hpp"
 #include "models/costs/TransportCosts.hpp"
 #include "models/problem/Fleet.hpp"
-#include "utils/extensions/Hash.hpp"
 
 #include <algorithm>
 #include <optional>
@@ -25,27 +25,35 @@ struct VehicleActivityTiming final : public HardActivityConstraint {
                         std::shared_ptr<const models::costs::ActivityCosts> activityCosts,
                         int code = 1) :
     code_(code),
-    keyMapping_(), transportCosts_(std::move(transportCosts)), activityCosts_(std::move(activityCosts)) {
+    keys_(), transportCosts_(std::move(transportCosts)), activityCosts_(std::move(activityCosts)) {
     // TODO consider driver as well
-    ranges::for_each(fleet->vehicles(), [&](const auto& v) { keyMapping_[v->id] = key(*v); });
+    ranges::for_each(fleet->vehicles(), [&](const auto& v) {
+      auto key = vehicleKey(StateKey, *v);
+      if (keys_.find(key) == keys_.end()) { keys_[key] = std::make_pair(v->time.end, v->end); }
+    });
   }
 
   /// Accept route and updates its insertion state.
   void accept(const models::solution::Route& route, InsertionRouteState& state) const override {
     using namespace ranges;
-    const auto& stateKey = keyMapping_.find(route.actor.vehicle->id)->second;
-    auto init = std::pair{route.end->time.end, route.end->location};
-    ranges::accumulate(view::reverse(route.tour.activities()), init, [&](const auto& acc, const auto& act) {
-      auto [endTime, location] = acc;
-      auto potentialLatest = endTime - transportCosts_->duration(route.actor, act->location, location, endTime) -
-        activityCosts_->duration(route.actor, *act, endTime);
 
-      auto latestArrivalTime = std::min(act->time.end, potentialLatest);
-      if (latestArrivalTime < act->time.start) state.put<bool>(stateKey, true);
+    ranges::for_each(ranges::view::all(keys_), [&](const auto& pair) {
+      const auto& stateKey = pair.first;
+      auto init = std::pair{pair.second.first, pair.second.second.value_or(route.end->location)};
 
-      state.put<models::common::Timestamp>(stateKey, *act, latestArrivalTime);
+      ranges::accumulate(view::reverse(route.tour.activities()), init, [&](const auto& acc, const auto& act) {
+        const auto& [endTime, location] = acc;
 
-      return std::pair{latestArrivalTime, act->location};
+        auto potentialLatest = endTime - transportCosts_->duration(route.actor, act->location, location, endTime) -
+          activityCosts_->duration(route.actor, *act, endTime);
+
+        auto latestArrivalTime = std::min(act->time.end, potentialLatest);
+        if (latestArrivalTime < act->time.start) state.put<bool>(stateKey, true);
+
+        state.put<models::common::Timestamp>(stateKey, *act, latestArrivalTime);
+
+        return std::pair{latestArrivalTime, act->location};
+      });
     });
   }
 
@@ -115,17 +123,8 @@ private:
   std::optional<std::tuple<bool, int>> fail() const { return {{true, code_}}; }
   std::optional<std::tuple<bool, int>> stop() const { return {{true, -1}}; }
 
-  std::string key(const models::problem::Vehicle& v) const {
-    using namespace vrp::utils;
-    using namespace vrp::models::common;
-    auto hash = size_t{0} | hash_combine<Timestamp>{v.time.start} |  //
-      hash_combine<Timestamp>{v.time.end} | hash_combine<Location>{v.start} |
-      hash_combine<Location>{v.end.value_or(std::numeric_limits<std::uint64_t>::max())};
-    return StateKey + std::to_string(hash);
-  }
-
   int code_;
-  std::unordered_map<std::string, std::string> keyMapping_;
+  std::unordered_map<std::string, std::pair<models::common::Timestamp, std::optional<models::common::Location>>> keys_;
   std::shared_ptr<const models::costs::TransportCosts> transportCosts_;
   std::shared_ptr<const models::costs::ActivityCosts> activityCosts_;
 };

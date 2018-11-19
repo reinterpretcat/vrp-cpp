@@ -5,7 +5,7 @@ set(LIBRARY_NAME Solver)
 
 set(SOURCE_FILES
         runner/main.cc
-    )
+        )
 
 add_executable(${EXE_NAME}
         ${SOURCE_FILES})

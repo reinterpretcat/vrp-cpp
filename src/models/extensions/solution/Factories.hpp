@@ -76,11 +76,18 @@ public:
     return *this;
   }
 
-  Route&& owned() { return std::move(route_); }
+  Route&& owned() { return build(); }
 
-  std::shared_ptr<Route> shared() { return std::make_shared<Route>(std::move(route_)); }
+  std::shared_ptr<Route> shared() { return std::make_shared<Route>(build()); }
 
 private:
+  Route&& build() {
+    const auto& time = route_.actor.vehicle->time;
+    route_.start->time = {time.start, time.start};
+    route_.end->time = {time.end, time.end};
+    return std::move(route_);
+  }
+
   Route route_;
 };
 
