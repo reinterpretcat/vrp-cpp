@@ -6,6 +6,7 @@
 #include "models/solution/Route.hpp"
 
 #include <memory>
+#include <numeric>
 
 namespace vrp::models::solution {
 
@@ -83,8 +84,8 @@ public:
 private:
   Route&& build() {
     const auto& time = route_.actor.vehicle->time;
-    route_.start->time = {time.start, time.start};
-    route_.end->time = {time.end, time.end};
+    route_.start->time = {time.start, std::numeric_limits<common::Timestamp>::max()};
+    route_.end->time = {0, time.end};
     return std::move(route_);
   }
 

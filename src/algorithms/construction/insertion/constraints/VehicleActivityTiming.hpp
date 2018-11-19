@@ -58,8 +58,8 @@ struct VehicleActivityTiming final : public HardActivityConstraint {
   }
 
   /// Checks whether proposed insertion doesn't violate time windows.
-  std::optional<std::tuple<bool, int>> check(const InsertionRouteContext& routeCtx,
-                                             const InsertionActivityContext& actCtx) const override {
+  HardActivityConstraint::Result check(const InsertionRouteContext& routeCtx,
+                                       const InsertionActivityContext& actCtx) const override {
     using namespace vrp::models;
     using namespace vrp::models::common;
 
@@ -69,11 +69,12 @@ struct VehicleActivityTiming final : public HardActivityConstraint {
     const auto& target = *actCtx.target;
     const auto& next = *actCtx.next;
 
-    auto nextActLocation = next.location;
     auto latestArrival = routeCtx.actor->vehicle->time.end;
+    auto nextActLocation =
+      next.type == solution::Activity::Type::End ? routeCtx.actor->vehicle->end.value_or(next.location) : next.location;
     auto latestArrTimeAtNextAct = next.type == solution::Activity::Type::End
       ? routeCtx.actor->vehicle->time.end
-      : routeCtx.state->get<Timestamp>(StateKey, next).value_or(next.time.end);
+      : routeCtx.state->get<Timestamp>(vehicleKey(StateKey, *routeCtx.actor->vehicle), next).value_or(next.time.end);
 
     //    |--- vehicle's operation time ---|  |--- prev or target or next ---|
     if (latestArrival < prev.time.start || latestArrival < target.time.start || latestArrival < next.time.start)
@@ -83,13 +84,13 @@ struct VehicleActivityTiming final : public HardActivityConstraint {
     if (target.time.end < prev.time.start) return fail();
 
 
-    // |--- prevAct ---| |--- nextAct ---| |- earliest arrival of vehicle
+    // |--- prev ---| |--- next ---| |- earliest arrival of vehicle
     auto arrTimeAtNext =
-      actCtx.departure + transportCosts_->duration(*routeCtx.actor, prev.location, next.location, actCtx.departure);
+      actCtx.departure + transportCosts_->duration(*routeCtx.actor, prev.location, nextActLocation, actCtx.departure);
     if (arrTimeAtNext > latestArrTimeAtNextAct) return fail();
 
 
-    //|--- nextAct ---| |--- newAct ---|
+    //|--- next ---| |--- target ---|
     if (target.time.start > next.time.end) return fail();
 
 
@@ -99,29 +100,31 @@ struct VehicleActivityTiming final : public HardActivityConstraint {
     auto endTimeAtNewAct = std::max(arrTimeAtNewAct, target.time.start)  //
       + activityCosts_->duration(*routeCtx.actor, target, arrTimeAtNewAct);
 
-    auto time = transportCosts_->duration(*routeCtx.actor, target.location, nextActLocation, latestArrTimeAtNextAct)  //
+    std::int64_t time =
+      transportCosts_->duration(*routeCtx.actor, target.location, nextActLocation, latestArrTimeAtNextAct)  //
       - activityCosts_->duration(*routeCtx.actor, target, arrTimeAtNewAct);
 
-    auto latestArrTimeAtNewAct = std::min(target.time.end, latestArrTimeAtNextAct - time);
+    std::int64_t latestArrTimeAtNewAct = std::min<std::int64_t>(
+      target.time.end, static_cast<std::int64_t>(latestArrTimeAtNextAct) - static_cast<std::int64_t>(time));
 
-    // |--- latest arrival of vehicle @newAct ---| |--- vehicle's arrival @newAct ---|
-    if (arrTimeAtNewAct > latestArrTimeAtNewAct) return stop();
+    // |--- latest arrival of vehicle @target ---| |--- vehicle's arrival @target ---|
+    if (static_cast<std::int64_t>(arrTimeAtNewAct) > latestArrTimeAtNewAct) return stop();
 
 
-    if (next.type == solution::Activity::Type::End && routeCtx.actor->vehicle->end.has_value()) return success();
+    if (next.type == solution::Activity::Type::End && !routeCtx.actor->vehicle->end.has_value()) return success();
 
 
     auto arrTimeAtNextAct =
       endTimeAtNewAct + transportCosts_->duration(*routeCtx.actor, target.location, nextActLocation, endTimeAtNewAct);
 
-    //  |--- latest arrival of vehicle @nextAct ---| |--- vehicle's arrival @nextAct ---|
+    //  |--- latest arrival of vehicle @next ---| |--- vehicle's arrival @next ---|
     return arrTimeAtNextAct > latestArrTimeAtNextAct ? stop() : success();
   }
 
 private:
-  std::optional<std::tuple<bool, int>> success() const { return {}; }
-  std::optional<std::tuple<bool, int>> fail() const { return {{true, code_}}; }
-  std::optional<std::tuple<bool, int>> stop() const { return {{true, -1}}; }
+  HardActivityConstraint::Result success() const { return {}; }
+  HardActivityConstraint::Result fail() const { return {{true, code_}}; }
+  HardActivityConstraint::Result stop() const { return {{true, -1}}; }
 
   int code_;
   std::unordered_map<std::string, std::pair<models::common::Timestamp, models::common::Location>> keys_;

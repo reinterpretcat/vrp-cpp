@@ -49,6 +49,11 @@ public:
     return *this;
   }
 
+  build_insertion_activity_context& departure(models::common::Timestamp value) {
+    context_.departure = value;
+    return *this;
+  }
+
   build_insertion_activity_context& prev(models::solution::Tour::Activity value) {
     context_.prev = std::move(value);
     return *this;
