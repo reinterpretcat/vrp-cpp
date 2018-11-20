@@ -18,17 +18,18 @@ namespace vrp::algorithms::construction {
 
 /// Checks whether vehicle can serve activity taking into account their time windows.
 struct VehicleActivityTiming final : public HardActivityConstraint {
-  inline static const std::string StateKey = "vehicle_activity_timing";
+  inline static const std::string StateKey = "operation_time";
 
   VehicleActivityTiming(std::shared_ptr<const models::problem::Fleet> fleet,
                         std::shared_ptr<const models::costs::TransportCosts> transportCosts,
                         std::shared_ptr<const models::costs::ActivityCosts> activityCosts,
                         int code = 1) :
     code_(code),
-    keys_(), transportCosts_(std::move(transportCosts)), activityCosts_(std::move(activityCosts)) {
+    mapping_(), keys_(), transportCosts_(std::move(transportCosts)), activityCosts_(std::move(activityCosts)) {
     // TODO consider driver as well
     ranges::for_each(fleet->vehicles(), [&](const auto& v) {
       auto key = vehicleKey(StateKey, *v);
+      mapping_[v->id] = key;
       if (keys_.find(key) == keys_.end()) { keys_[key] = std::make_pair(v->time.end, v->end.value_or(v->start)); }
     });
   }
@@ -65,16 +66,17 @@ struct VehicleActivityTiming final : public HardActivityConstraint {
 
     // TODO check switch feasibility
 
+    const auto& actor = routeCtx.actor;
     const auto& prev = *actCtx.prev;
     const auto& target = *actCtx.target;
     const auto& next = *actCtx.next;
 
     auto latestArrival = routeCtx.actor->vehicle->time.end;
     auto nextActLocation =
-      next.type == solution::Activity::Type::End ? routeCtx.actor->vehicle->end.value_or(next.location) : next.location;
+      next.type == solution::Activity::Type::End ? actor->vehicle->end.value_or(next.location) : next.location;
     auto latestArrTimeAtNextAct = next.type == solution::Activity::Type::End
-      ? routeCtx.actor->vehicle->time.end
-      : routeCtx.state->get<Timestamp>(vehicleKey(StateKey, *routeCtx.actor->vehicle), next).value_or(next.time.end);
+      ? actor->vehicle->time.end
+      : routeCtx.state->get<Timestamp>(mapping_.find(actor->vehicle->id)->second, next).value_or(next.time.end);
 
     //    |--- vehicle's operation time ---|  |--- prev or target or next ---|
     if (latestArrival < prev.time.start || latestArrival < target.time.start || latestArrival < next.time.start)
@@ -86,7 +88,7 @@ struct VehicleActivityTiming final : public HardActivityConstraint {
 
     // |--- prev ---| |--- next ---| |- earliest arrival of vehicle
     auto arrTimeAtNext =
-      actCtx.departure + transportCosts_->duration(*routeCtx.actor, prev.location, nextActLocation, actCtx.departure);
+      actCtx.departure + transportCosts_->duration(*actor, prev.location, nextActLocation, actCtx.departure);
     if (arrTimeAtNext > latestArrTimeAtNextAct) return fail();
 
 
@@ -95,14 +97,13 @@ struct VehicleActivityTiming final : public HardActivityConstraint {
 
 
     auto arrTimeAtNewAct = actCtx.departure  //
-      + transportCosts_->duration(*routeCtx.actor, prev.location, target.location, actCtx.departure);
+      + transportCosts_->duration(*actor, prev.location, target.location, actCtx.departure);
 
     auto endTimeAtNewAct = std::max(arrTimeAtNewAct, target.time.start)  //
-      + activityCosts_->duration(*routeCtx.actor, target, arrTimeAtNewAct);
+      + activityCosts_->duration(*actor, target, arrTimeAtNewAct);
 
-    std::int64_t time =
-      transportCosts_->duration(*routeCtx.actor, target.location, nextActLocation, latestArrTimeAtNextAct)  //
-      - activityCosts_->duration(*routeCtx.actor, target, arrTimeAtNewAct);
+    std::int64_t time = transportCosts_->duration(*actor, target.location, nextActLocation, latestArrTimeAtNextAct)  //
+      - activityCosts_->duration(*actor, target, arrTimeAtNewAct);
 
     std::int64_t latestArrTimeAtNewAct = std::min<std::int64_t>(
       target.time.end, static_cast<std::int64_t>(latestArrTimeAtNextAct) - static_cast<std::int64_t>(time));
@@ -111,11 +112,11 @@ struct VehicleActivityTiming final : public HardActivityConstraint {
     if (static_cast<std::int64_t>(arrTimeAtNewAct) > latestArrTimeAtNewAct) return stop();
 
 
-    if (next.type == solution::Activity::Type::End && !routeCtx.actor->vehicle->end.has_value()) return success();
+    if (next.type == solution::Activity::Type::End && !actor->vehicle->end.has_value()) return success();
 
 
     auto arrTimeAtNextAct =
-      endTimeAtNewAct + transportCosts_->duration(*routeCtx.actor, target.location, nextActLocation, endTimeAtNewAct);
+      endTimeAtNewAct + transportCosts_->duration(*actor, target.location, nextActLocation, endTimeAtNewAct);
 
     //  |--- latest arrival of vehicle @next ---| |--- vehicle's arrival @next ---|
     return arrTimeAtNextAct > latestArrTimeAtNextAct ? stop() : success();
@@ -127,6 +128,7 @@ private:
   HardActivityConstraint::Result stop() const { return {{true, -1}}; }
 
   int code_;
+  std::unordered_map<std::string, std::string> mapping_;
   std::unordered_map<std::string, std::pair<models::common::Timestamp, models::common::Location>> keys_;
   std::shared_ptr<const models::costs::TransportCosts> transportCosts_;
   std::shared_ptr<const models::costs::ActivityCosts> activityCosts_;
