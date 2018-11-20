@@ -32,6 +32,8 @@ protected:
     models::common::Cost bestCost;
     /// Activity departure time.
     models::common::Timestamp departure = 0;
+    /// Activity departure time.
+    models::common::Duration duration = 0;
     /// Activity location.
     models::common::Location location = 0;
     /// Activity arrival and departure limits.
@@ -42,16 +44,17 @@ protected:
 
     /// Creates invalidated context.
     static EvaluationContext make_invalid(int code) {
-      return EvaluationContext{code, 0, std::numeric_limits<models::common::Cost>::max(), 0, 0, {0, 0}};
+      return EvaluationContext{code, 0, std::numeric_limits<models::common::Cost>::max(), 0, 0, 0, {0, 0}};
     }
 
     /// Creates new context.
     static EvaluationContext make_one(size_t index,
                                       const models::common::Cost& bestCost,
                                       const models::common::Timestamp& departure,
+                                      const models::common::Duration& duration,
                                       const models::common::Location& location,
                                       const models::common::TimeWindow& tw) {
-      return {-1, index, bestCost, departure, location, tw};
+      return {-1, index, bestCost, departure, duration, location, tw};
     }
   };
 

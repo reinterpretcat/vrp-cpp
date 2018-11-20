@@ -60,25 +60,25 @@ private:
     auto [start, end] = waypoints(routeCtx);
     auto tour = view::concat(view::single(start), routeCtx.route->tour.activities(), view::single(end));
     auto legs = view::zip(tour | view::sliding(2), view::iota(static_cast<size_t>(0)));
-    auto evalCtx = EvaluationContext::make_one(0, progress.bestCost, routeCtx.departure, 0, {});
+    auto evalCtx = EvaluationContext::make_one(0, progress.bestCost, routeCtx.departure, 0, 0, {});
 
     // 1. analyze route legs
-    auto result = ranges::accumulate(legs, evalCtx, [&](const auto& outer, const auto& view) {
-      if (outer.isInvalid()) return outer;
+    auto result = ranges::accumulate(legs, evalCtx, [&](const auto& out, const auto& view) {
+      if (out.isInvalid()) return out;
 
       // TODO recalculate departure
       auto [items, index] = view;
       auto [prev, next] = std::tie(*std::begin(items), *(std::begin(items) + 1));
-      auto actCtx = InsertionActivityContext{index, outer.departure, prev, activity, next};
+      auto actCtx = InsertionActivityContext{index, out.departure, prev, activity, next};
 
       // 2. analyze service details
-      return ranges::accumulate(view::all(service.details), outer, [&](const auto& inner1, const auto& detail) {
-        if (inner1.isInvalid()) return inner1;
+      return ranges::accumulate(view::all(service.details), out, [&](const auto& in1, const auto& detail) {
+        if (in1.isInvalid()) return in1;
 
         // TODO check whether tw is empty
         // 3. analyze detail time windows
-        return ranges::accumulate(view::all(detail.times), inner1, [&](const auto& inner2, const auto& time) {
-          if (inner2.isInvalid()) return inner2;
+        return ranges::accumulate(view::all(detail.times), in1, [&](const auto& in2, const auto& time) {
+          if (in2.isInvalid()) return in2;
 
           activity->time = time;
           activity->duration = detail.duration;
@@ -88,33 +88,33 @@ private:
             : view::concat(view::single(actCtx.prev->location), view::single(actCtx.next->location));
 
           // 4. analyze possible locations
-          return ranges::accumulate(view::all(locations), inner2, [&](const auto& inner3, const auto& location) {
-            if (inner3.isInvalid()) return inner3;
+          return ranges::accumulate(view::all(locations), in2, [&](const auto& in3, const auto& location) {
+            if (in3.isInvalid()) return in3;
 
             activity->location = location;
 
             // check hard activity constraint
             auto status = constraint_->hard(routeCtx, actCtx);
             if (status.has_value())
-              return std::get<0>(status.value()) ? EvaluationContext::make_invalid(std::get<1>(status.value()))
-                                                 : inner3;
+              return std::get<0>(status.value()) ? EvaluationContext::make_invalid(std::get<1>(status.value())) : in3;
 
             // calculate all costs on activity level
             auto actCosts = constraint_->soft(routeCtx, actCtx) + activityCosts(routeCtx, actCtx, progress);
             auto totalCosts = routeCosts + actCosts;
 
             // calculate end time (departure) for the next leg
-            auto endTime = inner3.departure + departure(*routeCtx.actor, *actCtx.prev, *actCtx.next, evalCtx.departure);
+            auto endTime = in3.departure + departure(*routeCtx.actor, *actCtx.prev, *actCtx.next, evalCtx.departure);
 
-            return totalCosts < inner3.bestCost
-              ? EvaluationContext::make_one(actCtx.index, totalCosts, endTime, location, time)
-              : EvaluationContext::make_one(inner3.index, inner3.bestCost, endTime, inner3.location, inner3.tw);
+            return totalCosts < in3.bestCost
+              ? EvaluationContext::make_one(actCtx.index, totalCosts, endTime, detail.duration, location, time)
+              : EvaluationContext::make_one(in3.index, in3.bestCost, endTime, in3.duration, in3.location, in3.tw);
           });
         });
       });
     });
 
     activity->location = result.location;
+    activity->duration = result.duration;
     activity->time = result.tw;
 
     return result.isInvalid()
