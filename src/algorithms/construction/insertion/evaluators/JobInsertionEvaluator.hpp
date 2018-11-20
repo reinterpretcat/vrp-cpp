@@ -29,7 +29,7 @@ protected:
     /// Insertion index.
     size_t index = 0;
     /// Best cost.
-    models::common::Cost bestCost;
+    models::common::Cost bestCost = std::numeric_limits<models::common::Cost>::max();
     /// Activity departure time.
     models::common::Timestamp departure = 0;
     /// Activity departure time.
