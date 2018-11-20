@@ -1,11 +1,13 @@
 #include "algorithms/construction/insertion/evaluators/ServiceInsertionEvaluator.hpp"
 
+#include "algorithms/construction/insertion/constraints/VehicleActivityTiming.hpp"
 #include "models/costs/ActivityCosts.hpp"
 #include "test_utils/algorithms/construction/Insertions.hpp"
 #include "test_utils/fakes/TestTransportCosts.hpp"
 #include "test_utils/models/Factories.hpp"
 
 #include <catch/catch.hpp>
+#include <tuple>
 #include <vector>
 
 using namespace vrp::algorithms::construction;
@@ -20,13 +22,15 @@ namespace {
 
 auto
 createContext(const Tour::Activity& prev, const Tour::Activity& next) {
+  auto constraint = std::make_shared<InsertionConstraint>();
   auto routeCtx = vrp::test::test_build_insertion_route_context{}.add(prev).add(next).shared();
-  auto evaluator = std::make_shared<ServiceInsertionEvaluator>(std::make_shared<vrp::test::TestTransportCosts>(),
+  auto evaluator = std::make_shared<ServiceInsertionEvaluator>(std::make_shared<vrp::test::TestTransportCosts>(),  //
                                                                std::make_shared<ActivityCosts>(),
-                                                               std::make_shared<InsertionConstraint>());
+                                                               constraint);
 
-  return std::pair<std::shared_ptr<InsertionRouteContext>, std::shared_ptr<ServiceInsertionEvaluator>>{routeCtx,
-                                                                                                       evaluator};
+  return std::tuple<std::shared_ptr<InsertionRouteContext>,
+                    std::shared_ptr<ServiceInsertionEvaluator>,
+                    std::shared_ptr<InsertionConstraint>>{routeCtx, evaluator, constraint};
 }
 
 std::vector<TimeWindow>
@@ -94,7 +98,7 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
   GIVEN("tour with two simple activities and service with time windows variations") {
     auto prev = test_build_activity{}.location(5).schedule({5, 5}).shared();
     auto next = test_build_activity{}.location(10).schedule({10, 10}).shared();
-    auto [routeCtx, evaluator] = createContext(prev, next);
+    auto [routeCtx, evaluator, constraint] = createContext(prev, next);
 
     auto [location, tws, index] = GENERATE(std::make_tuple(3, times({DefaultTimeWindow}), 0),
                                            std::make_tuple(8, times({DefaultTimeWindow}), 1),
@@ -117,7 +121,7 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
   GIVEN("tour with two simple activities and different locations") {
     auto prev = test_build_activity{}.location(5).schedule({5, 5}).shared();
     auto next = test_build_activity{}.location(10).schedule({10, 10}).shared();
-    auto [routeCtx, evaluator] = createContext(prev, next);
+    auto [routeCtx, evaluator, constraint] = createContext(prev, next);
 
     auto [locs, index, loc] =
       GENERATE(std::make_tuple(locations({3}), 0, 3), std::make_tuple(locations({20, 3}), 0, 3));
@@ -135,14 +139,17 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
     }
   }
 
-  GIVEN("tour with two simple activities and different locations") {
+  GIVEN("tour with two simple activities and different locations, including constraints") {
     auto prev = test_build_activity{}.location(5).schedule({5, 5}).shared();
     auto next = test_build_activity{}.location(10).schedule({10, 10}).shared();
-    auto [routeCtx, evaluator] = createContext(prev, next);
+    auto [routeCtx, evaluator, constraint] = createContext(prev, next);
 
     auto [ds, index, loc] =
       GENERATE(std::make_tuple(details({{{3}, 0, {DefaultTimeWindow}}}), 0, 3),
                std::make_tuple(details({{{20}, 0, {DefaultTimeWindow}}, {{3}, 0, times({{0, 2}})}}), 2, 20));
+
+    constraint->addHard<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(
+      DefaultFleet, std::make_shared<TestTransportCosts>(), std::make_shared<ActivityCosts>()));
 
     WHEN("service is inserted") {
       auto service = test_build_service{}.details(std::vector<Detail>{ds}).shared();

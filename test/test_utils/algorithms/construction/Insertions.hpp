@@ -7,7 +7,7 @@ namespace vrp::test {
 
 struct test_build_insertion_route_context : public vrp::algorithms::construction::build_insertion_route_context {
   explicit test_build_insertion_route_context() : vrp::algorithms::construction::build_insertion_route_context() {
-    actor(DefaultActor)
+    actor(std::make_shared<models::problem::Actor>(*DefaultActor))
       .route(test_build_route{}.shared())
       .departure(DefaultTime)
       .state(std::make_shared<vrp::algorithms::construction::InsertionRouteState>());

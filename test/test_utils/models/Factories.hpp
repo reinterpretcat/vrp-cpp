@@ -4,6 +4,7 @@
 
 #include "models/extensions/problem/Factories.hpp"
 #include "models/extensions/solution/Factories.hpp"
+#include "models/problem/Fleet.hpp"
 
 namespace vrp::test {
 
@@ -57,6 +58,8 @@ public:
   }
 };
 
+inline std::shared_ptr<const vrp::models::problem::Vehicle> DefaultVehicle = test_build_vehicle{}.shared();
+
 class test_build_driver : public vrp::models::problem::build_driver {
 public:
   explicit test_build_driver() : vrp::models::problem::build_driver() { costs({0, 0, 0, 0}); }
@@ -71,7 +74,7 @@ public:
   }
 };
 
-inline std::shared_ptr<vrp::models::problem::Actor> DefaultActor = test_build_actor{}.shared();
+inline std::shared_ptr<const vrp::models::problem::Actor> DefaultActor = test_build_actor{}.shared();
 
 class test_build_route : public vrp::models::solution::build_route {
 public:
@@ -92,6 +95,10 @@ public:
              .shared());
   }
 };
+
+inline std::shared_ptr<const vrp::models::problem::Fleet> DefaultFleet =
+  std::make_shared<vrp::models::problem::Fleet>(vrp::models::problem::Fleet{}.add(*DefaultDriver).add(*DefaultVehicle));
+
 
 }  // namespace vrp::test
 
