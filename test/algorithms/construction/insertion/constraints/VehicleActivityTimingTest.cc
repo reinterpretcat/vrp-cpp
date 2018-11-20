@@ -46,7 +46,7 @@ fail() {
 }
 HardActivityConstraint::Result
 stop() {
-  return {{true, -1}};
+  return {{false, 1}};
 }
 
 

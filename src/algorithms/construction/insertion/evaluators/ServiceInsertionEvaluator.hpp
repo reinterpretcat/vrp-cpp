@@ -114,6 +114,7 @@ private:
       });
     });
 
+    activity->location = result.location;
     activity->time = result.tw;
 
     return result.isInvalid()

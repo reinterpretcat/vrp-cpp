@@ -133,7 +133,7 @@ struct VehicleActivityTiming final
 private:
   HardActivityConstraint::Result success() const { return {}; }
   HardActivityConstraint::Result fail() const { return {{true, code_}}; }
-  HardActivityConstraint::Result stop() const { return {{true, -1}}; }
+  HardActivityConstraint::Result stop() const { return {{false, code_}}; }
 
   int code_;
   std::unordered_map<std::string, std::string> mapping_;

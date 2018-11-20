@@ -146,7 +146,7 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
 
     auto [ds, index, loc] =
       GENERATE(std::make_tuple(details({{{3}, 0, {DefaultTimeWindow}}}), 0, 3),
-               std::make_tuple(details({{{20}, 0, {DefaultTimeWindow}}, {{3}, 0, times({{0, 2}})}}), 2, 20));
+               std::make_tuple(details({{{20}, 0, {DefaultTimeWindow}}, {{3}, 0, times({{0, 2}})}}), 1, 20));
 
     constraint->addHard<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(
       DefaultFleet, std::make_shared<TestTransportCosts>(), std::make_shared<ActivityCosts>()));
