@@ -200,13 +200,19 @@ public:
 
   HardActivityConstraint::Result hard(const InsertionRouteContext& routeCtx,
                                       const InsertionActivityContext& actCtx) const {
-    // TODO
-    return HardActivityConstraint::Result{};
+    return ranges::accumulate(
+      ranges::view::all(hardActivityConstraints_) |
+        ranges::view::transform([&](const auto& constraint) { return constraint->check(routeCtx, actCtx); }) |
+        ranges::view::filter([](const auto& result) { return result.has_value(); }) | ranges::view::take(1),
+      HardActivityConstraint::Result{},
+      [](const auto& acc, const auto& v) { return std::make_optional(v.value()); });
   }
 
   models::common::Cost soft(const InsertionRouteContext& routeCtx, const InsertionActivityContext& actCtx) const {
-    // TODO
-    return 0;
+    return ranges::accumulate(
+      ranges::view::all(softActivityConstraints_) |
+        ranges::view::transform([&](const auto& constraint) { return constraint->check(routeCtx, actCtx); }),
+      0.0);
   }
 
   // endregion
