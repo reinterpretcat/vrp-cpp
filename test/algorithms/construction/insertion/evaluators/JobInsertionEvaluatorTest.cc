@@ -63,9 +63,9 @@ SCENARIO("job insertion evaluator estimates vehicle costs", "[algorithms][constr
   }
 
   GIVEN("tour with two activities") {
-    auto prev = test_build_activity{}.location(5).duration(0).schedule({0, 5}).shared();
-    auto target = test_build_activity{}.location(10).shared();
-    auto next = test_build_activity{}.location(15).duration(0).shared();
+    auto prev = test_build_activity{}.location(5).schedule({0, 5}).shared();
+    auto target = test_build_activity{}.location(10).duration(1).shared();
+    auto next = test_build_activity{}.location(15).shared();
 
     WHEN("using the same actor") {
       auto [routeCtx, _] = sameActor(prev, target, next);
@@ -109,7 +109,7 @@ SCENARIO("job insertion evaluator estimates activity costs", "[algorithms][const
   GIVEN("empty tour") {
     // old: 0
     // new: d(10) + t(10 + 1)
-    auto target = test_build_activity{}.location(5);
+    auto target = test_build_activity{}.duration(1).location(5);
     auto progress = test_build_insertion_progress{}.owned();
 
     WHEN("inserting new activity with the same actor") {
@@ -135,9 +135,9 @@ SCENARIO("job insertion evaluator estimates activity costs", "[algorithms][const
 
   GIVEN("tour with two activities") {
     auto progress = test_build_insertion_progress{}.owned();
-    auto prev = test_build_activity{}.location(10).duration(0).schedule({0, 10}).shared();
+    auto prev = test_build_activity{}.location(10).schedule({0, 10}).shared();
     auto target = test_build_activity{}.location(30).duration(10).shared();
-    auto next = test_build_activity{}.location(20).duration(0).time({40, 70}).shared();
+    auto next = test_build_activity{}.location(20).time({40, 70}).shared();
 
     // old: d(10 + 20) + t(10 + 20 + 20) = 80
     // new: d(10 + 10 + 30) + t(20 + 10 + 30) = 110

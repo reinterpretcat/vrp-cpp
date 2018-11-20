@@ -92,8 +92,8 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
   }
 
   GIVEN("tour with two simple activities and service with time windows variations") {
-    auto prev = test_build_activity{}.location(5).duration(0).schedule({5, 5}).shared();
-    auto next = test_build_activity{}.location(10).schedule({10, 10}).duration(0).shared();
+    auto prev = test_build_activity{}.location(5).schedule({5, 5}).shared();
+    auto next = test_build_activity{}.location(10).schedule({10, 10}).shared();
     auto [routeCtx, evaluator] = createContext(prev, next);
 
     auto [location, tws, index] = GENERATE(std::make_tuple(3, times({DefaultTimeWindow}), 0),
@@ -115,8 +115,8 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
   }
 
   GIVEN("tour with two simple activities and different locations") {
-    auto prev = test_build_activity{}.location(5).duration(0).schedule({5, 5}).shared();
-    auto next = test_build_activity{}.location(10).schedule({10, 10}).duration(0).shared();
+    auto prev = test_build_activity{}.location(5).schedule({5, 5}).shared();
+    auto next = test_build_activity{}.location(10).schedule({10, 10}).shared();
     auto [routeCtx, evaluator] = createContext(prev, next);
 
     auto [locs, index, loc] =
@@ -136,8 +136,8 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
   }
 
   GIVEN("tour with two simple activities and different locations") {
-    auto prev = test_build_activity{}.location(5).duration(0).schedule({5, 5}).shared();
-    auto next = test_build_activity{}.location(10).schedule({10, 10}).duration(0).shared();
+    auto prev = test_build_activity{}.location(5).schedule({5, 5}).shared();
+    auto next = test_build_activity{}.location(10).schedule({10, 10}).shared();
     auto [routeCtx, evaluator] = createContext(prev, next);
 
     auto [ds, index, loc] =
