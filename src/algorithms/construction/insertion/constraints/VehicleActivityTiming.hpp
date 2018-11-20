@@ -17,7 +17,9 @@
 namespace vrp::algorithms::construction {
 
 /// Checks whether vehicle can serve activity taking into account their time windows.
-struct VehicleActivityTiming final : public HardActivityConstraint {
+struct VehicleActivityTiming final
+  : public HardRouteConstraint
+  , public HardActivityConstraint {
   inline static const std::string StateKey = "operation_time";
 
   VehicleActivityTiming(std::shared_ptr<const models::problem::Fleet> fleet,
@@ -58,13 +60,19 @@ struct VehicleActivityTiming final : public HardActivityConstraint {
     });
   }
 
-  /// Checks whether proposed insertion doesn't violate time windows.
+  /// Checks whether proposed vehicle can be used within route without violating time windows.
+  HardRouteConstraint::Result check(const InsertionRouteContext& routeCtx,
+                                    const HardRouteConstraint::Activities&) const override {
+    return routeCtx.state->get<bool>(mapping_.find(routeCtx.actor->vehicle->id)->second).value_or(false)
+      ? HardRouteConstraint::Result{code_}
+      : HardRouteConstraint::Result{};
+  }
+
+  /// Checks whether proposed activity insertion doesn't violate time windows.
   HardActivityConstraint::Result check(const InsertionRouteContext& routeCtx,
                                        const InsertionActivityContext& actCtx) const override {
     using namespace vrp::models;
     using namespace vrp::models::common;
-
-    // TODO check switch feasibility
 
     const auto& actor = routeCtx.actor;
     const auto& prev = *actCtx.prev;

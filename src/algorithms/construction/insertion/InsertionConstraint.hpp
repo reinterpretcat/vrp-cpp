@@ -23,7 +23,7 @@ struct Constraint {
 };
 
 /// Specifies hard constraint which operates on route level.
-struct HardRouteConstraint : public Constraint {
+struct HardRouteConstraint : virtual public Constraint {
   /// Specifies single hard constraint result type.
   using Result = std::optional<int>;
   /// Specifies activity collection type.
@@ -37,7 +37,7 @@ struct HardRouteConstraint : public Constraint {
 };
 
 /// Specifies soft constraint which operates on route level.
-struct SoftRouteConstraint : public Constraint {
+struct SoftRouteConstraint : virtual public Constraint {
   /// Specifies activity collection type.
   using Activities = ranges::any_view<const models::solution::Activity>;
 
@@ -50,7 +50,7 @@ struct SoftRouteConstraint : public Constraint {
 };
 
 /// Specifies hard constraint which operation on activity level.
-struct HardActivityConstraint : public Constraint {
+struct HardActivityConstraint : virtual public Constraint {
   /// Specifies single activity constraint result: int for code, bool to continue
   using Result = std::optional<std::tuple<bool, int>>;
   /// Specifies check function type.
@@ -62,7 +62,7 @@ struct HardActivityConstraint : public Constraint {
 };
 
 /// Specifies soft constraint which operation on activity level.
-struct SoftActivityConstraint : public Constraint {
+struct SoftActivityConstraint : virtual public Constraint {
   /// Specifies check function type.
   using CheckFunc = std::function<models::common::Cost(const InsertionRouteContext&, const InsertionActivityContext&)>;
 
@@ -70,7 +70,6 @@ struct SoftActivityConstraint : public Constraint {
 
   virtual models::common::Cost check(const InsertionRouteContext&, const InsertionActivityContext&) const = 0;
 };
-
 
 /// An insertion constraint which encapsulates behaviour of all possible constraint types.
 class InsertionConstraint final {
@@ -85,7 +84,7 @@ public:
   // region Add route
 
   /// Adds hard route constraints
-  InsertionConstraint& addHardRoute(std::unique_ptr<HardRouteConstraint> constraint) {
+  InsertionConstraint& addHardRoute(std::shared_ptr<HardRouteConstraint> constraint) {
     hardRouteConstraints_.push_back(std::move(constraint));
     return *this;
   }
@@ -97,12 +96,12 @@ public:
                                          InsertionRouteContext,
                                          HardRouteConstraint::Activities>;
 
-    hardRouteConstraints_.push_back(std::make_unique<Wrapper>(std::move(constraint)));
+    hardRouteConstraints_.push_back(std::make_shared<Wrapper>(std::move(constraint)));
     return *this;
   }
 
   /// Adds soft route constraint.
-  InsertionConstraint& addSoftRoute(std::unique_ptr<SoftRouteConstraint> constraint) {
+  InsertionConstraint& addSoftRoute(std::shared_ptr<SoftRouteConstraint> constraint) {
     softRouteConstraints_.push_back(std::move(constraint));
     return *this;
   }
@@ -114,7 +113,7 @@ public:
                                          InsertionRouteContext,
                                          HardRouteConstraint::Activities>;
 
-    softRouteConstraints_.push_back(std::make_unique<Wrapper>(std::move(constraint)));
+    softRouteConstraints_.push_back(std::make_shared<Wrapper>(std::move(constraint)));
     return *this;
   }
 
@@ -123,7 +122,7 @@ public:
   // region Add activity
 
   /// Adds hard activity constraint.
-  InsertionConstraint& addHardActivity(std::unique_ptr<HardActivityConstraint> constraint) {
+  InsertionConstraint& addHardActivity(std::shared_ptr<HardActivityConstraint> constraint) {
     hardActivityConstraints_.push_back(std::move(constraint));
     return *this;
   }
@@ -135,12 +134,12 @@ public:
                                          InsertionRouteContext,
                                          InsertionActivityContext>;
 
-    hardActivityConstraints_.push_back(std::make_unique<Wrapper>(std::move(constraint)));
+    hardActivityConstraints_.push_back(std::make_shared<Wrapper>(std::move(constraint)));
     return *this;
   }
 
   /// Adds soft activity constraint.
-  InsertionConstraint& addSoftActivity(std::unique_ptr<SoftActivityConstraint> constraint) {
+  InsertionConstraint& addSoftActivity(std::shared_ptr<SoftActivityConstraint> constraint) {
     softActivityConstraints_.push_back(std::move(constraint));
     return *this;
   }
@@ -152,7 +151,22 @@ public:
                                          InsertionRouteContext,
                                          InsertionActivityContext>;
 
-    softActivityConstraints_.push_back(std::make_unique<Wrapper>(std::move(constraint)));
+    softActivityConstraints_.push_back(std::make_shared<Wrapper>(std::move(constraint)));
+    return *this;
+  }
+
+  // endregion
+
+  // region Add mixed
+
+  /// Adds constraint as hard route and hard activity.
+  template<typename T>
+  InsertionConstraint& addHard(
+    std::shared_ptr<typename std::enable_if<std::is_base_of<HardRouteConstraint, T>::value &&
+                                              std::is_base_of<HardActivityConstraint, T>::value,
+                                            T>::type> v) {
+    hardRouteConstraints_.push_back(v);
+    hardActivityConstraints_.push_back(v);
     return *this;
   }
 
@@ -198,10 +212,10 @@ public:
   // endregion
 
 private:
-  std::vector<std::unique_ptr<HardRouteConstraint>> hardRouteConstraints_;
-  std::vector<std::unique_ptr<SoftRouteConstraint>> softRouteConstraints_;
-  std::vector<std::unique_ptr<HardActivityConstraint>> hardActivityConstraints_;
-  std::vector<std::unique_ptr<SoftActivityConstraint>> softActivityConstraints_;
+  std::vector<std::shared_ptr<HardRouteConstraint>> hardRouteConstraints_;
+  std::vector<std::shared_ptr<SoftRouteConstraint>> softRouteConstraints_;
+  std::vector<std::shared_ptr<HardActivityConstraint>> hardActivityConstraints_;
+  std::vector<std::shared_ptr<SoftActivityConstraint>> softActivityConstraints_;
 };
 
 }  // namespace vrp::algorithms::construction
