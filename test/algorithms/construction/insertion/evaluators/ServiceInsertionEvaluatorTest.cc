@@ -144,9 +144,10 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
     auto next = test_build_activity{}.location(10).schedule({10, 10}).shared();
     auto [routeCtx, evaluator, constraint] = createContext(prev, next);
 
-    auto [ds, index, loc] =
-      GENERATE(std::make_tuple(details({{{3}, 0, {DefaultTimeWindow}}}), 0, 3),
-               std::make_tuple(details({{{20}, 0, {DefaultTimeWindow}}, {{3}, 0, times({{0, 2}})}}), 1, 20));
+    auto [ds, index, loc] = GENERATE(
+      std::make_tuple(details({{{3}, 0, {DefaultTimeWindow}}}), 0, 3),
+      std::make_tuple(details({{{20}, 0, {DefaultTimeWindow}}, {{3}, 0, times({{0, 2}})}}), 1, 20),
+      std::make_tuple(details({{{12}, 0, {DefaultTimeWindow}}, {{11}, 0, times({DefaultTimeWindow})}}), 1, 11));
 
     constraint->addHard<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(
       DefaultFleet, std::make_shared<TestTransportCosts>(), std::make_shared<ActivityCosts>()));
