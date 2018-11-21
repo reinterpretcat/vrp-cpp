@@ -15,12 +15,12 @@ constexpr vrp::models::common::Location DefaultJobLocation = 5;
 constexpr vrp::models::common::TimeWindow DefaultTimeWindow = {0, 1000};
 constexpr vrp::models::problem::Costs DefaultCosts = {100, 1, 1, 1, 1};
 const vrp::models::common::Dimension DefaultDimension = {"capacity", 1};
-const vrp::models::problem::Detail DefaultDetail = {{DefaultJobLocation}, DefaultDuration, {DefaultTimeWindow}};
+const vrp::models::problem::JobDetail DefaultJobDetail = {{DefaultJobLocation}, DefaultDuration, {DefaultTimeWindow}};
 
 class test_build_service : public vrp::models::problem::build_service {
 public:
   explicit test_build_service() : vrp::models::problem::build_service() {
-    id("service").details({DefaultDetail}).dimensions({DefaultDimension});
+    id("service").details({DefaultJobDetail}).dimensions({DefaultDimension});
   }
 };
 

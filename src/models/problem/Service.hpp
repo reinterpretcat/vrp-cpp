@@ -1,7 +1,7 @@
 #pragma once
 
 #include "models/common/Dimension.hpp"
-#include "models/problem/Detail.hpp"
+#include "models/problem/JobDetail.hpp"
 
 #include <string>
 #include <vector>
@@ -14,7 +14,7 @@ struct Service final {
   std::string id;
 
   /// Specifies service details: where and when it can be performed.
-  std::vector<Detail> details;
+  std::vector<JobDetail> details;
 
   /// Dimensions which simulates work requirements.
   common::Dimensions dimens;

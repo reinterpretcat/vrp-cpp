@@ -1,9 +1,9 @@
 #pragma once
 
 #include "models/problem/Actor.hpp"
-#include "models/problem/Detail.hpp"
 #include "models/problem/Driver.hpp"
 #include "models/problem/Job.hpp"
+#include "models/problem/JobDetail.hpp"
 #include "models/problem/Service.hpp"
 #include "models/problem/Vehicle.hpp"
 
@@ -32,7 +32,7 @@ public:
     return *this;
   }
 
-  build_service& details(std::vector<problem::Detail>&& value) {
+  build_service& details(std::vector<problem::JobDetail>&& value) {
     service_.details = value;
     return *this;
   }
@@ -67,12 +67,12 @@ public:
     return *this;
   }
 
-  Detail&& owned() { return std::move(detail_); }
+  JobDetail&& owned() { return std::move(detail_); }
 
-  std::shared_ptr<Detail> shared() { return std::make_shared<Detail>(std::move(detail_)); }
+  std::shared_ptr<JobDetail> shared() { return std::make_shared<JobDetail>(std::move(detail_)); }
 
 private:
-  Detail detail_;
+  JobDetail detail_;
 };
 
 /// A helper class to build vehicle;

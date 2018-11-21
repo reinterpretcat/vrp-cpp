@@ -1,7 +1,7 @@
 #pragma once
 
 #include "models/common/Dimension.hpp"
-#include "models/problem/Detail.hpp"
+#include "models/problem/JobDetail.hpp"
 
 #include <vector>
 
@@ -13,10 +13,10 @@ struct Shipment final {
   std::string id;
 
   /// Pickup service performed before delivery.
-  Detail pickup;
+  JobDetail pickup;
 
   /// Delivery service performed after pickup.
-  Detail delivery;
+  JobDetail delivery;
 
   /// Dimensions which simulates work requirements.
   vrp::models::common::Dimensions dimensions;

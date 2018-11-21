@@ -38,7 +38,7 @@ set(SOURCE_FILES
 
         models/problem/Actor.hpp
         models/problem/Costs.hpp
-        models/problem/Detail.hpp
+        models/problem/JobDetail.hpp
         models/problem/Driver.hpp
         models/problem/Fleet.hpp
         models/problem/Vehicle.hpp

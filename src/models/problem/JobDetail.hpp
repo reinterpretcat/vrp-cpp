@@ -10,14 +10,14 @@
 namespace vrp::models::problem {
 
 /// Represents a work which has to be performed.
-struct Detail final {
+struct JobDetail final {
   /// Location where work has to be performed.
   std::optional<common::Location> location;
 
   /// Time has to be spend performing work.
   common::Duration duration;
 
-  /// Time windows when work can be performed.
+  /// Time windows when work can be started.
   std::vector<common::TimeWindow> times;
 };
 }
