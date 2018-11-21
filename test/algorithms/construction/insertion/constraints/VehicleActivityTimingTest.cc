@@ -16,6 +16,7 @@ using namespace vrp::models::common;
 using namespace vrp::models::costs;
 using namespace vrp::models::solution;
 using namespace vrp::models::problem;
+using namespace vrp::test;
 using namespace Catch::Generators;
 
 namespace {
@@ -32,8 +33,10 @@ getActivity(const InsertionRouteContext& ctx, int index) {
 }
 
 std::shared_ptr<Actor>
-getActor(std::string& id, const Fleet& fleet) {
-  return vrp::test::test_build_actor{}.vehicle(fleet.vehicle(id)).driver(vrp::test::DefaultDriver).shared();
+getActor(const std::string& id, const Fleet& fleet) {
+  auto vehicle = fleet.vehicle(id);
+  auto detail = vehicle->details.front();
+  return std::make_shared<Actor>(Actor{vehicle, DefaultDriver, detail.start, detail.end, detail.time});
 }
 
 HardActivityConstraint::Result
@@ -49,15 +52,24 @@ stop() {
   return {{false, 1}};
 }
 
-
 std::string
-generateKey(const std::string& key, const Vehicle& vehicle) {
-  return vehicleKey(key, vehicle);
+generateKey(const std::string& key, const Actor& actor) {
+  return actorSharedKey(key, actor);
 }
 
 std::string
 operationTimeKey(const std::string& id, const Fleet& fleet) {
-  return generateKey(VehicleActivityTiming::StateKey, *fleet.vehicle(id));
+  return generateKey(VehicleActivityTiming::StateKey, *getActor(id, fleet));
+}
+
+VehicleDetail
+asDetail(Location start, const std::optional<Location>& end, TimeWindow time) {
+  return VehicleDetail{start, end, time};
+}
+
+std::vector<VehicleDetail>
+asDetails(Location start, const std::optional<Location>& end, TimeWindow time) {
+  return {VehicleDetail{start, end, time}};
 }
 }
 
@@ -65,7 +77,7 @@ namespace vrp::test {
 
 SCENARIO("vehicle activity timing", "[algorithms][construction][insertion]") {
   auto createRoute = [](const auto& fleet) {
-    auto route = test_build_route{}.actor({fleet.vehicle("v1"), DefaultDriver}).shared();
+    auto route = test_build_route{}.actor(getActor("v1", fleet)).shared();
     route->tour
       .add(test_build_activity{}.location(10).shared())  //
       .add(test_build_activity{}.location(20).shared())  //
@@ -77,10 +89,10 @@ SCENARIO("vehicle activity timing", "[algorithms][construction][insertion]") {
   GIVEN("fleet with 4 vehicles") {
     auto fleet = std::make_shared<Fleet>();
     (*fleet)  //
-      .add(test_build_vehicle{}.id("v1").start(0).time({0, 100}).owned())
-      .add(test_build_vehicle{}.id("v2").start(0).time({0, 60}).owned())
-      .add(test_build_vehicle{}.id("v3").start(40).time({0, 100}).owned())
-      .add(test_build_vehicle{}.id("v4").start(40).time({0, 100}).owned());
+      .add(test_build_vehicle{}.id("v1").details(asDetails(0, {}, {0, 100})).owned())
+      .add(test_build_vehicle{}.id("v2").details(asDetails(0, {}, {0, 60})).owned())
+      .add(test_build_vehicle{}.id("v3").details(asDetails(40, {}, {0, 100})).owned())
+      .add(test_build_vehicle{}.id("v4").details(asDetails(40, {}, {0, 100})).owned());
 
     WHEN("accept route for first vehicle with three activities") {
       auto state = InsertionRouteState{};
@@ -116,12 +128,12 @@ SCENARIO("vehicle activity timing", "[algorithms][construction][insertion]") {
   GIVEN("fleet with 6 vehicles") {
     auto fleet = std::make_shared<Fleet>();
     (*fleet)  //
-      .add(test_build_vehicle{}.id("v1").start(0).time({0, 100}).owned())
-      .add(test_build_vehicle{}.id("v2").start(0).time({0, 60}).owned())
-      .add(test_build_vehicle{}.id("v3").start(0).time({0, 50}).owned())
-      .add(test_build_vehicle{}.id("v4").start(0).time({0, 10}).owned())
-      .add(test_build_vehicle{}.id("v5").start(0).time({60, 100}).owned())
-      .add(test_build_vehicle{}.id("v6").start(0).end(40).time({0, 40}).owned());
+      .add(test_build_vehicle{}.id("v1").details(asDetails(0, {}, {0, 100})).owned())
+      .add(test_build_vehicle{}.id("v2").details(asDetails(0, {}, {0, 60})).owned())
+      .add(test_build_vehicle{}.id("v3").details(asDetails(0, {}, {0, 50})).owned())
+      .add(test_build_vehicle{}.id("v4").details(asDetails(0, {}, {0, 10})).owned())
+      .add(test_build_vehicle{}.id("v5").details(asDetails(0, {}, {60, 100})).owned())
+      .add(test_build_vehicle{}.id("v6").details(asDetails(0, {40}, {0, 40})).owned());
 
     WHEN("accept and checks route for first vehicle with three activities") {
       auto state = std::make_shared<InsertionRouteState>();
@@ -132,19 +144,18 @@ SCENARIO("vehicle activity timing", "[algorithms][construction][insertion]") {
       timing.accept(*route, *state);
 
       auto [vehicle, location, departure, prev, next, expected] =
-        GENERATE(table<std::string, Location, Timestamp, int, int, HardActivityConstraint::Result>({
-          {"v1", 50, 30, 2, End, success()},  //
-          {"v1", 1000, 30, 2, End, stop()},
-          {"v1", 50, 20, 1, 2, success()},
-          {"v1", 51, 20, 1, 2, stop()},
-          {"v2", 40, 30, 2, End, stop()},
-          {"v3", 40, 30, 2, End, fail()},
-          {"v4", 40, 30, 2, End, fail()},
-          {"v5", 40, 90, 2, End, fail()},
-          {"v6", 40, 30, 1, 2, fail()},
-          {"v6", 40, 10, 0, 1, stop()},
-          {"v6", 40, 30, 2, End, success()},
-        }));
+        GENERATE(table<std::string, Location, Timestamp, int, int, HardActivityConstraint::Result>(
+          {{"v1", 50, 30, 2, End, success()},  //
+           {"v1", 1000, 30, 2, End, stop()},
+           {"v1", 50, 20, 1, 2, success()},
+           {"v1", 51, 20, 1, 2, stop()},
+           {"v2", 40, 30, 2, End, stop()},
+           {"v3", 40, 30, 2, End, fail()},
+           {"v4", 40, 30, 2, End, fail()},
+           {"v5", 40, 90, 2, End, fail()},
+           {"v6", 40, 30, 1, 2, fail()},
+           {"v6", 40, 10, 0, 1, stop()},
+           {"v6", 40, 30, 2, End, success()}}));
 
       THEN("returns fulfilled for insertion at the end") {
         auto routeCtx = test_build_insertion_route_context{}  //

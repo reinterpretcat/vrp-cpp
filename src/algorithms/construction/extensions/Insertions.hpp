@@ -11,7 +11,7 @@ namespace vrp::algorithms::construction {
 /// Creates insertion route context.
 class build_insertion_route_context {
 public:
-  build_insertion_route_context& actor(std::shared_ptr<models::problem::Actor> value) {
+  build_insertion_route_context& actor(models::solution::Route::Actor value) {
     context_.actor = std::move(value);
     return *this;
   }

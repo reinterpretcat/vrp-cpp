@@ -15,7 +15,9 @@ constexpr vrp::models::common::Location DefaultJobLocation = 5;
 constexpr vrp::models::common::TimeWindow DefaultTimeWindow = {0, 1000};
 constexpr vrp::models::problem::Costs DefaultCosts = {100, 1, 1, 1, 1};
 const vrp::models::common::Dimension DefaultDimension = {"capacity", 1};
+
 const vrp::models::problem::JobDetail DefaultJobDetail = {{DefaultJobLocation}, DefaultDuration, {DefaultTimeWindow}};
+const vrp::models::problem::VehicleDetail DefaultVehicleDetail = {DefaultActorLocation, {}, DefaultTimeWindow};
 
 class test_build_service : public vrp::models::problem::build_service {
 public:
@@ -49,12 +51,7 @@ inline std::shared_ptr<vrp::models::solution::Activity> DefaultActivity = test_b
 class test_build_vehicle : public vrp::models::problem::build_vehicle {
 public:
   explicit test_build_vehicle() : vrp::models::problem::build_vehicle() {
-    id("vehicle1")
-      .profile("car")
-      .start(DefaultActorLocation)
-      .time(static_cast<models::common::TimeWindow>(DefaultTimeWindow))
-      .dimensions({DefaultDimension})
-      .costs(DefaultCosts);
+    id("vehicle1").profile("car").details({DefaultVehicleDetail}).dimensions({DefaultDimension}).costs(DefaultCosts);
   }
 };
 
@@ -67,28 +64,33 @@ public:
 
 inline std::shared_ptr<const vrp::models::problem::Driver> DefaultDriver = test_build_driver{}.shared();
 
-class test_build_actor : public vrp::models::problem::build_actor {
+class test_build_actor : public vrp::models::solution::build_actor {
 public:
-  explicit test_build_actor() : vrp::models::problem::build_actor() {
-    driver(test_build_driver{}.shared()).vehicle(test_build_vehicle{}.shared());
+  explicit test_build_actor() : vrp::models::solution::build_actor() {
+    driver(test_build_driver{}.shared())
+      .vehicle(test_build_vehicle{}.shared())
+      .start(DefaultActorLocation)
+      .time(DefaultTimeWindow);
   }
 };
 
-inline std::shared_ptr<const vrp::models::problem::Actor> DefaultActor = test_build_actor{}.shared();
+inline std::shared_ptr<const vrp::models::solution::Actor> DefaultActor = test_build_actor{}.shared();
 
 class test_build_route : public vrp::models::solution::build_route {
 public:
   explicit test_build_route() : vrp::models::solution::build_route() {
     using namespace vrp::models::solution;
-    actor(test_build_actor{}.owned())
+    actor(test_build_actor{}.shared())
       .start(test_build_activity{}
                .duration(0)
-               .schedule({0, 1000})
+               .time(DefaultTimeWindow)
+               .schedule({0, 0})
                .location(DefaultActorLocation)
                .type(Activity::Type::Start)
                .shared())
       .end(test_build_activity{}
              .duration(0)
+             .time(DefaultTimeWindow)
              .schedule({0, 1000})
              .location(DefaultActorLocation)
              .type(Activity::Type::End)

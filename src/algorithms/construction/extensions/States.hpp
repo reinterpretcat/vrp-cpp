@@ -1,18 +1,21 @@
 #pragma once
 
-#include "models/problem/Vehicle.hpp"
+#include "models/solution/Actor.hpp"
 #include "utils/extensions/Hash.hpp"
+
+#include <range/v3/all.hpp>
 
 namespace vrp::algorithms::construction {
 
 /// Calculates vehicle key.
 inline std::string
-vehicleKey(const std::string& stateKey, const models::problem::Vehicle& v) {
+actorSharedKey(const std::string& key, const models::solution::Actor& actor) {
   using namespace vrp::utils;
   using namespace vrp::models::common;
-  auto hash = size_t{0} | hash_combine<Timestamp>{v.time.start} |  //
-    hash_combine<Timestamp>{v.time.end} | hash_combine<Location>{v.start} |
-    hash_combine<Location>{v.end.value_or(std::numeric_limits<std::uint64_t>::max())};
-  return stateKey + std::to_string(hash);
+
+  return key +
+    std::to_string(size_t{0} | hash_combine<Timestamp>{actor.time.start} | hash_combine<Timestamp>{actor.time.end} |
+                   hash_combine<Location>{actor.start} |
+                   hash_combine<Location>{actor.end.value_or(std::numeric_limits<std::uint64_t>::max())});
 }
 }

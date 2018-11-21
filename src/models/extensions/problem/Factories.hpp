@@ -1,6 +1,5 @@
 #pragma once
 
-#include "models/problem/Actor.hpp"
 #include "models/problem/Driver.hpp"
 #include "models/problem/Job.hpp"
 #include "models/problem/JobDetail.hpp"
@@ -93,23 +92,13 @@ public:
     return *this;
   }
 
-  build_vehicle& time(common::TimeWindow&& value) {
-    vehicle_.time = value;
+  build_vehicle& details(std::vector<VehicleDetail>&& value) {
+    vehicle_.details = value;
     return *this;
   }
 
   build_vehicle& dimensions(common::Dimensions&& value) {
     vehicle_.dimensions = value;
-    return *this;
-  }
-
-  build_vehicle& start(common::Location value) {
-    vehicle_.start = value;
-    return *this;
-  }
-
-  build_vehicle& end(common::Location value) {
-    vehicle_.end = value;
     return *this;
   }
 
@@ -135,27 +124,6 @@ public:
 
 private:
   Driver driver_;
-};
-
-/// A helper class to build actor.
-class build_actor {
-public:
-  build_actor& driver(const std::shared_ptr<const Driver>& value) {
-    actor_.driver = value;
-    return *this;
-  }
-
-  build_actor& vehicle(const std::shared_ptr<const Vehicle>& value) {
-    actor_.vehicle = value;
-    return *this;
-  }
-
-  Actor&& owned() { return std::move(actor_); }
-
-  std::shared_ptr<Actor> shared() { return std::make_shared<Actor>(std::move(actor_)); }
-
-private:
-  Actor actor_;
 };
 
 }  // namespace vrp::models::problem

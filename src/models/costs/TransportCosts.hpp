@@ -5,14 +5,14 @@
 #include "models/common/Duration.hpp"
 #include "models/common/Location.hpp"
 #include "models/common/Timestamp.hpp"
-#include "models/problem/Actor.hpp"
+#include "models/solution/Actor.hpp"
 
 namespace vrp::models::costs {
 
 /// Provides the way to get routing information for specific locations.
 struct TransportCosts {
   /// Returns transport cost between two locations.
-  virtual common::Cost cost(const problem::Actor& actor,
+  virtual common::Cost cost(const solution::Actor& actor,
                             const common::Location& from,
                             const common::Location& to,
                             const common::Timestamp& departure) const {
@@ -23,14 +23,14 @@ struct TransportCosts {
   }
 
   /// Returns transport time between two locations.
-  virtual common::Duration duration(const problem::Actor& actor,
+  virtual common::Duration duration(const solution::Actor& actor,
                                     const common::Location& from,
                                     const common::Location& to,
                                     const common::Timestamp& departure) const = 0;
 
 protected:
   /// Returns distance between two locations.
-  virtual common::Distance distance(const problem::Actor& actor,
+  virtual common::Distance distance(const solution::Actor& actor,
                                     const common::Location& from,
                                     const common::Location& to,
                                     const common::Timestamp& departure) const = 0;

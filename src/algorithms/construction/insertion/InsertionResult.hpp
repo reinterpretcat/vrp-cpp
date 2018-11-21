@@ -1,7 +1,8 @@
 #pragma once
 
 #include "models/common/Timestamp.hpp"
-#include "models/problem/Actor.hpp"
+#include "models/solution/Actor.hpp"
+#include "models/solution/Route.hpp"
 #include "models/solution/Tour.hpp"
 
 #include <memory>
@@ -18,7 +19,7 @@ struct InsertionSuccess final {
   models::solution::Tour::Activity activity;
 
   /// Specifies actor which should be used.
-  std::shared_ptr<models::problem::Actor> actor;
+  models::solution::Route::Actor actor;
 
   /// Specifies new vehicle departure time.
   models::common::Timestamp departure;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "models/problem/Actor.hpp"
+#include "models/solution/Actor.hpp"
 #include "models/solution/Tour.hpp"
 
 #include <memory>
@@ -9,17 +9,19 @@ namespace vrp::models::solution {
 
 /// Represents a vehicle tour.
 struct Route final {
+  using Actor = std::shared_ptr<const solution::Actor>;
+
   /// An actor associated within route.
-  problem::Actor actor;
+  Route::Actor actor;
 
   /// Route start activity.
-  solution::Tour::Activity start;
+  Tour::Activity start;
 
   /// Route end activity.
-  solution::Tour::Activity end;
+  Tour::Activity end;
 
   /// Specifies job tour assigned to this route.
-  solution::Tour tour;
+  Tour tour;
 };
 
 }  // namespace vrp::models::solution

@@ -3,6 +3,7 @@
 #include "models/common/Location.hpp"
 #include "models/common/Schedule.hpp"
 #include "models/solution/Activity.hpp"
+#include "models/solution/Actor.hpp"
 #include "models/solution/Route.hpp"
 
 #include <memory>
@@ -52,27 +53,63 @@ private:
   Activity activity_;
 };
 
-/// A helper class to build route.
-class build_route {
+/// A helper class to build actor.
+class build_actor {
 public:
-  build_route& actor(problem::Actor&& value) {
-    route_.actor = value;
+  build_actor& driver(const std::shared_ptr<const problem::Driver>& value) {
+    actor_.driver = value;
     return *this;
   }
 
-  build_route& start(solution::Tour::Activity value) {
+  build_actor& vehicle(const std::shared_ptr<const problem::Vehicle>& value) {
+    actor_.vehicle = value;
+    return *this;
+  }
+
+  build_actor& start(const common::Location& value) {
+    actor_.start = value;
+    return *this;
+  }
+
+  build_actor& end(const common::Location& value) {
+    actor_.end = value;
+    return *this;
+  }
+
+  build_actor& time(const common::TimeWindow& value) {
+    actor_.time = value;
+    return *this;
+  }
+
+  Actor&& owned() { return std::move(actor_); }
+
+  std::shared_ptr<Actor> shared() { return std::make_shared<Actor>(std::move(actor_)); }
+
+private:
+  Actor actor_;
+};
+
+/// A helper class to build route.
+class build_route {
+public:
+  build_route& actor(Route::Actor value) {
+    route_.actor = std::move(value);
+    return *this;
+  }
+
+  build_route& start(Tour::Activity value) {
     assert(value->type == Activity::Type::Start);
     route_.start = std::move(value);
     return *this;
   }
 
-  build_route& end(solution::Tour::Activity value) {
+  build_route& end(Tour::Activity value) {
     assert(value->type == Activity::Type::End);
     route_.end = std::move(value);
     return *this;
   }
 
-  build_route& tour(solution::Tour&& value) {
+  build_route& tour(Tour&& value) {
     route_.tour = value;
     return *this;
   }
@@ -83,9 +120,7 @@ public:
 
 private:
   Route&& build() {
-    const auto& time = route_.actor.vehicle->time;
-    route_.start->time = {time.start, std::numeric_limits<common::Timestamp>::max()};
-    route_.end->time = {0, time.end};
+    assert(route_.start != nullptr && route_.end != nullptr);
     return std::move(route_);
   }
 

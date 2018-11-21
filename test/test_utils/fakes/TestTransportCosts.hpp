@@ -7,7 +7,7 @@
 namespace vrp::test {
 
 struct TestTransportCosts final : public models::costs::TransportCosts {
-  models::common::Duration duration(const models::problem::Actor& actor,
+  models::common::Duration duration(const models::solution::Actor& actor,
                                     const models::common::Location& from,
                                     const models::common::Location& to,
                                     const models::common::Timestamp& departure) const override {
@@ -15,7 +15,7 @@ struct TestTransportCosts final : public models::costs::TransportCosts {
   }
 
 protected:
-  models::common::Distance distance(const models::problem::Actor& actor,
+  models::common::Distance distance(const models::solution::Actor& actor,
                                     const models::common::Location& from,
                                     const models::common::Location& to,
                                     const models::common::Timestamp& departure) const override {

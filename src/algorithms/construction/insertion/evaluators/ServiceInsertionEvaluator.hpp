@@ -131,13 +131,15 @@ private:
     // create start/end for new vehicle
     auto start = solution::build_activity{}
                    .type(solution::Activity::Type::Start)
-                   .location(ctx.actor->vehicle->start)                        //
-                   .schedule({ctx.actor->vehicle->time.start, ctx.departure})  //
+                   .time({ctx.actor->time.start, std::numeric_limits<common::Timestamp>::max()})
+                   .location(ctx.actor->start)                        //
+                   .schedule({ctx.actor->time.start, ctx.departure})  //
                    .shared();
     auto end = solution::build_activity{}
                  .type(solution::Activity::Type::End)
-                 .location(ctx.actor->vehicle->end.value_or(ctx.actor->vehicle->start))  //
-                 .schedule({0, ctx.actor->vehicle->time.end})                            //
+                 .time({0, ctx.actor->time.end})
+                 .location(ctx.actor->end.value_or(ctx.actor->start))  //
+                 .schedule({0, ctx.actor->time.end})                   //
                  .shared();
 
     return {start, end};

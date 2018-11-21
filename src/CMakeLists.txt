@@ -36,7 +36,6 @@ set(SOURCE_FILES
         models/extensions/solution/Comparators.hpp
         models/extensions/solution/Factories.hpp
 
-        models/problem/Actor.hpp
         models/problem/Costs.hpp
         models/problem/JobDetail.hpp
         models/problem/Driver.hpp
@@ -46,6 +45,7 @@ set(SOURCE_FILES
         models/problem/Service.hpp
         models/problem/Shipment.hpp
 
+        models/solution/Actor.hpp
         models/solution/Activity.hpp
         models/solution/Route.hpp
         models/solution/Solution.hpp
