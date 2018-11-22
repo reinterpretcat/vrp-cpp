@@ -14,7 +14,8 @@ namespace vrp::algorithms::construction {
 /// Provides the way to evaluate insertion cost.
 struct InsertionEvaluator final {
   explicit InsertionEvaluator(std::shared_ptr<const InsertionConstraint> constraint) :
-    serviceInsertionEvaluator(constraint), shipmentInsertionEvaluator(constraint) {}
+    serviceInsertionEvaluator(constraint),
+    shipmentInsertionEvaluator(constraint) {}
 
   /// Evaluates possibility to preform insertion from given insertion context.
   InsertionResult evaluate(const models::problem::Job& job,

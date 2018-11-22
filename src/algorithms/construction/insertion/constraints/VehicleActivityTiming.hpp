@@ -27,7 +27,9 @@ struct VehicleActivityTiming final
                         std::shared_ptr<const models::costs::ActivityCosts> activityCosts,
                         int code = 1) :
     code_(code),
-    keys_(), transportCosts_(std::move(transportCosts)), activityCosts_(std::move(activityCosts)) {
+    keys_(),
+    transportCosts_(std::move(transportCosts)),
+    activityCosts_(std::move(activityCosts)) {
     // using namespace ranges;
     ranges::for_each(fleet->vehicles(), [&](const auto& v) {
       ranges::for_each(ranges::view::all(v->details), [&](const auto& d) {
