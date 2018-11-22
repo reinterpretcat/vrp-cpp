@@ -22,6 +22,8 @@ struct JobInsertionEvaluator {
   virtual ~JobInsertionEvaluator() = default;
 
 protected:
+  using ActivityDetail = models::solution::Activity::Detail;
+
   /// Specifies evaluation context.
   struct EvaluationContext final {
     /// Violation code.
@@ -30,31 +32,27 @@ protected:
     size_t index = 0;
     /// Best cost.
     models::common::Cost bestCost = std::numeric_limits<models::common::Cost>::max();
+
     /// Activity departure time.
     models::common::Timestamp departure = 0;
-    /// Activity departure time.
-    models::common::Duration duration = 0;
-    /// Activity location.
-    models::common::Location location = 0;
-    /// Activity arrival and departure limits.
-    models::common::TimeWindow tw = {0, 0};
+
+    /// Activity detail.
+    ActivityDetail detail;
 
     /// Checks whether context is invalidated.
     bool isInvalid() const { return code >= 0; }
 
     /// Creates invalidated context.
     static EvaluationContext make_invalid(int code) {
-      return EvaluationContext{code, 0, std::numeric_limits<models::common::Cost>::max(), 0, 0, 0, {0, 0}};
+      return EvaluationContext{code, 0, std::numeric_limits<models::common::Cost>::max(), 0, {}};
     }
 
     /// Creates new context.
     static EvaluationContext make_one(size_t index,
                                       const models::common::Cost& bestCost,
                                       const models::common::Timestamp& departure,
-                                      const models::common::Duration& duration,
-                                      const models::common::Location& location,
-                                      const models::common::TimeWindow& tw) {
-      return {-1, index, bestCost, departure, duration, location, tw};
+                                      const ActivityDetail& detail) {
+      return {-1, index, bestCost, departure, detail};
     }
   };
 
@@ -65,12 +63,12 @@ protected:
 
     if (!ctx.route->tour.empty()) {
       double firstCostNew = transportCosts_->cost(*ctx.actor,
-                                                  ctx.actor->start,                   //
-                                                  ctx.route->tour.first()->location,  //
+                                                  ctx.actor->start,                          //
+                                                  ctx.route->tour.first()->detail.location,  //
                                                   ctx.departure);
       double firstCostOld = transportCosts_->cost(*ctx.route->actor,
-                                                  ctx.route->start->location,         //
-                                                  ctx.route->tour.first()->location,  //
+                                                  ctx.route->start->detail.location,         //
+                                                  ctx.route->tour.first()->detail.location,  //
                                                   ctx.route->start->schedule.departure);
 
       deltaFirst = firstCostNew - firstCostOld;
@@ -82,12 +80,12 @@ protected:
                                          lastDepartureOld + (ctx.departure - ctx.route->start->schedule.departure));
 
         auto lastCostNew = transportCosts_->cost(*ctx.actor,
-                                                 last->location,          //
+                                                 last->detail.location,   //
                                                  ctx.actor->end.value(),  //
                                                  lastDepartureNew);
         auto lastCostOld = transportCosts_->cost(*ctx.route->actor,
-                                                 last->location,            //
-                                                 ctx.route->end->location,  //
+                                                 last->detail.location,            //
+                                                 ctx.route->end->detail.location,  //
                                                  lastDepartureNew);
 
         deltaLast = lastCostNew - lastCostOld;
@@ -122,7 +120,7 @@ protected:
     auto oldCosts = 0.;
 
     if (routeCtx.route->tour.empty()) {
-      oldCosts += transportCosts_->cost(*routeCtx.actor, prev.location, next.location, actCtx.departure);
+      oldCosts += transportCosts_->cost(*routeCtx.actor, prev.detail.location, next.detail.location, actCtx.departure);
     } else {
       auto [tpCostOld, actCostOld, depTimeOld] = analyze(*routeCtx.route->actor, prev, next, prev.schedule.departure);
 
@@ -141,8 +139,8 @@ protected:
                                      const models::solution::Activity& start,
                                      const models::solution::Activity& end,
                                      const models::common::Timestamp& depTime) const {
-    auto arrival = depTime + transportCosts_->duration(actor, start.location, end.location, depTime);
-    return std::max(arrival, end.time.start) + activityCosts_->duration(actor, end, arrival);
+    auto arrival = depTime + transportCosts_->duration(actor, start.detail.location, end.detail.location, depTime);
+    return std::max(arrival, end.detail.time.start) + activityCosts_->duration(actor, end, arrival);
   }
 
 private:
@@ -154,10 +152,10 @@ private:
                                             const models::solution::Activity& start,
                                             const models::solution::Activity& end,
                                             models::common::Timestamp time) const {
-    auto arrival = time + transportCosts_->duration(actor, start.location, end.location, time);
-    auto departure = std::max(arrival, end.time.start) + activityCosts_->duration(actor, end, arrival);
+    auto arrival = time + transportCosts_->duration(actor, start.detail.location, end.detail.location, time);
+    auto departure = std::max(arrival, end.detail.time.start) + activityCosts_->duration(actor, end, arrival);
 
-    auto transportCost = transportCosts_->cost(actor, start.location, end.location, time);
+    auto transportCost = transportCosts_->cost(actor, start.detail.location, end.detail.location, time);
     auto activityCost = activityCosts_->cost(actor, end, arrival);
 
     return std::make_tuple(transportCost, activityCost, departure);

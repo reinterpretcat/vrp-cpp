@@ -19,18 +19,8 @@ public:
     return *this;
   }
 
-  build_activity& time(const common::TimeWindow& value) {
-    activity_.time = value;
-    return *this;
-  }
-
-  build_activity& duration(const common::Duration& value) {
-    activity_.duration = value;
-    return *this;
-  }
-
-  build_activity& location(const common::Location& value) {
-    activity_.location = value;
+  build_activity& detail(const Activity::Detail& value) {
+    activity_.detail = value;
     return *this;
   }
 
@@ -49,7 +39,7 @@ public:
 
   std::shared_ptr<Activity> shared() { return std::make_shared<Activity>(std::move(activity_)); }
 
-private:
+protected:
   Activity activity_;
 };
 

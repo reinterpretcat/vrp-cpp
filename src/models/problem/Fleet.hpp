@@ -14,14 +14,14 @@ struct Fleet final {
   Fleet& add(const Driver& driver) {
     if (drivers_.find(driver.id) != drivers_.end())
       throw std::invalid_argument("Driver is already added to the fleet.");
-    drivers_.insert({driver.id, std::make_shared<Driver>(driver)});
+    drivers_.insert({driver.id, std::make_shared<const Driver>(driver)});
     return *this;
   }
 
   Fleet& add(const Vehicle& vehicle) {
     if (vehicles_.find(vehicle.id) != vehicles_.end())
       throw std::invalid_argument("Vehicle is already added to the fleet.");
-    vehicles_.insert({vehicle.id, std::make_shared<Vehicle>(vehicle)});
+    vehicles_.insert({vehicle.id, std::make_shared<const Vehicle>(vehicle)});
     return *this;
   }
 
@@ -40,7 +40,7 @@ struct Fleet final {
   }
 
 private:
-  std::unordered_map<std::string, std::shared_ptr<Driver>> drivers_;
-  std::unordered_map<std::string, std::shared_ptr<Vehicle>> vehicles_;
+  std::unordered_map<std::string, std::shared_ptr<const Driver>> drivers_;
+  std::unordered_map<std::string, std::shared_ptr<const Vehicle>> vehicles_;
 };
 }

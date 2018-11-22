@@ -78,7 +78,7 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
         REQUIRE(result.index() == 0);
         REQUIRE(ranges::get<0>(result).index == 0);
         REQUIRE(ranges::get<0>(result).departure == 0);
-        REQUIRE(ranges::get<0>(result).activity->location == DefaultJobLocation);
+        REQUIRE(ranges::get<0>(result).activity->detail.location == DefaultJobLocation);
       }
     }
 
@@ -90,7 +90,7 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
         REQUIRE(result.index() == 0);
         REQUIRE(ranges::get<0>(result).index == 0);
         REQUIRE(ranges::get<0>(result).departure == 0);
-        REQUIRE(ranges::get<0>(result).activity->location == 0);
+        REQUIRE(ranges::get<0>(result).activity->detail.location == 0);
       }
     }
   }
@@ -113,7 +113,7 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
         REQUIRE(result.index() == 0);
         REQUIRE(ranges::get<0>(result).departure == 0);
         REQUIRE(ranges::get<0>(result).index == index);
-        REQUIRE(ranges::get<0>(result).activity->location == location);
+        REQUIRE(ranges::get<0>(result).activity->detail.location == location);
       }
     }
   }
@@ -136,7 +136,7 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
       THEN("returns correct insertion success") {
         REQUIRE(result.index() == 0);
         REQUIRE(ranges::get<0>(result).index == index);
-        REQUIRE(ranges::get<0>(result).activity->location == loc);
+        REQUIRE(ranges::get<0>(result).activity->detail.location == loc);
       }
     }
   }
@@ -161,7 +161,7 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
       THEN("returns correct insertion success") {
         REQUIRE(result.index() == 0);
         REQUIRE(ranges::get<0>(result).index == index);
-        REQUIRE(ranges::get<0>(result).activity->location == loc);
+        REQUIRE(ranges::get<0>(result).activity->detail.location == loc);
       }
     }
   }

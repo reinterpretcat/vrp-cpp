@@ -38,11 +38,25 @@ inline vrp::models::problem::Job DefaultService = vrp::models::problem::as_job(t
 class test_build_activity : public models::solution::build_activity {
 public:
   explicit test_build_activity() : models::solution::build_activity() {
-    duration(DefaultDuration)
-      .type(models::solution::Activity::Type::Job)
-      .time(DefaultTimeWindow)
-      .location(DefaultJobLocation)
+    type(models::solution::Activity::Type::Job)
+      .detail({DefaultJobLocation, DefaultDuration, DefaultTimeWindow})
+      .schedule({0, 0})
       .job(DefaultService);
+  }
+
+  test_build_activity& location(const models::common::Location& value) {
+    activity_.detail.location = value;
+    return *this;
+  }
+
+  test_build_activity& duration(const models::common::Duration& value) {
+    activity_.detail.duration = value;
+    return *this;
+  }
+
+  test_build_activity& time(const models::common::TimeWindow& value) {
+    activity_.detail.time = value;
+    return *this;
   }
 };
 
@@ -82,17 +96,13 @@ public:
     using namespace vrp::models::solution;
     actor(test_build_actor{}.shared())
       .start(test_build_activity{}
-               .duration(0)
-               .time(DefaultTimeWindow)
+               .detail({DefaultActorLocation, 0, DefaultTimeWindow})
                .schedule({0, 0})
-               .location(DefaultActorLocation)
                .type(Activity::Type::Start)
                .shared())
       .end(test_build_activity{}
-             .duration(0)
-             .time(DefaultTimeWindow)
+             .detail({DefaultActorLocation, 0, DefaultTimeWindow})
              .schedule({0, 1000})
-             .location(DefaultActorLocation)
              .type(Activity::Type::End)
              .shared());
   }

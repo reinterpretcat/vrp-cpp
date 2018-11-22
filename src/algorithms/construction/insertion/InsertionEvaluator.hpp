@@ -13,7 +13,7 @@ namespace vrp::algorithms::construction {
 
 /// Provides the way to evaluate insertion cost.
 struct InsertionEvaluator final {
-  explicit InsertionEvaluator(std::shared_ptr<const InsertionConstraint> constraint) :
+  explicit InsertionEvaluator(std::shared_ptr<InsertionConstraint> constraint) :
     serviceInsertionEvaluator(constraint),
     shipmentInsertionEvaluator(constraint) {}
 

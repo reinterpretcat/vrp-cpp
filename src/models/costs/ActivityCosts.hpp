@@ -16,7 +16,7 @@ struct ActivityCosts {
   virtual common::Cost cost(const solution::Actor& actor,
                             const solution::Activity& activity,
                             const common::Timestamp arrival) const {
-    auto waiting = activity.time.start > arrival ? activity.time.start - arrival : common::Timestamp{0};
+    auto waiting = activity.detail.time.start > arrival ? activity.detail.time.start - arrival : common::Timestamp{0};
     auto service = duration(actor, activity, arrival);
 
     return waiting * (actor.driver->costs.perWaitingTime + actor.vehicle->costs.perWaitingTime) +
@@ -27,7 +27,7 @@ struct ActivityCosts {
   virtual common::Duration duration(const solution::Actor& actor,
                                     const solution::Activity& activity,
                                     const common::Timestamp arrival) const {
-    return activity.duration;
+    return activity.detail.duration;
   };
 
   virtual ~ActivityCosts() = default;

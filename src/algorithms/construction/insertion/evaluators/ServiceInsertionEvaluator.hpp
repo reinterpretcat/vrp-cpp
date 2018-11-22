@@ -60,7 +60,7 @@ private:
     auto [start, end] = waypoints(routeCtx);
     auto tour = view::concat(view::single(start), routeCtx.route->tour.activities(), view::single(end));
     auto legs = view::zip(tour | view::sliding(2), view::iota(static_cast<size_t>(0)));
-    auto evalCtx = EvaluationContext::make_one(0, progress.bestCost, routeCtx.departure, 0, 0, {});
+    auto evalCtx = EvaluationContext::make_one(0, progress.bestCost, routeCtx.departure, {});
 
     // 1. analyze route legs
     auto result = ranges::accumulate(legs, evalCtx, [&](const auto& out, const auto& view) {
@@ -80,18 +80,18 @@ private:
         return ranges::accumulate(view::all(detail.times), in1, [&](const auto& in2, const auto& time) {
           if (in2.isInvalid()) return in2;
 
-          activity->time = time;
-          activity->duration = detail.duration;
+          activity->detail.time = time;
+          activity->detail.duration = detail.duration;
 
           auto locations = detail.location.has_value()
             ? static_cast<any_view<common::Location>>(view::single(detail.location.value()))
-            : view::concat(view::single(actCtx.prev->location), view::single(actCtx.next->location));
+            : view::concat(view::single(actCtx.prev->detail.location), view::single(actCtx.next->detail.location));
 
           // 4. analyze possible locations
           return ranges::accumulate(view::all(locations), in2, [&](const auto& in3, const auto& location) {
             if (in3.isInvalid()) return in3;
 
-            activity->location = location;
+            activity->detail.location = location;
 
             // check hard activity constraint
             auto status = constraint_->hard(routeCtx, actCtx);
@@ -106,16 +106,14 @@ private:
             auto endTime = in3.departure + departure(*routeCtx.actor, *actCtx.prev, *actCtx.next, evalCtx.departure);
 
             return totalCosts < in3.bestCost
-              ? EvaluationContext::make_one(actCtx.index, totalCosts, endTime, detail.duration, location, time)
-              : EvaluationContext::make_one(in3.index, in3.bestCost, endTime, in3.duration, in3.location, in3.tw);
+              ? EvaluationContext::make_one(actCtx.index, totalCosts, endTime, {location, detail.duration, time})
+              : EvaluationContext::make_one(in3.index, in3.bestCost, endTime, in3.detail);
           });
         });
       });
     });
 
-    activity->location = result.location;
-    activity->duration = result.duration;
-    activity->time = result.tw;
+    activity->detail = result.detail;
 
     return result.isInvalid()
       ? InsertionResult{ranges::emplaced_index<1>, InsertionFailure{result.code}}
@@ -129,17 +127,16 @@ private:
     using namespace vrp::models;
 
     // create start/end for new vehicle
-    auto start = solution::build_activity{}
-                   .type(solution::Activity::Type::Start)
-                   .time({ctx.actor->time.start, std::numeric_limits<common::Timestamp>::max()})
-                   .location(ctx.actor->start)                        //
-                   .schedule({ctx.actor->time.start, ctx.departure})  //
-                   .shared();
+    auto start =
+      solution::build_activity{}
+        .type(solution::Activity::Type::Start)
+        .detail({ctx.actor->start, 0, {ctx.actor->time.start, std::numeric_limits<common::Timestamp>::max()}})
+        .schedule({ctx.actor->time.start, ctx.departure})  //
+        .shared();
     auto end = solution::build_activity{}
                  .type(solution::Activity::Type::End)
-                 .time({0, ctx.actor->time.end})
-                 .location(ctx.actor->end.value_or(ctx.actor->start))  //
-                 .schedule({0, ctx.actor->time.end})                   //
+                 .detail({ctx.actor->end.value_or(ctx.actor->start), 0, {0, ctx.actor->time.end}})
+                 .schedule({0, ctx.actor->time.end})  //
                  .shared();
 
     return {start, end};

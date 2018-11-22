@@ -15,20 +15,26 @@ struct Activity final {
   /// Specifies type of activity.
   enum class Type { Start, Job, End };
 
+  /// Specifies details of activity: a variant of job details.
+  struct Detail final {
+    /// Location where activity is performed.
+    common::Location location;
+
+    /// Specifies activity's duration.
+    common::Duration duration;
+
+    /// Specifies activity's time window: an interval when job is allowed to be started.
+    common::TimeWindow time;
+  };
+
   /// Specifies activity type.
   Activity::Type type;
 
-  /// Location where stop is performed.
-  common::Location location;
+  /// Specifies activity details.
+  Detail detail;
 
   /// Specifies activity's schedule: actual arrival and departure time.
   common::Schedule schedule;
-
-  /// Specifies activity's duration.
-  common::Duration duration;
-
-  /// Specifies activity's time window: an interval when job is allowed to be started.
-  common::TimeWindow time;
 
   /// Specifies job relation. Empty if it has no relation to job.
   std::optional<problem::Job> job;
