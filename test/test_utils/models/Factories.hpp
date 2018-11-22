@@ -83,8 +83,7 @@ public:
   explicit test_build_actor() : vrp::models::solution::build_actor() {
     driver(test_build_driver{}.shared())
       .vehicle(test_build_vehicle{}.shared())
-      .start(DefaultActorLocation)
-      .time(DefaultTimeWindow);
+      .detail({DefaultActorLocation, {}, DefaultTimeWindow});
   }
 };
 

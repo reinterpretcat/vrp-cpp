@@ -56,18 +56,8 @@ public:
     return *this;
   }
 
-  build_actor& start(const common::Location& value) {
-    actor_.start = value;
-    return *this;
-  }
-
-  build_actor& end(const common::Location& value) {
-    actor_.end = value;
-    return *this;
-  }
-
-  build_actor& time(const common::TimeWindow& value) {
-    actor_.time = value;
+  build_actor& detail(const Actor::Detail& detail) {
+    actor_.detail = detail;
     return *this;
   }
 

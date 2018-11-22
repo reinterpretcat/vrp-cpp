@@ -126,17 +126,18 @@ private:
     using namespace vrp::utils;
     using namespace vrp::models;
 
+    const auto& detail = ctx.actor->detail;
+
     // create start/end for new vehicle
-    auto start =
-      solution::build_activity{}
-        .type(solution::Activity::Type::Start)
-        .detail({ctx.actor->start, 0, {ctx.actor->time.start, std::numeric_limits<common::Timestamp>::max()}})
-        .schedule({ctx.actor->time.start, ctx.departure})  //
-        .shared();
+    auto start = solution::build_activity{}
+                   .type(solution::Activity::Type::Start)
+                   .detail({detail.start, 0, {detail.time.start, std::numeric_limits<common::Timestamp>::max()}})
+                   .schedule({detail.time.start, ctx.departure})  //
+                   .shared();
     auto end = solution::build_activity{}
                  .type(solution::Activity::Type::End)
-                 .detail({ctx.actor->end.value_or(ctx.actor->start), 0, {0, ctx.actor->time.end}})
-                 .schedule({0, ctx.actor->time.end})  //
+                 .detail({detail.end.value_or(detail.time.start), 0, {0, detail.time.end}})
+                 .schedule({0, detail.time.end})  //
                  .shared();
 
     return {start, end};

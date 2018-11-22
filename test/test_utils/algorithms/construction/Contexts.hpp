@@ -60,12 +60,14 @@ differentActor(const vrp::models::solution::Tour::Activity& prev,
                const vrp::models::solution::Tour::Activity& target,
                const vrp::models::solution::Tour::Activity& next,
                int returnLocation = -1) {
-  auto actor = test_build_actor{}.time(DefaultTimeWindow).start(20);
+  auto actor = test_build_actor{};
   if (returnLocation > 0) {
     auto end = static_cast<models::common::Location>(returnLocation);
-    actor.end(end).vehicle(test_build_vehicle{}.details({{20, std::make_optional(end), DefaultTimeWindow}}).shared());
+    actor.vehicle(test_build_vehicle{}.details({{20, std::make_optional(end), DefaultTimeWindow}}).shared())
+      .detail({20, end, DefaultTimeWindow});
   } else {
-    actor.vehicle(test_build_vehicle{}.details({{20, {}, DefaultTimeWindow}}).shared());
+    actor.vehicle(test_build_vehicle{}.details({{20, {}, DefaultTimeWindow}}).shared())
+      .detail({20, {}, DefaultTimeWindow});
   }
 
   auto routeCtx = test_build_insertion_route_context{}.actor(actor.shared()).shared();

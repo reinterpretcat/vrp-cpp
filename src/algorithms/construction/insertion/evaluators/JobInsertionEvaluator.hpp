@@ -63,7 +63,7 @@ protected:
 
     if (!ctx.route->tour.empty()) {
       double firstCostNew = transportCosts_->cost(*ctx.actor,
-                                                  ctx.actor->start,                          //
+                                                  ctx.actor->detail.start,                   //
                                                   ctx.route->tour.first()->detail.location,  //
                                                   ctx.departure);
       double firstCostOld = transportCosts_->cost(*ctx.route->actor,
@@ -73,15 +73,15 @@ protected:
 
       deltaFirst = firstCostNew - firstCostOld;
 
-      if (ctx.actor->end.has_value()) {
+      if (ctx.actor->detail.end.has_value()) {
         auto last = ctx.route->tour.last();
         auto lastDepartureOld = last->schedule.departure;
         auto lastDepartureNew = std::max(models::common::Timestamp{0},  //
                                          lastDepartureOld + (ctx.departure - ctx.route->start->schedule.departure));
 
         auto lastCostNew = transportCosts_->cost(*ctx.actor,
-                                                 last->detail.location,   //
-                                                 ctx.actor->end.value(),  //
+                                                 last->detail.location,          //
+                                                 ctx.actor->detail.end.value(),  //
                                                  lastDepartureNew);
         auto lastCostOld = transportCosts_->cost(*ctx.route->actor,
                                                  last->detail.location,            //
@@ -111,7 +111,7 @@ protected:
     auto [tpCostLeft, actCostLeft, depTimeLeft] = analyze(*routeCtx.actor, prev, target, actCtx.departure);
 
     // next location is the end which is not depot
-    if (actCtx.next->type == Activity::Type::End && routeCtx.actor->end.has_value())
+    if (actCtx.next->type == Activity::Type::End && routeCtx.actor->detail.end.has_value())
       return tpCostLeft + progress.completeness * actCostLeft;
 
     auto [tpCostRight, actCostRight, depTimeRight] = analyze(*routeCtx.actor, target, next, depTimeLeft);

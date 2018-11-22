@@ -85,11 +85,11 @@ struct VehicleActivityTiming final
     const auto& target = *actCtx.target;
     const auto& next = *actCtx.next;
 
-    auto latestArrival = actor.time.end;
-    auto nextActLocation =
-      next.type == solution::Activity::Type::End ? actor.end.value_or(next.detail.location) : next.detail.location;
+    auto latestArrival = actor.detail.time.end;
+    auto nextActLocation = next.type == solution::Activity::Type::End ? actor.detail.end.value_or(next.detail.location)
+                                                                      : next.detail.location;
     auto latestArrTimeAtNextAct = next.type == solution::Activity::Type::End
-      ? actor.time.end
+      ? actor.detail.time.end
       : routeCtx.state->get<Timestamp>(actorSharedKey(StateKey, actor), next).value_or(next.detail.time.end);
 
     //    |--- vehicle's operation time ---|  |--- prev or target or next ---|
@@ -128,7 +128,7 @@ struct VehicleActivityTiming final
     if (static_cast<std::int64_t>(arrTimeAtNewAct) > latestArrTimeAtNewAct) return stop();
 
 
-    if (next.type == solution::Activity::Type::End && !actor.end.has_value()) return success();
+    if (next.type == solution::Activity::Type::End && !actor.detail.end.has_value()) return success();
 
 
     auto arrTimeAtNextAct =
