@@ -113,6 +113,11 @@ private:
 /// A helper class to build driver.
 class build_driver {
 public:
+  build_driver& id(const std::string& value) {
+    driver_.id = value;
+    return *this;
+  }
+
   build_driver& costs(const Costs& value) {
     driver_.costs = value;
     return *this;

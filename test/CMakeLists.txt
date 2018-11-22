@@ -16,6 +16,7 @@ set(SOURCE_FILES
         algorithms/construction/insertion/InsertionConstraintTest.cc
 
         models/solution/TourTest.cc
+        models/solution/DispatcherTest.cc
 
         test_utils/algorithms/construction/Insertions.hpp
         test_utils/algorithms/construction/Contexts.hpp

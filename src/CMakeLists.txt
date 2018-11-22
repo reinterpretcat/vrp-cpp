@@ -47,6 +47,7 @@ set(SOURCE_FILES
 
         models/solution/Actor.hpp
         models/solution/Activity.hpp
+        models/solution/Dispatcher.hpp
         models/solution/Route.hpp
         models/solution/Solution.hpp
         models/solution/Statistic.hpp

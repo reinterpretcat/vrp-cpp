@@ -73,7 +73,7 @@ inline std::shared_ptr<const vrp::models::problem::Vehicle> DefaultVehicle = tes
 
 class test_build_driver : public vrp::models::problem::build_driver {
 public:
-  explicit test_build_driver() : vrp::models::problem::build_driver() { costs({0, 0, 0, 0}); }
+  explicit test_build_driver() : vrp::models::problem::build_driver() { id("driver").costs({0, 0, 0, 0}); }
 };
 
 inline std::shared_ptr<const vrp::models::problem::Driver> DefaultDriver = test_build_driver{}.shared();
