@@ -31,6 +31,14 @@ SCENARIO("dispatcher can provide actors", "[models][solution][dispatcher]") {
 
       THEN("then returns two actors") { REQUIRE(ranges::distance(dispatcher.actors()) == 2); }
     }
+
+    WHEN("all are used and all available actors requested") {
+      auto actors = ranges::for_each(dispatcher.actors(), [&](const auto& actor) {
+        dispatcher.use(*actor);
+      });
+
+      THEN("then returns zero actors") { REQUIRE(ranges::distance(dispatcher.actors()) == 0); }
+    }
   }
 }
 }
