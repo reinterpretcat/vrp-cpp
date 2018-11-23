@@ -6,6 +6,7 @@
 #include "algorithms/construction/insertion/InsertionRouteContext.hpp"
 #include "algorithms/construction/insertion/evaluators/ServiceInsertionEvaluator.hpp"
 #include "algorithms/construction/insertion/evaluators/ShipmentInsertionEvaluator.hpp"
+#include "utils/extensions/Variant.hpp"
 
 #include <variant>
 
@@ -13,18 +14,25 @@ namespace vrp::algorithms::construction {
 
 /// Provides the way to evaluate insertion cost.
 struct InsertionEvaluator final {
-  explicit InsertionEvaluator(std::shared_ptr<InsertionConstraint> constraint) :
-    serviceInsertionEvaluator(constraint),
-    shipmentInsertionEvaluator(constraint) {}
+  explicit InsertionEvaluator(std::shared_ptr<const models::costs::TransportCosts> transportCosts,
+                              std::shared_ptr<const models::costs::ActivityCosts> activityCosts,
+                              std::shared_ptr<InsertionConstraint> constraint) :
+    serviceInsertionEvaluator(transportCosts, activityCosts, constraint),
+    shipmentInsertionEvaluator(transportCosts, activityCosts, constraint) {}
 
   /// Evaluates possibility to preform insertion from given insertion context.
   InsertionResult evaluate(const models::problem::Job& job,
                            const InsertionRouteContext& ctx,
                            const InsertionProgress& progress) {
     // TODO insert start/end?
-    return job.visit(ranges::overload(
-      [&](const auto& service) { return serviceInsertionEvaluator.evaluate(service, ctx, progress); },
-      [&](const auto& shipment) { return shipmentInsertionEvaluator.evaluate(shipment, ctx, progress); }));
+
+    return utils::mono_result<InsertionResult>(job.visit(ranges::overload(
+      [&](const std::shared_ptr<const models::problem::Service>& service) {
+        return serviceInsertionEvaluator.evaluate(service, ctx, progress);
+      },
+      [&](const std::shared_ptr<const models::problem::Shipment>& shipment) {
+        return shipmentInsertionEvaluator.evaluate(shipment, ctx, progress);
+      })));
   }
 
 private:

@@ -48,7 +48,6 @@ struct Registry {
   }
 
 private:
-
   /// Returns driver to use.
   std::shared_ptr<const problem::Driver> findDriver() const {
     auto drivers = fleet_->drivers();

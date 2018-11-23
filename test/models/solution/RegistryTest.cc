@@ -25,17 +25,14 @@ SCENARIO("registry can provide actors", "[models][solution][registry]") {
     }
 
     WHEN("one is used and all available actors requested") {
-      auto actors = ranges::for_each(registry.actors() | view::take(1), [&](const auto& actor) {
-        registry.use(*actor);
-      });
+      auto actors =
+        ranges::for_each(registry.actors() | view::take(1), [&](const auto& actor) { registry.use(*actor); });
 
       THEN("then returns two actors") { REQUIRE(ranges::distance(registry.actors()) == 2); }
     }
 
     WHEN("all are used and all available actors requested") {
-      auto actors = ranges::for_each(registry.actors(), [&](const auto& actor) {
-        registry.use(*actor);
-      });
+      auto actors = ranges::for_each(registry.actors(), [&](const auto& actor) { registry.use(*actor); });
 
       THEN("then returns zero actors") { REQUIRE(ranges::distance(registry.actors()) == 0); }
     }
