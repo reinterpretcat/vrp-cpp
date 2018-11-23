@@ -12,10 +12,10 @@
 
 namespace vrp::models::solution {
 
-/// Specifies an entity responsible for dispatching vehicles and drivers.
+/// Specifies an entity responsible for providing actors and keeping track of their usage.
 // TODO at the moment, consider only vehicles, can be extended to support smart vehicle-driver assignment.
-struct Dispatcher {
-  explicit Dispatcher(const std::shared_ptr<const problem::Fleet>& fleet) : fleet_(fleet) {
+struct Registry {
+  explicit Registry(const std::shared_ptr<const problem::Fleet>& fleet) : fleet_(fleet) {
     assert(ranges::distance(fleet->drivers()) == 1);
   }
 
