@@ -30,20 +30,31 @@ struct Dispatcher {
     using namespace ranges;
     // TODO this method should also consider different drivers, see comment at top
     // TODO do not return actors wrapped by shared ptr?
-    auto driver = *std::begin(fleet_->drivers());
 
     // clang-format off
-    return fleet_->vehicles() | view::for_each([&](const auto& v) {
-      auto ds = details_.find(v->id);
+    return fleet_->vehicles() | view::for_each([&](const auto v) {
+      auto driver = findDriver();
+      auto vehicle = v;
+
+      auto set = details_.find(vehicle->id);
+      auto ctx = std::pair(set, (set != details_.end()));
+
       return view::all(v->details) |
           view::transform([&](const auto& d) { return Actor::Detail{d.start, d.end, d.time}; }) |
-          view::filter([&](const auto& d) { return ds != details_.end() || ds->second.find(d) != ds->second.end(); }) |
-          view::transform([&](const auto& d) { return std::make_shared<Actor>(Actor{v, driver, d}); });
+          view::remove_if([=](const auto& d) { return ctx.second && ctx.first->second.find(d) != ctx.first->second.end(); }) |
+          view::transform([=](const auto& d) { return std::make_shared<Actor>(Actor{vehicle, driver, d}); });
     });
     // clang-format on
   }
 
 private:
+
+  /// Returns driver to use.
+  std::shared_ptr<const problem::Driver> findDriver() const {
+    auto drivers = fleet_->drivers();
+    return *std::begin(drivers);
+  }
+
   std::shared_ptr<const problem::Fleet> fleet_;
   /// Tracks used vehicles.
   std::unordered_map<std::string, std::set<Actor::Detail, compare_actor_details>> details_;

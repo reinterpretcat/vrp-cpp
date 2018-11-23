@@ -25,11 +25,11 @@ struct Fleet final {
     return *this;
   }
 
-  auto drivers() const {
+  ranges::any_view<std::shared_ptr<const Driver>> drivers() const {
     return ranges::view::all(drivers_) | ranges::view::transform([](const auto& d) { return d.second; });
   }
 
-  auto vehicles() const {
+  ranges::any_view<std::shared_ptr<const Vehicle>> vehicles() const {
     return ranges::view::all(vehicles_) | ranges::view::transform([](const auto& v) { return v.second; });
   }
 

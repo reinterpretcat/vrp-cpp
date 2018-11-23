@@ -6,6 +6,7 @@
 
 using namespace vrp::models::problem;
 using namespace vrp::models::solution;
+using namespace ranges;
 
 namespace vrp::test {
 
@@ -21,6 +22,14 @@ SCENARIO("dispatcher can provide actors", "[models][solution][dispatcher]") {
 
     WHEN("all available actors requested") {
       THEN("then returns three actors") { REQUIRE(ranges::distance(dispatcher.actors()) == 3); }
+    }
+
+    WHEN("one is used and all available actors requested") {
+      auto actors = ranges::for_each(dispatcher.actors() | view::take(1), [&](const auto& actor) {
+        dispatcher.use(*actor);
+      });
+
+      THEN("then returns two actors") { REQUIRE(ranges::distance(dispatcher.actors()) == 2); }
     }
   }
 }
