@@ -9,16 +9,30 @@
 #include <range/v3/all.hpp>
 #include <set>
 #include <unordered_map>
+#include <vector>
 
 namespace vrp::models::solution {
 
 /// Specifies an entity responsible for providing actors and keeping track of their usage.
-// TODO at the moment, consider only vehicles, can be extended to support smart vehicle-driver assignment.
 struct Registry {
-  explicit Registry(const std::shared_ptr<const problem::Fleet>& fleet) : fleet_(fleet) {
+  explicit Registry(const std::shared_ptr<const problem::Fleet>& fleet) : actors_(), details_() {
+    // TODO we should also consider multiple drivers to support smart vehicle-driver assignment
     assert(ranges::distance(fleet->drivers()) == 1);
+    assert(ranges::distance(fleet->vehicles()) > 0);
 
-    // TODO create all possible actors
+    using namespace ranges;
+
+    // clang-format off
+    actors_ = fleet->vehicles() | view::for_each([&](const auto v) {
+      auto drivers = fleet->drivers();
+      auto driver = *std::begin(drivers);
+      auto vehicle = v;
+
+      return view::all(v->details) |
+          view::transform([&](const auto& d) { return Actor::Detail{d.start, d.end, d.time}; }) |
+          view::transform([=](const auto& d) { return std::make_shared<const Actor>(Actor{vehicle, driver, d}); });
+    });
+    // clang-format on
   }
 
   void use(const Actor& actor) {
@@ -28,36 +42,16 @@ struct Registry {
   }
 
   /// Return available for use actors.
-  ranges::any_view<std::shared_ptr<Actor>> actors() const {
-    using namespace ranges;
-    // TODO this method should also consider different drivers, see comment at top
-    // TODO do not return actors wrapped by shared ptr?
-
-    // clang-format off
-    return fleet_->vehicles() | view::for_each([&](const auto v) {
-      auto driver = findDriver();
-      auto vehicle = v;
-
-      auto set = details_.find(vehicle->id);
-      auto ctx = std::pair(set, (set != details_.end()));
-
-      return view::all(v->details) |
-          view::transform([&](const auto& d) { return Actor::Detail{d.start, d.end, d.time}; }) |
-          view::remove_if([=](const auto& d) { return ctx.second && ctx.first->second.find(d) != ctx.first->second.end(); }) |
-          view::transform([=](const auto& d) { return std::make_shared<Actor>(Actor{vehicle, driver, d}); });
-    });
-    // clang-format on
+  ranges::any_view<std::shared_ptr<const Actor>> actors() const {
+    return ranges::view::all(actors_) | ranges::view::remove_if([&](const auto& a) {
+             auto set = details_.find(a->vehicle->id);
+             auto ctx = std::pair(set, (set != details_.end()));
+             return ctx.second && ctx.first->second.find(a->detail) != ctx.first->second.end();
+           });
   }
 
 private:
-  /// Returns driver to use.
-  std::shared_ptr<const problem::Driver> findDriver() const {
-    auto drivers = fleet_->drivers();
-    return *std::begin(drivers);
-  }
-
-  std::shared_ptr<const problem::Fleet> fleet_;
-  /// Tracks used vehicles.
+  std::vector<std::shared_ptr<const Actor>> actors_;
   std::unordered_map<std::string, std::set<Actor::Detail, compare_actor_details>> details_;
 };
 }
