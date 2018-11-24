@@ -5,6 +5,7 @@ find_package(ClangTidy)
 set(SOURCE_FILES
 
         algorithms/construction/extensions/Insertions.hpp
+        algorithms/construction/extensions/Routes.hpp
         algorithms/construction/extensions/States.hpp
 
         algorithms/construction/insertion/constraints/VehicleActivityTiming.hpp
@@ -13,6 +14,7 @@ set(SOURCE_FILES
         algorithms/construction/insertion/evaluators/ShipmentInsertionEvaluator.hpp
         algorithms/construction/insertion/InsertionActivityContext.hpp
         algorithms/construction/insertion/InsertionConstraint.hpp
+        algorithms/construction/insertion/InsertionContext.hpp
         algorithms/construction/insertion/InsertionEvaluator.hpp
         algorithms/construction/insertion/InsertionResult.hpp
         algorithms/construction/insertion/InsertionRouteContext.hpp

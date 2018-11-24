@@ -1,5 +1,6 @@
 #pragma once
 
+#include "algorithms/construction/extensions/Routes.hpp"
 #include "algorithms/construction/insertion/InsertionActivityContext.hpp"
 #include "algorithms/construction/insertion/InsertionConstraint.hpp"
 #include "algorithms/construction/insertion/InsertionResult.hpp"
@@ -57,7 +58,7 @@ private:
     auto routeCosts = constraint_->soft(routeCtx, view::single(*activity)) + vehicleCosts(routeCtx);
 
     // form route legs from a new route view.
-    auto [start, end] = waypoints(routeCtx);
+    auto [start, end] = waypoints(*routeCtx.actor, routeCtx.departure);
     auto tour = view::concat(view::single(start), routeCtx.route->tour.activities(), view::single(end));
     auto legs = view::zip(tour | view::sliding(2), view::iota(static_cast<size_t>(0)));
     auto evalCtx = EvaluationContext::make_one(0, progress.bestCost, routeCtx.departure, {});
@@ -118,29 +119,7 @@ private:
     return result.isInvalid()
       ? InsertionResult{ranges::emplaced_index<1>, InsertionFailure{result.code}}
       : InsertionResult{ranges::emplaced_index<0>,
-                        InsertionSuccess{result.index, activity, routeCtx.actor, routeCtx.departure}};
-  }
-
-  /// Creates start/end stops of vehicle.
-  std::pair<Activity, Activity> waypoints(const InsertionRouteContext& ctx) const {
-    using namespace vrp::utils;
-    using namespace vrp::models;
-
-    const auto& detail = ctx.actor->detail;
-
-    // create start/end for new vehicle
-    auto start = solution::build_activity{}
-                   .type(solution::Activity::Type::Start)
-                   .detail({detail.start, 0, {detail.time.start, std::numeric_limits<common::Timestamp>::max()}})
-                   .schedule({detail.time.start, ctx.departure})  //
-                   .shared();
-    auto end = solution::build_activity{}
-                 .type(solution::Activity::Type::End)
-                 .detail({detail.end.value_or(detail.time.start), 0, {0, detail.time.end}})
-                 .schedule({0, detail.time.end})  //
-                 .shared();
-
-    return {start, end};
+                        InsertionSuccess{result.index, result.bestCost, activity, routeCtx.actor, routeCtx.departure}};
   }
 
   std::shared_ptr<const InsertionConstraint> constraint_;

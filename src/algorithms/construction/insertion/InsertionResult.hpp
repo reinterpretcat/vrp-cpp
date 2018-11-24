@@ -1,5 +1,6 @@
 #pragma once
 
+#include "models/common/Cost.hpp"
 #include "models/common/Timestamp.hpp"
 #include "models/solution/Actor.hpp"
 #include "models/solution/Route.hpp"
@@ -15,6 +16,9 @@ struct InsertionSuccess final {
   /// Specifies index where activity has to be inserted.
   size_t index;
 
+  /// Specfies delta cost change for the insertion.
+  models::common::Cost cost;
+
   /// Specifies activity which has to be inserted.
   models::solution::Tour::Activity activity;
 
@@ -27,7 +31,7 @@ struct InsertionSuccess final {
 
 /// Specifies insertion failure.
 struct InsertionFailure final {
-  /// Failed constraint code
+  /// Failed constraint code.
   int constraint;
 };
 

@@ -17,6 +17,8 @@ namespace vrp::models::solution {
 struct Registry {
   explicit Registry(const std::shared_ptr<const problem::Fleet>& fleet) : fleet_(fleet) {
     assert(ranges::distance(fleet->drivers()) == 1);
+
+    // TODO create all possible actors
   }
 
   void use(const Actor& actor) {
