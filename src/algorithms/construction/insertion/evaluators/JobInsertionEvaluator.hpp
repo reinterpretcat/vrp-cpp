@@ -112,24 +112,17 @@ protected:
 
     auto [tpCostRight, actCostRight, depTimeRight] = analyze(*routeCtx.actor, target, next, depTimeLeft);
 
-    auto totalCosts = tpCostLeft + tpCostRight + progress.completeness * (actCostLeft + actCostRight);
+    auto newCosts = tpCostLeft + tpCostRight + progress.completeness * (actCostLeft + actCostRight);
 
-    if (actCtx.next->type == Activity::Type::End && routeCtx.actor->detail.end.has_value()) return totalCosts;
+    auto [tpCostOld, actCostOld, depTimeOld] =
+      analyze(*routeCtx.route->actor,
+              prev.type == Activity::Type::Start ? *routeCtx.route->start : prev,
+              next.type == Activity::Type::End ? *routeCtx.route->end : next,
+              prev.type == Activity::Type::Start ? routeCtx.route->start->schedule.departure : prev.schedule.departure);
 
-    auto oldCosts = 0.;
-    if (routeCtx.route->tour.empty()) {
-      oldCosts += transportCosts_->cost(*routeCtx.actor, prev.detail.location, next.detail.location, actCtx.departure);
-    } else {
-      auto [tpCostOld, actCostOld, depTimeOld] = analyze(*routeCtx.route->actor, prev, next, prev.schedule.departure);
+    auto oldCosts = tpCostOld + progress.completeness * actCostOld;
 
-      auto delayTime = depTimeRight > depTimeOld ? depTimeRight - depTimeOld : 0;
-      auto futureWaiting = Timestamp{0};  // routeCtx.state->get<Timestamp>("FutureWaiting", next).value_or(0);
-      auto timeCostSavings = std::min(futureWaiting, delayTime) * routeCtx.route->actor->vehicle->costs.perWaitingTime;
-
-      oldCosts += tpCostOld + progress.completeness * (actCostOld + timeCostSavings);
-    }
-
-    return totalCosts - oldCosts;
+    return newCosts - oldCosts;
   }
 
   /// Returns departure time from end activity taking into account time: departure time from start activity.
