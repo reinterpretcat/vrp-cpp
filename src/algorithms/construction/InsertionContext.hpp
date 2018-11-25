@@ -12,7 +12,7 @@ namespace vrp::algorithms::construction {
 
 /// Contains information needed to performed insertions in solution.
 struct InsertionContext final {
-  /// Specfies type which stores together route and its insertion state.
+  /// Specifies type which stores together route and its insertion state.
   using RouteState = std::pair<std::shared_ptr<models::solution::Route>, std::shared_ptr<InsertionRouteState>>;
 
   /// Solution progress.

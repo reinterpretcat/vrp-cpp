@@ -16,7 +16,7 @@ struct InsertionSuccess final {
   /// Specifies index where activity has to be inserted.
   size_t index;
 
-  /// Specfies delta cost change for the insertion.
+  /// Specifies delta cost change for the insertion.
   models::common::Cost cost;
 
   /// Specifies activity which has to be inserted.

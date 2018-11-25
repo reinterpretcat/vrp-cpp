@@ -12,10 +12,12 @@ set(SOURCE_FILES
         algorithms/construction/evaluators/JobInsertionEvaluator.hpp
         algorithms/construction/evaluators/ServiceInsertionEvaluator.hpp
         algorithms/construction/evaluators/ShipmentInsertionEvaluator.hpp
+        algorithms/construction/heuristics/RegretInsertion.hpp
         algorithms/construction/InsertionActivityContext.hpp
         algorithms/construction/InsertionConstraint.hpp
         algorithms/construction/InsertionContext.hpp
         algorithms/construction/InsertionEvaluator.hpp
+        algorithms/construction/InsertionHeuristic.hpp
         algorithms/construction/InsertionResult.hpp
         algorithms/construction/InsertionRouteContext.hpp
         algorithms/construction/InsertionRouteState.hpp
@@ -39,13 +41,14 @@ set(SOURCE_FILES
         models/extensions/solution/Factories.hpp
 
         models/problem/Costs.hpp
-        models/problem/JobDetail.hpp
         models/problem/Driver.hpp
         models/problem/Fleet.hpp
-        models/problem/Vehicle.hpp
         models/problem/Job.hpp
+        models/problem/JobDetail.hpp
         models/problem/Service.hpp
         models/problem/Shipment.hpp
+        models/problem/Vehicle.hpp
+        models/problem/VehicleDetail.hpp
 
         models/solution/Actor.hpp
         models/solution/Activity.hpp
@@ -62,6 +65,7 @@ set(SOURCE_FILES
 
 include_directories(${MAIN_SOURCE}
         ${EXTERNAL_SOURCE}/range-v3/include
+        ${EXTERNAL_SOURCE}/rxcpp/Rx/v2/src
         ${CMAKE_CURRENT_BINARY_DIR}
         )
 
