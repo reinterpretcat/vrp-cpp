@@ -24,6 +24,21 @@ public:
   explicit test_build_service() : vrp::models::problem::build_service() {
     id("service").details({DefaultJobDetail}).dimensions({DefaultDimension});
   }
+
+  test_build_service& location(const models::common::Location& value) {
+    service_.details.front().location = value;
+    return *this;
+  }
+
+  test_build_service& duration(const models::common::Duration& value) {
+    service_.details.front().duration = value;
+    return *this;
+  }
+
+  test_build_service& time(const models::common::TimeWindow& value) {
+    service_.details.front().times = {value};
+    return *this;
+  }
 };
 
 class test_build_detail : public vrp::models::problem::build_detail {

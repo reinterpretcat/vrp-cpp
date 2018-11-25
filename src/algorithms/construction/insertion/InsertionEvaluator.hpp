@@ -74,7 +74,7 @@ struct InsertionEvaluator final {
 private:
   /// Creates new route state.
   InsertionContext::RouteState createRouteState() const {
-    return InsertionContext::RouteState{models::solution::build_route{}.shared(),
+    return InsertionContext::RouteState{std::make_shared<models::solution::Route>(),
                                         std::make_shared<InsertionRouteState>()};
   }
 
@@ -90,6 +90,8 @@ private:
       ctx.route->end = end;
       ctx.route->actor = actor;
       ctx.departure = actor->detail.time.start;
+    } else {
+      ctx.departure = routeState.first->start->schedule.departure;
     }
 
     return std::move(ctx);

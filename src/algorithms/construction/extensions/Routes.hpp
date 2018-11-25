@@ -23,7 +23,7 @@ waypoints(const models::solution::Actor& actor, models::common::Timestamp depart
                  .shared();
   auto end = solution::build_activity{}
                .type(solution::Activity::Type::End)
-               .detail({detail.end.value_or(detail.time.start), 0, {0, detail.time.end}})
+               .detail({detail.end.value_or(detail.start), 0, {0, detail.time.end}})
                .schedule({0, detail.time.end})  //
                .shared();
 

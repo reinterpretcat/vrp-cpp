@@ -45,7 +45,7 @@ public:
 
   std::shared_ptr<Service> shared() { return std::make_shared<Service>(std::move(service_)); }
 
-private:
+protected:
   Service service_;
 };
 
