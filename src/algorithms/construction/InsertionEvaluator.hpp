@@ -1,12 +1,12 @@
 #pragma once
 
+#include "algorithms/construction/InsertionConstraint.hpp"
+#include "algorithms/construction/InsertionContext.hpp"
+#include "algorithms/construction/InsertionResult.hpp"
+#include "algorithms/construction/evaluators/ServiceInsertionEvaluator.hpp"
+#include "algorithms/construction/evaluators/ShipmentInsertionEvaluator.hpp"
 #include "algorithms/construction/extensions/Routes.hpp"
 #include "algorithms/construction/extensions/States.hpp"
-#include "algorithms/construction/insertion/InsertionConstraint.hpp"
-#include "algorithms/construction/insertion/InsertionContext.hpp"
-#include "algorithms/construction/insertion/InsertionResult.hpp"
-#include "algorithms/construction/insertion/evaluators/ServiceInsertionEvaluator.hpp"
-#include "algorithms/construction/insertion/evaluators/ShipmentInsertionEvaluator.hpp"
 #include "models/extensions/solution/Factories.hpp"
 #include "models/problem/Fleet.hpp"
 #include "models/solution/Registry.hpp"

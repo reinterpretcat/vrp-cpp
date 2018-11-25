@@ -10,11 +10,11 @@ include_directories(${MAIN_SOURCE}
 
 set(SOURCE_FILES
 
-        algorithms/construction/insertion/constraints/VehicleActivityTimingTest.cc
-        algorithms/construction/insertion/evaluators/ServiceInsertionEvaluatorTest.cc
-        algorithms/construction/insertion/evaluators/JobInsertionEvaluatorTest.cc
-        algorithms/construction/insertion/InsertionConstraintTest.cc
-        algorithms/construction/insertion/InsertionEvaluatorTest.cc
+        algorithms/construction/constraints/VehicleActivityTimingTest.cc
+        algorithms/construction/evaluators/ServiceInsertionEvaluatorTest.cc
+        algorithms/construction/evaluators/JobInsertionEvaluatorTest.cc
+        algorithms/construction/InsertionConstraintTest.cc
+        algorithms/construction/InsertionEvaluatorTest.cc
 
         models/solution/TourTest.cc
         models/solution/RegistryTest.cc

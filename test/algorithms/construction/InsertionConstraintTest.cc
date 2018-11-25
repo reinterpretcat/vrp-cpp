@@ -1,4 +1,4 @@
-#include "algorithms/construction/insertion/InsertionConstraint.hpp"
+#include "algorithms/construction/InsertionConstraint.hpp"
 
 #include <catch/catch.hpp>
 

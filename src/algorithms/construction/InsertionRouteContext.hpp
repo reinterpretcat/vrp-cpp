@@ -1,6 +1,6 @@
 #pragma once
 
-#include "algorithms/construction/insertion/InsertionRouteState.hpp"
+#include "algorithms/construction/InsertionRouteState.hpp"
 #include "models/common/Timestamp.hpp"
 #include "models/problem/Job.hpp"
 #include "models/solution/Activity.hpp"

@@ -1,10 +1,10 @@
 #pragma once
 
+#include "algorithms/construction/InsertionActivityContext.hpp"
+#include "algorithms/construction/InsertionConstraint.hpp"
+#include "algorithms/construction/InsertionResult.hpp"
+#include "algorithms/construction/evaluators/JobInsertionEvaluator.hpp"
 #include "algorithms/construction/extensions/Routes.hpp"
-#include "algorithms/construction/insertion/InsertionActivityContext.hpp"
-#include "algorithms/construction/insertion/InsertionConstraint.hpp"
-#include "algorithms/construction/insertion/InsertionResult.hpp"
-#include "algorithms/construction/insertion/evaluators/JobInsertionEvaluator.hpp"
 #include "models/common/Cost.hpp"
 #include "models/common/TimeWindow.hpp"
 #include "models/costs/ActivityCosts.hpp"

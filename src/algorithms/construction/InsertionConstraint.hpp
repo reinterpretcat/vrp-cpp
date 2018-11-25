@@ -1,8 +1,8 @@
 #pragma once
 
-#include "algorithms/construction/insertion/InsertionActivityContext.hpp"
-#include "algorithms/construction/insertion/InsertionResult.hpp"
-#include "algorithms/construction/insertion/InsertionRouteContext.hpp"
+#include "algorithms/construction/InsertionActivityContext.hpp"
+#include "algorithms/construction/InsertionResult.hpp"
+#include "algorithms/construction/InsertionRouteContext.hpp"
 #include "models/common/Cost.hpp"
 #include "models/solution/Activity.hpp"
 

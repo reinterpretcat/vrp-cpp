@@ -1,4 +1,4 @@
-#include "algorithms/construction/insertion/InsertionEvaluator.hpp"
+#include "algorithms/construction/InsertionEvaluator.hpp"
 
 #include "test_utils/algorithms/construction/Insertions.hpp"
 #include "test_utils/fakes/TestTransportCosts.hpp"

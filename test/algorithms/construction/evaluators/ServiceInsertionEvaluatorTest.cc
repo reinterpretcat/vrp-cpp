@@ -1,6 +1,6 @@
-#include "algorithms/construction/insertion/evaluators/ServiceInsertionEvaluator.hpp"
+#include "algorithms/construction/evaluators/ServiceInsertionEvaluator.hpp"
 
-#include "algorithms/construction/insertion/constraints/VehicleActivityTiming.hpp"
+#include "algorithms/construction/constraints/VehicleActivityTiming.hpp"
 #include "models/costs/ActivityCosts.hpp"
 #include "test_utils/algorithms/construction/Insertions.hpp"
 #include "test_utils/fakes/TestTransportCosts.hpp"

@@ -1,7 +1,7 @@
 #pragma once
 
+#include "algorithms/construction/InsertionConstraint.hpp"
 #include "algorithms/construction/extensions/States.hpp"
-#include "algorithms/construction/insertion/InsertionConstraint.hpp"
 #include "models/common/Location.hpp"
 #include "models/common/Timestamp.hpp"
 #include "models/costs/ActivityCosts.hpp"

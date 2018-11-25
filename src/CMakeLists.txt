@@ -8,18 +8,18 @@ set(SOURCE_FILES
         algorithms/construction/extensions/Routes.hpp
         algorithms/construction/extensions/States.hpp
 
-        algorithms/construction/insertion/constraints/VehicleActivityTiming.hpp
-        algorithms/construction/insertion/evaluators/JobInsertionEvaluator.hpp
-        algorithms/construction/insertion/evaluators/ServiceInsertionEvaluator.hpp
-        algorithms/construction/insertion/evaluators/ShipmentInsertionEvaluator.hpp
-        algorithms/construction/insertion/InsertionActivityContext.hpp
-        algorithms/construction/insertion/InsertionConstraint.hpp
-        algorithms/construction/insertion/InsertionContext.hpp
-        algorithms/construction/insertion/InsertionEvaluator.hpp
-        algorithms/construction/insertion/InsertionResult.hpp
-        algorithms/construction/insertion/InsertionRouteContext.hpp
-        algorithms/construction/insertion/InsertionRouteState.hpp
-        algorithms/construction/insertion/InsertionProgress.hpp
+        algorithms/construction/constraints/VehicleActivityTiming.hpp
+        algorithms/construction/evaluators/JobInsertionEvaluator.hpp
+        algorithms/construction/evaluators/ServiceInsertionEvaluator.hpp
+        algorithms/construction/evaluators/ShipmentInsertionEvaluator.hpp
+        algorithms/construction/InsertionActivityContext.hpp
+        algorithms/construction/InsertionConstraint.hpp
+        algorithms/construction/InsertionContext.hpp
+        algorithms/construction/InsertionEvaluator.hpp
+        algorithms/construction/InsertionResult.hpp
+        algorithms/construction/InsertionRouteContext.hpp
+        algorithms/construction/InsertionRouteState.hpp
+        algorithms/construction/InsertionProgress.hpp
 
         models/common/Cost.hpp
         models/common/Dimension.hpp

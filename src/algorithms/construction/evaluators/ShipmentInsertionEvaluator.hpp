@@ -1,8 +1,8 @@
 #pragma once
 
-#include "algorithms/construction/insertion/InsertionConstraint.hpp"
-#include "algorithms/construction/insertion/InsertionProgress.hpp"
-#include "algorithms/construction/insertion/InsertionResult.hpp"
+#include "algorithms/construction/InsertionConstraint.hpp"
+#include "algorithms/construction/InsertionProgress.hpp"
+#include "algorithms/construction/InsertionResult.hpp"
 #include "models/common/Cost.hpp"
 #include "models/costs/ActivityCosts.hpp"
 #include "models/costs/TransportCosts.hpp"

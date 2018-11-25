@@ -1,4 +1,4 @@
-#include "algorithms/construction/insertion/evaluators/JobInsertionEvaluator.hpp"
+#include "algorithms/construction/evaluators/JobInsertionEvaluator.hpp"
 
 #include "models/costs/ActivityCosts.hpp"
 #include "test_utils/algorithms/construction/Contexts.hpp"
