@@ -110,15 +110,13 @@ protected:
 
     auto [tpCostLeft, actCostLeft, depTimeLeft] = analyze(*routeCtx.actor, prev, target, actCtx.departure);
 
-    // next location is the end which is not depot
-    if (actCtx.next->type == Activity::Type::End && routeCtx.actor->detail.end.has_value())
-      return tpCostLeft + progress.completeness * actCostLeft;
-
     auto [tpCostRight, actCostRight, depTimeRight] = analyze(*routeCtx.actor, target, next, depTimeLeft);
 
     auto totalCosts = tpCostLeft + tpCostRight + progress.completeness * (actCostLeft + actCostRight);
-    auto oldCosts = 0.;
 
+    if (actCtx.next->type == Activity::Type::End && routeCtx.actor->detail.end.has_value()) return totalCosts;
+
+    auto oldCosts = 0.;
     if (routeCtx.route->tour.empty()) {
       oldCosts += transportCosts_->cost(*routeCtx.actor, prev.detail.location, next.detail.location, actCtx.departure);
     } else {
