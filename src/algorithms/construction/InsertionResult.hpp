@@ -25,6 +25,9 @@ struct InsertionSuccess final {
   /// Specifies actor which should be used.
   models::solution::Route::Actor actor;
 
+  /// Specifies route where insertion happens.
+  std::shared_ptr<models::solution::Route> route;
+
   /// Specifies new vehicle departure time.
   models::common::Timestamp departure;
 };

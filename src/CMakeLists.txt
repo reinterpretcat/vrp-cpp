@@ -12,7 +12,7 @@ set(SOURCE_FILES
         algorithms/construction/evaluators/JobInsertionEvaluator.hpp
         algorithms/construction/evaluators/ServiceInsertionEvaluator.hpp
         algorithms/construction/evaluators/ShipmentInsertionEvaluator.hpp
-        algorithms/construction/heuristics/RegretInsertion.hpp
+        algorithms/construction/heuristics/CheapestInsertion.hpp
         algorithms/construction/InsertionActivityContext.hpp
         algorithms/construction/InsertionConstraint.hpp
         algorithms/construction/InsertionContext.hpp

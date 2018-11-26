@@ -30,7 +30,6 @@ struct InsertionEvaluator final {
 
   /// Evaluates possibility to preform insertion from given insertion context.
   InsertionResult evaluate(const models::problem::Job& job, const InsertionContext& ctx) const {
-    // TODO insert start/end?
     using namespace ranges;
     using namespace models::solution;
 

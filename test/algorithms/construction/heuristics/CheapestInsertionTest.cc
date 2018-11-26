@@ -1,4 +1,4 @@
-#include "algorithms/construction/heuristics/RegretInsertion.hpp"
+#include "algorithms/construction/heuristics/CheapestInsertion.hpp"
 
 #include <catch/catch.hpp>
 
@@ -6,7 +6,7 @@ using namespace vrp::algorithms::construction;
 
 namespace vrp::test {
 
-SCENARIO("regret insertion inserts service", "[algorithms][construction][insertion]") {
+SCENARIO("cheapest insertion inserts service", "[algorithms][construction][insertion]") {
   GIVEN("one service  job") {
     WHEN("") {
       THEN("") {

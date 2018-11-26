@@ -49,25 +49,24 @@ private:
   /// Analyzes tour trying to find best insertion index.
   InsertionResult analyze(models::solution::Tour::Activity& activity,
                           const models::problem::Service& service,
-                          const InsertionRouteContext& routeCtx,
+                          const InsertionRouteContext& ctx,
                           const InsertionProgress& progress) const {
     using namespace ranges;
     using namespace vrp::models;
 
     // calculate additional costs on route level.
-    auto routeCosts = constraint_->soft(routeCtx, view::single(*activity)) + vehicleCosts(routeCtx);
+    auto routeCosts = constraint_->soft(ctx, view::single(*activity)) + vehicleCosts(ctx);
 
     // form route legs from a new route view.
-    auto [start, end] = waypoints(*routeCtx.actor, routeCtx.departure);
-    auto tour = view::concat(view::single(start), routeCtx.route->tour.activities(), view::single(end));
+    auto [start, end] = waypoints(*ctx.actor, ctx.departure);
+    auto tour = view::concat(view::single(start), ctx.route->tour.activities(), view::single(end));
     auto legs = view::zip(tour | view::sliding(2), view::iota(static_cast<size_t>(0)));
-    auto evalCtx = EvaluationContext::make_one(0, progress.bestCost, routeCtx.departure, {});
+    auto evalCtx = EvaluationContext::make_one(0, progress.bestCost, ctx.departure, {});
 
     // 1. analyze route legs
     auto result = ranges::accumulate(legs, evalCtx, [&](const auto& out, const auto& view) {
       if (out.isInvalid()) return out;
 
-      // TODO recalculate departure
       auto [items, index] = view;
       auto [prev, next] = std::tie(*std::begin(items), *(std::begin(items) + 1));
       auto actCtx = InsertionActivityContext{index, out.departure, prev, activity, next};
@@ -95,16 +94,16 @@ private:
             activity->detail.location = location;
 
             // check hard activity constraint
-            auto status = constraint_->hard(routeCtx, actCtx);
+            auto status = constraint_->hard(ctx, actCtx);
             if (status.has_value())
               return std::get<0>(status.value()) ? EvaluationContext::make_invalid(std::get<1>(status.value())) : in3;
 
             // calculate all costs on activity level
-            auto actCosts = constraint_->soft(routeCtx, actCtx) + activityCosts(routeCtx, actCtx, progress);
+            auto actCosts = constraint_->soft(ctx, actCtx) + activityCosts(ctx, actCtx, progress);
             auto totalCosts = routeCosts + actCosts;
 
             // calculate end time (departure) for the next leg
-            auto endTime = in3.departure + departure(*routeCtx.actor, *actCtx.prev, *actCtx.next, evalCtx.departure);
+            auto endTime = in3.departure + departure(*ctx.actor, *actCtx.prev, *actCtx.next, evalCtx.departure);
 
             return totalCosts < in3.bestCost
               ? EvaluationContext::make_one(actCtx.index, totalCosts, endTime, {location, detail.duration, time})
@@ -119,7 +118,7 @@ private:
     return result.isInvalid()
       ? InsertionResult{ranges::emplaced_index<1>, InsertionFailure{result.code}}
       : InsertionResult{ranges::emplaced_index<0>,
-                        InsertionSuccess{result.index, result.bestCost, activity, routeCtx.actor, routeCtx.departure}};
+                        InsertionSuccess{result.index, result.bestCost, activity, ctx.actor, ctx.route, ctx.departure}};
   }
 
   std::shared_ptr<const InsertionConstraint> constraint_;
