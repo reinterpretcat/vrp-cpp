@@ -11,19 +11,34 @@
 
 namespace vrp::algorithms::construction {
 
-/// Cheapest insertion
+/// Cheapest insertion heuristic.
 struct CheapestInsertion final : InsertionHeuristic<CheapestInsertion> {
   explicit CheapestInsertion(const std::shared_ptr<const InsertionEvaluator>& evaluator) : evaluator_(evaluator) {}
 
   InsertionContext analyze(const InsertionContext& ctx) const {
-    // TODO
-    rxcpp::observable<>::iterate(ctx.jobs).map([&](const auto& job) {
-      auto result = evaluator_->evaluate(job, ctx);
-      return job;
-    });
-    //.reduce();
-
-    return {};
+    auto newCtx = InsertionContext(ctx);
+    while (!newCtx.jobs.empty()) {
+      // TODO use C++17 parallel algorithms instead of rxcpp once it has better runtime support
+      rxcpp::observable<>::iterate(newCtx.jobs)
+        .map([&](const auto& job) { return evaluator_->evaluate(job, newCtx); })
+        .reduce(make_result_failure(),
+                [](const auto& acc, const auto& result) { return get_cheapest(acc, result); },
+                [](const auto& res) { return res; })
+        .as_blocking()
+        .last()
+        .visit(ranges::overload(
+          [&](const InsertionSuccess& success) {
+            // TODO perform insertion
+            newCtx.jobs.erase(success.job);
+          },
+          [&](const InsertionFailure& failure) {
+            ranges::push_back(newCtx.unassigned, newCtx.jobs | ranges::view::transform([&](const auto& job) {
+                                                   return std::pair(job, failure.constraint);
+                                                 }));
+            newCtx.jobs.clear();
+          }));
+    }
+    return newCtx;
   }
 
 private:

@@ -4,6 +4,7 @@
 #include "algorithms/construction/InsertionContext.hpp"
 #include "algorithms/construction/InsertionProgress.hpp"
 #include "algorithms/construction/InsertionRouteContext.hpp"
+#include "models/extensions/problem/Comparators.hpp"
 
 #include <limits>
 #include <memory>
@@ -41,7 +42,7 @@ public:
     return *this;
   }
 
-  build_insertion_context& jobs(std::vector<models::problem::Job>&& value) {
+  build_insertion_context& jobs(std::set<models::problem::Job, models::problem::compare_jobs>&& value) {
     context_.jobs = value;
     return *this;
   }

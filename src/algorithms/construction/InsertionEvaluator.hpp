@@ -35,39 +35,32 @@ struct InsertionEvaluator final {
 
     auto routes = view::concat(view::single(createRouteState()), view::all(ctx.routes));
 
-    return ranges::accumulate(
-      routes, InsertionResult{ranges::emplaced_index<1>, InsertionFailure{0}}, [&](const auto& outer, const auto& rs) {
-        // determine current actor type hash
-        auto type = rs.first->actor == nullptr ? 0 : actorHash(*rs.first->actor);
-        // create list of all actors
-        auto actors =
-          view::concat(rs.first->actor == nullptr ? view::empty<Route::Actor>()
-                                                  : static_cast<any_view<Route::Actor>>(view::single(rs.first->actor)),
-                       registry_->actors() | view::remove_if([=](const auto& a) { return actorHash(*a) == type; }));
+    return ranges::accumulate(routes, make_result_failure(), [&](const auto& outer, const auto& rs) {
+      // determine current actor type hash
+      auto type = rs.first->actor == nullptr ? 0 : actorHash(*rs.first->actor);
+      // create list of all actors
+      auto actors =
+        view::concat(rs.first->actor == nullptr ? view::empty<Route::Actor>()
+                                                : static_cast<any_view<Route::Actor>>(view::single(rs.first->actor)),
+                     registry_->actors() | view::remove_if([=](const auto& a) { return actorHash(*a) == type; }));
 
-        return ranges::accumulate(actors, outer, [&](const auto& inner, const auto& newActor) {
-          // create actor specific route context
-          auto routeCtx = createRouteContext(newActor, rs);
+      return ranges::accumulate(actors, outer, [&](const auto& inner, const auto& newActor) {
+        // create actor specific route context
+        auto routeCtx = createRouteContext(newActor, rs);
 
-          // evaluate its insertion cost
-          auto result = utils::mono_result<InsertionResult>(job.visit(ranges::overload(
-            [&](const std::shared_ptr<const models::problem::Service>& service) {
-              return serviceInsertionEvaluator.evaluate(service, routeCtx, ctx.progress);
-            },
-            [&](const std::shared_ptr<const models::problem::Shipment>& shipment) {
-              return shipmentInsertionEvaluator.evaluate(shipment, routeCtx, ctx.progress);
-            })));
+        // evaluate its insertion cost
+        auto result = utils::mono_result<InsertionResult>(job.visit(ranges::overload(
+          [&](const std::shared_ptr<const models::problem::Service>& service) {
+            return serviceInsertionEvaluator.evaluate(service, routeCtx, ctx.progress);
+          },
+          [&](const std::shared_ptr<const models::problem::Shipment>& shipment) {
+            return shipmentInsertionEvaluator.evaluate(shipment, routeCtx, ctx.progress);
+          })));
 
-          // propagate best result or failure
-          return utils::mono_result<InsertionResult>(result.visit(ranges::overload(
-            [&](const InsertionSuccess& success) {
-              if (inner.index() == 1) return result;
-              return ranges::get<0>(inner).cost > success.cost ? InsertionResult{ranges::emplaced_index<0>, success}
-                                                               : inner;
-            },
-            [&](const InsertionFailure&) { return inner; })));
-        });
+        // propagate best result or failure
+        return get_cheapest(inner, result);
       });
+    });
   }
 
 private:

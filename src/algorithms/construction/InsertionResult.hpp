@@ -19,6 +19,9 @@ struct InsertionSuccess final {
   /// Specifies delta cost change for the insertion.
   models::common::Cost cost;
 
+  /// Original job to be inserted.
+  models::problem::Job job;
+
   /// Specifies activity which has to be inserted.
   models::solution::Tour::Activity activity;
 
@@ -40,5 +43,28 @@ struct InsertionFailure final {
 
 /// Specifies all possible insertion results.
 using InsertionResult = ranges::variant<InsertionSuccess, InsertionFailure>;
+
+/// Creates result which represents insertion failure.
+inline InsertionResult
+make_result_failure(int code = 0) {
+  return InsertionResult{ranges::emplaced_index<1>, InsertionFailure{code}};
+}
+
+/// Creates result which represents insertion success.
+inline InsertionResult
+make_result_success(const InsertionSuccess& success) {
+  return InsertionResult{ranges::emplaced_index<0>, success};
+}
+
+/// Compares two insertion results and returns the cheapest by cost.
+inline InsertionResult
+get_cheapest(const InsertionResult& left, const InsertionResult& right) {
+  return utils::mono_result<InsertionResult>(right.visit(ranges::overload(
+    [&](const InsertionSuccess& success) {
+      if (left.index() == 1) return right;
+      return ranges::get<0>(left).cost > success.cost ? make_result_success(success) : left;
+    },
+    [&](const InsertionFailure&) { return left; })));
+}
 
 }  // namespace vrp::algorithms::construction

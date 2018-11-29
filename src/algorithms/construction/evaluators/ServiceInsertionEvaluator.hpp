@@ -115,10 +115,7 @@ private:
 
     activity->detail = result.detail;
 
-    return result.isInvalid()
-      ? InsertionResult{ranges::emplaced_index<1>, InsertionFailure{result.code}}
-      : InsertionResult{ranges::emplaced_index<0>,
-                        InsertionSuccess{result.index, result.bestCost, activity, ctx.actor, ctx.route, ctx.departure}};
+    return result.isInvalid() ? failure(result) : success(result, ctx, activity);
   }
 
   std::shared_ptr<const InsertionConstraint> constraint_;

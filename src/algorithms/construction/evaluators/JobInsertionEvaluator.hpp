@@ -2,6 +2,7 @@
 
 #include "algorithms/construction/InsertionActivityContext.hpp"
 #include "algorithms/construction/InsertionProgress.hpp"
+#include "algorithms/construction/InsertionResult.hpp"
 #include "algorithms/construction/InsertionRouteContext.hpp"
 #include "models/common/Cost.hpp"
 #include "models/costs/ActivityCosts.hpp"
@@ -133,6 +134,15 @@ protected:
     auto arrival = depTime + transportCosts_->duration(actor, start.detail.location, end.detail.location, depTime);
     return std::max(arrival, end.detail.time.start) + activityCosts_->duration(actor, end, arrival);
   }
+
+  InsertionResult failure(const EvaluationContext& eCtx) const { return make_result_failure(eCtx.code); }
+
+  InsertionResult success(const EvaluationContext& eCtx,
+                          const InsertionRouteContext& iCtx,
+                          const models::solution::Tour::Activity& a) const {
+    return make_result_success({eCtx.index, eCtx.bestCost, a->job.value(), a, iCtx.actor, iCtx.route, iCtx.departure});
+  }
+
 
 private:
   using Cost = models::common::Cost;
