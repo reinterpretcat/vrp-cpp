@@ -1,9 +1,6 @@
 [submodule "external/range-v3"]
 	path = external/range-v3
 	url = git@github.com:ericniebler/range-v3.git
-[submodule "external/rxcpp"]
-	path = external/rxcpp
-	url = git@github.com:ReactiveX/RxCpp.git
 [submodule "external/parallelstl"]
 	path = external/parallelstl
 	url = git@github.com:intel/parallelstl.git
