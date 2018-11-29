@@ -17,8 +17,9 @@ namespace vrp::test {
 SCENARIO("cheapest insertion inserts service", "[algorithms][construction][insertion]") {
   using EndLoc = std::optional<Location>;
 
-  auto [s1, v1, v2, used, index] = GENERATE(table<Location, EndLoc, EndLoc, std::string, size_t>({
-    {3, {}, {}, "v1", 0},
+  auto [s1, v1, v2, used] = GENERATE(table<Location, EndLoc, EndLoc, std::string>({
+    {3, {}, {}, "v1"},
+    {21, {}, {}, "v2"},
   }));
 
   GIVEN("one service job and two vehicles") {
@@ -41,6 +42,8 @@ SCENARIO("cheapest insertion inserts service", "[algorithms][construction][inser
       THEN("returns new context with job inserted") {
         REQUIRE(result.unassigned.empty());
         REQUIRE(result.routes.size() == 1);
+        REQUIRE(result.routes.begin()->first->actor->vehicle->id == used);
+        REQUIRE(result.routes.begin()->first->tour.get(0)->detail.location == s1);
       }
     }
   }

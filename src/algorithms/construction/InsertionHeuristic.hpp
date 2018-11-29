@@ -15,9 +15,9 @@ protected:
   void insert(const InsertionResult& result, InsertionContext& ctx) const {
     result.visit(ranges::overload(
       [&](const InsertionSuccess& success) {
-        // perform insertion
         success.route.first->actor = success.actor;
         ctx.registry->use(*success.actor);
+        ctx.routes[success.route.first] = success.route.second;
         // NOTE assume that activities are sorted by insertion index
         ranges::for_each(success.activities | ranges::view::reverse,
                          [&](const auto& act) { success.route.first->tour.insert(act.first, act.second); });
