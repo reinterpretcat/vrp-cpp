@@ -37,6 +37,11 @@ class build_insertion_context {
 public:
   explicit build_insertion_context() : context_({{std::numeric_limits<models::common::Cost>::max(), 0}, {}, {}, {}}) {}
 
+  build_insertion_context& registry(const std::shared_ptr<models::solution::Registry>& value) {
+    context_.registry = value;
+    return *this;
+  }
+
   build_insertion_context& progress(const InsertionProgress& value) {
     context_.progress = value;
     return *this;

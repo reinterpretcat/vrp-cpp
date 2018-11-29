@@ -13,10 +13,7 @@ namespace vrp::algorithms::construction {
 
 /// Cheapest insertion heuristic.
 struct CheapestInsertion final : InsertionHeuristic<CheapestInsertion> {
-  CheapestInsertion(const std::shared_ptr<models::solution::Registry>& registry,
-                    const std::shared_ptr<const InsertionEvaluator>& evaluator) :
-    registry_(registry),
-    evaluator_(evaluator) {}
+  CheapestInsertion(const std::shared_ptr<const InsertionEvaluator>& evaluator) : evaluator_(evaluator) {}
 
   InsertionContext analyze(const InsertionContext& ctx) {
     auto newCtx = InsertionContext(ctx);
@@ -33,7 +30,7 @@ struct CheapestInsertion final : InsertionHeuristic<CheapestInsertion> {
           [&](const InsertionSuccess& success) {
             // perform insertion
             success.route.first->actor = success.actor;
-            registry_->use(*success.actor);
+            ctx.registry->use(*success.actor);
 
             ranges::for_each(success.activities, [&](const auto& act) {
 
@@ -52,7 +49,6 @@ struct CheapestInsertion final : InsertionHeuristic<CheapestInsertion> {
   }
 
 private:
-  std::shared_ptr<models::solution::Registry> registry_;
   std::shared_ptr<const InsertionEvaluator> evaluator_;
 };
 }

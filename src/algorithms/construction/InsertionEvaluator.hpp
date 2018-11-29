@@ -20,11 +20,9 @@ namespace vrp::algorithms::construction {
 
 /// Provides the way to evaluate insertion cost.
 struct InsertionEvaluator final {
-  InsertionEvaluator(const std::shared_ptr<const models::problem::Fleet>& fleet,
-                     const std::shared_ptr<const models::costs::TransportCosts>& transportCosts,
+  InsertionEvaluator(const std::shared_ptr<const models::costs::TransportCosts>& transportCosts,
                      const std::shared_ptr<const models::costs::ActivityCosts>& activityCosts,
                      const std::shared_ptr<InsertionConstraint>& constraint) :
-    registry_(std::make_shared<models::solution::Registry>(fleet)),
     serviceInsertionEvaluator(transportCosts, activityCosts, constraint),
     shipmentInsertionEvaluator(transportCosts, activityCosts, constraint) {}
 
@@ -46,7 +44,7 @@ struct InsertionEvaluator final {
         auto actors =
           view::concat(rs.first->actor == nullptr ? view::empty<Route::Actor>()
                                                   : static_cast<any_view<Route::Actor>>(view::single(rs.first->actor)),
-                       registry_->actors() | view::remove_if([=](const auto& a) { return actorHash(*a) == type; }));
+                       ctx.registry->actors() | view::remove_if([=](const auto& a) { return actorHash(*a) == type; }));
 
         return ranges::accumulate(actors, outer, [&](const auto& inner, const auto& newActor) {
           // create actor specific route context
@@ -87,7 +85,6 @@ private:
     return std::move(ctx);
   }
 
-  const std::shared_ptr<const models::solution::Registry> registry_;
   const ServiceInsertionEvaluator serviceInsertionEvaluator;
   const ShipmentInsertionEvaluator shipmentInsertionEvaluator;
 };

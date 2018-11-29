@@ -4,6 +4,7 @@
 #include "algorithms/construction/InsertionRouteState.hpp"
 #include "models/extensions/problem/Comparators.hpp"
 #include "models/problem/Job.hpp"
+#include "models/solution/Registry.hpp"
 #include "models/solution/Route.hpp"
 
 #include <map>
@@ -19,6 +20,9 @@ struct InsertionContext final {
 
   /// Solution progress.
   InsertionProgress progress;
+
+  /// Keeps track of used resources.
+  std::shared_ptr<models::solution::Registry> registry;
 
   /// Set of jobs which require assignment.
   std::set<models::problem::Job, models::problem::compare_jobs> jobs;
