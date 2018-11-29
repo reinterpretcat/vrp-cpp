@@ -7,7 +7,9 @@
 #include <memory>
 #include <vector>
 
-namespace vrp::models::solution {
+namespace vrp::models {
+
+// TODO define it better
 
 /// Represents VRP solution.
 struct Solution final {

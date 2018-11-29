@@ -58,6 +58,11 @@ set(SOURCE_FILES
         models/solution/Statistic.hpp
         models/solution/Tour.hpp
 
+        models/Problem.hpp
+        models/Solution.hpp
+
+        streams/in/Solomon.hpp
+
         utils/extensions/Hash.hpp
         utils/extensions/Variant.hpp
 
