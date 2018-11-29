@@ -6,21 +6,20 @@
 #include "algorithms/construction/InsertionResult.hpp"
 #include "models/common/Cost.hpp"
 
-#include <memory>
 #include <rxcpp/rx.hpp>
 
 namespace vrp::algorithms::construction {
 
 /// Cheapest insertion heuristic.
 struct CheapestInsertion final : InsertionHeuristic<CheapestInsertion> {
-  CheapestInsertion(const std::shared_ptr<const InsertionEvaluator>& evaluator) : evaluator_(evaluator) {}
+  CheapestInsertion(const InsertionEvaluator& evaluator) : evaluator_(evaluator) {}
 
-  InsertionContext analyze(const InsertionContext& ctx) {
+  InsertionContext analyze(const InsertionContext& ctx) const {
     auto newCtx = InsertionContext(ctx);
     while (!newCtx.jobs.empty()) {
       // TODO use C++17 parallel algorithms instead of rxcpp once it has better runtime support
       rxcpp::observable<>::iterate(newCtx.jobs)
-        .map([&](const auto& job) { return evaluator_->evaluate(job, newCtx); })
+        .map([&](const auto& job) { return evaluator_.evaluate(job, newCtx); })
         .reduce(make_result_failure(),
                 [](const auto& acc, const auto& result) { return get_cheapest(acc, result); },
                 [](const auto& res) { return res; })
@@ -49,6 +48,6 @@ struct CheapestInsertion final : InsertionHeuristic<CheapestInsertion> {
   }
 
 private:
-  std::shared_ptr<const InsertionEvaluator> evaluator_;
+  const InsertionEvaluator evaluator_;
 };
 }
