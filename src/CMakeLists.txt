@@ -70,7 +70,8 @@ set(SOURCE_FILES
 
 include_directories(${MAIN_SOURCE}
         ${EXTERNAL_SOURCE}/range-v3/include
-        ${EXTERNAL_SOURCE}/rxcpp/Rx/v2/src
+        ${EXTERNAL_SOURCE}/parallelstl/include
+        ${EXTERNAL_SOURCE}/tbb/include
         ${CMAKE_CURRENT_BINARY_DIR}
         )
 
