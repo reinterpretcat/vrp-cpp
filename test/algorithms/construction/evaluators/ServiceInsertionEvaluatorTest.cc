@@ -76,9 +76,9 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
 
       THEN("returns insertion success") {
         REQUIRE(result.index() == 0);
-        REQUIRE(ranges::get<0>(result).index == 0);
         REQUIRE(ranges::get<0>(result).departure == 0);
-        REQUIRE(ranges::get<0>(result).activity->detail.location == DefaultJobLocation);
+        REQUIRE(ranges::get<0>(result).activities[0].second == 0);
+        REQUIRE(ranges::get<0>(result).activities[0].first->detail.location == DefaultJobLocation);
       }
     }
 
@@ -88,9 +88,9 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
 
       THEN("returns correct insertion success") {
         REQUIRE(result.index() == 0);
-        REQUIRE(ranges::get<0>(result).index == 0);
         REQUIRE(ranges::get<0>(result).departure == 0);
-        REQUIRE(ranges::get<0>(result).activity->detail.location == 0);
+        REQUIRE(ranges::get<0>(result).activities[0].second == 0);
+        REQUIRE(ranges::get<0>(result).activities[0].first->detail.location == 0);
       }
     }
   }
@@ -112,8 +112,8 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
       THEN("returns correct insertion success") {
         REQUIRE(result.index() == 0);
         REQUIRE(ranges::get<0>(result).departure == 0);
-        REQUIRE(ranges::get<0>(result).index == index);
-        REQUIRE(ranges::get<0>(result).activity->detail.location == location);
+        REQUIRE(ranges::get<0>(result).activities[0].second == index);
+        REQUIRE(ranges::get<0>(result).activities[0].first->detail.location == location);
       }
     }
   }
@@ -135,8 +135,8 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
 
       THEN("returns correct insertion success") {
         REQUIRE(result.index() == 0);
-        REQUIRE(ranges::get<0>(result).index == index);
-        REQUIRE(ranges::get<0>(result).activity->detail.location == loc);
+        REQUIRE(ranges::get<0>(result).activities[0].second == index);
+        REQUIRE(ranges::get<0>(result).activities[0].first->detail.location == loc);
       }
     }
   }
@@ -160,8 +160,8 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
 
       THEN("returns correct insertion success") {
         REQUIRE(result.index() == 0);
-        REQUIRE(ranges::get<0>(result).index == index);
-        REQUIRE(ranges::get<0>(result).activity->detail.location == loc);
+        REQUIRE(ranges::get<0>(result).activities[0].second == index);
+        REQUIRE(ranges::get<0>(result).activities[0].first->detail.location == loc);
       }
     }
   }

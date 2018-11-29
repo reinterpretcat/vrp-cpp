@@ -137,10 +137,10 @@ protected:
 
   InsertionResult failure(const EvaluationContext& eCtx) const { return make_result_failure(eCtx.code); }
 
-  InsertionResult success(const EvaluationContext& eCtx,
-                          const InsertionRouteContext& iCtx,
+  InsertionResult success(const EvaluationContext& e,
+                          const InsertionRouteContext& i,
                           const models::solution::Tour::Activity& a) const {
-    return make_result_success({eCtx.index, eCtx.bestCost, a->job.value(), a, iCtx.actor, iCtx.route, iCtx.departure});
+    return make_result_success({e.bestCost, a->job.value(), {{a, e.index}}, i.actor, i.route, i.departure});
   }
 
 

@@ -13,17 +13,14 @@ namespace vrp::algorithms::construction {
 
 /// Specifies insertion result needed to insert job into tour.
 struct InsertionSuccess final {
-  /// Specifies index where activity has to be inserted.
-  size_t index;
-
   /// Specifies delta cost change for the insertion.
   models::common::Cost cost;
 
   /// Original job to be inserted.
   models::problem::Job job;
 
-  /// Specifies activity which has to be inserted.
-  models::solution::Tour::Activity activity;
+  /// Specifies activities which have to be inserted.
+  std::vector<std::pair<models::solution::Tour::Activity, int>> activities;
 
   /// Specifies actor which should be used.
   models::solution::Route::Actor actor;
