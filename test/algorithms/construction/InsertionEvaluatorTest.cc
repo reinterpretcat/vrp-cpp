@@ -12,11 +12,11 @@ using namespace vrp::models::problem;
 using namespace vrp::models::solution;
 using namespace vrp::algorithms::construction;
 
-using EndLoc = std::optional<Location>;
-
 namespace vrp::test {
 
 SCENARIO("insertion evaluator can handle service insertion", "[algorithms][construction][insertion]") {
+  using EndLoc = std::optional<Location>;
+
   auto [s1, v1, v2, used, cost] = GENERATE(table<Location, EndLoc, EndLoc, std::string, Cost>({
     {3, {}, {}, "v1", (3 + 3) * 2},
     {27, {}, {}, "v2", (7 + 7) * 2},
