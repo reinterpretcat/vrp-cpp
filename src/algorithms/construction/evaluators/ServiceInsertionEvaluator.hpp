@@ -59,7 +59,7 @@ private:
 
     // form route legs from a new route view.
     auto [start, end] = waypoints(*ctx.actor, ctx.departure);
-    auto tour = view::concat(view::single(start), ctx.route->tour.activities(), view::single(end));
+    auto tour = view::concat(view::single(start), ctx.route.first->tour.activities(), view::single(end));
     auto legs = view::zip(tour | view::sliding(2), view::iota(static_cast<size_t>(0)));
     auto evalCtx = EvaluationContext::make_one(0, progress.bestCost, ctx.departure, {});
 

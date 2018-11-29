@@ -35,11 +35,8 @@ struct Registry {
     // clang-format on
   }
 
-  void use(const Actor& actor) {
-    auto result = details_[actor.vehicle->id].insert(actor.detail);
-
-    assert(result.second);
-  }
+  /// Marks actor as used. Returns true whether it is first usage.
+  bool use(const Actor& actor) { return details_[actor.vehicle->id].insert(actor.detail).second; }
 
   /// Return available for use actors.
   ranges::any_view<std::shared_ptr<const Actor>> actors() const {

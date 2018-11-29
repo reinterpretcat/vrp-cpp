@@ -20,13 +20,12 @@ struct test_build_insertion_context : public vrp::algorithms::construction::buil
 struct test_build_insertion_route_context : public vrp::algorithms::construction::build_insertion_route_context {
   explicit test_build_insertion_route_context() : vrp::algorithms::construction::build_insertion_route_context() {
     actor(DefaultActor)
-      .route(test_build_route{}.shared())
-      .departure(DefaultTime)
-      .state(std::make_shared<vrp::algorithms::construction::InsertionRouteState>());
+      .route({test_build_route{}.shared(), std::make_shared<algorithms::construction::InsertionRouteState>()})
+      .departure(DefaultTime);
   }
 
   test_build_insertion_route_context& add(const models::solution::Tour::Activity& activity) {
-    context_.route->tour.add(activity);
+    context_.route.first->tour.add(activity);
     return *this;
   }
 };

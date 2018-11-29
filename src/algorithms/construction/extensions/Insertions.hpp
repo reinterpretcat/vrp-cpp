@@ -35,7 +35,7 @@ private:
 /// Creates build insertion context.
 class build_insertion_context {
 public:
-  explicit build_insertion_context() : context_({{std::numeric_limits<models::common::Cost>::max(), 0}, {}, {}}) {}
+  explicit build_insertion_context() : context_({{std::numeric_limits<models::common::Cost>::max(), 0}, {}, {}, {}}) {}
 
   build_insertion_context& progress(const InsertionProgress& value) {
     context_.progress = value;
@@ -47,7 +47,8 @@ public:
     return *this;
   }
 
-  build_insertion_context& routes(std::vector<InsertionContext::RouteState>&& value) {
+  build_insertion_context& routes(
+    std::map<std::shared_ptr<models::solution::Route>, std::shared_ptr<InsertionRouteState>>&& value) {
     context_.routes = value;
     return *this;
   }
@@ -68,18 +69,13 @@ public:
     return *this;
   }
 
-  build_insertion_route_context& route(std::shared_ptr<models::solution::Route> value) {
-    context_.route = std::move(value);
+  build_insertion_route_context& route(const InsertionContext::RouteState& value) {
+    context_.route = value;
     return *this;
   }
 
   build_insertion_route_context& departure(models::common::Timestamp departure) {
     context_.departure = departure;
-    return *this;
-  }
-
-  build_insertion_route_context& state(std::shared_ptr<InsertionRouteState> value) {
-    context_.state = std::move(value);
     return *this;
   }
 

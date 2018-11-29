@@ -69,7 +69,7 @@ SCENARIO("job insertion evaluator estimates vehicle costs", "[algorithms][constr
 
     WHEN("using the same actor") {
       auto [routeCtx, _] = sameActor(prev, target, next);
-      routeCtx->route->tour.add(prev).add(next);
+      routeCtx->route.first->tour.add(prev).add(next);
 
       THEN("cost for vehicle is zero") {
         auto cost = evaluator.testVehicleCosts(routeCtx);
@@ -80,7 +80,7 @@ SCENARIO("job insertion evaluator estimates vehicle costs", "[algorithms][constr
 
     WHEN("using different actor returning to start") {
       auto [routeCtx, _] = differentActor(prev, target, next);
-      routeCtx->route->tour.add(prev).add(next);
+      routeCtx->route.first->tour.add(prev).add(next);
 
       THEN("cost for vehicle is correct") {
         auto cost = evaluator.testVehicleCosts(routeCtx);
@@ -91,7 +91,7 @@ SCENARIO("job insertion evaluator estimates vehicle costs", "[algorithms][constr
 
     WHEN("using different actor returning to different location") {
       auto [routeCtx, _] = differentActor(prev, target, next, 5);
-      routeCtx->route->tour.add(prev).add(next);
+      routeCtx->route.first->tour.add(prev).add(next);
 
       THEN("cost for vehicle is correct") {
         auto cost = evaluator.testVehicleCosts(routeCtx);
@@ -143,7 +143,7 @@ SCENARIO("job insertion evaluator estimates activity costs", "[algorithms][const
     // new: d(10 + 10 + 30) + t(20 + 10 + 30) = 110
     WHEN("inserting in between new activity with the same actor") {
       auto [routeCtx, actCtx] = sameActor(prev, target, next);
-      routeCtx->route->tour.add(prev).add(next);
+      routeCtx->route.first->tour.add(prev).add(next);
 
       THEN("cost for activity is correct") {
         auto cost = evaluator.testActivityCosts(routeCtx, actCtx, progress);

@@ -32,9 +32,9 @@ inline TestInsertionContext
 sameActor(const vrp::models::solution::Tour::Activity& target) {
   auto routeCtx = test_build_insertion_route_context{}.shared();
   auto actCtx = test_build_insertion_activity_context{}  //
-                  .prev(routeCtx->route->start)
+                  .prev(routeCtx->route.first->start)
                   .target(target)
-                  .next(routeCtx->route->end)
+                  .next(routeCtx->route.first->end)
                   .shared();
   return {routeCtx, actCtx};
 }
@@ -47,9 +47,9 @@ differentActor(const vrp::models::solution::Tour::Activity& activity) {
       .actor(test_build_actor{}.vehicle(test_build_vehicle{}.details({{20, {}, DefaultTimeWindow}}).shared()).shared())
       .shared();
   auto actCtx = test_build_insertion_activity_context{}  //
-                  .prev(routeCtx->route->start)
+                  .prev(routeCtx->route.first->start)
                   .target(activity)
-                  .next(routeCtx->route->end)
+                  .next(routeCtx->route.first->end)
                   .shared();
   return {routeCtx, actCtx};
 }

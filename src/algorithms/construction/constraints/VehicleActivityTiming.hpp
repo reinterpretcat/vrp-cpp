@@ -69,7 +69,7 @@ struct VehicleActivityTiming final
   /// Checks whether proposed vehicle can be used within route without violating time windows.
   HardRouteConstraint::Result check(const InsertionRouteContext& routeCtx,
                                     const HardRouteConstraint::Activities&) const override {
-    return routeCtx.state->get<bool>(actorSharedKey(StateKey, *routeCtx.actor)).value_or(false)
+    return routeCtx.route.second->get<bool>(actorSharedKey(StateKey, *routeCtx.actor)).value_or(false)
       ? HardRouteConstraint::Result{code_}
       : HardRouteConstraint::Result{};
   }
@@ -90,7 +90,7 @@ struct VehicleActivityTiming final
                                                                       : next.detail.location;
     auto latestArrTimeAtNextAct = next.type == solution::Activity::Type::End
       ? actor.detail.time.end
-      : routeCtx.state->get<Timestamp>(actorSharedKey(StateKey, actor), next).value_or(next.detail.time.end);
+      : routeCtx.route.second->get<Timestamp>(actorSharedKey(StateKey, actor), next).value_or(next.detail.time.end);
 
     //    |--- vehicle's operation time ---|  |--- prev or target or next ---|
     if (latestArrival < prev.detail.time.start || latestArrival < target.detail.time.start ||

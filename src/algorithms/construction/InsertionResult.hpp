@@ -1,5 +1,6 @@
 #pragma once
 
+#include "algorithms/construction/InsertionContext.hpp"
 #include "models/common/Cost.hpp"
 #include "models/common/Timestamp.hpp"
 #include "models/solution/Actor.hpp"
@@ -19,14 +20,14 @@ struct InsertionSuccess final {
   /// Original job to be inserted.
   models::problem::Job job;
 
-  /// Specifies activities which have to be inserted.
-  std::vector<std::pair<models::solution::Tour::Activity, int>> activities;
+  /// Specifies activities within index where they have to be inserted.
+  std::vector<std::pair<models::solution::Tour::Activity, size_t>> activities;
 
   /// Specifies actor which should be used.
   models::solution::Route::Actor actor;
 
   /// Specifies route where insertion happens.
-  std::shared_ptr<models::solution::Route> route;
+  InsertionContext::RouteState route;
 
   /// Specifies new vehicle departure time.
   models::common::Timestamp departure;

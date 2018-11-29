@@ -62,31 +62,33 @@ protected:
     models::common::Cost deltaFirst = 0.0;
     models::common::Cost deltaLast = 0.0;
 
-    if (!ctx.route->tour.empty()) {
+    const auto& route = ctx.route.first;
+
+    if (!route->tour.empty()) {
       double firstCostNew = transportCosts_->cost(*ctx.actor,
-                                                  ctx.actor->detail.start,                   //
-                                                  ctx.route->tour.first()->detail.location,  //
+                                                  ctx.actor->detail.start,               //
+                                                  route->tour.first()->detail.location,  //
                                                   ctx.departure);
-      double firstCostOld = transportCosts_->cost(*ctx.route->actor,
-                                                  ctx.route->start->detail.location,         //
-                                                  ctx.route->tour.first()->detail.location,  //
-                                                  ctx.route->start->schedule.departure);
+      double firstCostOld = transportCosts_->cost(*route->actor,
+                                                  route->start->detail.location,         //
+                                                  route->tour.first()->detail.location,  //
+                                                  route->start->schedule.departure);
 
       deltaFirst = firstCostNew - firstCostOld;
 
       if (ctx.actor->detail.end.has_value()) {
-        auto last = ctx.route->tour.last();
+        auto last = route->tour.last();
         auto lastDepartureOld = last->schedule.departure;
         auto lastDepartureNew = std::max(models::common::Timestamp{0},  //
-                                         lastDepartureOld + (ctx.departure - ctx.route->start->schedule.departure));
+                                         lastDepartureOld + (ctx.departure - route->start->schedule.departure));
 
         auto lastCostNew = transportCosts_->cost(*ctx.actor,
                                                  last->detail.location,          //
                                                  ctx.actor->detail.end.value(),  //
                                                  lastDepartureNew);
-        auto lastCostOld = transportCosts_->cost(*ctx.route->actor,
-                                                 last->detail.location,            //
-                                                 ctx.route->end->detail.location,  //
+        auto lastCostOld = transportCosts_->cost(*route->actor,
+                                                 last->detail.location,        //
+                                                 route->end->detail.location,  //
                                                  lastDepartureNew);
 
         deltaLast = lastCostNew - lastCostOld;
@@ -108,6 +110,7 @@ protected:
     const auto& prev = *actCtx.prev;
     const auto& target = *actCtx.target;
     const auto& next = *actCtx.next;
+    const auto& route = routeCtx.route.first;
 
     auto [tpCostLeft, actCostLeft, depTimeLeft] = analyze(*routeCtx.actor, prev, target, actCtx.departure);
 
@@ -116,10 +119,10 @@ protected:
     auto newCosts = tpCostLeft + tpCostRight + progress.completeness * (actCostLeft + actCostRight);
 
     auto [tpCostOld, actCostOld, depTimeOld] =
-      analyze(*routeCtx.route->actor,
-              prev.type == Activity::Type::Start ? *routeCtx.route->start : prev,
-              next.type == Activity::Type::End ? *routeCtx.route->end : next,
-              prev.type == Activity::Type::Start ? routeCtx.route->start->schedule.departure : prev.schedule.departure);
+      analyze(*route->actor,
+              prev.type == Activity::Type::Start ? *route->start : prev,
+              next.type == Activity::Type::End ? *route->end : next,
+              prev.type == Activity::Type::Start ? route->start->schedule.departure : prev.schedule.departure);
 
     auto oldCosts = tpCostOld + progress.completeness * actCostOld;
 

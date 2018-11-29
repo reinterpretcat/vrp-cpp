@@ -13,9 +13,12 @@ namespace vrp::algorithms::construction {
 
 /// Cheapest insertion heuristic.
 struct CheapestInsertion final : InsertionHeuristic<CheapestInsertion> {
-  explicit CheapestInsertion(const std::shared_ptr<const InsertionEvaluator>& evaluator) : evaluator_(evaluator) {}
+  CheapestInsertion(const std::shared_ptr<models::solution::Registry>& registry,
+                    const std::shared_ptr<const InsertionEvaluator>& evaluator) :
+    registry_(registry),
+    evaluator_(evaluator) {}
 
-  InsertionContext analyze(const InsertionContext& ctx) const {
+  InsertionContext analyze(const InsertionContext& ctx) {
     auto newCtx = InsertionContext(ctx);
     while (!newCtx.jobs.empty()) {
       // TODO use C++17 parallel algorithms instead of rxcpp once it has better runtime support
@@ -28,13 +31,20 @@ struct CheapestInsertion final : InsertionHeuristic<CheapestInsertion> {
         .last()
         .visit(ranges::overload(
           [&](const InsertionSuccess& success) {
-            // TODO perform insertion
+            // perform insertion
+            success.route.first->actor = success.actor;
+            registry_->use(*success.actor);
+
+            ranges::for_each(success.activities, [&](const auto& act) {
+
+            });
             newCtx.jobs.erase(success.job);
           },
           [&](const InsertionFailure& failure) {
-            ranges::push_back(newCtx.unassigned, newCtx.jobs | ranges::view::transform([&](const auto& job) {
-                                                   return std::pair(job, failure.constraint);
-                                                 }));
+            //            ranges::push_back(newCtx.unassigned, newCtx.jobs | ranges::view::transform([&](const auto&
+            //            job) {
+            //                                                   return std::pair(job, failure.constraint);
+            //                                                 }));
             newCtx.jobs.clear();
           }));
     }
@@ -42,6 +52,7 @@ struct CheapestInsertion final : InsertionHeuristic<CheapestInsertion> {
   }
 
 private:
+  std::shared_ptr<models::solution::Registry> registry_;
   std::shared_ptr<const InsertionEvaluator> evaluator_;
 };
 }

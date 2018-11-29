@@ -26,10 +26,10 @@ constexpr int End = -2;
 
 Tour::Activity
 getActivity(const InsertionRouteContext& ctx, int index) {
-  if (index == Start) return ctx.route->start;
-  if (index == End) return ctx.route->end;
+  if (index == Start) return ctx.route.first->start;
+  if (index == End) return ctx.route.first->end;
 
-  return ctx.route->tour.get(static_cast<size_t>(index));
+  return ctx.route.first->tour.get(static_cast<size_t>(index));
 }
 
 std::shared_ptr<Actor>
@@ -160,8 +160,7 @@ SCENARIO("vehicle activity timing", "[algorithms][construction][insertion]") {
       THEN("returns fulfilled for insertion at the end") {
         auto routeCtx = test_build_insertion_route_context{}  //
                           .actor(getActor(vehicle, *fleet))
-                          .route(route)
-                          .state(state)
+                          .route({route, state})
                           .owned();
         auto actCtx = test_build_insertion_activity_context{}
                         .departure(departure)

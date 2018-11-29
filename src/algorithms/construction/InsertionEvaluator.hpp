@@ -33,54 +33,52 @@ struct InsertionEvaluator final {
     using namespace ranges;
     using namespace models::solution;
 
-    auto routes = view::concat(view::single(createRouteState()), view::all(ctx.routes));
+    return ranges::accumulate(
+      // create new route and use it within existing ones
+      view::concat(view::single(InsertionContext::RouteState{std::make_shared<models::solution::Route>(),
+                                                             std::make_shared<InsertionRouteState>()}),
+                   view::all(ctx.routes | view::transform([](const auto& v) { return std::pair(v.first, v.second); }))),
+      make_result_failure(),
+      [&](const auto& outer, const auto& rs) {
+        // determine current actor type hash
+        auto type = rs.first->actor == nullptr ? 0 : actorHash(*rs.first->actor);
+        // create list of all actors
+        auto actors =
+          view::concat(rs.first->actor == nullptr ? view::empty<Route::Actor>()
+                                                  : static_cast<any_view<Route::Actor>>(view::single(rs.first->actor)),
+                       registry_->actors() | view::remove_if([=](const auto& a) { return actorHash(*a) == type; }));
 
-    return ranges::accumulate(routes, make_result_failure(), [&](const auto& outer, const auto& rs) {
-      // determine current actor type hash
-      auto type = rs.first->actor == nullptr ? 0 : actorHash(*rs.first->actor);
-      // create list of all actors
-      auto actors =
-        view::concat(rs.first->actor == nullptr ? view::empty<Route::Actor>()
-                                                : static_cast<any_view<Route::Actor>>(view::single(rs.first->actor)),
-                     registry_->actors() | view::remove_if([=](const auto& a) { return actorHash(*a) == type; }));
+        return ranges::accumulate(actors, outer, [&](const auto& inner, const auto& newActor) {
+          // create actor specific route context
+          auto routeCtx = createRouteContext(newActor, rs);
 
-      return ranges::accumulate(actors, outer, [&](const auto& inner, const auto& newActor) {
-        // create actor specific route context
-        auto routeCtx = createRouteContext(newActor, rs);
+          // evaluate its insertion cost
+          auto result = utils::mono_result<InsertionResult>(job.visit(ranges::overload(
+            [&](const std::shared_ptr<const models::problem::Service>& service) {
+              return serviceInsertionEvaluator.evaluate(service, routeCtx, ctx.progress);
+            },
+            [&](const std::shared_ptr<const models::problem::Shipment>& shipment) {
+              return shipmentInsertionEvaluator.evaluate(shipment, routeCtx, ctx.progress);
+            })));
 
-        // evaluate its insertion cost
-        auto result = utils::mono_result<InsertionResult>(job.visit(ranges::overload(
-          [&](const std::shared_ptr<const models::problem::Service>& service) {
-            return serviceInsertionEvaluator.evaluate(service, routeCtx, ctx.progress);
-          },
-          [&](const std::shared_ptr<const models::problem::Shipment>& shipment) {
-            return shipmentInsertionEvaluator.evaluate(shipment, routeCtx, ctx.progress);
-          })));
-
-        // propagate best result or failure
-        return get_cheapest(inner, result);
+          // propagate best result or failure
+          return get_cheapest(inner, result);
+        });
       });
-    });
   }
 
 private:
-  /// Creates new route state.
-  InsertionContext::RouteState createRouteState() const {
-    return InsertionContext::RouteState{std::make_shared<models::solution::Route>(),
-                                        std::make_shared<InsertionRouteState>()};
-  }
-
   /// Creates new route context for given actor and route state.
   InsertionRouteContext createRouteContext(const models::solution::Route::Actor& actor,
                                            const InsertionContext::RouteState& routeState) const {
-    auto ctx = InsertionRouteContext{routeState.first, actor, 0, routeState.second};
+    auto ctx = InsertionRouteContext{routeState, actor, 0};
 
     // route is used first time
-    if (ctx.route->actor == nullptr) {
+    if (ctx.route.first->actor == nullptr) {
       auto [start, end] = waypoints(*actor, actor->detail.time.start);
-      ctx.route->start = start;
-      ctx.route->end = end;
-      ctx.route->actor = actor;
+      ctx.route.first->start = start;
+      ctx.route.first->end = end;
+      ctx.route.first->actor = actor;
       ctx.departure = actor->detail.time.start;
     } else {
       ctx.departure = routeState.first->start->schedule.departure;

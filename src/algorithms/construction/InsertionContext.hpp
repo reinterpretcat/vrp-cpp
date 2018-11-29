@@ -6,6 +6,7 @@
 #include "models/problem/Job.hpp"
 #include "models/solution/Route.hpp"
 
+#include <map>
 #include <set>
 #include <utility>
 
@@ -13,10 +14,8 @@ namespace vrp::algorithms::construction {
 
 /// Contains information needed to performed insertions in solution.
 struct InsertionContext final {
-  /// Specifies type which stores together route and its insertion state.
+  /// Specifies type which keeps reference to route and state together.
   using RouteState = std::pair<std::shared_ptr<models::solution::Route>, std::shared_ptr<InsertionRouteState>>;
-  /// Specifies type which stores together job and its unassignment reason.
-  using JobState = std::pair<models::problem::Job, int>;
 
   /// Solution progress.
   InsertionProgress progress;
@@ -24,10 +23,10 @@ struct InsertionContext final {
   /// Set of jobs which require assignment.
   std::set<models::problem::Job, models::problem::compare_jobs> jobs;
 
-  /// List of unassigned jobs.
-  std::vector<JobState> unassigned;
+  /// Map of unassigned jobs within reason code.
+  std::map<models::problem::Job, int, models::problem::compare_jobs> unassigned;
 
-  /// List of routes and their states.
-  std::vector<RouteState> routes;
+  /// Map of routes within their state.
+  std::map<std::shared_ptr<models::solution::Route>, std::shared_ptr<InsertionRouteState>> routes;
 };
 }
