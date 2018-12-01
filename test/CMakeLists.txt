@@ -28,6 +28,7 @@ set(SOURCE_FILES
         test_utils/models/Factories.hpp
         test_utils/models/Matchers.hpp
         test_utils/streams/SolomonBuilder.hpp
+        test_utils/streams/SolomonStreams.hpp
 
         streams/in/SolomonTest.cc
 

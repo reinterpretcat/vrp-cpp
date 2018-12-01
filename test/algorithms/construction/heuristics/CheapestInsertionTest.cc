@@ -48,4 +48,9 @@ SCENARIO("cheapest insertion inserts service", "[algorithms][construction][inser
     }
   }
 }
+
+SCENARIO("cheapest insertion handles c101_25 problem", "[algorithms][construction][insertion]") {
+  // TODO
+}
+
 }
