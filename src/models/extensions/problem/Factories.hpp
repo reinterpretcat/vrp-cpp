@@ -98,7 +98,7 @@ public:
   }
 
   build_vehicle& dimensions(common::Dimensions&& value) {
-    vehicle_.dimensions = value;
+    vehicle_.dimens = value;
     return *this;
   }
 

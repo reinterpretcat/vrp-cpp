@@ -25,7 +25,7 @@ struct Vehicle final {
   Costs costs;
 
   /// Specifies dimensions supported by vehicle.
-  vrp::models::common::Dimensions dimensions;
+  vrp::models::common::Dimensions dimens;
 
   /// Specifies vehicle details.
   std::vector<VehicleDetail> details;

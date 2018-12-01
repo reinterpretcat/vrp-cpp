@@ -1,24 +1,159 @@
 #pragma once
 
 #include "models/Problem.hpp"
+#include "models/costs/ActivityCosts.hpp"
+#include "models/costs/TransportCosts.hpp"
+#include "models/extensions/problem/Factories.hpp"
 
+#include <algorithm>
 #include <functional>
 #include <istream>
 #include <range/v3/all.hpp>
 #include <sstream>
+#include <tuple>
 
 namespace vrp::streams::in {
 
+/// Calculates cartesian distance between two points on plane in 2D.
+struct scaled_cartesian_distance final {
+  int Scale = 1000;
+
+  models::common::Distance operator()(const std::pair<int, int>& left, const std::pair<int, int>& right) {
+    auto x = left.first - right.first;
+    auto y = left.second - right.second;
+    return static_cast<models::common::Distance>(std::sqrt(x * x + y * y) * Scale);
+  }
+};
+
 /// Reads problem represented by classical solomon definition from stream.
-template<typename DistanceCalculator>
+template<typename Distance = scaled_cartesian_distance>
 struct read_solomon_type final {
-  models::Problem operator()(std::istream& input) const { skipLines(input, 4); }
+  constexpr static auto DemandDimKey = "demand";
+  constexpr static auto CapacityDimKey = "capacity";
+
+  struct ServiceCosts : models::costs::ActivityCosts {
+    models::common::Cost cost(const models::solution::Actor& actor,
+                              const models::solution::Activity& activity,
+                              const models::common::Timestamp arrival) const override {
+      return 0;
+    }
+  };
+
+  struct RoutingMatrix : models::costs::TransportCosts {
+    friend read_solomon_type;
+
+    models::common::Duration duration(const models::solution::Actor& actor,
+                                      const models::common::Location& from,
+                                      const models::common::Location& to,
+                                      const models::common::Timestamp& departure) const override {
+      return distance(actor, from, to, departure);
+    }
+
+    models::common::Distance distance(const models::solution::Actor& actor,
+                                      const models::common::Location& from,
+                                      const models::common::Location& to,
+                                      const models::common::Timestamp& departure) const override {
+      return matrix_[from * locations_.size() + to];
+    }
+
+
+    auto matrix() const { return ranges::view::all(matrix_); }
+
+  private:
+    models::common::Location location(int x, int y) {
+      // TODO use more performant data structure to have O(1)
+      auto location = std::find_if(
+        locations_.begin(), locations_.end(), [&](const auto& l) { return l.first == x && l.second == y; });
+
+      if (location != locations_.end())
+        return static_cast<models::common::Location>(std::distance(locations_.begin(), location));
+
+      locations_.push_back(std::pair(x, y));
+      return locations_.size() - 1;
+    }
+
+    void generate() {
+      matrix_.reserve(locations_.size() * locations_.size());
+
+      auto distance = Distance{};
+      for (size_t i = 0; i < locations_.size(); ++i)
+        for (size_t j = 0; j < locations_.size(); ++j) {
+          matrix_.push_back(i != j ? distance(locations_[i], locations_[j]) : static_cast<models::common::Distance>(0));
+        }
+    }
+
+    std::vector<models::common::Distance> matrix_;
+    std::vector<std::pair<int, int>> locations_;
+  };
+
+  std::tuple<models::Problem, std::shared_ptr<const ServiceCosts>, std::shared_ptr<const RoutingMatrix>> operator()(
+    std::istream& input) const {
+    auto problem = models::Problem{std::make_shared<models::problem::Fleet>(), {}};
+    auto matrix = std::make_shared<RoutingMatrix>();
+
+    skipLines(input, 4);
+    readFleet(input, problem, *matrix);
+    skipLines(input, 4);
+    readJobs(input, problem, *matrix);
+
+    matrix->generate();
+
+    return {problem, std::make_shared<ServiceCosts>(), matrix};
+  }
 
 private:
   /// Skips selected amount of lines from stream.
   void skipLines(std::istream& input, int count) const {
-    for (int i = 0; i < count; ++i)
-      input.ignore(std::numeric_limits<std::streamsize>::max(), input.widen('\n'));
+    ranges::for_each(ranges::view::ints(0, count),
+                     [&input](auto) { input.ignore(std::numeric_limits<std::streamsize>::max(), input.widen('\n')); });
+  }
+
+  void readFleet(std::istream& input, models::Problem& problem, RoutingMatrix& matrix) const {
+    auto type = std::tuple<int, int>{};
+
+    std::string line;
+    std::getline(input, line);
+    std::istringstream iss(line);
+    iss >> std::get<0>(type) >> std::get<1>(type);
+
+    problem.fleet->add(models::problem::build_driver{}.id("driver").costs({0, 0, 0, 0}).owned());
+
+    auto location = matrix.location(0, 0);
+    ranges::for_each(ranges::view::ints(0, std::get<0>(type)), [&](auto i) {
+      problem.fleet->add(models::problem::build_vehicle{}
+                           .id(std::string("v") + std::to_string(i + 1))
+                           .costs({0, 1, 0, 0, 0})
+                           .dimensions({{CapacityDimKey, std::get<1>(type)}})
+                           .details({{location, location, {0, std::numeric_limits<int>::max()}}})
+                           .owned());
+    });
+  }
+
+  void readJobs(std::istream& input, models::Problem& problem, RoutingMatrix& matrix) const {
+    /// Customer defined by: id, x, y, demand, start, end, service
+    using CustomerData = std::tuple<int, int, int, int, int, int, int>;
+    using namespace vrp::models::common;
+    using namespace vrp::models::problem;
+
+    auto customer = CustomerData{};
+    auto last = -1;
+    while (input) {
+      input >> std::get<0>(customer) >> std::get<1>(customer) >> std::get<2>(customer) >>  //
+        std::get<3>(customer) >> std::get<4>(customer) >> std::get<5>(customer) >> std::get<6>(customer);
+
+      // skip last newlines
+      if (!problem.jobs.empty() && std::get<0>(customer) == last) break;
+      last = std::get<0>(customer);
+
+      problem.jobs.push_back(as_job(
+        build_service{}
+          .id(std::string("c") + std::to_string(std::get<0>(customer)))
+          .dimensions({{DemandDimKey, std::get<3>(customer)}})
+          .details({{matrix.location(std::get<1>(customer), std::get<2>(customer)),
+                     static_cast<Duration>(std::get<6>(customer)),
+                     {{static_cast<Timestamp>(std::get<4>(customer)), static_cast<Timestamp>(std::get<5>(customer))}}}})
+          .shared()));
+    }
   }
 };
 }

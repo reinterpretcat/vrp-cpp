@@ -9,8 +9,8 @@
 namespace vrp::models {
 
 /// Defines VRP problem.
-struct Problem : final {
-  std::shared_ptr<Fleet> fleet;
+struct Problem final {
+  std::shared_ptr<problem::Fleet> fleet;
 
   std::vector<problem::Job> jobs;
 };
