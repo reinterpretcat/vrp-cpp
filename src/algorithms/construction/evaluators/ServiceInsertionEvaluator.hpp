@@ -31,15 +31,13 @@ struct ServiceInsertionEvaluator final : private JobInsertionEvaluator {
   InsertionResult evaluate(const std::shared_ptr<const models::problem::Service>& service,
                            const InsertionRouteContext& ctx,
                            const InsertionProgress& progress) const {
-    auto activity = models::solution::build_activity{}        //
-                      .job(models::problem::as_job(service))  //
-                      .shared();
+    auto job = models::problem::as_job(service);
 
     // check hard constraints on route level.
-    auto error = constraint_->hard(ctx, ranges::view::single(*activity));
+    auto error = constraint_->hard(ctx, job);
     if (error.has_value()) return {ranges::emplaced_index<1>, InsertionFailure{error.value()}};
 
-    return analyze(activity, *service, ctx, progress);
+    return analyze(job, *service, ctx, progress);
   }
 
 private:
@@ -47,15 +45,19 @@ private:
   using EvaluationContext = JobInsertionEvaluator::EvaluationContext;
 
   /// Analyzes tour trying to find best insertion index.
-  InsertionResult analyze(models::solution::Tour::Activity& activity,
+  InsertionResult analyze(const models::problem::Job& job,
                           const models::problem::Service& service,
                           const InsertionRouteContext& ctx,
                           const InsertionProgress& progress) const {
     using namespace ranges;
     using namespace vrp::models;
 
+    auto activity = models::solution::build_activity{}  //
+                      .job(job)                         //
+                      .shared();
+
     // calculate additional costs on route level.
-    auto routeCosts = constraint_->soft(ctx, view::single(*activity)) + vehicleCosts(ctx);
+    auto routeCosts = constraint_->soft(ctx, job) + vehicleCosts(ctx);
 
     // form route legs from a new route view.
     auto [start, end] = waypoints(*ctx.actor, ctx.departure);

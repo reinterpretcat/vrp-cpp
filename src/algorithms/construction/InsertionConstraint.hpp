@@ -26,27 +26,27 @@ struct Constraint {
 struct HardRouteConstraint : virtual public Constraint {
   /// Specifies single hard constraint result type.
   using Result = std::optional<int>;
-  /// Specifies activity collection type.
-  using Activities = ranges::any_view<const models::solution::Activity>;
+  /// Job alias.
+  using Job = models::problem::Job;
   /// Specifies check function type.
-  using CheckFunc = std::function<Result(const InsertionRouteContext&, const Activities&)>;
+  using CheckFunc = std::function<Result(const InsertionRouteContext&, const Job&)>;
 
   void accept(const models::solution::Route& route, InsertionRouteState& state) const override {}
 
-  virtual Result check(const InsertionRouteContext&, const Activities&) const = 0;
+  virtual Result check(const InsertionRouteContext&, const Job&) const = 0;
 };
 
 /// Specifies soft constraint which operates on route level.
 struct SoftRouteConstraint : virtual public Constraint {
-  /// Specifies activity collection type.
-  using Activities = ranges::any_view<const models::solution::Activity>;
+  /// Job alias.
+  using Job = models::problem::Job;
 
   /// Specifies check function type.
-  using CheckFunc = std::function<models::common::Cost(const InsertionRouteContext&, const Activities&)>;
+  using CheckFunc = std::function<models::common::Cost(const InsertionRouteContext&, const Job&)>;
 
   void accept(const models::solution::Route& route, InsertionRouteState& state) const override {}
 
-  virtual models::common::Cost check(const InsertionRouteContext&, const Activities&) const = 0;
+  virtual models::common::Cost check(const InsertionRouteContext&, const Job&) const = 0;
 };
 
 /// Specifies hard constraint which operation on activity level.
@@ -94,7 +94,7 @@ public:
     using Wrapper = CheckFunctionWrapper<HardRouteConstraint,
                                          HardRouteConstraint::Result,
                                          InsertionRouteContext,
-                                         HardRouteConstraint::Activities>;
+                                         HardRouteConstraint::Job>;
 
     hardRouteConstraints_.push_back(std::make_shared<Wrapper>(std::move(constraint)));
     return *this;
@@ -108,10 +108,8 @@ public:
 
   /// Adds soft route constraint.
   InsertionConstraint& addSoftRoute(SoftRouteConstraint::CheckFunc constraint) {
-    using Wrapper = CheckFunctionWrapper<SoftRouteConstraint,
-                                         models::common::Cost,
-                                         InsertionRouteContext,
-                                         HardRouteConstraint::Activities>;
+    using Wrapper =
+      CheckFunctionWrapper<SoftRouteConstraint, models::common::Cost, InsertionRouteContext, HardRouteConstraint::Job>;
 
     softRouteConstraints_.push_back(std::make_shared<Wrapper>(std::move(constraint)));
     return *this;
@@ -176,21 +174,20 @@ public:
 
   /// Checks whether all hard route constraints are fulfilled.
   /// Returns the code of first failed constraint or empty value.
-  HardRouteConstraint::Result hard(const InsertionRouteContext& ctx,
-                                   const HardRouteConstraint::Activities& acts) const {
+  HardRouteConstraint::Result hard(const InsertionRouteContext& ctx, const HardRouteConstraint::Job& job) const {
     return ranges::accumulate(
       ranges::view::all(hardRouteConstraints_) |
-        ranges::view::transform([&](const auto& constraint) { return constraint->check(ctx, acts); }) |
+        ranges::view::transform([&](const auto& constraint) { return constraint->check(ctx, job); }) |
         ranges::view::filter([](const auto& result) { return result.has_value(); }) | ranges::view::take(1),
       HardRouteConstraint::Result{},
       [](const auto& acc, const auto& v) { return std::make_optional(v.value()); });
   }
 
   /// Checks soft route constraints and aggregates associated penalties.
-  models::common::Cost soft(const InsertionRouteContext& ctx, const HardRouteConstraint::Activities& acts) const {
+  models::common::Cost soft(const InsertionRouteContext& ctx, const HardRouteConstraint::Job& job) const {
     return ranges::accumulate(
       ranges::view::all(softRouteConstraints_) |
-        ranges::view::transform([&](const auto& constraint) { return constraint->check(ctx, acts); }),
+        ranges::view::transform([&](const auto& constraint) { return constraint->check(ctx, job); }),
       0.0);
   }
 

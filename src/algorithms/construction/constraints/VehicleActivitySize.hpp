@@ -18,14 +18,16 @@ struct VehicleActivitySize final
 
   /// Checks whether proposed vehicle can be used within route without violating size constraints.
   HardRouteConstraint::Result check(const InsertionRouteContext& routeCtx,
-                                    const HardRouteConstraint::Activities&) const override {
+                                    const HardRouteConstraint::Job&) const override {
     // TODO
+    return {};
   }
 
   /// Checks whether proposed activity insertion doesn't violate size constraints.
   HardActivityConstraint::Result check(const InsertionRouteContext& routeCtx,
                                        const InsertionActivityContext& actCtx) const override {
     // TODO
+    return {};
   }
 };
 }

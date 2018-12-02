@@ -68,7 +68,7 @@ struct VehicleActivityTiming final
 
   /// Checks whether proposed vehicle can be used within route without violating time windows.
   HardRouteConstraint::Result check(const InsertionRouteContext& routeCtx,
-                                    const HardRouteConstraint::Activities&) const override {
+                                    const HardRouteConstraint::Job&) const override {
     return routeCtx.route.second->get<bool>(actorSharedKey(StateKey, *routeCtx.actor)).value_or(false)
       ? HardRouteConstraint::Result{code_}
       : HardRouteConstraint::Result{};
