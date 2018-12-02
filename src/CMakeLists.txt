@@ -3,16 +3,19 @@ project(Solver LANGUAGES CXX)
 find_package(ClangTidy)
 
 set(SOURCE_FILES
+        algorithms/construction/constraints/VehicleActivitySize.hpp
+        algorithms/construction/constraints/VehicleActivityTiming.hpp
 
         algorithms/construction/extensions/Insertions.hpp
         algorithms/construction/extensions/Routes.hpp
         algorithms/construction/extensions/States.hpp
 
-        algorithms/construction/constraints/VehicleActivityTiming.hpp
         algorithms/construction/evaluators/JobInsertionEvaluator.hpp
         algorithms/construction/evaluators/ServiceInsertionEvaluator.hpp
         algorithms/construction/evaluators/ShipmentInsertionEvaluator.hpp
+
         algorithms/construction/heuristics/CheapestInsertion.hpp
+
         algorithms/construction/InsertionActivityContext.hpp
         algorithms/construction/InsertionConstraint.hpp
         algorithms/construction/InsertionContext.hpp

@@ -75,7 +75,7 @@ asDetails(Location start, const std::optional<Location>& end, TimeWindow time) {
 
 namespace vrp::test {
 
-SCENARIO("vehicle activity timing", "[algorithms][construction][insertion]") {
+SCENARIO("vehicle activity timing", "[algorithms][construction][constraints]") {
   auto createRoute = [](const auto& fleet) {
     auto route = test_build_route{}.actor(getActor("v1", fleet)).shared();
     route->tour
