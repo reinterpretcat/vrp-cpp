@@ -13,7 +13,6 @@
 #include "utils/extensions/Variant.hpp"
 
 #include <utility>
-#include <variant>
 #include <vector>
 
 namespace vrp::algorithms::construction {

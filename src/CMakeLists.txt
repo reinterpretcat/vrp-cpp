@@ -6,6 +6,7 @@ set(SOURCE_FILES
         algorithms/construction/constraints/VehicleActivitySize.hpp
         algorithms/construction/constraints/VehicleActivityTiming.hpp
 
+        algorithms/construction/extensions/Fleets.hpp
         algorithms/construction/extensions/Insertions.hpp
         algorithms/construction/extensions/Routes.hpp
         algorithms/construction/extensions/States.hpp

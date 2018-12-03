@@ -1,6 +1,7 @@
 #pragma once
 
 #include "algorithms/construction/InsertionConstraint.hpp"
+#include "algorithms/construction/extensions/Fleets.hpp"
 #include "algorithms/construction/extensions/States.hpp"
 #include "models/common/Location.hpp"
 #include "models/common/Timestamp.hpp"
@@ -22,22 +23,19 @@ struct VehicleActivityTiming final
   , public HardActivityConstraint {
   inline static const std::string StateKey = "op_time";
 
-  VehicleActivityTiming(std::shared_ptr<const models::problem::Fleet> fleet,
-                        std::shared_ptr<const models::costs::TransportCosts> transportCosts,
-                        std::shared_ptr<const models::costs::ActivityCosts> activityCosts,
+  VehicleActivityTiming(const std::shared_ptr<const models::problem::Fleet>& fleet,
+                        const std::shared_ptr<const models::costs::TransportCosts>& transportCosts,
+                        const std::shared_ptr<const models::costs::ActivityCosts>& activityCosts,
                         int code = 1) :
     code_(code),
     keys_(),
-    transportCosts_(std::move(transportCosts)),
-    activityCosts_(std::move(activityCosts)) {
-    // using namespace ranges;
-    ranges::for_each(fleet->vehicles(), [&](const auto& v) {
-      ranges::for_each(ranges::view::all(v->details), [&](const auto& d) {
-        // TODO Ideally, we should analyze possible actors here, but, at the moment,
-        // driver has no information which is essential here.
-        auto key = actorSharedKey(StateKey, {{}, {}, d.start, d.end, d.time});
-        if (keys_.find(key) == keys_.end()) { keys_[key] = std::make_pair(d.time.end, d.end.value_or(d.start)); }
-      });
+    transportCosts_(transportCosts),
+    activityCosts_(activityCosts) {
+    ranges::for_each(empty_actors(*fleet), [&](const auto& a) {
+      auto key = actorSharedKey(StateKey, a);
+      if (keys_.find(key) == keys_.end()) {
+        keys_[key] = std::make_pair(a.detail.time.end, a.detail.end.value_or(a.detail.start));
+      }
     });
   }
 
