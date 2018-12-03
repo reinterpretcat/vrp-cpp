@@ -17,15 +17,23 @@ struct VehicleActivitySize final
   inline static const std::string StateKeyEnd = StateKey + "_end";
 
   VehicleActivitySize(const std::shared_ptr<const models::problem::Fleet>& fleet, int code = 2) : code_(code) {
-    ranges::for_each(empty_actors(*fleet), [&](const auto& d) {
-      auto key = actorSharedKey(StateKey, {{}, {}, d.start, d.end, d.time});
-    });
+//    ranges::for_each(empty_actors(*fleet), [&](const auto& d) {
+//      auto key = actorSharedKey(StateKey, {{}, {}, d.start, d.end, d.time});
+//    });
   }
 
   /// Accept route and updates its insertion state.
   void accept(const models::solution::Route& route, InsertionRouteState& state) const override {
-    // TODO
-    // Save parameters for all possible actors
+    using namespace ranges;
+
+//    auto tour = view::concat(view::single(route.start), route.tour.activities(), view::single(route.end));
+
+//    // set loads for each activity
+//    ranges::accumulate(tour, Size{}, [&](const auto& acc, const auto& act) {
+//      auto size = acc + getSize(act);
+//      state.put<Size>(StateKey, *act, size);
+//      return size;
+//    });
   }
 
   /// Checks whether proposed vehicle and job can be used within route without violating size constraints.
@@ -60,6 +68,10 @@ struct VehicleActivitySize final
 private:
   inline std::optional<Size> getState(const std::string& key, const InsertionRouteContext& routeCtx) const {
     return routeCtx.route.second->get<Size>(actorSharedKey(key, *routeCtx.actor));
+  }
+
+  inline Size getSize(const models::solution::Tour::Activity& activity) const {
+    return activity->job.has_value() ? getSize(activity->job.value()) : Size{};
   }
 
   template<typename T>
