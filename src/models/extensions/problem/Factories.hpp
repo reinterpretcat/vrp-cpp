@@ -36,7 +36,7 @@ public:
     return *this;
   }
 
-  build_service& dimensions(common::Dimensions&& value) {
+  build_service& dimens(common::Dimensions&& value) {
     service_.dimens = value;
     return *this;
   }
@@ -97,7 +97,7 @@ public:
     return *this;
   }
 
-  build_vehicle& dimensions(common::Dimensions&& value) {
+  build_vehicle& dimens(common::Dimensions&& value) {
     vehicle_.dimens = value;
     return *this;
   }

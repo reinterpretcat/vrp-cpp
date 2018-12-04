@@ -22,7 +22,7 @@ const vrp::models::problem::VehicleDetail DefaultVehicleDetail = {DefaultActorLo
 class test_build_service : public vrp::models::problem::build_service {
 public:
   explicit test_build_service() : vrp::models::problem::build_service() {
-    id("service").details({DefaultJobDetail}).dimensions({DefaultDimension});
+    id("service").details({DefaultJobDetail}).dimens({DefaultDimension});
   }
 
   test_build_service& location(const models::common::Location& value) {
@@ -80,7 +80,7 @@ inline std::shared_ptr<vrp::models::solution::Activity> DefaultActivity = test_b
 class test_build_vehicle : public vrp::models::problem::build_vehicle {
 public:
   explicit test_build_vehicle() : vrp::models::problem::build_vehicle() {
-    id("vehicle1").profile("car").details({DefaultVehicleDetail}).dimensions({DefaultDimension}).costs(DefaultCosts);
+    id("vehicle1").profile("car").details({DefaultVehicleDetail}).dimens({DefaultDimension}).costs(DefaultCosts);
   }
 };
 

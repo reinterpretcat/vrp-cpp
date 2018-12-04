@@ -19,7 +19,7 @@ struct Shipment final {
   JobDetail delivery;
 
   /// Dimensions which simulates work requirements.
-  vrp::models::common::Dimensions dimensions;
+  vrp::models::common::Dimensions dimens;
 };
 
 }  // namespace vrp::models::problem

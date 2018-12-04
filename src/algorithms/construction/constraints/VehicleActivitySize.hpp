@@ -36,8 +36,8 @@ struct VehicleActivitySize final
       auto max = std::max(acc[1], current);
 
       auto [start, end] = a->job.has_value() && a->job.value().index() == 0
-        ? std::pair<Size, Size>{acc[2] + (size > 0 ? size : Size{}),  //
-                                acc[3] - (size > 0 ? size : Size{})}
+        ? std::pair<Size, Size>{acc[2] - (size < 0 ? size : Size{}),  //
+                                acc[3] + (size > 0 ? size : Size{})}
         : std::pair<Size, Size>{acc[2], acc[3]};
 
       state.put<Size>(StateKeyCurrent, *a, current);
@@ -91,13 +91,17 @@ private:
     return routeCtx.route.second->get<Size>(actorSharedKey(key, *routeCtx.actor));
   }
 
-  inline Size getSize(const models::solution::Tour::Activity& activity) const {
-    return activity->job.has_value() ? getSize(activity->job.value()) : Size{};
-  }
-
   template<typename T>
   inline Size getSize(const std::shared_ptr<const T>& holder) const {
     return std::any_cast<Size>(holder->dimens.find(StateKey)->second);
+  }
+
+  inline Size getSize(const models::solution::Tour::Activity& activity) const {
+    return activity->job.has_value()
+      ? utils::mono_result<Size>(activity->job.value().visit(ranges::overload(
+          [&](const std::shared_ptr<const models::problem::Service>& service) { return getSize(service); },
+          [&](const std::shared_ptr<const models::problem::Shipment>& shipment) { return getSize(shipment); })))
+      : Size{};
   }
 
   int code_;
