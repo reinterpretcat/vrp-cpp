@@ -3,6 +3,7 @@
 #include "algorithms/construction/extensions/States.hpp"
 #include "models/costs/ActivityCosts.hpp"
 #include "models/problem/Fleet.hpp"
+#include "test_utils/algorithms/constraints/Helpers.hpp"
 #include "test_utils/algorithms/construction/Contexts.hpp"
 #include "test_utils/algorithms/construction/Insertions.hpp"
 #include "test_utils/fakes/TestTransportCosts.hpp"
@@ -32,44 +33,9 @@ getActivity(const InsertionRouteContext& ctx, int index) {
   return ctx.route.first->tour.get(static_cast<size_t>(index));
 }
 
-std::shared_ptr<Actor>
-getActor(const std::string& id, const Fleet& fleet) {
-  auto vehicle = fleet.vehicle(id);
-  auto detail = vehicle->details.front();
-  return std::make_shared<Actor>(Actor{vehicle, DefaultDriver, detail.start, detail.end, detail.time});
-}
-
-HardActivityConstraint::Result
-success() {
-  return {};
-}
-HardActivityConstraint::Result
-fail() {
-  return {{true, 1}};
-}
-HardActivityConstraint::Result
-stop() {
-  return {{false, 1}};
-}
-
-std::string
-generateKey(const std::string& key, const Actor& actor) {
-  return actorSharedKey(key, actor);
-}
-
 std::string
 operationTimeKey(const std::string& id, const Fleet& fleet) {
-  return generateKey(VehicleActivityTiming::StateKey, *getActor(id, fleet));
-}
-
-VehicleDetail
-asDetail(Location start, const std::optional<Location>& end, TimeWindow time) {
-  return VehicleDetail{start, end, time};
-}
-
-std::vector<VehicleDetail>
-asDetails(Location start, const std::optional<Location>& end, TimeWindow time) {
-  return {VehicleDetail{start, end, time}};
+  return actorSharedKey(VehicleActivityTiming::StateKey, *getActor(id, fleet));
 }
 }
 
