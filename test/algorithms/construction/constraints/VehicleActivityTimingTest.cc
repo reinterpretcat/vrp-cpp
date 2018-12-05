@@ -22,17 +22,6 @@ using namespace Catch::Generators;
 
 namespace {
 
-constexpr int Start = -1;
-constexpr int End = -2;
-
-Tour::Activity
-getActivity(const InsertionRouteContext& ctx, int index) {
-  if (index == Start) return ctx.route.first->start;
-  if (index == End) return ctx.route.first->end;
-
-  return ctx.route.first->tour.get(static_cast<size_t>(index));
-}
-
 std::string
 operationTimeKey(const std::string& id, const Fleet& fleet) {
   return actorSharedKey(VehicleActivityTiming::StateKey, *getActor(id, fleet));
@@ -111,17 +100,17 @@ SCENARIO("vehicle activity timing", "[algorithms][construction][constraints]") {
 
       auto [vehicle, location, departure, prev, next, expected] =
         GENERATE(table<std::string, Location, Timestamp, int, int, HardActivityConstraint::Result>(
-          {{"v1", 50, 30, 2, End, success()},  //
-           {"v1", 1000, 30, 2, End, stop(1)},
+          {{"v1", 50, 30, 2, EndActivityIndex, success()},  //
+           {"v1", 1000, 30, 2, EndActivityIndex, stop(1)},
            {"v1", 50, 20, 1, 2, success()},
            {"v1", 51, 20, 1, 2, stop(1)},
-           {"v2", 40, 30, 2, End, stop(1)},
-           {"v3", 40, 30, 2, End, fail(1)},
-           {"v4", 40, 30, 2, End, fail(1)},
-           {"v5", 40, 90, 2, End, fail(1)},
+           {"v2", 40, 30, 2, EndActivityIndex, stop(1)},
+           {"v3", 40, 30, 2, EndActivityIndex, fail(1)},
+           {"v4", 40, 30, 2, EndActivityIndex, fail(1)},
+           {"v5", 40, 90, 2, EndActivityIndex, fail(1)},
            {"v6", 40, 30, 1, 2, fail(1)},
            {"v6", 40, 10, 0, 1, stop(1)},
-           {"v6", 40, 30, 2, End, success()}}));
+           {"v6", 40, 30, 2, EndActivityIndex, success()}}));
 
       THEN("returns fulfilled for insertion at the end") {
         auto routeCtx = test_build_insertion_route_context{}  //

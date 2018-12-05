@@ -1,6 +1,7 @@
 #pragma once
 
 #include "algorithms/construction/InsertionConstraint.hpp"
+#include "algorithms/construction/extensions/Constraints.hpp"
 #include "algorithms/construction/extensions/Fleets.hpp"
 #include "algorithms/construction/extensions/States.hpp"
 #include "models/common/Location.hpp"
@@ -93,20 +94,20 @@ struct VehicleActivityTiming final
     //    |--- vehicle's operation time ---|  |--- prev or target or next ---|
     if (latestArrival < prev.detail.time.start || latestArrival < target.detail.time.start ||
         latestArrival < next.detail.time.start)
-      return fail();
+      return fail(code_);
 
     // |--- target ---| |--- prev ---|
-    if (target.detail.time.end < prev.detail.time.start) return fail();
+    if (target.detail.time.end < prev.detail.time.start) return fail(code_);
 
 
     // |--- prev ---| |--- next ---| |- earliest arrival of vehicle
     auto arrTimeAtNext =
       actCtx.departure + transportCosts_->duration(actor, prev.detail.location, nextActLocation, actCtx.departure);
-    if (arrTimeAtNext > latestArrTimeAtNextAct) return fail();
+    if (arrTimeAtNext > latestArrTimeAtNextAct) return fail(code_);
 
 
     //|--- next ---| |--- target ---|
-    if (target.detail.time.start > next.detail.time.end) return fail();
+    if (target.detail.time.start > next.detail.time.end) return fail(code_);
 
 
     auto arrTimeAtNewAct = actCtx.departure  //
@@ -123,7 +124,7 @@ struct VehicleActivityTiming final
       target.detail.time.end, static_cast<std::int64_t>(latestArrTimeAtNextAct) - static_cast<std::int64_t>(time));
 
     // |--- latest arrival of vehicle @target ---| |--- vehicle's arrival @target ---|
-    if (static_cast<std::int64_t>(arrTimeAtNewAct) > latestArrTimeAtNewAct) return stop();
+    if (static_cast<std::int64_t>(arrTimeAtNewAct) > latestArrTimeAtNewAct) return stop(code_);
 
 
     if (next.type == solution::Activity::Type::End && !actor.detail.end.has_value()) return success();
@@ -133,14 +134,10 @@ struct VehicleActivityTiming final
       endTimeAtNewAct + transportCosts_->duration(actor, target.detail.location, nextActLocation, endTimeAtNewAct);
 
     //  |--- latest arrival of vehicle @next ---| |--- vehicle's arrival @next ---|
-    return arrTimeAtNextAct > latestArrTimeAtNextAct ? stop() : success();
+    return arrTimeAtNextAct > latestArrTimeAtNextAct ? stop(code_) : success();
   }
 
 private:
-  HardActivityConstraint::Result success() const { return {}; }
-  HardActivityConstraint::Result fail() const { return {{true, code_}}; }
-  HardActivityConstraint::Result stop() const { return {{false, code_}}; }
-
   int code_;
   std::unordered_map<std::string, std::pair<models::common::Timestamp, models::common::Location>> keys_;
   std::shared_ptr<const models::costs::TransportCosts> transportCosts_;

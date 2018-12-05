@@ -1,6 +1,7 @@
 #pragma once
 
 #include "algorithms/construction/InsertionConstraint.hpp"
+#include "algorithms/construction/extensions/Constraints.hpp"
 #include "utils/extensions/Variant.hpp"
 
 namespace vrp::algorithms::construction {
@@ -68,8 +69,13 @@ struct VehicleActivitySize final
   /// Checks whether proposed activity insertion doesn't violate size constraints.
   HardActivityConstraint::Result check(const InsertionRouteContext& routeCtx,
                                        const InsertionActivityContext& actCtx) const override {
-    // TODO
-    return {};
+    const auto& state = routeCtx.route.second;
+
+    auto size = getSize(actCtx.target);
+    auto base = state->get<Size>(size < 0 ? StateKeyMaxPast : StateKeyMaxFuture, *actCtx.prev).value_or(Size{});
+    auto value = size < 0 ? base - size : base + size;
+
+    return value <= getSize(routeCtx.actor->vehicle) ? success() : stop(code_);
   }
 
 private:

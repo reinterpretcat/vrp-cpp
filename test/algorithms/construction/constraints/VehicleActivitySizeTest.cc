@@ -22,6 +22,13 @@ namespace {
 
 const auto CurrentKey = VehicleActivitySize<int>::StateKeyCurrent;
 
+InsertionContext::RouteState
+createRouteState(const Fleet& fleet) {
+  auto route = test_build_route{}.actor(getActor("v1", fleet)).shared();
+  auto state = std::make_shared<InsertionRouteState>();
+  return {route, state};
+}
+
 Tour::Activity
 activity(const std::string& id, Timestamp departure, int size) {
   return test_build_activity{}
@@ -38,10 +45,9 @@ SCENARIO("vehicle activity size", "[algorithms][construction][constraints]") {
     auto fleet = std::make_shared<Fleet>();
     fleet->add(test_build_vehicle{}.id("v1").dimens({{"size", 10}}).details(asDetails(0, {}, {0, 100})).owned());
 
-    auto route = test_build_route{}.actor(getActor("v1", *fleet)).shared();
-    auto state = std::make_shared<InsertionRouteState>();
-
     WHEN("accept route with three service activities") {
+      auto [route, state] = createRouteState(*fleet);
+
       auto [s1, s2, s3, start, expS1, expS2, expS3, end] = GENERATE(table<int, int, int, int, int, int, int, int>({
         {-1, 2, -3, 4, 3, 5, 2, 2},  //
         {1, -2, 3, 2, 3, 1, 4, 4},
@@ -63,6 +69,7 @@ SCENARIO("vehicle activity size", "[algorithms][construction][constraints]") {
     }
 
     WHEN("check route and service job with different sizes") {
+      auto [route, state] = createRouteState(*fleet);
       auto routeCtx = test_build_insertion_route_context{}  //
                         .actor(getActor("v1", *fleet))
                         .route({route, state})
@@ -75,6 +82,38 @@ SCENARIO("vehicle activity size", "[algorithms][construction][constraints]") {
         routeCtx, as_job(test_build_service{}.id("v1").dimens({{"size", size}}).shared()));
 
       THEN("constraint check result is correct") { REQUIRE(result == expected); }
+    }
+
+    WHEN("check route and service activity with different states") {
+      auto [s1, s2, s3, expected] =
+        GENERATE(table<int, int, int, HardActivityConstraint::Result>({                       //
+                                                                       {1, 1, 1, success()},  //
+                                                                       {1, 10, 1, stop(2)},
+                                                                       {-5, -1, -5, stop(2)},
+                                                                       {5, 1, 5, stop(2)},
+                                                                       {-5, 1, 5, success()},
+                                                                       {5, 1, -5, stop(2)},
+                                                                       {4, -1, -5, success()}}));
+
+      auto [route, state] = createRouteState(*fleet);
+      route->tour.add(activity("s1", 1, s1)).add(activity("s3", 3, s3));
+      auto sized = VehicleActivitySize<int>{};
+      sized.accept(*route, *state);
+      auto routeCtx = test_build_insertion_route_context{}  //
+                        .actor(getActor("v1", *fleet))
+                        .route({route, state})
+                        .owned();
+      auto actCtx =
+        test_build_insertion_activity_context{}
+          .departure(0)
+          .prev(getActivity(routeCtx, 0))
+          .target(test_build_activity{}.job(as_job(test_build_service{}.dimens({{"size", s2}}).shared())).shared())
+          .next(getActivity(routeCtx, 1))
+          .owned();
+
+      auto result = sized.check(routeCtx, actCtx);
+
+      REQUIRE(result == expected);
     }
   }
 }
