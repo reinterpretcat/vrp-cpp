@@ -17,8 +17,6 @@ struct VehicleActivitySize final
   inline static const std::string StateKeyCurrent = StateKey + "_current";
   inline static const std::string StateKeyMaxFuture = StateKey + "_max_future";
   inline static const std::string StateKeyMaxPast = StateKey + "_max_past";
-  inline static const std::string StateKeyStart = StateKey + "_start";
-  inline static const std::string StateKeyEnd = StateKey + "_end";
 
   explicit VehicleActivitySize(int code = 2) : code_(code) {}
 
@@ -28,20 +26,14 @@ struct VehicleActivitySize final
 
     auto tour = view::concat(view::single(route.start), route.tour.activities(), view::single(route.end));
 
-    // calculate what must to be loaded at start and what has to be brought to the end
-    auto ends = ranges::accumulate(tour, std::pair<Size, Size>{}, [&](const auto& acc, const auto& a) {
+    // calculate what must to be loaded at start
+    auto start = ranges::accumulate(tour, Size{}, [&](const auto& acc, const auto& a) {
       auto size = getSize(a);
-      return a->job.has_value() && a->job.value().index() == 0
-        ? std::pair<Size, Size>{acc.first - (size < 0 ? size : Size{}),  //
-                                acc.second + (size > 0 ? size : Size{})}
-        : acc;
+      return a->job.has_value() && a->job.value().index() == 0 ? acc - (size < 0 ? size : Size{}) : acc;
     });
 
-    state.put<Size>(StateKeyStart, ends.first);
-    state.put<Size>(StateKeyEnd, ends.second);
-
     // determine actual load at each activity and max load in past
-    ranges::accumulate(tour, std::pair<Size, Size>{ends.first, ends.first}, [&](const auto& acc, const auto& a) {
+    ranges::accumulate(tour, std::pair<Size, Size>{start, start}, [&](const auto& acc, const auto& a) {
       auto size = getSize(a);
       auto current = acc.first + size;
       auto max = std::max(acc.second, current);
@@ -66,8 +58,8 @@ struct VehicleActivitySize final
     auto max = getSize(routeCtx.actor->vehicle);
     auto min = Size{};
 
-    auto start = getState(StateKeyStart, routeCtx).value_or(max);
-    auto end = getState(StateKeyEnd, routeCtx).value_or(min);
+    auto start = Size{};  // getState(StateKeyCurrent, routeCtx).value_or(max);
+    auto end = Size{};    // getState(StateKeyEnd, routeCtx).value_or(min);
 
     return utils::mono_result<bool>(job.visit(ranges::overload(
              [&](const std::shared_ptr<const models::problem::Service>& service) {
@@ -90,9 +82,9 @@ struct VehicleActivitySize final
   }
 
 private:
-  inline std::optional<Size> getState(const std::string& key, const InsertionRouteContext& routeCtx) const {
-    return routeCtx.route.second->get<Size>(actorSharedKey(key, *routeCtx.actor));
-  }
+  //  inline std::optional<Size> getState(const std::string& key, const InsertionRouteContext& routeCtx) const {
+  //    return routeCtx.route.second->get<Size>(actorSharedKey(key, *routeCtx.actor));
+  //  }
 
   template<typename T>
   inline Size getSize(const std::shared_ptr<const T>& holder) const {
