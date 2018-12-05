@@ -1,7 +1,6 @@
 #pragma once
 
 #include "algorithms/construction/InsertionConstraint.hpp"
-#include "algorithms/construction/extensions/States.hpp"
 #include "utils/extensions/Variant.hpp"
 
 namespace vrp::algorithms::construction {
@@ -55,20 +54,12 @@ struct VehicleActivitySize final
   /// Checks whether proposed vehicle and job can be used within route without violating size constraints.
   HardRouteConstraint::Result check(const InsertionRouteContext& routeCtx,
                                     const HardRouteConstraint::Job& job) const override {
-    auto max = getSize(routeCtx.actor->vehicle);
-    auto min = Size{};
-
-    auto start = Size{};  // getState(StateKeyCurrent, routeCtx).value_or(max);
-    auto end = Size{};    // getState(StateKeyEnd, routeCtx).value_or(min);
-
     return utils::mono_result<bool>(job.visit(ranges::overload(
              [&](const std::shared_ptr<const models::problem::Service>& service) {
-               auto size = getSize(service);
-               return size > 0 ? start - size >= min : end - size <= max;
+               return getSize(service) <= getSize(routeCtx.actor->vehicle);
              },
              [&](const std::shared_ptr<const models::problem::Shipment>& shipment) {
-               // TODO check that total sum is good and each does not violate
-               return true;
+               return getSize(routeCtx.actor->vehicle) <= getSize(shipment);
              })))
       ? HardRouteConstraint::Result{}
       : HardRouteConstraint::Result{code_};
@@ -82,10 +73,6 @@ struct VehicleActivitySize final
   }
 
 private:
-  //  inline std::optional<Size> getState(const std::string& key, const InsertionRouteContext& routeCtx) const {
-  //    return routeCtx.route.second->get<Size>(actorSharedKey(key, *routeCtx.actor));
-  //  }
-
   template<typename T>
   inline Size getSize(const std::shared_ptr<const T>& holder) const {
     return std::any_cast<Size>(holder->dimens.find(StateKey)->second);

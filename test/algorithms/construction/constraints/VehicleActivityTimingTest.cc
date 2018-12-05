@@ -112,15 +112,15 @@ SCENARIO("vehicle activity timing", "[algorithms][construction][constraints]") {
       auto [vehicle, location, departure, prev, next, expected] =
         GENERATE(table<std::string, Location, Timestamp, int, int, HardActivityConstraint::Result>(
           {{"v1", 50, 30, 2, End, success()},  //
-           {"v1", 1000, 30, 2, End, stop()},
+           {"v1", 1000, 30, 2, End, stop(1)},
            {"v1", 50, 20, 1, 2, success()},
-           {"v1", 51, 20, 1, 2, stop()},
-           {"v2", 40, 30, 2, End, stop()},
-           {"v3", 40, 30, 2, End, fail()},
-           {"v4", 40, 30, 2, End, fail()},
-           {"v5", 40, 90, 2, End, fail()},
-           {"v6", 40, 30, 1, 2, fail()},
-           {"v6", 40, 10, 0, 1, stop()},
+           {"v1", 51, 20, 1, 2, stop(1)},
+           {"v2", 40, 30, 2, End, stop(1)},
+           {"v3", 40, 30, 2, End, fail(1)},
+           {"v4", 40, 30, 2, End, fail(1)},
+           {"v5", 40, 90, 2, End, fail(1)},
+           {"v6", 40, 30, 1, 2, fail(1)},
+           {"v6", 40, 10, 0, 1, stop(1)},
            {"v6", 40, 30, 2, End, success()}}));
 
       THEN("returns fulfilled for insertion at the end") {

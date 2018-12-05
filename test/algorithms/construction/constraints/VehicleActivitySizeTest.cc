@@ -34,14 +34,14 @@ activity(const std::string& id, Timestamp departure, int size) {
 namespace vrp::test {
 
 SCENARIO("vehicle activity size", "[algorithms][construction][constraints]") {
-  GIVEN("fleet with 1 vehicle and service jobs") {
+  GIVEN("fleet with 1 vehicle and route with service jobs") {
     auto fleet = std::make_shared<Fleet>();
     fleet->add(test_build_vehicle{}.id("v1").dimens({{"size", 10}}).details(asDetails(0, {}, {0, 100})).owned());
 
-    WHEN("accept route with three service activities") {
-      auto state = InsertionRouteState{};
-      auto route = test_build_route{}.actor(getActor("v1", *fleet)).shared();
+    auto route = test_build_route{}.actor(getActor("v1", *fleet)).shared();
+    auto state = std::make_shared<InsertionRouteState>();
 
+    WHEN("accept route with three service activities") {
       auto [s1, s2, s3, start, expS1, expS2, expS3, end] = GENERATE(table<int, int, int, int, int, int, int, int>({
         {-1, 2, -3, 4, 3, 5, 2, 2},  //
         {1, -2, 3, 2, 3, 1, 4, 4},
@@ -49,17 +49,32 @@ SCENARIO("vehicle activity size", "[algorithms][construction][constraints]") {
       }));
 
       route->tour.add(activity("s1", 1, s1)).add(activity("s2", 2, s2)).add(activity("s3", 3, s3));
-      VehicleActivitySize<int>{}.accept(*route, state);
+      VehicleActivitySize<int>{}.accept(*route, *state);
 
-      THEN("has correct load at start") { REQUIRE(state.get<int>(CurrentKey, *route->start).value_or(-1) == start); }
+      THEN("has correct load at start") { REQUIRE(state->get<int>(CurrentKey, *route->start).value_or(-1) == start); }
 
-      THEN("has correct load at end") { REQUIRE(state.get<int>(CurrentKey, *route->end).value_or(-1) == end); }
+      THEN("has correct load at end") { REQUIRE(state->get<int>(CurrentKey, *route->end).value_or(-1) == end); }
 
       THEN("has correct current load at each activity") {
-        REQUIRE(state.get<int>(CurrentKey, *route->tour.get(0)).value_or(-1) == expS1);
-        REQUIRE(state.get<int>(CurrentKey, *route->tour.get(1)).value_or(-1) == expS2);
-        REQUIRE(state.get<int>(CurrentKey, *route->tour.get(2)).value_or(-1) == expS3);
+        REQUIRE(state->get<int>(CurrentKey, *route->tour.get(0)).value_or(-1) == expS1);
+        REQUIRE(state->get<int>(CurrentKey, *route->tour.get(1)).value_or(-1) == expS2);
+        REQUIRE(state->get<int>(CurrentKey, *route->tour.get(2)).value_or(-1) == expS3);
       }
+    }
+
+    WHEN("check route and service job with different sizes") {
+      auto routeCtx = test_build_insertion_route_context{}  //
+                        .actor(getActor("v1", *fleet))
+                        .route({route, state})
+                        .owned();
+
+      auto [size, expected] = GENERATE(table<int, std::optional<int>>({{11, std::optional<int>{2}},  //
+                                                                       {10, std::optional<int>{}}}));
+
+      auto result = VehicleActivitySize<int>{}.check(
+        routeCtx, as_job(test_build_service{}.id("v1").dimens({{"size", size}}).shared()));
+
+      THEN("constraint check result is correct") { REQUIRE(result == expected); }
     }
   }
 }

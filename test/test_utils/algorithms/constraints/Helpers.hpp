@@ -10,12 +10,12 @@ success() {
   return {};
 }
 inline algorithms::construction::HardActivityConstraint::Result
-fail() {
-  return {{true, 1}};
+fail(int code) {
+  return {{true, code}};
 }
 inline algorithms::construction::HardActivityConstraint::Result
-stop() {
-  return {{false, 1}};
+stop(int code) {
+  return {{false, code}};
 }
 
 inline std::shared_ptr<models::solution::Actor>
