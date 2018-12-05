@@ -28,8 +28,7 @@ struct scaled_cartesian_distance final {
 /// Reads problem represented by classical solomon definition from stream.
 template<typename Distance = scaled_cartesian_distance>
 struct read_solomon_type final {
-  constexpr static auto DemandDimKey = "demand";
-  constexpr static auto CapacityDimKey = "capacity";
+  constexpr static auto SizeDimKey = "size";
 
   struct ServiceCosts : models::costs::ActivityCosts {
     models::common::Cost cost(const models::solution::Actor& actor,
@@ -123,7 +122,7 @@ private:
       problem.fleet->add(models::problem::build_vehicle{}
                            .id(std::string("v") + std::to_string(i + 1))
                            .costs({0, 1, 0, 0, 0})
-                           .dimens({{CapacityDimKey, std::get<1>(type)}})
+                           .dimens({{SizeDimKey, std::get<1>(type)}})
                            .details({{location, location, {0, std::numeric_limits<int>::max()}}})
                            .owned());
     });
@@ -148,7 +147,7 @@ private:
       problem.jobs.push_back(as_job(
         build_service{}
           .id(std::string("c") + std::to_string(std::get<0>(customer)))
-          .dimens({{DemandDimKey, std::get<3>(customer)}})
+          .dimens({{SizeDimKey, std::get<3>(customer)}})
           .details({{matrix.location(std::get<1>(customer), std::get<2>(customer)),
                      static_cast<Duration>(std::get<6>(customer)),
                      {{static_cast<Timestamp>(std::get<4>(customer)), static_cast<Timestamp>(std::get<5>(customer))}}}})
