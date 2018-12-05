@@ -42,8 +42,11 @@ SCENARIO("vehicle activity size", "[algorithms][construction][constraints]") {
       auto state = InsertionRouteState{};
       auto route = test_build_route{}.actor(getActor("v1", *fleet)).shared();
 
-      auto [s1, s2, s3, start, end, expS1, expS2, expS3] =
-        GENERATE(table<int, int, int, int, int, int, int, int>({{-1, 2, -3, 4, 2, 3, 5, 2}}));
+      auto [s1, s2, s3, start, expS1, expS2, expS3, end] = GENERATE(table<int, int, int, int, int, int, int, int>({
+        {-1, 2, -3, 4, 3, 5, 2, 2},  //
+        {1, -2, 3, 2, 3, 1, 4, 4},
+        {0, 1, 0, 0, 0, 1, 1, 1},
+      }));
 
       route->tour.add(activity("s1", 1, s1)).add(activity("s2", 2, s2)).add(activity("s3", 3, s3));
       VehicleActivitySize<int>{}.accept(*route, state);
