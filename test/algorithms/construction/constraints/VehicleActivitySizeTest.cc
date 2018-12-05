@@ -19,9 +19,15 @@ using namespace vrp::models::problem;
 using namespace vrp::test;
 
 namespace {
+
+const auto CurrentKey = VehicleActivitySize<int>::StateKeyCurrent;
+
 Tour::Activity
-activity(int size) {
-  return test_build_activity{}.job(as_job(test_build_service{}.dimens({{"size", size}}).shared())).shared();
+activity(const std::string& id, Timestamp departure, int size) {
+  return test_build_activity{}
+    .schedule({0, departure})
+    .job(as_job(test_build_service{}.id(id).dimens({{"size", size}}).shared()))
+    .shared();
 }
 }
 
@@ -32,14 +38,25 @@ SCENARIO("vehicle activity size", "[algorithms][construction][constraints]") {
     auto fleet = std::make_shared<Fleet>();
     fleet->add(test_build_vehicle{}.id("v1").dimens({{"size", 10}}).details(asDetails(0, {}, {0, 100})).owned());
 
-    WHEN("accept route with service") {
+    WHEN("accept route with three service activities") {
       auto state = InsertionRouteState{};
       auto route = test_build_route{}.actor(getActor("v1", *fleet)).shared();
-      route->tour.add(activity(-1)).add(activity(2)).add(activity(-3));
 
-      //VehicleActivitySize<int>{}.accept(*route, state);
+      auto [s1, s2, s3, start, end, expS1, expS2, expS3] =
+        GENERATE(table<int, int, int, int, int, int, int, int>({{-1, 2, -3, 4, 2, 3, 5, 2}}));
 
-      // TODO
+      route->tour.add(activity("s1", 1, s1)).add(activity("s2", 2, s2)).add(activity("s3", 3, s3));
+      VehicleActivitySize<int>{}.accept(*route, state);
+
+      THEN("has correct load at start") { REQUIRE(state.get<int>("size_start").value_or(-1) == start); }
+
+      THEN("has correct load at end") { REQUIRE(state.get<int>("size_end").value_or(-1) == end); }
+
+      THEN("has correct current load at each activity") {
+        REQUIRE(state.get<int>(CurrentKey, *route->tour.get(0)).value_or(-1) == expS1);
+        REQUIRE(state.get<int>(CurrentKey, *route->tour.get(1)).value_or(-1) == expS2);
+        REQUIRE(state.get<int>(CurrentKey, *route->tour.get(2)).value_or(-1) == expS3);
+      }
     }
   }
 }

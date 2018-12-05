@@ -4,11 +4,11 @@
 #include "algorithms/construction/extensions/States.hpp"
 #include "utils/extensions/Variant.hpp"
 
-#include <array>
-
 namespace vrp::algorithms::construction {
 
 /// Checks whether vehicle can handle activity of given size.
+/// Assume that "negative" size is delivery (unloaded from vehicle),
+/// positive is pickup (loaded to vehicle).
 template<typename Size>
 struct VehicleActivitySize final
   : public HardRouteConstraint
@@ -28,32 +28,35 @@ struct VehicleActivitySize final
 
     auto tour = view::concat(view::single(route.start), route.tour.activities(), view::single(route.end));
 
-    // set loads for each activity and start/end
-    auto ends = ranges::accumulate(tour, std::array<Size, 4>{}, [&](const auto& acc, const auto& a) {
+    // calculate what must to be loaded at start and what has to be brought to the end
+    auto ends = ranges::accumulate(tour, std::pair<Size, Size>{}, [&](const auto& acc, const auto& a) {
       auto size = getSize(a);
+      return a->job.has_value() && a->job.value().index() == 0
+        ? std::pair<Size, Size>{acc.first - (size < 0 ? size : Size{}),  //
+                                acc.second + (size > 0 ? size : Size{})}
+        : acc;
+    });
 
-      auto current = acc[0] + size;
-      auto max = std::max(acc[1], current);
+    state.put<Size>(StateKeyStart, ends.first);
+    state.put<Size>(StateKeyEnd, ends.second);
 
-      auto [start, end] = a->job.has_value() && a->job.value().index() == 0
-        ? std::pair<Size, Size>{acc[2] - (size < 0 ? size : Size{}),  //
-                                acc[3] + (size > 0 ? size : Size{})}
-        : std::pair<Size, Size>{acc[2], acc[3]};
+    // determine actual load at each activity and max load in past
+    ranges::accumulate(tour, std::pair<Size, Size>{ends.first, ends.first}, [&](const auto& acc, const auto& a) {
+      auto size = getSize(a);
+      auto current = acc.first + size;
+      auto max = std::max(acc.second, current);
 
       state.put<Size>(StateKeyCurrent, *a, current);
       state.put<Size>(StateKeyMaxPast, *a, max);
 
-      return std::array<Size, 4>{current, max, start, end};
+      return std::pair<Size, Size>{current, max};
     });
 
-    state.put<Size>(StateKeyStart, ends[2]);
-    state.put<Size>(StateKeyEnd, ends[3]);
-
-    // set max future load on activity to prevent overload
+    // determine max load in future
     ranges::accumulate(tour | view::reverse, Size{}, [&](const auto& acc, const auto& a) {
-      auto result = std::max(acc, state.get<Size>(StateKeyCurrent, *a).value());
-      state.put<Size>(StateKeyMaxFuture, *a, result);
-      return result;
+      auto max = std::max(acc, state.get<Size>(StateKeyCurrent, *a).value());
+      state.put<Size>(StateKeyMaxFuture, *a, max);
+      return max;
     });
   }
 
@@ -97,7 +100,7 @@ private:
   }
 
   inline Size getSize(const models::solution::Tour::Activity& activity) const {
-    return activity->job.has_value()
+    return activity->type == models::solution::Activity::Type::Job && activity->job.has_value()
       ? utils::mono_result<Size>(activity->job.value().visit(ranges::overload(
           [&](const std::shared_ptr<const models::problem::Service>& service) { return getSize(service); },
           [&](const std::shared_ptr<const models::problem::Shipment>& shipment) { return getSize(shipment); })))

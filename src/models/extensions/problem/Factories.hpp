@@ -26,7 +26,7 @@ as_job(const std::shared_ptr<const Shipment>& shipment) {
 /// A helper class to create service job.
 class build_service {
 public:
-  build_service& id(std::string&& value) {
+  build_service& id(const std::string& value) {
     service_.id = value;
     return *this;
   }
