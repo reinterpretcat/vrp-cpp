@@ -15,9 +15,8 @@
 namespace vrp::streams::in {
 
 /// Calculates cartesian distance between two points on plane in 2D.
-struct scaled_cartesian_distance final {
-  const int Scale = 1000;
-
+template<unsigned int Scale = 1>
+struct cartesian_distance final {
   models::common::Distance operator()(const std::pair<int, int>& left, const std::pair<int, int>& right) {
     auto x = left.first - right.first;
     auto y = left.second - right.second;
@@ -26,7 +25,7 @@ struct scaled_cartesian_distance final {
 };
 
 /// Reads problem represented by classical solomon definition from stream.
-template<typename Distance = scaled_cartesian_distance>
+template<typename Distance = cartesian_distance<1>>
 struct read_solomon_type final {
   constexpr static auto SizeDimKey = "size";
 
@@ -117,13 +116,12 @@ private:
 
     problem.fleet->add(models::problem::build_driver{}.id("driver").costs({0, 0, 0, 0}).owned());
 
-    auto location = matrix.location(0, 0);
     ranges::for_each(ranges::view::ints(0, std::get<0>(type)), [&](auto i) {
       problem.fleet->add(models::problem::build_vehicle{}
                            .id(std::string("v") + std::to_string(i + 1))
                            .costs({0, 1, 0, 0, 0})
                            .dimens({{SizeDimKey, std::get<1>(type)}})
-                           .details({{location, location, {0, std::numeric_limits<int>::max()}}})
+                           .details({{0, 0, {0, std::numeric_limits<int>::max()}}})
                            .owned());
     });
   }
@@ -147,7 +145,7 @@ private:
       problem.jobs.insert(as_job(
         build_service{}
           .id(std::string("c") + std::to_string(std::get<0>(customer)))
-          .dimens({{SizeDimKey, std::get<3>(customer)}})
+          .dimens({{SizeDimKey, -std::get<3>(customer)}})
           .details({{matrix.location(std::get<1>(customer), std::get<2>(customer)),
                      static_cast<Duration>(std::get<6>(customer)),
                      {{static_cast<Timestamp>(std::get<4>(customer)), static_cast<Timestamp>(std::get<5>(customer))}}}})

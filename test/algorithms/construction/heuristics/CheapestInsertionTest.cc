@@ -56,7 +56,7 @@ SCENARIO("cheapest insertion inserts service", "[algorithms][construction][inser
 
 SCENARIO("cheapest insertion handles c101_25 problem", "[algorithms][construction][insertion]") {
   auto stream = create_c101_25_problem_stream{}();
-  auto result = read_solomon_type<scaled_cartesian_distance>{}.operator()(stream);
+  auto result = read_solomon_type<cartesian_distance<1>>{}.operator()(stream);
 
   GIVEN("time and size constraints") {
     auto problem = std::get<0>(result);
