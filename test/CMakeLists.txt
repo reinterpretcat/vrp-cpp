@@ -26,8 +26,10 @@ set(SOURCE_FILES
 
         test_utils/algorithms/construction/Insertions.hpp
         test_utils/algorithms/construction/Contexts.hpp
+        test_utils/algorithms/construction/Results.hpp
         test_utils/algorithms/constraints/Helpers.hpp
         test_utils/fakes/TestTransportCosts.hpp
+        test_utils/models/Extensions.hpp
         test_utils/models/Factories.hpp
         test_utils/models/Matchers.hpp
         test_utils/streams/SolomonBuilder.hpp

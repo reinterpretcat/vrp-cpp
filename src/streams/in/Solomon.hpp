@@ -141,12 +141,15 @@ private:
       // skip last newlines
       if (!problem.jobs.empty() && std::get<0>(customer) == last) break;
       last = std::get<0>(customer);
+      int id = std::get<0>(customer);
+      int location = matrix.location(std::get<1>(customer), std::get<2>(customer));
+      if (id == 0) continue;
 
       problem.jobs.insert(as_job(
         build_service{}
-          .id(std::string("c") + std::to_string(std::get<0>(customer)))
+          .id(std::string("c") + std::to_string(id))
           .dimens({{SizeDimKey, -std::get<3>(customer)}})
-          .details({{matrix.location(std::get<1>(customer), std::get<2>(customer)),
+          .details({{location,
                      static_cast<Duration>(std::get<6>(customer)),
                      {{static_cast<Timestamp>(std::get<4>(customer)), static_cast<Timestamp>(std::get<5>(customer))}}}})
           .shared()));

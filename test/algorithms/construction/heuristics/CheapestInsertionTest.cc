@@ -4,7 +4,9 @@
 #include "algorithms/construction/constraints/VehicleActivityTiming.hpp"
 #include "streams/in/Solomon.hpp"
 #include "test_utils/algorithms/construction/Insertions.hpp"
+#include "test_utils/algorithms/construction/Results.hpp"
 #include "test_utils/fakes/TestTransportCosts.hpp"
+#include "test_utils/models/Extensions.hpp"
 #include "test_utils/models/Factories.hpp"
 #include "test_utils/streams/SolomonStreams.hpp"
 
@@ -16,6 +18,7 @@ using namespace vrp::models::costs;
 using namespace vrp::models::problem;
 using namespace vrp::models::solution;
 using namespace vrp::streams::in;
+using namespace ranges;
 
 namespace vrp::test {
 
@@ -74,10 +77,12 @@ SCENARIO("cheapest insertion handles c101_25 problem", "[algorithms][constructio
 
     THEN("calculates solution") {
       auto solution = CheapestInsertion<InsertionEvaluator>{{transportCosts, activityCosts, constraint}}.insert(ctx);
+      auto ids = get_job_ids_from_routes{}.operator()(solution);
 
       REQUIRE(solution.jobs.empty());
       REQUIRE(solution.unassigned.empty());
       REQUIRE(!solution.routes.empty());
+      REQUIRE(ranges::accumulate(ids, 0, [](const auto acc, const auto next) { return acc + 1; }) == 25);
     }
   }
 }
