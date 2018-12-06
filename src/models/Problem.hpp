@@ -1,10 +1,11 @@
 #pragma once
 
+#include "models/extensions/problem/Comparators.hpp"
 #include "models/problem/Fleet.hpp"
 #include "models/problem/Job.hpp"
 
 #include <memory>
-#include <vector>
+#include <set>
 
 namespace vrp::models {
 
@@ -12,6 +13,6 @@ namespace vrp::models {
 struct Problem final {
   std::shared_ptr<problem::Fleet> fleet;
 
-  std::vector<problem::Job> jobs;
+  std::set<models::problem::Job, models::problem::compare_jobs> jobs;
 };
 }

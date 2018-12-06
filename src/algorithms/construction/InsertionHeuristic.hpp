@@ -8,7 +8,9 @@ namespace vrp::algorithms::construction {
 /// Specifies generic insertion heuristic interface.
 template<typename Algorithm>
 struct InsertionHeuristic {
-  InsertionContext insert(const InsertionContext& ctx) const { return static_cast<Algorithm*>(this)->analyze(ctx); }
+  InsertionContext insert(const InsertionContext& ctx) const {
+    return static_cast<const Algorithm*>(this)->analyze(ctx);
+  }
 
 protected:
   /// Inserts result into context.

@@ -16,7 +16,7 @@ namespace vrp::streams::in {
 
 /// Calculates cartesian distance between two points on plane in 2D.
 struct scaled_cartesian_distance final {
-  int Scale = 1000;
+  const int Scale = 1000;
 
   models::common::Distance operator()(const std::pair<int, int>& left, const std::pair<int, int>& right) {
     auto x = left.first - right.first;
@@ -144,7 +144,7 @@ private:
       if (!problem.jobs.empty() && std::get<0>(customer) == last) break;
       last = std::get<0>(customer);
 
-      problem.jobs.push_back(as_job(
+      problem.jobs.insert(as_job(
         build_service{}
           .id(std::string("c") + std::to_string(std::get<0>(customer)))
           .dimens({{SizeDimKey, std::get<3>(customer)}})
