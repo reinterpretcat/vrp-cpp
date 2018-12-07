@@ -95,17 +95,22 @@ SCENARIO("cheapest insertion inserts service", "[algorithms][construction][inser
 }
 
 SCENARIO("cheapest insertion handles artificial problems with demand", "[algorithms][construction][insertion]") {
-  GIVEN("sequential coordinates problem with enough resources") {
-    auto [vehicles, capacity, routes] = GENERATE(table<int, int, int>({{1, 10, 1}, {2, 4, 2}}));
+  GIVEN("sequential coordinates problem") {
+    auto [vehicles, capacity, unassigned, routes] = GENERATE(table<int, int, int, int>({
+      {1, 10, 0, 1},
+      {2, 4, 0, 2},
+      {1, 4, 1, 1},
+      {1, 3, 2, 1},
+    }));
 
     auto [evaluator, ctx] = createInsertion<create_sequential_problem_stream>(vehicles, capacity);
 
-    THEN("calculates solution with all jobs assigned") {
+    THEN("calculates solution with all jobs processed") {
       auto solution = CheapestInsertion<InsertionEvaluator>{evaluator}.operator()(ctx);
       auto ids = get_job_ids_from_routes{}.operator()(solution);
 
       REQUIRE(solution.jobs.empty());
-      REQUIRE(solution.unassigned.empty());
+      REQUIRE(solution.unassigned.size() == unassigned);
       REQUIRE(solution.routes.size() == routes);
     }
   }
