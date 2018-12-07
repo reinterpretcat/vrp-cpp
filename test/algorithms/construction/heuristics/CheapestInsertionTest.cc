@@ -28,13 +28,12 @@ createInsertion(std::stringstream stream) {
   auto result = read_solomon_type<cartesian_distance<1>>{}.operator()(stream);
 
   auto problem = std::get<0>(result);
-  auto transportCosts = std::get<2>(result);
-  auto activityCosts = std::get<1>(result);
+  auto transport = std::get<2>(result);
+  auto activity = std::get<1>(result);
   auto constraint = std::make_shared<InsertionConstraint>();
   (*constraint)
-    .addHard<VehicleActivityTiming>(
-      std::make_shared<VehicleActivityTiming>(problem.fleet, transportCosts, activityCosts))
-    .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>())
+    .addHard<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(problem.fleet, transport, activity))
+    //.template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>())
     .addSoftRoute(std::make_shared<VehicleFixedCost>());
   auto ctx = vrp::test::test_build_insertion_context{}
                .jobs(std::move(problem.jobs))
@@ -42,7 +41,7 @@ createInsertion(std::stringstream stream) {
                .constraint(constraint)
                .owned();
 
-  return {{transportCosts, activityCosts}, ctx};
+  return {{transport, activity}, ctx};
 }
 
 template<typename ProblemStream>
@@ -97,8 +96,10 @@ SCENARIO("cheapest insertion inserts service", "[algorithms][construction][inser
 
 SCENARIO("cheapest insertion handles artificial problems with demand", "[algorithms][construction][insertion]") {
   GIVEN("sequential coordinates problem with enough resources") {
-    auto [vehicles, capacity, routes] = GENERATE(table<int, int, int>({//{1, 10, 1},
-                                                                       {2, 4, 2}}));
+    auto [vehicles, capacity, routes] = GENERATE(table<int, int, int>({
+      {1, 10, 1},
+      //{2, 4, 2}
+    }));
 
     auto [evaluator, ctx] = createInsertion<create_sequential_problem_stream>(vehicles, capacity);
 

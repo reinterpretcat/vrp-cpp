@@ -17,7 +17,8 @@ namespace vrp::algorithms::construction {
 /// Specifies a base constraint behavior.
 struct Constraint {
   /// Accept route and updates its state to allow more efficient constraint checks.
-  virtual void accept(const models::solution::Route& route, InsertionRouteState& state) const = 0;
+  /// Called in thread-safe context, so it is a chance to apply some changes.
+  virtual void accept(models::solution::Route& route, InsertionRouteState& state) const = 0;
 
   virtual ~Constraint() = default;
 };
@@ -31,7 +32,7 @@ struct HardRouteConstraint : virtual public Constraint {
   /// Specifies check function type.
   using CheckFunc = std::function<Result(const InsertionRouteContext&, const Job&)>;
 
-  void accept(const models::solution::Route& route, InsertionRouteState& state) const override {}
+  void accept(models::solution::Route& route, InsertionRouteState& state) const override {}
 
   virtual Result check(const InsertionRouteContext&, const Job&) const = 0;
 };
@@ -44,7 +45,7 @@ struct SoftRouteConstraint : virtual public Constraint {
   /// Specifies check function type.
   using CheckFunc = std::function<models::common::Cost(const InsertionRouteContext&, const Job&)>;
 
-  void accept(const models::solution::Route& route, InsertionRouteState& state) const override {}
+  void accept(models::solution::Route& route, InsertionRouteState& state) const override {}
 
   virtual models::common::Cost check(const InsertionRouteContext&, const Job&) const = 0;
 };
@@ -56,7 +57,7 @@ struct HardActivityConstraint : virtual public Constraint {
   /// Specifies check function type.
   using CheckFunc = std::function<Result(const InsertionRouteContext&, const InsertionActivityContext&)>;
 
-  void accept(const models::solution::Route& route, InsertionRouteState& state) const override {}
+  void accept(models::solution::Route& route, InsertionRouteState& state) const override {}
 
   virtual Result check(const InsertionRouteContext&, const InsertionActivityContext&) const = 0;
 };
@@ -66,7 +67,7 @@ struct SoftActivityConstraint : virtual public Constraint {
   /// Specifies check function type.
   using CheckFunc = std::function<models::common::Cost(const InsertionRouteContext&, const InsertionActivityContext&)>;
 
-  void accept(const models::solution::Route& route, InsertionRouteState& state) const override {}
+  void accept(models::solution::Route& route, InsertionRouteState& state) const override {}
 
   virtual models::common::Cost check(const InsertionRouteContext&, const InsertionActivityContext&) const = 0;
 };
@@ -84,7 +85,7 @@ public:
   // region Acceptance
 
   /// Accepts route and recalculates its states.
-  void accept(const models::solution::Route& route, InsertionRouteState& state) {
+  void accept(models::solution::Route& route, InsertionRouteState& state) {
     ranges::for_each(hardRouteConstraints_, [&](const auto& c) { c->accept(route, state); });
     ranges::for_each(softRouteConstraints_, [&](const auto& c) { c->accept(route, state); });
     ranges::for_each(hardActivityConstraints_, [&](const auto& c) { c->accept(route, state); });

@@ -41,7 +41,7 @@ struct VehicleActivityTiming final
   }
 
   /// Accept route and updates its insertion state.
-  void accept(const models::solution::Route& route, InsertionRouteState& state) const override {
+  void accept(models::solution::Route& route, InsertionRouteState& state) const override {
     using namespace ranges;
 
     ranges::for_each(ranges::view::all(keys_), [&](const auto& pair) {

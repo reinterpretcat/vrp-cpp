@@ -18,11 +18,15 @@ protected:
     result.visit(ranges::overload(
       [&](const InsertionSuccess& success) {
         success.route.first->actor = success.actor;
+        success.route.first->start->schedule.departure = success.departure;
+
         ctx.registry->use(*success.actor);
         ctx.routes[success.route.first] = success.route.second;
+
         // NOTE assume that activities are sorted by insertion index
         ranges::for_each(success.activities | ranges::view::reverse,
                          [&](const auto& act) { success.route.first->tour.insert(act.first, act.second); });
+
         ctx.jobs.erase(success.job);
         ctx.constraint->accept(*success.route.first, *success.route.second);
       },

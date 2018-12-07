@@ -21,7 +21,7 @@ struct VehicleActivitySize final
   explicit VehicleActivitySize(int code = 2) : code_(code) {}
 
   /// Accept route and updates its insertion state.
-  void accept(const models::solution::Route& route, InsertionRouteState& state) const override {
+  void accept(models::solution::Route& route, InsertionRouteState& state) const override {
     using namespace ranges;
 
     auto tour = view::concat(view::single(route.start), route.tour.activities(), view::single(route.end));
