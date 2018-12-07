@@ -116,6 +116,22 @@ SCENARIO("cheapest insertion handles artificial problems with demand", "[algorit
   }
 }
 
+SCENARIO("cheapest insertion handles artificial problems with times", "[algorithms][construction][insertion]") {
+  GIVEN("time problem") {
+    auto [evaluator, ctx] = createInsertion<create_time_problem_stream>(1, 10);
+
+    THEN("calculates solution with all jobs processed") {
+      auto solution = CheapestInsertion<InsertionEvaluator>{evaluator}.insert(ctx);
+      auto ids = get_job_ids_from_routes{}.operator()(solution);
+
+      REQUIRE(solution.jobs.empty());
+      REQUIRE(solution.unassigned.empty());
+      REQUIRE(solution.routes.size() == 1);
+      REQUIRE(get_job_ids_from_routes{}.operator()(solution).front() == "c5");
+    }
+  }
+}
+
 SCENARIO("cheapest insertion handles solomon set problems", "[algorithms][construction][insertion]") {
   GIVEN("c101_25 problem") {
     auto [evaluator, ctx] = createInsertion<create_c101_25_problem_stream>();

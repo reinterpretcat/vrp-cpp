@@ -16,7 +16,7 @@ struct get_job_ids_from_routes {
              return r.first->tour.activities() |
                view::transform([](const auto& a) { return vrp::test::get_job_id{}(*a->job); });
            }) |
-      to_vector | action::sort;
+      to_vector;
   }
 };
 }
