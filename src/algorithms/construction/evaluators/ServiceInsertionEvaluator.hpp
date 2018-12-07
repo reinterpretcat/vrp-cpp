@@ -63,7 +63,7 @@ private:
     auto [start, end] = waypoints(*ctx.actor, ctx.departure);
     auto tour = view::concat(view::single(start), ctx.route.first->tour.activities(), view::single(end));
     auto legs = view::zip(tour | view::sliding(2), view::iota(static_cast<size_t>(0)));
-    auto evalCtx = EvaluationContext::make_one(0, progress.bestCost, ctx.departure, {});
+    auto evalCtx = EvaluationContext::make_one(0, progress.bestCost, ctx.departure, {}, 0);
 
     // 1. analyze route legs
     auto result = ranges::accumulate(legs, evalCtx, [&](const auto& out, const auto& view) {
@@ -98,7 +98,9 @@ private:
             // check hard activity constraint
             auto status = constraint.hard(ctx, actCtx);
             if (status.has_value())
-              return std::get<0>(status.value()) ? EvaluationContext::make_invalid(std::get<1>(status.value())) : in3;
+              return std::get<0>(status.value()) || in3.code == 0
+                ? EvaluationContext::make_invalid(std::get<1>(status.value()))
+                : in3;
 
             // calculate all costs on activity level
             auto actCosts = constraint.soft(ctx, actCtx) + activityCosts(ctx, actCtx, progress);

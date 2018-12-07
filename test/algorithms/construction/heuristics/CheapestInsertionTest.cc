@@ -96,10 +96,7 @@ SCENARIO("cheapest insertion inserts service", "[algorithms][construction][inser
 
 SCENARIO("cheapest insertion handles artificial problems with demand", "[algorithms][construction][insertion]") {
   GIVEN("sequential coordinates problem with enough resources") {
-    auto [vehicles, capacity, routes] = GENERATE(table<int, int, int>({
-      {1, 10, 1},
-      {2, 4, 2}
-    }));
+    auto [vehicles, capacity, routes] = GENERATE(table<int, int, int>({{1, 10, 1}, {2, 4, 2}}));
 
     auto [evaluator, ctx] = createInsertion<create_sequential_problem_stream>(vehicles, capacity);
 

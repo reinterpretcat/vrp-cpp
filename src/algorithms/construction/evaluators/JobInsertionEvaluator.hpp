@@ -28,7 +28,7 @@ protected:
   /// Specifies evaluation context.
   struct EvaluationContext final {
     /// Violation code.
-    int code = -1;
+    int code = 0;
     /// Insertion index.
     size_t index = 0;
     /// Best cost.
@@ -41,7 +41,7 @@ protected:
     ActivityDetail detail;
 
     /// Checks whether context is invalidated.
-    bool isInvalid() const { return code >= 0; }
+    bool isInvalid() const { return code > 0; }
 
     /// Creates invalidated context.
     static EvaluationContext make_invalid(int code) {
@@ -52,8 +52,9 @@ protected:
     static EvaluationContext make_one(size_t index,
                                       const models::common::Cost& bestCost,
                                       const models::common::Timestamp& departure,
-                                      const ActivityDetail& detail) {
-      return {-1, index, bestCost, departure, detail};
+                                      const ActivityDetail& detail,
+                                      int code = -1) {
+      return {code, index, bestCost, departure, detail};
     }
   };
 
