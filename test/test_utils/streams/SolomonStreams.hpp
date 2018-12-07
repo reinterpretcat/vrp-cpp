@@ -4,12 +4,46 @@
 
 namespace vrp::test {
 
+/// Specifies problem with 5 sequential customers, demand equals 1,
+/// and permissive time windows.
+struct create_sequential_problem_stream {
+  std::stringstream operator()(int vehicles = 1, int capacity = 10) {
+    return SolomonBuilder()
+      .setTitle("Sequential customers")
+      .setVehicle(vehicles, capacity)
+      .addCustomer({0, 0, 0, 0, 0, 1000, 0})
+      .addCustomer({1, 1, 0, 1, 0, 1000, 10})
+      .addCustomer({2, 2, 0, 1, 0, 1000, 10})
+      .addCustomer({3, 3, 0, 1, 0, 1000, 10})
+      .addCustomer({4, 4, 0, 1, 0, 1000, 10})
+      .addCustomer({5, 5, 0, 1, 0, 1000, 10})
+      .build();
+  }
+};
 
+/// Specifies problem with 5 sequential customers, demand equals 1,
+/// and one strict time window.
+struct create_time_problem_stream {
+  std::stringstream operator()(int vehicles = 2, int capacity = 10) {
+    return SolomonBuilder()
+      .setTitle("Sequential customers")
+      .setVehicle(vehicles, capacity)
+      .addCustomer({0, 0, 0, 0, 0, 1000, 0})
+      .addCustomer({1, 1, 0, 1, 0, 1000, 10})
+      .addCustomer({2, 2, 0, 1, 0, 1000, 10})
+      .addCustomer({3, 3, 0, 1, 0, 1000, 10})
+      .addCustomer({4, 4, 0, 1, 0, 1000, 10})
+      .addCustomer({5, 5, 0, 1, 0, 10, 10})
+      .build();
+  }
+};
+
+/// Specifies the problem from solomon set.
 struct create_c101_25_problem_stream {
-  std::stringstream operator()() {
+  std::stringstream operator()(int vehicles = 25, int capacity = 200) {
     return SolomonBuilder()
       .setTitle("c101_25 problem")
-      .setVehicle(25, 200)
+      .setVehicle(vehicles, capacity)
       .addCustomer({0, 40, 50, 0, 0, 1236, 0})
       .addCustomer({1, 45, 68, 10, 912, 967, 90})
       .addCustomer({2, 45, 70, 30, 825, 870, 90})

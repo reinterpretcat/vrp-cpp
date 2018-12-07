@@ -37,6 +37,11 @@ class build_insertion_context {
 public:
   explicit build_insertion_context() : context_({{std::numeric_limits<models::common::Cost>::max(), 0}, {}, {}, {}}) {}
 
+  build_insertion_context& constraint(const std::shared_ptr<InsertionConstraint>& value) {
+    context_.constraint = value;
+    return *this;
+  }
+
   build_insertion_context& registry(const std::shared_ptr<models::solution::Registry>& value) {
     context_.registry = value;
     return *this;
@@ -79,7 +84,7 @@ public:
     return *this;
   }
 
-  build_insertion_route_context& route(const InsertionContext::RouteState& value) {
+  build_insertion_route_context& route(const InsertionRouteContext::RouteState& value) {
     context_.route = value;
     return *this;
   }

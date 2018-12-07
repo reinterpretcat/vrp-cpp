@@ -12,18 +12,14 @@ namespace vrp::algorithms::construction {
 
 struct ShipmentInsertionEvaluator final {
   explicit ShipmentInsertionEvaluator(std::shared_ptr<const models::costs::TransportCosts> transportCosts,
-                                      std::shared_ptr<const models::costs::ActivityCosts> activityCosts,
-                                      std::shared_ptr<InsertionConstraint> constraint) :
-    constraint_(std::move(constraint)) {}
+                                      std::shared_ptr<const models::costs::ActivityCosts> activityCosts) {}
 
   InsertionResult evaluate(const std::shared_ptr<const models::problem::Shipment>& shipment,
                            const InsertionRouteContext& ctx,
+                           const InsertionConstraint& constraint,
                            const InsertionProgress& progress) const {
     return InsertionResult{ranges::emplaced_index<1>, InsertionFailure{0}};
   }
-
-private:
-  std::shared_ptr<const InsertionConstraint> constraint_;
 };
 
 }  // namespace vrp::algorithms::construction

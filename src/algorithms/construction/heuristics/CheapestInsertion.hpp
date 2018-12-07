@@ -16,7 +16,9 @@ template<typename Evaluator>
 struct CheapestInsertion final : InsertionHeuristic<CheapestInsertion<Evaluator>> {
   explicit CheapestInsertion(const Evaluator& evaluator) : evaluator_(evaluator) {}
 
-  InsertionContext analyze(const InsertionContext& ctx) const {
+  void accept(const InsertionSuccess& success) { evaluator_.accept(success.route); }
+
+  InsertionContext insert(const InsertionContext& ctx) const {
     auto newCtx = InsertionContext(ctx);
     while (!newCtx.jobs.empty()) {
       InsertionHeuristic<CheapestInsertion<Evaluator>>::insert(
@@ -28,7 +30,7 @@ struct CheapestInsertion final : InsertionHeuristic<CheapestInsertion<Evaluator>
                               [&](const auto& job) { return evaluator_.evaluate(job, newCtx); }),
         newCtx);
     }
-    return newCtx;
+    return std::move(newCtx);
   }
 
 private:

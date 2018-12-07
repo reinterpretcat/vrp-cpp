@@ -8,8 +8,8 @@ namespace vrp::algorithms::construction {
 /// Specifies generic insertion heuristic interface.
 template<typename Algorithm>
 struct InsertionHeuristic {
-  InsertionContext insert(const InsertionContext& ctx) const {
-    return static_cast<const Algorithm*>(this)->analyze(ctx);
+  InsertionContext operator()(const InsertionContext& ctx) const {
+    return static_cast<const Algorithm*>(this)->insert(ctx);
   }
 
 protected:
@@ -24,6 +24,7 @@ protected:
         ranges::for_each(success.activities | ranges::view::reverse,
                          [&](const auto& act) { success.route.first->tour.insert(act.first, act.second); });
         ctx.jobs.erase(success.job);
+        ctx.constraint->accept(*success.route.first, *success.route.second);
       },
       [&](const InsertionFailure& failure) {
         ranges::for_each(ctx.jobs, [&](const auto& job) { ctx.unassigned[job] = failure.constraint; });

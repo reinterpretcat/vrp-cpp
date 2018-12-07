@@ -81,6 +81,18 @@ class InsertionConstraint final {
   };
 
 public:
+  // region Acceptance
+
+  /// Accepts route and recalculates its states.
+  void accept(const models::solution::Route& route, InsertionRouteState& state) {
+    ranges::for_each(hardRouteConstraints_, [&](const auto& c) { c->accept(route, state); });
+    ranges::for_each(softRouteConstraints_, [&](const auto& c) { c->accept(route, state); });
+    ranges::for_each(hardActivityConstraints_, [&](const auto& c) { c->accept(route, state); });
+    ranges::for_each(softActivityConstraints_, [&](const auto& c) { c->accept(route, state); });
+  }
+
+  // endregion
+
   // region Add route
 
   /// Adds hard route constraints

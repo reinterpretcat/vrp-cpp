@@ -22,7 +22,7 @@ namespace {
 
 const auto CurrentKey = VehicleActivitySize<int>::StateKeyCurrent;
 
-InsertionContext::RouteState
+InsertionRouteContext::RouteState
 createRouteState(const Fleet& fleet) {
   auto route = test_build_route{}.actor(getActor("v1", fleet)).shared();
   auto state = std::make_shared<InsertionRouteState>();

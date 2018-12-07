@@ -13,8 +13,11 @@ namespace vrp::algorithms::construction {
 
 /// Specifies insertion context for route.
 struct InsertionRouteContext final {
+  /// Specifies type which keeps reference to route and state together.
+  using RouteState = std::pair<std::shared_ptr<models::solution::Route>, std::shared_ptr<InsertionRouteState>>;
+
   /// A route where job is supposed to be inserted.
-  InsertionContext::RouteState route;
+  RouteState route;
 
   /// A proposed actor to be used. Might be different from one used with route.
   models::solution::Route::Actor actor;

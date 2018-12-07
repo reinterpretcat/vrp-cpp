@@ -22,22 +22,21 @@ namespace vrp::algorithms::construction {
 
 struct ServiceInsertionEvaluator final : private JobInsertionEvaluator {
   ServiceInsertionEvaluator(std::shared_ptr<const models::costs::TransportCosts> transportCosts,
-                            std::shared_ptr<const models::costs::ActivityCosts> activityCosts,
-                            std::shared_ptr<const InsertionConstraint> constraint) :
-    JobInsertionEvaluator(std::move(transportCosts), std::move(activityCosts)),
-    constraint_(std::move(constraint)) {}
+                            std::shared_ptr<const models::costs::ActivityCosts> activityCosts) :
+    JobInsertionEvaluator(std::move(transportCosts), std::move(activityCosts)) {}
 
   /// Evaluates service insertion possibility.
   InsertionResult evaluate(const std::shared_ptr<const models::problem::Service>& service,
                            const InsertionRouteContext& ctx,
+                           const InsertionConstraint& constraint,
                            const InsertionProgress& progress) const {
     auto job = models::problem::as_job(service);
 
     // check hard constraints on route level.
-    auto error = constraint_->hard(ctx, job);
+    auto error = constraint.hard(ctx, job);
     if (error.has_value()) return {ranges::emplaced_index<1>, InsertionFailure{error.value()}};
 
-    return analyze(job, *service, ctx, progress);
+    return analyze(job, *service, ctx, constraint, progress);
   }
 
 private:
@@ -48,6 +47,7 @@ private:
   InsertionResult analyze(const models::problem::Job& job,
                           const models::problem::Service& service,
                           const InsertionRouteContext& ctx,
+                          const InsertionConstraint& constraint,
                           const InsertionProgress& progress) const {
     using namespace ranges;
     using namespace vrp::models;
@@ -57,7 +57,7 @@ private:
                       .shared();
 
     // calculate additional costs on route level.
-    auto routeCosts = constraint_->soft(ctx, job) + vehicleCosts(ctx);
+    auto routeCosts = constraint.soft(ctx, job) + vehicleCosts(ctx);
 
     // form route legs from a new route view.
     auto [start, end] = waypoints(*ctx.actor, ctx.departure);
@@ -96,12 +96,12 @@ private:
             activity->detail.location = location;
 
             // check hard activity constraint
-            auto status = constraint_->hard(ctx, actCtx);
+            auto status = constraint.hard(ctx, actCtx);
             if (status.has_value())
               return std::get<0>(status.value()) ? EvaluationContext::make_invalid(std::get<1>(status.value())) : in3;
 
             // calculate all costs on activity level
-            auto actCosts = constraint_->soft(ctx, actCtx) + activityCosts(ctx, actCtx, progress);
+            auto actCosts = constraint.soft(ctx, actCtx) + activityCosts(ctx, actCtx, progress);
             auto totalCosts = routeCosts + actCosts;
 
             // calculate end time (departure) for the next leg
@@ -119,8 +119,6 @@ private:
 
     return result.isInvalid() ? failure(result) : success(result, ctx, activity);
   }
-
-  std::shared_ptr<const InsertionConstraint> constraint_;
 };
 
 }  // namespace vrp::algorithms::construction

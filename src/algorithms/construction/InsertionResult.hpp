@@ -1,6 +1,6 @@
 #pragma once
 
-#include "algorithms/construction/InsertionContext.hpp"
+#include "algorithms/construction/InsertionRouteContext.hpp"
 #include "models/common/Cost.hpp"
 #include "models/common/Timestamp.hpp"
 #include "models/solution/Actor.hpp"
@@ -27,7 +27,7 @@ struct InsertionSuccess final {
   models::solution::Route::Actor actor;
 
   /// Specifies route where insertion happens.
-  InsertionContext::RouteState route;
+  InsertionRouteContext::RouteState route;
 
   /// Specifies new vehicle departure time.
   models::common::Timestamp departure;

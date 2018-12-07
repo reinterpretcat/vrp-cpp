@@ -20,10 +20,9 @@ namespace vrp::algorithms::construction {
 /// Provides the way to evaluate insertion cost.
 struct InsertionEvaluator final {
   InsertionEvaluator(const std::shared_ptr<const models::costs::TransportCosts>& transportCosts,
-                     const std::shared_ptr<const models::costs::ActivityCosts>& activityCosts,
-                     const std::shared_ptr<InsertionConstraint>& constraint) :
-    serviceInsertionEvaluator(transportCosts, activityCosts, constraint),
-    shipmentInsertionEvaluator(transportCosts, activityCosts, constraint) {}
+                     const std::shared_ptr<const models::costs::ActivityCosts>& activityCosts) :
+    serviceInsertionEvaluator(transportCosts, activityCosts),
+    shipmentInsertionEvaluator(transportCosts, activityCosts) {}
 
   /// Evaluates possibility to preform insertion from given insertion context.
   InsertionResult evaluate(const models::problem::Job& job, const InsertionContext& ctx) const {
@@ -32,8 +31,8 @@ struct InsertionEvaluator final {
 
     return ranges::accumulate(
       // create new route and use it within existing ones
-      view::concat(view::single(InsertionContext::RouteState{std::make_shared<models::solution::Route>(),
-                                                             std::make_shared<InsertionRouteState>()}),
+      view::concat(view::single(InsertionRouteContext::RouteState{std::make_shared<models::solution::Route>(),
+                                                                  std::make_shared<InsertionRouteState>()}),
                    view::all(ctx.routes | view::transform([](const auto& v) { return std::pair(v.first, v.second); }))),
       make_result_failure(),
       [&](const auto& outer, const auto& rs) {
@@ -52,10 +51,10 @@ struct InsertionEvaluator final {
           // evaluate its insertion cost
           auto result = utils::mono_result<InsertionResult>(job.visit(ranges::overload(
             [&](const std::shared_ptr<const models::problem::Service>& service) {
-              return serviceInsertionEvaluator.evaluate(service, routeCtx, ctx.progress);
+              return serviceInsertionEvaluator.evaluate(service, routeCtx, *ctx.constraint, ctx.progress);
             },
             [&](const std::shared_ptr<const models::problem::Shipment>& shipment) {
-              return shipmentInsertionEvaluator.evaluate(shipment, routeCtx, ctx.progress);
+              return shipmentInsertionEvaluator.evaluate(shipment, routeCtx, *ctx.constraint, ctx.progress);
             })));
 
           // propagate best result or failure
@@ -67,7 +66,7 @@ struct InsertionEvaluator final {
 private:
   /// Creates new route context for given actor and route state.
   InsertionRouteContext createRouteContext(const models::solution::Route::Actor& actor,
-                                           const InsertionContext::RouteState& routeState) const {
+                                           const InsertionRouteContext::RouteState& routeState) const {
     auto ctx = InsertionRouteContext{routeState, actor, 0};
 
     // route is used first time
