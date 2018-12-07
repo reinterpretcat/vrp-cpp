@@ -14,6 +14,7 @@ set(SOURCE_FILES
 
         algorithms/construction/constraints/VehicleActivitySizeTest.cc
         algorithms/construction/constraints/VehicleActivityTimingTest.cc
+        algorithms/construction/constraints/VehicleFixedCostTest.cc
 
         algorithms/construction/evaluators/ServiceInsertionEvaluatorTest.cc
         algorithms/construction/evaluators/JobInsertionEvaluatorTest.cc

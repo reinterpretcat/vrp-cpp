@@ -123,7 +123,6 @@ private:
                 models::Problem& problem,
                 RoutingMatrix& matrix,
                 const std::tuple<int, int>& vehicle) const {
-
     /// Customer defined by: id, x, y, demand, start, end, service
     using CustomerData = std::tuple<int, int, int, int, int, int, int>;
     using namespace vrp::models::common;
