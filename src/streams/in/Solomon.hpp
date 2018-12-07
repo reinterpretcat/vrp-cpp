@@ -6,6 +6,7 @@
 #include "models/extensions/problem/Factories.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <functional>
 #include <istream>
 #include <range/v3/all.hpp>
@@ -20,7 +21,7 @@ struct cartesian_distance final {
   models::common::Distance operator()(const std::pair<int, int>& left, const std::pair<int, int>& right) {
     auto x = left.first - right.first;
     auto y = left.second - right.second;
-    return static_cast<models::common::Distance>(std::sqrt(x * x + y * y) * Scale);
+    return static_cast<models::common::Distance>(std::round(std::sqrt(x * x + y * y) * Scale));
   }
 };
 
@@ -90,9 +91,9 @@ struct read_solomon_type final {
     auto matrix = std::make_shared<RoutingMatrix>();
 
     skipLines(input, 4);
-    readFleet(input, problem, *matrix);
+    auto vehicle = readFleet(input, problem, *matrix);
     skipLines(input, 4);
-    readJobs(input, problem, *matrix);
+    readJobs(input, problem, *matrix, vehicle);
 
     matrix->generate();
 
@@ -106,7 +107,7 @@ private:
                      [&input](auto) { input.ignore(std::numeric_limits<std::streamsize>::max(), input.widen('\n')); });
   }
 
-  void readFleet(std::istream& input, models::Problem& problem, RoutingMatrix& matrix) const {
+  std::tuple<int, int> readFleet(std::istream& input, models::Problem& problem, RoutingMatrix& matrix) const {
     auto type = std::tuple<int, int>{};
 
     std::string line;
@@ -115,18 +116,14 @@ private:
     iss >> std::get<0>(type) >> std::get<1>(type);
 
     problem.fleet->add(models::problem::build_driver{}.id("driver").costs({0, 0, 0, 0}).owned());
-
-    ranges::for_each(ranges::view::ints(0, std::get<0>(type)), [&](auto i) {
-      problem.fleet->add(models::problem::build_vehicle{}
-                           .id(std::string("v") + std::to_string(i + 1))
-                           .costs({0, 1, 0, 0, 0})
-                           .dimens({{SizeDimKey, std::get<1>(type)}})
-                           .details({{0, 0, {0, std::numeric_limits<int>::max()}}})
-                           .owned());
-    });
+    return type;
   }
 
-  void readJobs(std::istream& input, models::Problem& problem, RoutingMatrix& matrix) const {
+  void readJobs(std::istream& input,
+                models::Problem& problem,
+                RoutingMatrix& matrix,
+                const std::tuple<int, int>& vehicle) const {
+
     /// Customer defined by: id, x, y, demand, start, end, service
     using CustomerData = std::tuple<int, int, int, int, int, int, int>;
     using namespace vrp::models::common;
@@ -143,7 +140,21 @@ private:
       last = std::get<0>(customer);
       int id = std::get<0>(customer);
       int location = matrix.location(std::get<1>(customer), std::get<2>(customer));
-      if (id == 0) continue;
+
+      if (id == 0) {
+        ranges::for_each(ranges::view::ints(0, std::get<0>(vehicle)), [&](auto i) {
+          problem.fleet->add(models::problem::build_vehicle{}
+                               .id(std::string("v") + std::to_string(i + 1))
+                               .costs({0, 1, 0, 0, 0})
+                               .dimens({{SizeDimKey, std::get<1>(vehicle)}})
+                               .details({{0,
+                                          0,
+                                          {static_cast<Timestamp>(std::get<4>(customer)),
+                                           static_cast<Timestamp>(std::get<5>(customer))}}})
+                               .owned());
+        });
+        continue;
+      }
 
       problem.jobs.insert(as_job(
         build_service{}

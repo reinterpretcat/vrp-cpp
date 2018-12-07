@@ -68,8 +68,8 @@ SCENARIO("cheapest insertion handles c101_25 problem", "[algorithms][constructio
     auto constraint = std::make_shared<InsertionConstraint>();
     (*constraint)
       .addHard<VehicleActivityTiming>(
-        std::make_shared<VehicleActivityTiming>(problem.fleet, transportCosts, activityCosts))
-      .addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>());
+        std::make_shared<VehicleActivityTiming>(problem.fleet, transportCosts, activityCosts));
+    //.addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>());
     auto ctx = test_build_insertion_context{}
                  .jobs(std::move(problem.jobs))
                  .registry(std::make_shared<Registry>(problem.fleet))
@@ -82,6 +82,7 @@ SCENARIO("cheapest insertion handles c101_25 problem", "[algorithms][constructio
       REQUIRE(solution.jobs.empty());
       REQUIRE(solution.unassigned.empty());
       REQUIRE(!solution.routes.empty());
+      REQUIRE(solution.routes.size() == 4);
       REQUIRE(ranges::accumulate(ids, 0, [](const auto acc, const auto next) { return acc + 1; }) == 25);
     }
   }
