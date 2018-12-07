@@ -10,6 +10,7 @@
 #include <memory>
 #include <optional>
 #include <range/v3/all.hpp>
+#include <set>
 #include <vector>
 
 namespace vrp::algorithms::construction {
@@ -86,10 +87,7 @@ public:
 
   /// Accepts route and recalculates its states.
   void accept(models::solution::Route& route, InsertionRouteState& state) {
-    ranges::for_each(hardRouteConstraints_, [&](const auto& c) { c->accept(route, state); });
-    ranges::for_each(softRouteConstraints_, [&](const auto& c) { c->accept(route, state); });
-    ranges::for_each(hardActivityConstraints_, [&](const auto& c) { c->accept(route, state); });
-    ranges::for_each(softActivityConstraints_, [&](const auto& c) { c->accept(route, state); });
+    ranges::for_each(constraints_, [&](const auto& c) { c->accept(route, state); });
   }
 
   // endregion
@@ -98,6 +96,7 @@ public:
 
   /// Adds hard route constraints
   InsertionConstraint& addHardRoute(std::shared_ptr<HardRouteConstraint> constraint) {
+    constraints_.insert(constraint);
     hardRouteConstraints_.push_back(std::move(constraint));
     return *this;
   }
@@ -109,12 +108,15 @@ public:
                                          InsertionRouteContext,
                                          HardRouteConstraint::Job>;
 
-    hardRouteConstraints_.push_back(std::make_shared<Wrapper>(std::move(constraint)));
+    auto c = std::make_shared<Wrapper>(std::move(constraint));
+    constraints_.insert(c);
+    hardRouteConstraints_.push_back(c);
     return *this;
   }
 
   /// Adds soft route constraint.
   InsertionConstraint& addSoftRoute(std::shared_ptr<SoftRouteConstraint> constraint) {
+    constraints_.insert(constraint);
     softRouteConstraints_.push_back(std::move(constraint));
     return *this;
   }
@@ -124,7 +126,9 @@ public:
     using Wrapper =
       CheckFunctionWrapper<SoftRouteConstraint, models::common::Cost, InsertionRouteContext, HardRouteConstraint::Job>;
 
-    softRouteConstraints_.push_back(std::make_shared<Wrapper>(std::move(constraint)));
+    auto c = std::make_shared<Wrapper>(std::move(constraint));
+    constraints_.insert(c);
+    softRouteConstraints_.push_back(c);
     return *this;
   }
 
@@ -134,6 +138,7 @@ public:
 
   /// Adds hard activity constraint.
   InsertionConstraint& addHardActivity(std::shared_ptr<HardActivityConstraint> constraint) {
+    constraints_.insert(constraint);
     hardActivityConstraints_.push_back(std::move(constraint));
     return *this;
   }
@@ -145,12 +150,15 @@ public:
                                          InsertionRouteContext,
                                          InsertionActivityContext>;
 
-    hardActivityConstraints_.push_back(std::make_shared<Wrapper>(std::move(constraint)));
+    auto c = std::make_shared<Wrapper>(std::move(constraint));
+    constraints_.insert(c);
+    hardActivityConstraints_.push_back(c);
     return *this;
   }
 
   /// Adds soft activity constraint.
   InsertionConstraint& addSoftActivity(std::shared_ptr<SoftActivityConstraint> constraint) {
+    constraints_.insert(constraint);
     softActivityConstraints_.push_back(std::move(constraint));
     return *this;
   }
@@ -162,7 +170,9 @@ public:
                                          InsertionRouteContext,
                                          InsertionActivityContext>;
 
-    softActivityConstraints_.push_back(std::make_shared<Wrapper>(std::move(constraint)));
+    auto c = std::make_shared<Wrapper>(std::move(constraint));
+    constraints_.insert(c);
+    softActivityConstraints_.push_back(c);
     return *this;
   }
 
@@ -176,6 +186,7 @@ public:
     std::shared_ptr<typename std::enable_if<std::is_base_of<HardRouteConstraint, T>::value &&
                                               std::is_base_of<HardActivityConstraint, T>::value,
                                             T>::type> v) {
+    constraints_.insert(v);
     hardRouteConstraints_.push_back(v);
     hardActivityConstraints_.push_back(v);
     return *this;
@@ -232,6 +243,7 @@ private:
   std::vector<std::shared_ptr<SoftRouteConstraint>> softRouteConstraints_;
   std::vector<std::shared_ptr<HardActivityConstraint>> hardActivityConstraints_;
   std::vector<std::shared_ptr<SoftActivityConstraint>> softActivityConstraints_;
+  std::set<std::shared_ptr<Constraint>> constraints_;
 };
 
 }  // namespace vrp::algorithms::construction

@@ -25,13 +25,13 @@ struct VehicleActivityTiming final
   inline static const std::string StateKey = "op_time";
 
   VehicleActivityTiming(const std::shared_ptr<const models::problem::Fleet>& fleet,
-                        const std::shared_ptr<const models::costs::TransportCosts>& transportCosts,
-                        const std::shared_ptr<const models::costs::ActivityCosts>& activityCosts,
+                        const std::shared_ptr<const models::costs::TransportCosts>& transport,
+                        const std::shared_ptr<const models::costs::ActivityCosts>& activity,
                         int code = 1) :
     code_(code),
     keys_(),
-    transportCosts_(transportCosts),
-    activityCosts_(activityCosts) {
+    transport_(transport),
+    activity_(activity) {
     ranges::for_each(empty_actors(*fleet), [&](const auto& a) {
       auto key = actorSharedKey(StateKey, a);
       if (keys_.find(key) == keys_.end()) {
@@ -44,15 +44,32 @@ struct VehicleActivityTiming final
   void accept(models::solution::Route& route, InsertionRouteState& state) const override {
     using namespace ranges;
 
-    ranges::for_each(ranges::view::all(keys_), [&](const auto& pair) {
+    const auto& actor = *route.actor;
+
+    // update each activity schedule
+    ranges::accumulate(  //
+      view::concat(view::single(route.start), route.tour.activities(), view::single(route.end)),
+      std::pair{route.start->detail.location, route.start->schedule.departure},
+      [&](const auto& acc, auto& a) {
+        const auto& [loc, dep] = acc;
+
+        a->schedule.arrival = dep + transport_->duration(actor, loc, a->detail.location, dep);
+        a->schedule.departure = a->schedule.arrival + activity_->duration(actor, *a, a->schedule.arrival);
+
+        return std::pair{a->detail.location, a->schedule.departure};
+      });
+
+    // update latest possible arrivals for each unique actor type
+    ranges::for_each(view::all(keys_), [&](const auto& pair) {
       const auto& stateKey = pair.first;
       auto init = std::pair{pair.second.first, pair.second.second};
 
       ranges::accumulate(view::reverse(route.tour.activities()), init, [&](const auto& acc, const auto& act) {
         const auto& [endTime, prevLoc] = acc;
 
-        auto duration = transportCosts_->duration(*route.actor, act->detail.location, prevLoc, endTime) -
-          activityCosts_->duration(*route.actor, *act, endTime);
+        auto duration = std::max<std::int64_t>(0,
+                                               transport_->duration(actor, act->detail.location, prevLoc, endTime) -
+                                                 activity_->duration(actor, *act, endTime));
         auto potentialLatest = endTime > duration ? endTime - duration : 0;
 
         auto latestArrivalTime = std::min(act->detail.time.end, potentialLatest);
@@ -102,7 +119,7 @@ struct VehicleActivityTiming final
 
     // |--- prev ---| |--- next ---| |- earliest arrival of vehicle
     auto arrTimeAtNext =
-      actCtx.departure + transportCosts_->duration(actor, prev.detail.location, nextActLocation, actCtx.departure);
+      actCtx.departure + transport_->duration(actor, prev.detail.location, nextActLocation, actCtx.departure);
     if (arrTimeAtNext > latestArrTimeAtNextAct) return fail(code_);
 
 
@@ -111,14 +128,13 @@ struct VehicleActivityTiming final
 
 
     auto arrTimeAtNewAct = actCtx.departure  //
-      + transportCosts_->duration(actor, prev.detail.location, target.detail.location, actCtx.departure);
+      + transport_->duration(actor, prev.detail.location, target.detail.location, actCtx.departure);
 
     auto endTimeAtNewAct = std::max(arrTimeAtNewAct, target.detail.time.start)  //
-      + activityCosts_->duration(actor, target, arrTimeAtNewAct);
+      + activity_->duration(actor, target, arrTimeAtNewAct);
 
-    std::int64_t time =
-      transportCosts_->duration(actor, target.detail.location, nextActLocation, latestArrTimeAtNextAct)  //
-      - activityCosts_->duration(actor, target, arrTimeAtNewAct);
+    std::int64_t time = transport_->duration(actor, target.detail.location, nextActLocation, latestArrTimeAtNextAct)  //
+      - activity_->duration(actor, target, arrTimeAtNewAct);
 
     std::int64_t latestArrTimeAtNewAct = std::min<std::int64_t>(
       target.detail.time.end, static_cast<std::int64_t>(latestArrTimeAtNextAct) - static_cast<std::int64_t>(time));
@@ -131,7 +147,7 @@ struct VehicleActivityTiming final
 
 
     auto arrTimeAtNextAct =
-      endTimeAtNewAct + transportCosts_->duration(actor, target.detail.location, nextActLocation, endTimeAtNewAct);
+      endTimeAtNewAct + transport_->duration(actor, target.detail.location, nextActLocation, endTimeAtNewAct);
 
     //  |--- latest arrival of vehicle @next ---| |--- vehicle's arrival @next ---|
     return arrTimeAtNextAct > latestArrTimeAtNextAct ? stop(code_) : success();
@@ -140,7 +156,7 @@ struct VehicleActivityTiming final
 private:
   int code_;
   std::unordered_map<std::string, std::pair<models::common::Timestamp, models::common::Location>> keys_;
-  std::shared_ptr<const models::costs::TransportCosts> transportCosts_;
-  std::shared_ptr<const models::costs::ActivityCosts> activityCosts_;
+  std::shared_ptr<const models::costs::TransportCosts> transport_;
+  std::shared_ptr<const models::costs::ActivityCosts> activity_;
 };
 }

@@ -33,7 +33,7 @@ createInsertion(std::stringstream stream) {
   auto constraint = std::make_shared<InsertionConstraint>();
   (*constraint)
     .addHard<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(problem.fleet, transport, activity))
-    //.template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>())
+    .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>())
     .addSoftRoute(std::make_shared<VehicleFixedCost>());
   auto ctx = vrp::test::test_build_insertion_context{}
                .jobs(std::move(problem.jobs))
@@ -98,7 +98,7 @@ SCENARIO("cheapest insertion handles artificial problems with demand", "[algorit
   GIVEN("sequential coordinates problem with enough resources") {
     auto [vehicles, capacity, routes] = GENERATE(table<int, int, int>({
       {1, 10, 1},
-      //{2, 4, 2}
+      {2, 4, 2}
     }));
 
     auto [evaluator, ctx] = createInsertion<create_sequential_problem_stream>(vehicles, capacity);
