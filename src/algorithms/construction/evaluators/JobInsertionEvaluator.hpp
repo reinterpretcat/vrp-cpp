@@ -140,7 +140,8 @@ protected:
                                      const models::solution::Activity& start,
                                      const models::solution::Activity& end,
                                      const models::common::Timestamp& depTime) const {
-    auto arrival = depTime + transportCosts_->duration(actor, start.detail.location, end.detail.location, depTime);
+    auto arrival =
+      depTime + transportCosts_->duration(*actor.vehicle, start.detail.location, end.detail.location, depTime);
     return std::max(arrival, end.detail.time.start) + activityCosts_->duration(actor, end, arrival);
   }
 
@@ -162,7 +163,7 @@ private:
                                             const models::solution::Activity& start,
                                             const models::solution::Activity& end,
                                             models::common::Timestamp time) const {
-    auto arrival = time + transportCosts_->duration(actor, start.detail.location, end.detail.location, time);
+    auto arrival = time + transportCosts_->duration(*actor.vehicle, start.detail.location, end.detail.location, time);
     auto departure = std::max(arrival, end.detail.time.start) + activityCosts_->duration(actor, end, arrival);
 
     auto transportCost = transportCosts_->cost(actor, start.detail.location, end.detail.location, time);

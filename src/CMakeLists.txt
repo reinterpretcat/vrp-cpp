@@ -29,6 +29,8 @@ set(SOURCE_FILES
         algorithms/construction/InsertionRouteState.hpp
         algorithms/construction/InsertionProgress.hpp
 
+        algorithms/ruin/JobNeighbourhood.hpp
+
         models/common/Cost.hpp
         models/common/Dimension.hpp
         models/common/Distance.hpp

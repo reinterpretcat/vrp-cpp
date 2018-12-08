@@ -53,7 +53,7 @@ struct VehicleActivityTiming final
       [&](const auto& acc, auto& a) {
         const auto& [loc, dep] = acc;
 
-        a->schedule.arrival = dep + transport_->duration(actor, loc, a->detail.location, dep);
+        a->schedule.arrival = dep + transport_->duration(*actor.vehicle, loc, a->detail.location, dep);
         a->schedule.departure =
           std::max(a->schedule.arrival, a->detail.time.start) + activity_->duration(actor, *a, a->schedule.arrival);
 
@@ -68,9 +68,10 @@ struct VehicleActivityTiming final
       ranges::accumulate(view::reverse(route.tour.activities()), init, [&](const auto& acc, const auto& act) {
         const auto& [endTime, prevLoc] = acc;
 
-        auto duration = std::max<std::int64_t>(0,
-                                               transport_->duration(actor, act->detail.location, prevLoc, endTime) -
-                                                 activity_->duration(actor, *act, endTime));
+        auto duration =
+          std::max<std::int64_t>(0,
+                                 transport_->duration(*actor.vehicle, act->detail.location, prevLoc, endTime) -
+                                   activity_->duration(actor, *act, endTime));
         auto potentialLatest = endTime > duration ? endTime - duration : 0;
 
         auto latestArrivalTime = std::min(act->detail.time.end, potentialLatest);
@@ -120,7 +121,7 @@ struct VehicleActivityTiming final
 
     // |--- prev ---| |--- next ---| |- earliest arrival of vehicle
     auto arrTimeAtNext =
-      actCtx.departure + transport_->duration(actor, prev.detail.location, nextActLocation, actCtx.departure);
+      actCtx.departure + transport_->duration(*actor.vehicle, prev.detail.location, nextActLocation, actCtx.departure);
     if (arrTimeAtNext > latestArrTimeAtNextAct) return fail(code_);
 
 
@@ -129,13 +130,14 @@ struct VehicleActivityTiming final
 
 
     auto arrTimeAtNewAct = actCtx.departure  //
-      + transport_->duration(actor, prev.detail.location, target.detail.location, actCtx.departure);
+      + transport_->duration(*actor.vehicle, prev.detail.location, target.detail.location, actCtx.departure);
 
     auto endTimeAtNewAct = std::max(arrTimeAtNewAct, target.detail.time.start)  //
       + activity_->duration(actor, target, arrTimeAtNewAct);
 
-    std::int64_t time = transport_->duration(actor, target.detail.location, nextActLocation, latestArrTimeAtNextAct)  //
-      - activity_->duration(actor, target, arrTimeAtNewAct);
+    std::int64_t time =
+      transport_->duration(*actor.vehicle, target.detail.location, nextActLocation, latestArrTimeAtNextAct) -
+      activity_->duration(actor, target, arrTimeAtNewAct);
 
     std::int64_t latestArrTimeAtNewAct = std::min<std::int64_t>(
       target.detail.time.end, static_cast<std::int64_t>(latestArrTimeAtNextAct) - static_cast<std::int64_t>(time));
@@ -148,7 +150,7 @@ struct VehicleActivityTiming final
 
 
     auto arrTimeAtNextAct =
-      endTimeAtNewAct + transport_->duration(actor, target.detail.location, nextActLocation, endTimeAtNewAct);
+      endTimeAtNewAct + transport_->duration(*actor.vehicle, target.detail.location, nextActLocation, endTimeAtNewAct);
 
     //  |--- latest arrival of vehicle @next ---| |--- vehicle's arrival @next ---|
     return arrTimeAtNextAct > latestArrTimeAtNextAct ? stop(code_) : success();

@@ -18,7 +18,7 @@ struct Vehicle final {
   /// Vehicle id.
   std::string id;
 
-  /// Vehicle profile.
+  /// Specifies vehicle transport cost profile.
   std::string profile;
 
   /// Specifies vehicle costs.

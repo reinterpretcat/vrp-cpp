@@ -16,21 +16,20 @@ struct TransportCosts {
                             const common::Location& from,
                             const common::Location& to,
                             const common::Timestamp& departure) const {
-    auto dist = distance(actor, from, to, departure);
-    auto dur = duration(actor, from, to, departure);
+    auto dist = distance(*actor.vehicle, from, to, departure);
+    auto dur = duration(*actor.vehicle, from, to, departure);
     return dist * (actor.driver->costs.perDistance + actor.vehicle->costs.perDistance) +
       dur * (actor.driver->costs.perDrivingTime + actor.vehicle->costs.perDrivingTime);
   }
 
   /// Returns transport time between two locations.
-  virtual common::Duration duration(const solution::Actor& actor,
+  virtual common::Duration duration(const problem::Vehicle& vehicle,
                                     const common::Location& from,
                                     const common::Location& to,
                                     const common::Timestamp& departure) const = 0;
 
-protected:
-  /// Returns distance between two locations.
-  virtual common::Distance distance(const solution::Actor& actor,
+  /// Returns transport distance between two locations.
+  virtual common::Distance distance(const problem::Vehicle& vehicle,
                                     const common::Location& from,
                                     const common::Location& to,
                                     const common::Timestamp& departure) const = 0;
