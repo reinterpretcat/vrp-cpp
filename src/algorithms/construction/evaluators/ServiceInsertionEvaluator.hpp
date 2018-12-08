@@ -99,7 +99,7 @@ private:
             auto status = constraint.hard(ctx, actCtx);
             if (status.has_value())
               return std::get<0>(status.value()) || in3.code == 0
-                ? EvaluationContext::make_invalid(std::get<1>(status.value()))
+                ? EvaluationContext::make_invalid(std::get<1>(status.value()), std::get<0>(status.value()))
                 : in3;
 
             // calculate all costs on activity level

@@ -125,7 +125,7 @@ struct VehicleActivityTiming final
 
 
     //|--- next ---| |--- target ---|
-    if (target.detail.time.start > next.detail.time.end) return fail(code_);
+    if (target.detail.time.start > next.detail.time.end) return stop(code_);
 
 
     auto arrTimeAtNewAct = actCtx.departure  //
