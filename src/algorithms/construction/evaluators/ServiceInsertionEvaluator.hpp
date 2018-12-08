@@ -67,7 +67,7 @@ private:
 
     // 1. analyze route legs
     auto result = ranges::accumulate(legs, evalCtx, [&](const auto& out, const auto& view) {
-      if (out.isInvalid()) return out;
+      if (out.shouldBreak()) return out;
 
       auto [items, index] = view;
       auto [prev, next] = std::tie(*std::begin(items), *(std::begin(items) + 1));
@@ -75,12 +75,12 @@ private:
 
       // 2. analyze service details
       return ranges::accumulate(view::all(service.details), out, [&](const auto& in1, const auto& detail) {
-        if (in1.isInvalid()) return in1;
+        if (in1.shouldBreak()) return in1;
 
         // TODO check whether tw is empty
         // 3. analyze detail time windows
         return ranges::accumulate(view::all(detail.times), in1, [&](const auto& in2, const auto& time) {
-          if (in2.isInvalid()) return in2;
+          if (in2.shouldBreak()) return in2;
 
           activity->detail.time = time;
           activity->detail.duration = detail.duration;
@@ -91,7 +91,7 @@ private:
 
           // 4. analyze possible locations
           return ranges::accumulate(view::all(locations), in2, [&](const auto& in3, const auto& location) {
-            if (in3.isInvalid()) return in3;
+            if (in3.shouldBreak()) return in3;
 
             activity->detail.location = location;
 
@@ -119,7 +119,7 @@ private:
 
     activity->detail = result.detail;
 
-    return result.isInvalid() ? failure(result) : success(result, ctx, activity);
+    return result.isSuccess() ? success(result, ctx, activity) : failure(result);
   }
 };
 

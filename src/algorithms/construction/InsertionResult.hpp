@@ -62,7 +62,9 @@ get_cheapest(const InsertionResult& left, const InsertionResult& right) {
       if (left.index() == 1) return right;
       return ranges::get<0>(left).cost > success.cost ? make_result_success(success) : left;
     },
-    [&](const InsertionFailure&) { return left; })));
+    [&](const InsertionFailure& failure) {
+      return left.index() == 1 ? make_result_failure(failure.constraint) : left;
+    })));
 }
 
 }  // namespace vrp::algorithms::construction

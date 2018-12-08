@@ -48,7 +48,10 @@ protected:
     }
 
     /// Checks whether context is invalidated.
-    bool isInvalid() const { return isBreak; }
+    bool shouldBreak() const { return isBreak; }
+
+    /// Checks whether insertion is found.
+    bool isSuccess() const { return code < 0; }
 
     /// Creates new context.
     static EvaluationContext make_one(size_t index,
