@@ -7,8 +7,8 @@
 
 namespace vrp::test {
 
-/// Returns sorted vector of ids from all routes.
-struct get_job_ids_from_routes {
+/// Returns vector of job ids from all routes.
+struct get_job_ids_from_all_routes {
   std::vector<std::string> operator()(const algorithms::construction::InsertionContext& ctx) {
     using namespace ranges;
 
@@ -19,4 +19,16 @@ struct get_job_ids_from_routes {
       to_vector;
   }
 };
+
+/// Returns vectors of job ids from each route separately.
+struct get_job_ids_from_routes final {
+  std::vector<std::vector<std::string>> operator()(const algorithms::construction::InsertionContext& ctx) {
+    using namespace ranges;
+
+    return ctx.routes | view::transform([](const auto& r) {
+      return r.first->tour.activities() | view::transform([](const auto& a) { return vrp::test::get_job_id{}(*a->job); }) | to_vector;
+    }) | to_vector;
+  }
+};
+
 }

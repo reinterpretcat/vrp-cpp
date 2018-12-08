@@ -125,7 +125,7 @@ SCENARIO("cheapest insertion handles artificial problems with times", "[algorith
       REQUIRE(solution.jobs.empty());
       REQUIRE(solution.unassigned.empty());
       REQUIRE(solution.routes.size() == 1);
-      REQUIRE(get_job_ids_from_routes{}.operator()(solution).front() == "c5");
+      REQUIRE(get_job_ids_from_all_routes{}.operator()(solution).front() == "c5");
     }
   }
 }
@@ -150,7 +150,7 @@ SCENARIO("cheapest insertion handles artificial problems with waiting", "[algori
       REQUIRE(solution.jobs.empty());
       REQUIRE(solution.unassigned.empty());
       REQUIRE(solution.routes.size() == 1);
-      CHECK_THAT(get_job_ids_from_routes{}.operator()(solution), Equals(std::vector<std::string>{"c1", "c2"}));
+      CHECK_THAT(get_job_ids_from_all_routes{}.operator()(solution), Equals(std::vector<std::string>{"c1", "c2"}));
     }
   }
 }
@@ -161,7 +161,7 @@ SCENARIO("cheapest insertion handles solomon set problems", "[algorithms][constr
 
     THEN("calculates solution") {
       auto solution = CheapestInsertion<InsertionEvaluator>{evaluator}.operator()(ctx);
-      auto ids = get_job_ids_from_routes{}.operator()(solution);
+      auto ids = get_job_ids_from_all_routes{}.operator()(solution);
 
       REQUIRE(solution.jobs.empty());
       REQUIRE(solution.unassigned.empty());
