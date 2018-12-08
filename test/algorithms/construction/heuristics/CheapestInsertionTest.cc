@@ -19,6 +19,7 @@ using namespace vrp::models::costs;
 using namespace vrp::models::problem;
 using namespace vrp::models::solution;
 using namespace vrp::streams::in;
+using namespace Catch::Matchers;
 using namespace ranges;
 
 namespace {
@@ -122,12 +123,36 @@ SCENARIO("cheapest insertion handles artificial problems with times", "[algorith
 
     THEN("calculates solution with all jobs processed") {
       auto solution = CheapestInsertion<InsertionEvaluator>{evaluator}.insert(ctx);
-      auto ids = get_job_ids_from_routes{}.operator()(solution);
 
       REQUIRE(solution.jobs.empty());
       REQUIRE(solution.unassigned.empty());
       REQUIRE(solution.routes.size() == 1);
       REQUIRE(get_job_ids_from_routes{}.operator()(solution).front() == "c5");
+    }
+  }
+}
+
+SCENARIO("cheapest insertion handles artificial problems with waiting", "[algorithms][construction][insertion]") {
+  GIVEN("time problem") {
+    struct create_waiting_problem_stream {
+      std::stringstream operator()() {
+        return SolomonBuilder()
+          .setVehicle(1, 10)
+          .addCustomer({0, 0, 0, 0, 0, 1000, 0})
+          .addCustomer({1, 1, 0, 1, 20, 40, 10})
+          .addCustomer({2, 2, 0, 1, 50, 100, 10})
+          .build();
+      }
+    };
+    auto [evaluator, ctx] = createInsertion<create_waiting_problem_stream>();
+
+    THEN("calculates solution with all jobs processed") {
+      auto solution = CheapestInsertion<InsertionEvaluator>{evaluator}.insert(ctx);
+
+      REQUIRE(solution.jobs.empty());
+      REQUIRE(solution.unassigned.empty());
+      REQUIRE(solution.routes.size() == 1);
+      CHECK_THAT(get_job_ids_from_routes{}.operator()(solution), Equals(std::vector<std::string>{"c1", "c2"}));
     }
   }
 }

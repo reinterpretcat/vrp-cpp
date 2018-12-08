@@ -54,7 +54,8 @@ struct VehicleActivityTiming final
         const auto& [loc, dep] = acc;
 
         a->schedule.arrival = dep + transport_->duration(actor, loc, a->detail.location, dep);
-        a->schedule.departure = a->schedule.arrival + activity_->duration(actor, *a, a->schedule.arrival);
+        a->schedule.departure =
+          std::max(a->schedule.arrival, a->detail.time.start) + activity_->duration(actor, *a, a->schedule.arrival);
 
         return std::pair{a->detail.location, a->schedule.departure};
       });

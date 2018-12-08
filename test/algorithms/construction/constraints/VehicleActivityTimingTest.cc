@@ -7,6 +7,7 @@
 #include "test_utils/algorithms/construction/Contexts.hpp"
 #include "test_utils/algorithms/construction/Insertions.hpp"
 #include "test_utils/fakes/TestTransportCosts.hpp"
+#include "test_utils/models/Comparators.hpp"
 #include "test_utils/models/Factories.hpp"
 
 #include <catch/catch.hpp>
@@ -30,7 +31,7 @@ operationTimeKey(const std::string& id, const Fleet& fleet) {
 
 namespace vrp::test {
 
-SCENARIO("vehicle activity timing", "[algorithms][construction][constraints]") {
+SCENARIO("vehicle activity timing checks states", "[algorithms][construction][constraints]") {
   auto createRoute = [](const auto& fleet) {
     auto route = test_build_route{}.actor(getActor("v1", fleet)).shared();
     route->tour
@@ -127,6 +128,32 @@ SCENARIO("vehicle activity timing", "[algorithms][construction][constraints]") {
         auto result = timing.check(routeCtx, actCtx);
 
         REQUIRE(result == expected);
+      }
+    }
+  }
+}
+
+SCENARIO("vehicle activity timing updates activity schedule", "[algorithms][construction][constraints]") {
+  auto fleet = std::make_shared<Fleet>();
+  (*fleet)  //
+    .add(test_build_vehicle{}.id("v1").details(asDetails(0, 0, {0, 1000})).owned());
+
+  GIVEN("route with two activities with waiting time") {
+    auto state = InsertionRouteState{};
+    auto route = test_build_route{}.actor(getActor("v1", *fleet)).shared();
+    route->tour
+      .add(test_build_activity{}.location(10).time({20, 30}).duration(5).shared())  //
+      .add(test_build_activity{}.location(20).time({50, 10}).duration(10).shared());
+
+    WHEN("accept route") {
+      VehicleActivityTiming(fleet,
+                            std::make_shared<TestTransportCosts>(),  //
+                            std::make_shared<ActivityCosts>())
+        .accept(*route, state);
+
+      THEN("activity schedule are updated") {
+        REQUIRE(compare_schedules{}(route->tour.get(0)->schedule, {10, 25}));
+        REQUIRE(compare_schedules{}(route->tour.get(1)->schedule, {35, 60}));
       }
     }
   }
