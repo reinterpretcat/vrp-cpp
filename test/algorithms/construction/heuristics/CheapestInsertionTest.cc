@@ -26,11 +26,10 @@ namespace {
 
 std::tuple<InsertionEvaluator, InsertionContext>
 createInsertion(std::stringstream stream) {
-  auto result = read_solomon_type<cartesian_distance<1>>{}.operator()(stream);
+  auto problem = read_solomon_type<cartesian_distance<1>>{}.operator()(stream);
 
-  auto problem = std::get<0>(result);
-  auto transport = std::get<2>(result);
-  auto activity = std::get<1>(result);
+  auto transport = problem.transport;
+  auto activity = problem.activity;
   auto constraint = std::make_shared<InsertionConstraint>();
   (*constraint)
     .addHard<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(problem.fleet, transport, activity))

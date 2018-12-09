@@ -36,8 +36,7 @@ SCENARIO("job neighbourhood", "[algorithms][ruin][jobs]") {
     auto fleet = Fleet{}
                    .add(test_build_driver{}.owned())
                    .add(test_build_vehicle{}.id("v1").profile("1").details({{0, 0, {0, 100}}}).owned())
-                   .add(test_build_vehicle{}.id("v2").profile("2").details({{0, 0, {0, 100}}}).owned())
-                   .add(test_build_vehicle{}.id("v3").profile("1").details({{0, 0, {0, 100}}}).owned());
+                   .add(test_build_vehicle{}.id("v2").profile("2").details({{0, 0, {0, 100}}}).owned());
     auto transport = ProfileAwareTransportCosts{};
     auto neighbourhood = JobNeighbourhood{fleet, transport};
   }

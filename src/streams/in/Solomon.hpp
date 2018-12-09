@@ -85,10 +85,10 @@ struct read_solomon_type final {
     std::vector<std::pair<int, int>> locations_;
   };
 
-  std::tuple<models::Problem, std::shared_ptr<const ServiceCosts>, std::shared_ptr<const RoutingMatrix>> operator()(
-    std::istream& input) const {
-    auto problem = models::Problem{std::make_shared<models::problem::Fleet>(), {}};
+  models::Problem operator()(std::istream& input) const {
     auto matrix = std::make_shared<RoutingMatrix>();
+    auto problem =
+      models::Problem{std::make_shared<models::problem::Fleet>(), {}, std::make_shared<ServiceCosts>(), matrix};
 
     skipLines(input, 4);
     auto vehicle = readFleet(input, problem, *matrix);
@@ -97,7 +97,7 @@ struct read_solomon_type final {
 
     matrix->generate();
 
-    return {problem, std::make_shared<ServiceCosts>(), matrix};
+    return std::move(problem);
   }
 
 private:
