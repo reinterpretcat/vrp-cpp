@@ -96,17 +96,21 @@ SCENARIO("cheapest insertion inserts service", "[algorithms][construction][inser
 }
 
 SCENARIO("cheapest insertion handles artificial problems with demand", "[algorithms][construction][insertion]") {
-  auto [vehicles, capacity, unassigned, routes] =
-    GENERATE(table<int, int, int, int>({{1, 10, 0, 1}, {2, 4, 0, 2}, {1, 4, 1, 1}, {1, 3, 2, 1}}));
-  GIVEN("sequential coordinates problem") {
-    auto [evaluator, ctx] = createInsertion<create_sequential_problem_stream>(vehicles, capacity);
+  //  auto [vehicles, capacity, unassigned, routes] =
+  //    GENERATE(table<int, int, int, int>({{1, 10, 0, 1}, {2, 4, 0, 2}, {1, 4, 1, 1}, {1, 3, 2, 1}}));
+  // TODO what is wrong with generator here?
+  for (auto [vehicles, capacity, unassigned, routes] :
+       std::vector<std::tuple<int, int, int, int>>{{1, 10, 0, 1}, {2, 4, 0, 2}, {1, 4, 1, 1}, {1, 3, 2, 1}}) {
+    GIVEN("sequential coordinates problem") {
+      auto [evaluator, ctx] = createInsertion<create_sequential_problem_stream>(vehicles, capacity);
 
-    WHEN("calculates solution") {
-      auto solution = CheapestInsertion<InsertionEvaluator>{evaluator}.operator()(ctx);
-      THEN("all jobs processed") {
-        REQUIRE(solution.jobs.empty());
-        REQUIRE(solution.unassigned.size() == unassigned);
-        REQUIRE(solution.routes.size() == routes);
+      WHEN("calculates solution") {
+        auto solution = CheapestInsertion<InsertionEvaluator>{evaluator}.operator()(ctx);
+        THEN("all jobs processed") {
+          REQUIRE(solution.jobs.empty());
+          REQUIRE(solution.unassigned.size() == unassigned);
+          REQUIRE(solution.routes.size() == routes);
+        }
       }
     }
   }
