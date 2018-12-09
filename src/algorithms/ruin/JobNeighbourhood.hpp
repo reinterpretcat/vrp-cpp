@@ -1,8 +1,7 @@
 #pragma once
 
+#include "models/Problem.hpp"
 #include "models/common/Timestamp.hpp"
-#include "models/costs/TransportCosts.hpp"
-#include "models/problem/Fleet.hpp"
 #include "models/problem/Job.hpp"
 #include "models/solution/Actor.hpp"
 
@@ -15,7 +14,7 @@ namespace vrp::algorithms::ruin {
 
 /// Calculates job neighborhood in terms of the cost.
 struct JobNeighbourhood final {
-  explicit JobNeighbourhood(const models::problem::Fleet& fleet, const models::costs::TransportCosts& transport) {}
+  explicit JobNeighbourhood(const models::Problem& problem) {}
 
   ranges::any_view<models::problem::Job> neighbors(const models::solution::Actor& actor,
                                                    const models::problem::Job& job,

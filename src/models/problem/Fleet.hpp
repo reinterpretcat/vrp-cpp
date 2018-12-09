@@ -29,6 +29,12 @@ struct Fleet final {
     return ranges::view::all(drivers_) | ranges::view::transform([](const auto& d) { return d.second; });
   }
 
+  std::shared_ptr<const Driver> driver(const std::string& id) const {
+    auto result = drivers_.find(id);
+    if (result == drivers_.end()) throw std::invalid_argument(std::string("Cannot find driver with id:") + id);
+    return result->second;
+  }
+
   ranges::any_view<std::shared_ptr<const Vehicle>> vehicles() const {
     return ranges::view::all(vehicles_) | ranges::view::transform([](const auto& v) { return v.second; });
   }
