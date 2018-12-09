@@ -96,21 +96,18 @@ SCENARIO("cheapest insertion inserts service", "[algorithms][construction][inser
 }
 
 SCENARIO("cheapest insertion handles artificial problems with demand", "[algorithms][construction][insertion]") {
-  auto [vehicles, capacity, unassigned, routes] = GENERATE(table<int, int, int, int>({
-    {1, 10, 0, 1},
-    {2, 4, 0, 2},
-    {1, 4, 1, 1},
-    {1, 3, 2, 1},
-  }));
+  auto [vehicles, capacity, unassigned, routes] =
+    GENERATE(table<int, int, int, int>({{1, 10, 0, 1}, {2, 4, 0, 2}, {1, 4, 1, 1}, {1, 3, 2, 1}}));
   GIVEN("sequential coordinates problem") {
     auto [evaluator, ctx] = createInsertion<create_sequential_problem_stream>(vehicles, capacity);
 
-    THEN("calculates solution with all jobs processed") {
+    WHEN("calculates solution") {
       auto solution = CheapestInsertion<InsertionEvaluator>{evaluator}.operator()(ctx);
-
-      REQUIRE(solution.jobs.empty());
-      REQUIRE(solution.unassigned.size() == unassigned);
-      REQUIRE(solution.routes.size() == routes);
+      THEN("all jobs processed") {
+        REQUIRE(solution.jobs.empty());
+        REQUIRE(solution.unassigned.size() == unassigned);
+        REQUIRE(solution.routes.size() == routes);
+      }
     }
   }
 }
@@ -119,13 +116,15 @@ SCENARIO("cheapest insertion handles artificial problems with times", "[algorith
   GIVEN("time problem") {
     auto [evaluator, ctx] = createInsertion<create_time_problem_stream>(1, 10);
 
-    THEN("calculates solution with all jobs processed") {
+    WHEN("calculates solution") {
       auto solution = CheapestInsertion<InsertionEvaluator>{evaluator}.insert(ctx);
 
-      REQUIRE(solution.jobs.empty());
-      REQUIRE(solution.unassigned.empty());
-      REQUIRE(solution.routes.size() == 1);
-      REQUIRE(get_job_ids_from_all_routes{}.operator()(solution).front() == "c5");
+      THEN("all jobs processed") {
+        REQUIRE(solution.jobs.empty());
+        REQUIRE(solution.unassigned.empty());
+        REQUIRE(solution.routes.size() == 1);
+        REQUIRE(get_job_ids_from_all_routes{}.operator()(solution).front() == "c5");
+      }
     }
   }
 }
@@ -144,13 +143,15 @@ SCENARIO("cheapest insertion handles artificial problems with waiting", "[algori
     };
     auto [evaluator, ctx] = createInsertion<create_waiting_problem_stream>();
 
-    THEN("calculates solution with all jobs processed") {
+    WHEN("calculates solution") {
       auto solution = CheapestInsertion<InsertionEvaluator>{evaluator}.insert(ctx);
 
-      REQUIRE(solution.jobs.empty());
-      REQUIRE(solution.unassigned.empty());
-      REQUIRE(solution.routes.size() == 1);
-      CHECK_THAT(get_job_ids_from_all_routes{}.operator()(solution), Equals(std::vector<std::string>{"c1", "c2"}));
+      THEN("all jobs processed") {
+        REQUIRE(solution.jobs.empty());
+        REQUIRE(solution.unassigned.empty());
+        REQUIRE(solution.routes.size() == 1);
+        CHECK_THAT(get_job_ids_from_all_routes{}.operator()(solution), Equals(std::vector<std::string>{"c1", "c2"}));
+      }
     }
   }
 }
@@ -159,15 +160,17 @@ SCENARIO("cheapest insertion handles solomon set problems", "[algorithms][constr
   GIVEN("c101_25 problem") {
     auto [evaluator, ctx] = createInsertion<create_c101_25_problem_stream>();
 
-    THEN("calculates solution") {
+    WHEN("calculates solution") {
       auto solution = CheapestInsertion<InsertionEvaluator>{evaluator}.operator()(ctx);
       auto ids = get_job_ids_from_all_routes{}.operator()(solution);
 
-      REQUIRE(solution.jobs.empty());
-      REQUIRE(solution.unassigned.empty());
-      REQUIRE(!solution.routes.empty());
-      REQUIRE(solution.routes.size() == 6);
-      REQUIRE(ranges::accumulate(ids, 0, [](const auto acc, const auto next) { return acc + 1; }) == 25);
+      THEN("has expected solution") {
+        REQUIRE(solution.jobs.empty());
+        REQUIRE(solution.unassigned.empty());
+        REQUIRE(!solution.routes.empty());
+        REQUIRE(solution.routes.size() == 6);
+        REQUIRE(ranges::accumulate(ids, 0, [](const auto acc, const auto next) { return acc + 1; }) == 25);
+      }
     }
   }
 }
