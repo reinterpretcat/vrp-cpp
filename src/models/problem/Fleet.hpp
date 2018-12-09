@@ -39,6 +39,11 @@ struct Fleet final {
     return result->second;
   }
 
+  auto profiles() const {
+    return vehicles() | ranges::view::transform([](const auto& v) { return v->profile; }) |  //
+      ranges::to_vector | ranges::action::sort | ranges::action::unique;
+  }
+
 private:
   std::unordered_map<std::string, std::shared_ptr<const Driver>> drivers_;
   std::unordered_map<std::string, std::shared_ptr<const Vehicle>> vehicles_;

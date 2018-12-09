@@ -24,11 +24,6 @@ struct JobNeighbourhood final {
   }
 
 private:
-  auto getProfiles(const models::problem::Fleet& fleet) {
-    return fleet.vehicles() | ranges::view::transform([](const auto& v) { return v->id; }) |  //
-      ranges::to_vector | ranges::action::sort | ranges::action::unique;
-  }
-
   std::map<std::string, std::vector<models::problem::Job>> index_;
 };
 }

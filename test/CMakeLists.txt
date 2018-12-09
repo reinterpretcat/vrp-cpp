@@ -24,6 +24,7 @@ set(SOURCE_FILES
 
         algorithms/ruin/JobNeighbourhoodTest.cc
 
+        models/problem/FleetTest.cc
         models/solution/TourTest.cc
         models/solution/RegistryTest.cc
 
