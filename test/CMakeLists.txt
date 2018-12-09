@@ -22,6 +22,8 @@ set(SOURCE_FILES
         algorithms/construction/InsertionConstraintTest.cc
         algorithms/construction/InsertionEvaluatorTest.cc
 
+        algorithms/ruin/JobNeighbourhoodTest.cc
+
         models/solution/TourTest.cc
         models/solution/RegistryTest.cc
 

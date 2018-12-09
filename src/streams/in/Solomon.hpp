@@ -41,14 +41,14 @@ struct read_solomon_type final {
   struct RoutingMatrix : models::costs::TransportCosts {
     friend read_solomon_type;
 
-    models::common::Duration duration(const models::problem::Vehicle& vehicle,
+    models::common::Duration duration(const std::string& profile,
                                       const models::common::Location& from,
                                       const models::common::Location& to,
                                       const models::common::Timestamp& departure) const override {
-      return distance(vehicle, from, to, departure);
+      return distance(profile, from, to, departure);
     }
 
-    models::common::Distance distance(const models::problem::Vehicle&,
+    models::common::Distance distance(const std::string&,
                                       const models::common::Location& from,
                                       const models::common::Location& to,
                                       const models::common::Timestamp&) const override {
