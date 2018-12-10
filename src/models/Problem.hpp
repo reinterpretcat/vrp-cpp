@@ -2,12 +2,10 @@
 
 #include "models/costs/ActivityCosts.hpp"
 #include "models/costs/TransportCosts.hpp"
-#include "models/extensions/problem/Comparators.hpp"
 #include "models/problem/Fleet.hpp"
-#include "models/problem/Job.hpp"
+#include "models/problem/Jobs.hpp"
 
 #include <memory>
-#include <set>
 
 namespace vrp::models {
 
@@ -17,7 +15,7 @@ struct Problem final {
   std::shared_ptr<problem::Fleet> fleet;
 
   /// Specifies used jobs.
-  std::set<models::problem::Job, models::problem::compare_jobs> jobs;
+  problem::Jobs jobs;
 
   /// Specifies activity costs.
   std::shared_ptr<costs::ActivityCosts> activity;

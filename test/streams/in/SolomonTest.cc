@@ -37,24 +37,26 @@ SCENARIO("solomon files can be read from input stream", "[streams][in]") {
       auto problem = solomon(stream);
 
       THEN("jobs have proper ids") {
-        auto ids = problem.jobs | view::transform([](const auto& job) { return ranges::get<0>(job)->id; });
+        auto ids =
+          problem.jobs.all() | view::transform([](const auto& job) { return ranges::get<0>(job)->id; }) | to_vector;
 
         CHECK_THAT(ids, Equals(std::vector<std::string>{"c1", "c2", "c3"}));
       }
 
       THEN("jobs have proper demand") {
-        auto demands = problem.jobs | view::transform([](const auto& job) {
+        auto demands = problem.jobs.all() | view::transform([](const auto& job) {
                          return std::any_cast<int>(ranges::get<0>(job)->dimens.find("size")->second);
-                       });
+                       }) |
+          to_vector;
 
         CHECK_THAT(demands, Equals(std::vector<int>{-1, -2, -1}));
       }
 
       THEN("jobs have proper service time") {
-        auto durations =
-          problem.jobs | view::transform([](const auto& job) { return ranges::get<0>(job)->details[0].duration; });
+        auto durations = problem.jobs.all() |
+          view::transform([](const auto& job) { return ranges::get<0>(job)->details[0].duration; }) | to_vector;
 
-        CHECK_THAT(durations, Equals(std::vector<int>{5, 11, 12}));
+        CHECK_THAT(durations, Equals(std::vector<models::common::Duration>{5, 11, 12}));
       }
 
       THEN("vehicles have proper ids") {

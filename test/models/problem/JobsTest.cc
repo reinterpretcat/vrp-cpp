@@ -1,11 +1,10 @@
-#include "algorithms/ruin/JobNeighbourhood.hpp"
+#include "models/problem/Jobs.hpp"
 
 #include "models/extensions/problem/Factories.hpp"
 #include "test_utils/models/Factories.hpp"
 
 #include <catch/catch.hpp>
 
-using namespace vrp::algorithms::ruin;
 using namespace vrp::models::common;
 using namespace vrp::models::costs;
 using namespace vrp::models::problem;
@@ -41,19 +40,16 @@ SCENARIO("job neighbourhood", "[algorithms][ruin][jobs]") {
       .add(test_build_driver{}.owned())
       .add(test_build_vehicle{}.id("v1").profile("p1").details({{0, 0, {0, 100}}}).owned())
       .add(test_build_vehicle{}.id("v2").profile("p2").details({{0, 0, {0, 100}}}).owned());
-    auto jobs = std::vector<models::problem::Job>{as_job(test_build_service{}.location(0).id("s0").shared()),
-                                                  as_job(test_build_service{}.location(1).id("s1").shared()),
-                                                  as_job(test_build_service{}.location(2).id("s2").shared()),
-                                                  as_job(test_build_service{}.location(3).id("s3").shared()),
-                                                  as_job(test_build_service{}.location(4).id("s4").shared())};
-    auto problem = Problem{fleet,
-                           std::set<models::problem::Job, models::problem::compare_jobs>(jobs.begin(), jobs.end()),
-                           std::make_shared<ActivityCosts>(),
-                           std::make_shared<ProfileAwareTransportCosts>()};
-    auto neighbourhood = JobNeighbourhood{problem};
+    auto profiles = fleet->profiles();
+    auto species = std::vector<models::problem::Job>{as_job(test_build_service{}.location(0).id("s0").shared()),
+                                                     as_job(test_build_service{}.location(1).id("s1").shared()),
+                                                     as_job(test_build_service{}.location(2).id("s2").shared()),
+                                                     as_job(test_build_service{}.location(3).id("s3").shared()),
+                                                     as_job(test_build_service{}.location(4).id("s4").shared())};
+    auto jobs = Jobs{ProfileAwareTransportCosts{}, ranges::view::all(species), profiles};
 
     WHEN("get neighbours for specific profile") {
-      auto result = neighbourhood.neighbors("p1", jobs.at(0), Timestamp{});
+      auto result = jobs.neighbors("p1", species.at(0), Timestamp{});
 
       THEN("returns expected jobs") {}
     }

@@ -52,11 +52,6 @@ public:
     return *this;
   }
 
-  build_insertion_context& jobs(std::initializer_list<models::problem::Job>&& value) {
-    context_.jobs = value;
-    return *this;
-  }
-
   build_insertion_context& jobs(std::set<models::problem::Job, models::problem::compare_jobs>&& value) {
     context_.jobs = value;
     return *this;

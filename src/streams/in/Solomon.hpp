@@ -87,17 +87,19 @@ struct read_solomon_type final {
 
   models::Problem operator()(std::istream& input) const {
     auto matrix = std::make_shared<RoutingMatrix>();
-    auto problem =
-      models::Problem{std::make_shared<models::problem::Fleet>(), {}, std::make_shared<ServiceCosts>(), matrix};
+    auto fleet = std::make_shared<models::problem::Fleet>();
 
     skipLines(input, 4);
-    auto vehicle = readFleet(input, problem, *matrix);
+    auto vehicle = readFleet(input, *fleet, *matrix);
     skipLines(input, 4);
-    readJobs(input, problem, *matrix, vehicle);
+    auto jobs = readJobs(input, *fleet, *matrix, vehicle);
 
     matrix->generate();
 
-    return std::move(problem);
+    return {fleet,
+            models::problem::Jobs(*matrix, ranges::view::all(jobs), ranges::view::single("car")),
+            std::make_shared<ServiceCosts>(),
+            matrix};
   }
 
 private:
@@ -107,7 +109,7 @@ private:
                      [&input](auto) { input.ignore(std::numeric_limits<std::streamsize>::max(), input.widen('\n')); });
   }
 
-  std::tuple<int, int> readFleet(std::istream& input, models::Problem& problem, RoutingMatrix& matrix) const {
+  std::tuple<int, int> readFleet(std::istream& input, models::problem::Fleet& fleet, RoutingMatrix& matrix) const {
     auto type = std::tuple<int, int>{};
 
     std::string line;
@@ -115,18 +117,20 @@ private:
     std::istringstream iss(line);
     iss >> std::get<0>(type) >> std::get<1>(type);
 
-    problem.fleet->add(models::problem::build_driver{}.id("driver").costs({0, 0, 0, 0}).owned());
+    fleet.add(models::problem::build_driver{}.id("driver").costs({0, 0, 0, 0}).owned());
     return type;
   }
 
-  void readJobs(std::istream& input,
-                models::Problem& problem,
-                RoutingMatrix& matrix,
-                const std::tuple<int, int>& vehicle) const {
+  std::set<models::problem::Job, models::problem::compare_jobs> readJobs(std::istream& input,
+                                                                         models::problem::Fleet& fleet,
+                                                                         RoutingMatrix& matrix,
+                                                                         const std::tuple<int, int>& vehicle) const {
     /// Customer defined by: id, x, y, demand, start, end, service
     using CustomerData = std::tuple<int, int, int, int, int, int, int>;
     using namespace vrp::models::common;
     using namespace vrp::models::problem;
+
+    auto jobs = std::set<Job, compare_jobs>{};
 
     auto customer = CustomerData{};
     auto last = -1;
@@ -135,27 +139,27 @@ private:
         std::get<3>(customer) >> std::get<4>(customer) >> std::get<5>(customer) >> std::get<6>(customer);
 
       // skip last newlines
-      if (!problem.jobs.empty() && std::get<0>(customer) == last) break;
+      if (!jobs.empty() && std::get<0>(customer) == last) break;
       last = std::get<0>(customer);
       int id = std::get<0>(customer);
       int location = matrix.location(std::get<1>(customer), std::get<2>(customer));
 
       if (id == 0) {
         ranges::for_each(ranges::view::ints(0, std::get<0>(vehicle)), [&](auto i) {
-          problem.fleet->add(models::problem::build_vehicle{}
-                               .id(std::string("v") + std::to_string(i + 1))
-                               .costs({0, 1, 0, 0, 0})
-                               .dimens({{SizeDimKey, std::get<1>(vehicle)}})
-                               .details({{0,
-                                          0,
-                                          {static_cast<Timestamp>(std::get<4>(customer)),
-                                           static_cast<Timestamp>(std::get<5>(customer))}}})
-                               .owned());
+          fleet.add(models::problem::build_vehicle{}
+                      .id(std::string("v") + std::to_string(i + 1))
+                      .costs({0, 1, 0, 0, 0})
+                      .dimens({{SizeDimKey, std::get<1>(vehicle)}})
+                      .details({{0,
+                                 0,
+                                 {static_cast<Timestamp>(std::get<4>(customer)),
+                                  static_cast<Timestamp>(std::get<5>(customer))}}})
+                      .owned());
         });
         continue;
       }
 
-      problem.jobs.insert(as_job(
+      jobs.insert(as_job(
         build_service{}
           .id(std::string("c") + std::to_string(id))
           .dimens({{SizeDimKey, -std::get<3>(customer)}})
@@ -164,6 +168,8 @@ private:
                      {{static_cast<Timestamp>(std::get<4>(customer)), static_cast<Timestamp>(std::get<5>(customer))}}}})
           .shared()));
     }
+
+    return std::move(jobs);
   }
 };
 }

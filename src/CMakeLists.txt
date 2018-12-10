@@ -29,8 +29,6 @@ set(SOURCE_FILES
         algorithms/construction/InsertionRouteState.hpp
         algorithms/construction/InsertionProgress.hpp
 
-        algorithms/ruin/JobNeighbourhood.hpp
-
         models/common/Cost.hpp
         models/common/Dimension.hpp
         models/common/Distance.hpp
@@ -54,6 +52,7 @@ set(SOURCE_FILES
         models/problem/Fleet.hpp
         models/problem/Job.hpp
         models/problem/JobDetail.hpp
+        models/problem/Jobs.hpp
         models/problem/Service.hpp
         models/problem/Shipment.hpp
         models/problem/Vehicle.hpp

@@ -36,7 +36,7 @@ createInsertion(std::stringstream stream) {
     .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>())
     .addSoftRoute(std::make_shared<VehicleFixedCost>());
   auto ctx = vrp::test::test_build_insertion_context{}
-               .jobs(std::move(problem.jobs))
+               .jobs(problem.jobs.all())
                .registry(std::make_shared<Registry>(problem.fleet))
                .constraint(constraint)
                .owned();
