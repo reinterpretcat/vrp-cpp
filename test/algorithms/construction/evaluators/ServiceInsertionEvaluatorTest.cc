@@ -144,6 +144,8 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
     auto prev = test_build_activity{}.location(5).schedule({5, 5}).shared();
     auto next = test_build_activity{}.location(10).schedule({10, 10}).shared();
     auto [routeCtx, evaluator, constraint] = createContext(prev, next);
+    auto fleet = std::make_shared<Fleet>();
+    (*fleet).add(*DefaultDriver).add(*DefaultVehicle);
 
     auto [ds, index, loc] = GENERATE(
       std::make_tuple(details({{{3}, 0, {DefaultTimeWindow}}}), 0, 3),
@@ -151,7 +153,7 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
       std::make_tuple(details({{{12}, 0, {DefaultTimeWindow}}, {{11}, 0, times({DefaultTimeWindow})}}), 1, 11));
 
     constraint->addHard<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(
-      DefaultFleet, std::make_shared<TestTransportCosts>(), std::make_shared<ActivityCosts>()));
+      fleet, std::make_shared<TestTransportCosts>(), std::make_shared<ActivityCosts>()));
 
     WHEN("service is inserted") {
       auto service = test_build_service{}.details(std::vector<JobDetail>{ds}).shared();

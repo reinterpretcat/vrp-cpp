@@ -11,6 +11,12 @@
 namespace vrp::models::problem {
 
 struct Fleet final {
+  /// Allow only move.
+  Fleet() = default;
+  Fleet(Fleet&& other) : drivers_(std::move(other.drivers_)), vehicles_(std::move(other.vehicles_)) {}
+  Fleet(const Fleet&) = delete;
+  Fleet& operator=(const Fleet&) = delete;
+
   Fleet& add(const Driver& driver) {
     if (drivers_.find(driver.id) != drivers_.end())
       throw std::invalid_argument("Driver is already added to the fleet.");

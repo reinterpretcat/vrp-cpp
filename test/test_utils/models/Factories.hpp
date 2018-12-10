@@ -119,10 +119,6 @@ public:
   }
 };
 
-inline std::shared_ptr<const vrp::models::problem::Fleet> DefaultFleet =
-  std::make_shared<vrp::models::problem::Fleet>(vrp::models::problem::Fleet{}.add(*DefaultDriver).add(*DefaultVehicle));
-
-
 }  // namespace vrp::test
 
 #pragma clang diagnostic pop
