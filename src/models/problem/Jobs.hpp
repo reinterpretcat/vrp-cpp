@@ -23,6 +23,11 @@ struct Jobs final {
     createJobIndex(transport, profiles);
   };
 
+  /// Allow only move.
+  Jobs(Jobs&& other) : jobs_(std::move(other.jobs_)), index_(std::move(other.index_)) {}
+  Jobs(const Jobs&) = delete;
+  Jobs& operator=(const Jobs&) = delete;
+
   /// Returns all jobs.
   ranges::any_view<Job> all() const { return ranges::view::all(jobs_); }
 
