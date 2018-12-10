@@ -39,13 +39,13 @@ struct Jobs final {
 private:
   void createJobSet(ranges::any_view<Job>& jobs) { ranges::copy(jobs, ranges::inserter(jobs_, jobs_.begin())); }
 
-  /// Creates job index.
+  /// Creates time independent job index for each profile.
   void createJobIndex(const costs::TransportCosts& transport, ranges::any_view<std::string>& profiles) {
     using namespace ranges;
 
     ranges::for_each(profiles, [&](const auto& profile) {
       auto map = std::map<Job, std::vector<Job>, compare_jobs>{};
-      auto distance = models::problem::job_distance{};
+      auto distance = models::problem::job_distance{transport, profile, common::Timestamp{}};
 
       std::for_each(pstl::execution::par, jobs_.begin(), jobs_.end(), [&](const auto& job) {
         auto pairs = jobs_ | view::transform([&](const auto& j) {
