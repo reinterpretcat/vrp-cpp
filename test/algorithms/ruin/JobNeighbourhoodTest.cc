@@ -53,7 +53,7 @@ SCENARIO("job neighbourhood", "[algorithms][ruin][jobs]") {
     auto neighbourhood = JobNeighbourhood{problem};
 
     WHEN("get neighbours for specific profile") {
-      auto result = neighbourhood.neighbors({fleet->vehicle("v1"), fleet->driver("driver")}, jobs.at(0), Timestamp{});
+      auto result = neighbourhood.neighbors("p1", jobs.at(0), Timestamp{});
 
       THEN("returns expected jobs") {}
     }
