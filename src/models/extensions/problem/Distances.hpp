@@ -19,8 +19,9 @@ struct job_distance final {
 
     static const auto fun = ranges::overload(
       [](const std::shared_ptr<const Service>& service) -> ranges::any_view<common::Location> {
-        return view::for_each(
-          service->details, [](const auto& d) { return ranges::yield_if(d.location.has_value(), d.location.value()); });
+        return view::for_each(service->details, [](const auto& d) {
+          return ranges::yield(d.location.has_value() ? d.location.value() : 0);
+        });
       },
       [](const std::shared_ptr<const Shipment>& shipment) -> ranges::any_view<common::Location> {
         throw std::domain_error("not implemented");

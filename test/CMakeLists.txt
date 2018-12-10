@@ -22,6 +22,7 @@ set(SOURCE_FILES
         algorithms/construction/InsertionConstraintTest.cc
         algorithms/construction/InsertionEvaluatorTest.cc
 
+        models/extensions/problem/DistancesTest.cc
         models/problem/FleetTest.cc
         models/problem/JobsTest.cc
         models/solution/TourTest.cc
