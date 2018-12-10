@@ -15,7 +15,7 @@ struct Problem final {
   std::shared_ptr<problem::Fleet> fleet;
 
   /// Specifies used jobs.
-  problem::Jobs jobs;
+  std::shared_ptr<problem::Jobs> jobs;
 
   /// Specifies activity costs.
   std::shared_ptr<costs::ActivityCosts> activity;

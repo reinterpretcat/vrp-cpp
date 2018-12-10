@@ -97,7 +97,7 @@ struct read_solomon_type final {
     matrix->generate();
 
     return {fleet,
-            models::problem::Jobs(*matrix, ranges::view::all(jobs), ranges::view::single("car")),
+            std::make_shared<models::problem::Jobs>(*matrix, ranges::view::all(jobs), ranges::view::single("car")),
             std::make_shared<ServiceCosts>(),
             matrix};
   }
