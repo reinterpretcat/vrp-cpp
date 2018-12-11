@@ -14,7 +14,7 @@ namespace vrp::models {
 /// Represents VRP solution.
 struct Solution final {
   /// Solution statistic.
-  Statistic statisic;
+  Statistic statistic;
 
   /// List of assigned routes.
   std::vector<std::shared_ptr<Route>> routes;
