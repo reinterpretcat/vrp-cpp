@@ -13,7 +13,7 @@ namespace vrp::models::problem {
 struct Fleet final {
   /// Allow only move.
   Fleet() = default;
-  Fleet(Fleet&& other) : drivers_(std::move(other.drivers_)), vehicles_(std::move(other.vehicles_)) {}
+  Fleet(Fleet&& other) noexcept : drivers_(std::move(other.drivers_)), vehicles_(std::move(other.vehicles_)) {}
   Fleet(const Fleet&) = delete;
   Fleet& operator=(const Fleet&) = delete;
 

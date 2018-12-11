@@ -24,7 +24,7 @@ struct Jobs final {
   };
 
   /// Allow only move.
-  Jobs(Jobs&& other) : jobs_(std::move(other.jobs_)), index_(std::move(other.index_)) {}
+  Jobs(Jobs&& other) noexcept : jobs_(std::move(other.jobs_)), index_(std::move(other.index_)) {}
   Jobs(const Jobs&) = delete;
   Jobs& operator=(const Jobs&) = delete;
 
