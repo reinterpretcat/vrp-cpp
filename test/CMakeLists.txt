@@ -42,6 +42,8 @@ set(SOURCE_FILES
 
         streams/in/SolomonTest.cc
 
+        SolverTest.cc
+
         )
 
 add_executable(${LIBRARY_TEST}

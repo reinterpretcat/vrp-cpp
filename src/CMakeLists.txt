@@ -74,6 +74,8 @@ set(SOURCE_FILES
         utils/extensions/Hash.hpp
         utils/extensions/Variant.hpp
 
+        Solver.hpp
+
         )
 
 include_directories(${MAIN_SOURCE}
