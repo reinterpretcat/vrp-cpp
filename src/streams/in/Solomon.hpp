@@ -1,5 +1,7 @@
 #pragma once
 
+#include "algorithms/construction/constraints/VehicleActivitySize.hpp"
+#include "algorithms/construction/constraints/VehicleActivityTiming.hpp"
 #include "models/Problem.hpp"
 #include "models/costs/ActivityCosts.hpp"
 #include "models/costs/TransportCosts.hpp"
@@ -86,8 +88,15 @@ struct read_solomon_type final {
   };
 
   models::Problem operator()(std::istream& input) const {
+    using namespace algorithms::construction;
+
     auto matrix = std::make_shared<RoutingMatrix>();
     auto fleet = std::make_shared<models::problem::Fleet>();
+    auto activity = std::make_shared<ServiceCosts>();
+    auto constraint = std::make_shared<InsertionConstraint>();
+    (*constraint)
+      .addHard<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(fleet, matrix, activity))
+      .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>());
 
     skipLines(input, 4);
     auto vehicle = readFleet(input, *fleet, *matrix);
@@ -98,7 +107,8 @@ struct read_solomon_type final {
 
     return {fleet,
             std::make_shared<models::problem::Jobs>(*matrix, ranges::view::all(jobs), ranges::view::single("car")),
-            std::make_shared<ServiceCosts>(),
+            constraint,
+            activity,
             matrix};
   }
 

@@ -27,21 +27,13 @@ namespace {
 std::tuple<InsertionEvaluator, InsertionContext>
 createInsertion(std::stringstream stream) {
   auto problem = read_solomon_type<cartesian_distance<1>>{}.operator()(stream);
-
-  auto transport = problem.transport;
-  auto activity = problem.activity;
-  auto constraint = std::make_shared<InsertionConstraint>();
-  (*constraint)
-    .addHard<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(problem.fleet, transport, activity))
-    .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>())
-    .addSoftRoute(std::make_shared<VehicleFixedCost>());
   auto ctx = vrp::test::test_build_insertion_context{}
                .jobs(problem.jobs->all())
                .registry(std::make_shared<Registry>(problem.fleet))
-               .constraint(constraint)
+               .constraint(problem.constraint)
                .owned();
 
-  return {{transport, activity}, ctx};
+  return {{problem.transport, problem.activity}, ctx};
 }
 
 template<typename ProblemStream>

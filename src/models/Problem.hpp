@@ -1,5 +1,6 @@
 #pragma once
 
+#include "algorithms/construction/InsertionConstraint.hpp"
 #include "models/costs/ActivityCosts.hpp"
 #include "models/costs/TransportCosts.hpp"
 #include "models/problem/Fleet.hpp"
@@ -16,6 +17,9 @@ struct Problem final {
 
   /// Specifies used jobs.
   std::shared_ptr<problem::Jobs> jobs;
+
+  /// Specifies constraints.
+  std::shared_ptr<algorithms::construction::InsertionConstraint> constraint;
 
   /// Specifies activity costs.
   std::shared_ptr<costs::ActivityCosts> activity;
