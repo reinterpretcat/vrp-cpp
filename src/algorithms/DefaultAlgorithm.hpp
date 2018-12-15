@@ -54,7 +54,12 @@ struct DefaultAlgorithm final {
 
   /// Logs progress.
   struct log_progress final {
+    /// Called after initial population is created.
+    void operator()(const Population& population) const {}
+    /// Called after iteration is completed.
     void operator()(const Individuum& individuum, int iteration) const {}
+    /// Called after algorithm is terminated.
+    void operator()(int iteration) const {}
   };
 
   using Initial = create_population;        /// Creates initial population.

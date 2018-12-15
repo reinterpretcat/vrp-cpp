@@ -56,13 +56,17 @@ public:
     auto logger = Logging{};
     auto population = Initial{}(problem);
 
-    ranges::accumulate(
+    logger(population);
+
+    auto last = ranges::accumulate(
       SolutionSpace{Selection{population}, Refinement{population}, Acceptance{population}, Termination{population}},
       0,
       [&](const int iteration, const auto& individuum) {
         logger(individuum, iteration);
         return iteration + 1;
       });
+
+    logger(last);
 
     return population.best();
   }
