@@ -11,44 +11,60 @@
 namespace vrp {
 
 /// Provides the way to solve Vehicle Routing Problem.
-template<typename Initial,     /// Creates initial population.
-         typename Selection,   /// Selects individuum from population for given iteration.
-         typename Refinement,  /// Refines individuum.
-         typename Acceptance,  /// Accepts individuum.
-         typename Termination  /// Terminates search.
-         >
+template<typename Algorithm>
 class Solver final {
+  using Initial = typename Algorithm::Initial;
+  using Selection = typename Algorithm::Selection;
+  using Refinement = typename Algorithm::Refinement;
+  using Acceptance = typename Algorithm::Acceptance;
+  using Termination = typename Algorithm::Termination;
+  using Logging = typename Algorithm::Logging;
+
   /// Represents solution space.
   class SolutionSpace : public ranges::view_facade<SolutionSpace> {
     friend ranges::range_access;
 
-    const auto& read() const { return selector_(iteration_); }
+    const auto& read() const {
+      auto child = refinement_(selector_(iteration_), iteration_);
+      auto accepted = acceptance_(child, iteration_);
+      terminated_ = termination_(child, iteration_, accepted);
+      return child;
+    }
 
-    bool equal(ranges::default_sentinel) const { return termination_(iteration_); }
+    bool equal(ranges::default_sentinel) const { return terminated_; }
 
     void next() { ++iteration_; }
 
     int iteration_ = 0;
+    bool terminated_ = false;
 
     Selection selector_;
+    Refinement refinement_;
+    Acceptance acceptance_;
     Termination termination_;
 
   public:
-    explicit SolutionSpace(Selection selector, Termination termination) :
+    SolutionSpace(Selection selector, Refinement refinement, Acceptance acceptance, Termination termination) :
       selector_(std::move(selector)),
+      refinement_(std::move(refinement)),
+      acceptance_(std::move(acceptance)),
       termination_(std::move(termination)){};
   };
 
 public:
-  std::string operator()(const std::string& problem) const {
+  models::Solution operator()(const models::Problem& problem) const {
+    auto logger = Logging{};
     auto population = Initial{}(problem);
-    auto refinement = Refinement{population};
-    auto acceptance = Acceptance{population};
 
-    ranges::for_each(SolutionSpace{Selection{population}, Termination{population}},
-                     [&](const auto& individuum) { acceptance(refinement(individuum)); });
+    ranges::accumulate(
+      SolutionSpace{Selection{population}, Refinement{population}, Acceptance{population}, Termination{population}},
+      0,
+      [&](const int iteration, const auto& individuum) {
+        logger(individuum, iteration);
+        return iteration + 1;
+      });
 
-    return population->front();
+    return population.best();
   }
 };
 }
