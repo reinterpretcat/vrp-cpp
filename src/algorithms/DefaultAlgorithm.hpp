@@ -12,13 +12,18 @@ namespace vrp::algorithms {
 template<typename Heuristic = construction::CheapestInsertion<construction::InsertionEvaluator>>
 struct DefaultAlgorithm final {
   using Individuum = construction::InsertionContext;
-  using Population = std::shared_ptr<std::vector<Individuum>>;
+
+  /// Represents population entity.
+  struct Population final {
+    std::shared_ptr<std::vector<Individuum>> individuums = std::make_shared<std::vector<Individuum>>();
+
+    /// Returns best individuum as solution.
+    models::Solution best() { return {}; }
+  };
 
   /// Creates initial population.
   struct create_population final {
     Population operator()(const models::Problem& problem) const {}
-
-    models::Solution best() const { return {}; }
   };
 
   /// Selects individuum from population.
