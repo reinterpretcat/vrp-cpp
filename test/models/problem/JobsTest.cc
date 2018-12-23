@@ -49,7 +49,7 @@ SCENARIO("job neighbourhood", "[algorithms][ruin][jobs]") {
     auto jobs = Jobs{ProfileAwareTransportCosts{}, ranges::view::all(species), profiles};
 
     WHEN("get neighbours for specific profile") {
-      auto result = jobs.neighbors("p1", species.at(0), Timestamp{});
+      auto result = jobs.neighbors("p1", species.at(0), Timestamp{}, [](const auto d) { return d > 0; });
 
       THEN("returns expected jobs") {}
     }
