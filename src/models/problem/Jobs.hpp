@@ -43,6 +43,9 @@ struct Jobs final {
       ranges::view::transform([](const auto& pair) { return pair.first; });
   }
 
+  /// Returns amount of all jobs.
+  std::size_t size() const { return jobs_.size(); }
+
 private:
   void createJobSet(ranges::any_view<Job>& jobs) { ranges::copy(jobs, ranges::inserter(jobs_, jobs_.begin())); }
 

@@ -52,6 +52,7 @@ set(SOURCE_FILES
         models/extensions/problem/Factories.hpp
         models/extensions/solution/Comparators.hpp
         models/extensions/solution/Factories.hpp
+        models/extensions/solution/Selectors.hpp
 
         models/problem/Costs.hpp
         models/problem/Driver.hpp
