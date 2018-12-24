@@ -6,6 +6,7 @@
 #include "models/extensions/problem/Distances.hpp"
 #include "models/problem/Job.hpp"
 
+#include <limits>
 #include <map>
 #include <pstl/algorithm>
 #include <pstl/execution>
@@ -32,14 +33,13 @@ struct Jobs final {
   ranges::any_view<Job> all() const { return ranges::view::all(jobs_); }
 
   /// Returns range of jobs "near" to given one applying filter predicate on "near" value.
-  /// Near is defined by transport costs and their profile and time which value is filtered by Filter.
-  template<typename Filter>
+  /// Near is defined by transport costs, its profile and time. Value is filtered by max distance.
   ranges::any_view<Job> neighbors(const std::string& profile,
                                   const Job& job,
                                   const common::Timestamp time,
-                                  Filter filter) const {
+                                  common::Distance maxDistance = std::numeric_limits<common::Distance>::max()) const {
     return index_.find(profile)->second.find(job)->second |
-      ranges::view::remove_if([&filter](const auto& pair) { return !filter(pair.second); }) |
+      ranges::view::remove_if([=](const auto& pair) { return pair.second > maxDistance; }) |
       ranges::view::transform([](const auto& pair) { return pair.first; });
   }
 
@@ -51,7 +51,7 @@ private:
     using namespace ranges;
 
     ranges::for_each(profiles, [&](const auto& profile) {
-      auto map = index_[profile];  // std::map<Job, std::vector<std::pair<Job, common::Distance>>, compare_jobs>{};
+      auto& map = index_[profile];
       auto distance = models::problem::job_distance{transport, profile, common::Timestamp{}};
 
       // preinsert all keys
@@ -61,12 +61,9 @@ private:
 
       // process all values in parallel
       std::for_each(pstl::execution::par, jobs_.begin(), jobs_.end(), [&](const auto& job) {
-        map[job] = jobs_ | view::transform([&](const auto& j) {
-                     return std::pair<Job, common::Distance>{j, distance(j, job)};
-                   }) |
-          ranges::to_vector | action::sort([](const auto& lhs, const auto& rhs) { return lhs.second < rhs.second; });
-
-        // map[job] = pairs;
+        map[job] = jobs_ | view::remove_if([&](const auto& j) { return job == j; }) |
+          view::transform([&](const auto& j) { return std::make_pair(j, distance(j, job)); }) | ranges::to_vector |
+          action::sort([](const auto& lhs, const auto& rhs) { return lhs.second < rhs.second; });
       });
     });
   }

@@ -1,6 +1,7 @@
 #include "models/problem/Jobs.hpp"
 
 #include "models/extensions/problem/Factories.hpp"
+#include "test_utils/models/Extensions.hpp"
 #include "test_utils/models/Factories.hpp"
 
 #include <catch/catch.hpp>
@@ -9,6 +10,8 @@ using namespace vrp::models::common;
 using namespace vrp::models::costs;
 using namespace vrp::models::problem;
 using namespace vrp::models;
+using namespace ranges;
+using namespace Catch::Matchers;
 
 namespace {
 
@@ -49,9 +52,10 @@ SCENARIO("job neighbourhood", "[algorithms][ruin][jobs]") {
     auto jobs = Jobs{ProfileAwareTransportCosts{}, ranges::view::all(species), profiles};
 
     WHEN("get neighbours for specific profile") {
-      auto result = jobs.neighbors("p1", species.at(0), Timestamp{}, [](const auto d) { return d > 0; });
+      auto result = jobs.neighbors("p1", species.at(0), Timestamp{}) |
+        view::transform([](const auto& j) { return get_job_id{}(j); }) | to_vector;
 
-      THEN("returns expected jobs") {}
+      THEN("returns expected jobs") { CHECK_THAT(result, Equals(std::vector<std::string>{"s1", "s2", "s3", "s4"})); }
     }
   }
 }
