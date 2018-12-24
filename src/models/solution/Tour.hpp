@@ -58,6 +58,9 @@ public:
   /// Checks whether tour is empty.
   bool empty() const { return activities_.empty(); }
 
+  /// Returns separately amount of jobs and activities in tour.
+  std::pair<std::size_t, std::size_t> sizes() const { return std::make_pair(jobs_.size(), activities_.size()); }
+
 private:
   /// Stores activities in the order the performed.
   std::vector<Tour::Activity> activities_;

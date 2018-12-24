@@ -29,6 +29,10 @@ set(SOURCE_FILES
         algorithms/construction/InsertionRouteState.hpp
         algorithms/construction/InsertionProgress.hpp
 
+
+        algorithms/refinement/ruin/RemoveAdjustedString.hpp
+
+
         algorithms/DefaultAlgorithm.hpp
 
         models/common/Cost.hpp
