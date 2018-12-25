@@ -55,6 +55,9 @@ public:
   /// Returns last activity in tour.
   Activity last() const { return activities_.back(); }
 
+  /// Checks whether job is present in tour.
+  bool has(const problem::Job& job) const { return jobs_.find(job) != jobs_.end(); }
+
   /// Checks whether tour is empty.
   bool empty() const { return activities_.empty(); }
 

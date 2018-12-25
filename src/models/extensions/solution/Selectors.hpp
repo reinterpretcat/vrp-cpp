@@ -7,13 +7,13 @@
 
 namespace vrp::models::solution {
 
-/// Selects random job from list of routes.
+/// Selects random job within its route from list of routes.
 struct select_job final {
+  using ReturnType = std::optional<std::pair<std::shared_ptr<solution::Route>, problem::Job>>;
 
   /// Returns no job if routes are empty or there is no single activity withing job.
-  std::optional<problem::Job> operator()(const std::vector<std::shared_ptr<solution::Route>>& routes,
-                                         utils::Random& random) const {
-    if (routes.empty()) return {};
+  ReturnType operator()(const std::vector<std::shared_ptr<solution::Route>>& routes, utils::Random& random) const {
+    if (routes.empty()) return ReturnType{};
 
     auto routeIndex = random.uniform<int>(0, static_cast<int>(routes.size()) - 1);
 
@@ -23,13 +23,13 @@ struct select_job final {
 
       if (!route->tour.empty()) {
         auto job = random_job(route, random);
-        if (job) return job;
+        if (job) return ReturnType{std::make_pair(route, job.value())};
       }
 
       ri = (ri + 1) % routes.size();
     } while (ri != routeIndex);
 
-    return {};
+    return ReturnType{};
   }
 
 private:

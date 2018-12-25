@@ -32,6 +32,13 @@ struct Jobs final {
   /// Returns all jobs.
   ranges::any_view<Job> all() const { return ranges::view::all(jobs_); }
 
+  /// Returns all jobs with distance zero to given.
+  ranges::any_view<Job> ghosts(const std::string& profile, const Job& job, const common::Timestamp time) const {
+    return index_.find(profile)->second.find(job)->second |
+      ranges::view::remove_if([=](const auto& pair) { return pair.second == 0; }) |
+      ranges::view::transform([](const auto& pair) { return pair.first; });
+  }
+
   /// Returns range of jobs "near" to given one applying filter predicate on "near" value.
   /// Near is defined by transport costs, its profile and time. Value is filtered by max distance.
   ranges::any_view<Job> neighbors(const std::string& profile,
@@ -39,7 +46,7 @@ struct Jobs final {
                                   const common::Timestamp time,
                                   common::Distance maxDistance = std::numeric_limits<common::Distance>::max()) const {
     return index_.find(profile)->second.find(job)->second |
-      ranges::view::remove_if([=](const auto& pair) { return pair.second > maxDistance; }) |
+      ranges::view::remove_if([=](const auto& pair) { return pair.second == 0 || pair.second > maxDistance; }) |
       ranges::view::transform([](const auto& pair) { return pair.first; });
   }
 
