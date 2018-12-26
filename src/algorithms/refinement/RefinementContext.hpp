@@ -4,6 +4,7 @@
 #include "utils/Random.hpp"
 
 #include <memory>
+#include <set>
 
 namespace vrp::algorithms::refinement {
 
@@ -15,7 +16,7 @@ struct RefinementContext final {
   /// Random generator.
   std::shared_ptr<utils::Random> random;
 
-  // TODO: locked jobs?
-  // std::vector<models::problem::Job> locked;
+  /// Specifies jobs which should not be affected.
+  std::set<models::problem::Job, models::problem::compare_jobs> locked;
 };
 }

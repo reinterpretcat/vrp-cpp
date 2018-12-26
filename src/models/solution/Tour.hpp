@@ -4,6 +4,7 @@
 #include "models/problem/Job.hpp"
 #include "models/solution/Activity.hpp"
 
+#include <algorithm>
 #include <range/v3/all.hpp>
 #include <set>
 #include <vector>
@@ -55,11 +56,25 @@ public:
   /// Returns last activity in tour.
   Activity last() const { return activities_.back(); }
 
-  /// Checks whether job is present in tour.
-  bool has(const problem::Job& job) const { return jobs_.find(job) != jobs_.end(); }
+  /// Returns index of first job occurrance in the tour.
+  /// Throws exception if job is not present.
+  /// Complexity: O(n)
+  std::size_t index(const problem::Job& job) const {
+    auto i = std::find_if(activities_.begin(), activities_.end(), [&](const auto& a) {
+      return a->job == job;
+      ;
+    });
+
+    if (i == activities_.end()) throw std::invalid_argument("Cannot find job");
+
+    return std::distance(activities_.begin(), i);
+  }
 
   /// Checks whether tour is empty.
   bool empty() const { return activities_.empty(); }
+
+  /// Checks whether job is present in tour.
+  bool has(const problem::Job& job) const { return jobs_.find(job) != jobs_.end(); }
 
   /// Returns separately amount of jobs and activities in tour.
   std::pair<std::size_t, std::size_t> sizes() const { return std::make_pair(jobs_.size(), activities_.size()); }

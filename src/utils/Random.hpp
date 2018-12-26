@@ -20,6 +20,9 @@ public:
     return Dist(min, max)(generator_);
   }
 
+  /// Flips a coin and returns true if it is "heads", false otherwise.
+  bool isHeadsNotTails() { return uniform<int>(1, 2) == 1; }
+
 private:
   std::mt19937 generator_;
 };
