@@ -28,8 +28,9 @@ struct RemoveAdjustedString {
   double alpha = 0.01;
 
   /// Ruins jobs from given solution.
-  void operator()(const RefinementContext& ctx, models::Solution& solution) const {
+  ranges::any_view<models::problem::Job> operator()(const RefinementContext& ctx, models::Solution& solution) const {
     using namespace ranges;
+
     auto jobs = std::make_shared<std::set<models::problem::Job, models::problem::compare_jobs>>();
     auto routes = std::make_shared<std::set<std::shared_ptr<models::solution::Route>>>();
     auto [lsmax, ks] = limits(ctx, solution);
@@ -45,7 +46,7 @@ struct RemoveAdjustedString {
 
               routes->insert(r);
               action::insert(*jobs, removeSelected(ctx, r->tour, j, lt) | view::for_each([&](const auto& j) {
-                                      auto toBeRemoved = ctx.locked.find(j) == ctx.locked.end();
+                                      auto toBeRemoved = ctx.locked->find(j) == ctx.locked->end();
                                       if (toBeRemoved) r->tour.remove(j);
                                       return ranges::yield_if(toBeRemoved, j);
                                     }));
@@ -54,6 +55,8 @@ struct RemoveAdjustedString {
         }
       });
     }
+
+    return view::all(*jobs);
   }
 
 private:

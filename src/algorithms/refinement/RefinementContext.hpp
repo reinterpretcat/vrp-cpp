@@ -17,6 +17,6 @@ struct RefinementContext final {
   std::shared_ptr<utils::Random> random;
 
   /// Specifies jobs which should not be affected.
-  std::set<models::problem::Job, models::problem::compare_jobs> locked;
+  std::shared_ptr<std::set<models::problem::Job, models::problem::compare_jobs>> locked;
 };
 }
