@@ -132,7 +132,7 @@ private:
 
     return ranges::view::for_each(ranges::view::ints(startTotal, startTotal + total), [=, &tour](int i) {
       auto j = tour.get(static_cast<size_t>(i))->job;
-      auto isSplit = i >= splitStart && i < splitEnd;
+      auto isSplit = i >= splitStart && i < splitEnd && i != index;
       return ranges::yield_if(!isSplit && j.has_value(), j.value());
     });
   }
