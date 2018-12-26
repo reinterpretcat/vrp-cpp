@@ -24,9 +24,11 @@ struct RemoveAdjustedString {
   /// Specifies average number of removed customers.
   int cavg = 10;
 
-  /// Identifies jobs to be ruined from given solution.
-  ranges::any_view<models::problem::Job> operator()(const RefinementContext& ctx,
-                                                    const models::Solution& solution) const {
+  /// Preserved customers ratio.
+  double alpha = 0.01;
+
+  /// Ruins jobs from given solution.
+  void operator()(const RefinementContext& ctx, models::Solution& solution) const {
     using namespace ranges;
     auto jobs = std::make_shared<std::set<models::problem::Job, models::problem::compare_jobs>>();
     auto routes = std::make_shared<std::set<std::shared_ptr<models::solution::Route>>>();
@@ -42,16 +44,16 @@ struct RemoveAdjustedString {
               auto lt = static_cast<int>(std::floor(ctx.random->uniform<double>(1, ltmax + 1)));
 
               routes->insert(r);
-              action::insert(*jobs, removeSelected(ctx, r->tour, j, lt) | view::for_each([&](const auto& j){
-                return ranges::yield_if(ctx.locked.find(j) == ctx.locked.end(), j);
-              }));
+              action::insert(*jobs, removeSelected(ctx, r->tour, j, lt) | view::for_each([&](const auto& j) {
+                                      auto toBeRemoved = ctx.locked.find(j) == ctx.locked.end();
+                                      if (toBeRemoved) r->tour.remove(j);
+                                      return ranges::yield_if(toBeRemoved, j);
+                                    }));
             }
           });
         }
       });
     }
-
-    return ranges::view::all(*jobs);
   }
 
 private:
@@ -95,32 +97,44 @@ private:
                                                         const models::solution::Tour& tour,
                                                         const models::problem::Job& job,
                                                         int cardinality) const {
-    return ctx.random->isHeadsNotTails() ? removeSequentialString(ctx, tour, job, cardinality)
-                                         : removeSplitString(ctx, tour, job, cardinality);
+    auto index = static_cast<int>(tour.index(job));
+    return ctx.random->isHeadsNotTails() ? removeSequentialString(ctx, tour, index, cardinality)
+                                         : removePreservedString(ctx, tour, index, cardinality);
   }
 
   /// Remove sequential string.
   ranges::any_view<models::problem::Job> removeSequentialString(const RefinementContext& ctx,
                                                                 const models::solution::Tour& tour,
-                                                                const models::problem::Job& job,
+                                                                int index,
                                                                 int cardinality) const {
-    auto index = static_cast<int>(tour.index(job));
-    auto size = static_cast<int>(tour.sizes().second);
-
-    auto bounds = lowerBounds(cardinality, size, index) | ranges::to_vector;
+    auto bounds = lowerBounds(cardinality, static_cast<int>(tour.sizes().second), index) | ranges::to_vector;
     auto start = bounds.at(ctx.random->uniform<int>(0, bounds.size() - 1));
-    return ranges::view::for_each(ranges::view::ints(start, start + cardinality), [&tour](const int i) {
+
+    return ranges::view::for_each(ranges::view::ints(start, start + cardinality), [&tour](int i) {
       auto j = tour.get(static_cast<size_t>(i))->job;
       return ranges::yield_if(j.has_value(), j.value());
     });
   }
 
-  /// Remove string with gap.
-  ranges::any_view<models::problem::Job> removeSplitString(const RefinementContext& ctx,
-                                                           const models::solution::Tour& tour,
-                                                           const models::problem::Job& job,
-                                                           int cardinality) const {
-    // TODO
+  /// Remove string with preserved customers.
+  ranges::any_view<models::problem::Job> removePreservedString(const RefinementContext& ctx,
+                                                               const models::solution::Tour& tour,
+                                                               int index,
+                                                               int cardinality) const {
+    int size = static_cast<int>(tour.sizes().second);
+    int split = preservedCardinality(cardinality, size, *ctx.random);
+    int total = cardinality + split;
+    auto bounds = lowerBounds(total, size, index) | ranges::to_vector;
+
+    auto startTotal = bounds.at(ctx.random->uniform<int>(0, bounds.size() - 1));
+    auto splitStart = ctx.random->uniform<int>(startTotal, startTotal + cardinality - 1);
+    auto splitEnd = splitStart + split;
+
+    return ranges::view::for_each(ranges::view::ints(startTotal, startTotal + total), [=, &tour](int i) {
+      auto j = tour.get(static_cast<size_t>(i))->job;
+      auto isSplit = i >= splitStart && i < splitEnd;
+      return ranges::yield_if(!isSplit && j.has_value(), j.value());
+    });
   }
 
   // endregion
@@ -134,6 +148,20 @@ private:
       int upper = index + (i - 1);
       return ranges::yield_if(lower >= 0 && upper < tourCardinality, lower);
     });
+  }
+
+  /// Calculates preserved substring cardinality.
+  int preservedCardinality(int stringCardinality, int tourCardinality, utils::Random& random) const {
+    if (stringCardinality == tourCardinality) return 0;
+
+    int preservedCardinality = 1;
+    while (stringCardinality + preservedCardinality < tourCardinality) {
+      if (random.uniform<double>(0, 1) < alpha) {
+        return preservedCardinality;
+      } else
+        ++preservedCardinality;
+    }
+    return preservedCardinality;
   }
 
   // endregion
