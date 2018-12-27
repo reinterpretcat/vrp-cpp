@@ -45,6 +45,7 @@ set(SOURCE_FILES
         models/common/TimeWindow.hpp
 
         models/costs/ActivityCosts.hpp
+        models/costs/MatrixTransportCosts.hpp
         models/costs/TransportCosts.hpp
 
         models/extensions/problem/Comparators.hpp
