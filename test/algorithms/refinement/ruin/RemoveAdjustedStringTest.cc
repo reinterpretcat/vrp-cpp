@@ -26,7 +26,8 @@ SCENARIO("adjusted string removal can ruin solution", "[algorithms][refinement][
     auto [problem, solution] = generate_matrix_routes{}(4, 5);
 
     WHEN("ruin without locked jobs") {
-      auto context = RefinementContext{{}, std::make_shared<Random>(), std::make_shared<std::set<Job, compare_jobs>>()};
+      // auto context = RefinementContext{{}, std::make_shared<Random>(), std::make_shared<std::set<Job,
+      // compare_jobs>>()};
 
       THEN("should ruin expected jobs") {
         // TODO
