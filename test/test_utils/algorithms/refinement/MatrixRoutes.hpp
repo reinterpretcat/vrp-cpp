@@ -4,6 +4,7 @@
 #include "models/costs/MatrixTransportCosts.hpp"
 #include "test_utils/models/Factories.hpp"
 
+#include <cmath>
 #include <memory>
 
 namespace vrp::test {
@@ -16,6 +17,8 @@ namespace vrp::test {
 /// 2  6  10 14
 /// 3  7  11 15
 struct generate_matrix_routes final {
+  static const inline std::string Profile = "car";
+
   using Result = std::pair<std::shared_ptr<vrp::models::Problem>, std::shared_ptr<vrp::models::Solution>>;
 
   Result operator()(int rows, int cols) const {
@@ -52,7 +55,7 @@ struct generate_matrix_routes final {
 
     return Result{
       std::make_shared<Problem>(Problem{fleet,
-                                        std::make_shared<Jobs>(*matrix, view::all(jobs), view::single("car")),
+                                        std::make_shared<Jobs>(*matrix, view::all(jobs), view::single(Profile)),
                                         std::make_shared<algorithms::construction::InsertionConstraint>(),
                                         std::make_shared<costs::ActivityCosts>(),
                                         matrix}),
@@ -61,8 +64,23 @@ struct generate_matrix_routes final {
 
 private:
   template<typename T>
-  std::map<std::string, std::vector<T>>&& values(int columns, int rows) const {
-    // TODO
+  std::map<std::string, std::vector<T>> values(int rows, int cols, T scale = 1000) const {
+    auto size = cols * rows;
+    auto sqr = [](T x) -> double { return static_cast<double>(x * x); };
+    auto data = std::vector<T>(static_cast<size_t>(sqr(size)), 0);
+
+    ranges::for_each(ranges::view::ints(0, size), [&](int i) {
+      int left1 = i / rows, right1 = i % rows;
+      ranges::for_each(ranges::view::ints(i + 1, size), [=, &data](int j) {
+        auto [left2, right2] = std::make_pair(j / rows, j % rows);
+        auto value  = static_cast<T>(std::sqrt(sqr(left1 - left2) + sqr(right1 - right2)) * scale);
+
+        data[i * size + j] = value;
+        data[i * size + j + (j - i) * (size - 1)] = value;
+      });
+    });
+
+    return {{Profile, data}};
   }
 };
 }

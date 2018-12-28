@@ -21,9 +21,12 @@ public:
     size_(0) {
     assert(durations_.size() == distances_.size());
     ranges::for_each(durations, [this](const auto& pair) mutable {
-      if (this->size_ == 0) this->size_ = pair.second.size();
-      assert(this->size_ == pair.second.size());
-      assert(this->size_ == this->distances_.find(pair.first)->second.size());
+      if (this->size_ == 0) {
+        this->size_ = std::sqrt(pair.second.size());
+        assert(this->size_ * this->size_ == pair.second.size());
+      }
+      assert(this->size_ == std::sqrt(pair.second.size()));
+      assert(this->size_ == std::sqrt(this->distances_.find(pair.first)->second.size()));
     });
   }
 

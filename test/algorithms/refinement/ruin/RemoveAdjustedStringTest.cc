@@ -22,7 +22,7 @@ SCENARIO("adjusted string removal can ruin solution", "[algorithms][refinement][
   auto ras = RemoveAdjustedString{};
 
   GIVEN("solution with 4 routes within 5 service jobs in each") {
-    auto [problem, solution] = generate_matrix_routes{}(4, 5);
+    auto [problem, solution] = generate_matrix_routes{}(5, 4);
 
     WHEN("ruin without locked jobs") {
       auto context = RefinementContext{{},
