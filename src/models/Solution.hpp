@@ -20,7 +20,7 @@ struct Solution final {
   std::vector<std::shared_ptr<solution::Route>> routes;
 
   /// Collection of unassigned jobs.
-  std::set<problem::Job, problem::compare_jobs> unassignedJobs;
+  std::set<problem::Job, problem::compare_jobs> unassigned;
 };
 
 }  // namespace vrp::models::solution

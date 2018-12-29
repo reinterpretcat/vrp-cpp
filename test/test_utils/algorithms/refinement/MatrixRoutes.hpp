@@ -73,7 +73,7 @@ private:
       int left1 = i / rows, right1 = i % rows;
       ranges::for_each(ranges::view::ints(i + 1, size), [=, &data](int j) {
         auto [left2, right2] = std::make_pair(j / rows, j % rows);
-        auto value  = static_cast<T>(std::sqrt(sqr(left1 - left2) + sqr(right1 - right2)) * scale);
+        auto value = static_cast<T>(std::sqrt(sqr(left1 - left2) + sqr(right1 - right2)) * scale);
 
         data[i * size + j] = value;
         data[i * size + j + (j - i) * (size - 1)] = value;

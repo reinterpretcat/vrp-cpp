@@ -28,42 +28,47 @@ struct RemoveAdjustedString {
   double alpha = 0.01;
 
   /// Ruins jobs from given solution.
-  ranges::any_view<models::problem::Job> operator()(const RefinementContext& ctx, models::Solution& solution) const {
+  void operator()(const RefinementContext& ctx, models::Solution& sln) const {
     using namespace ranges;
 
     auto jobs = std::make_shared<std::set<models::problem::Job, models::problem::compare_jobs>>();
     auto routes = std::make_shared<std::set<std::shared_ptr<models::solution::Route>>>();
-    auto [lsmax, ks] = limits(ctx, solution);
+    auto [lsmax, ks] = limits(ctx, sln);
 
-    while (routes->size() != ks) {
-      ranges::for_each(neighbors(ctx, solution), [=, &solution, lsmax = lsmax](const auto& j) {
-        if (jobs->find(j) == jobs->end() && solution.unassignedJobs.find(j) == solution.unassignedJobs.end()) {
-          ranges::for_each(solution.routes, [=, &ctx](const auto& r) {
-            if (routes->find(r) == routes->end() && r->tour.has(j)) {
-              /// Equations 8, 9: calculate cardinality of the string removed from the tour
-              auto ltmax = std::min(static_cast<double>(r->tour.sizes().second), lsmax);
-              auto lt = static_cast<int>(std::floor(ctx.random->uniform<double>(1, ltmax + 1)));
-
-              routes->insert(r);
-              action::insert(*jobs, removeSelected(ctx, r->tour, j, lt) | view::for_each([&](const auto& j) {
-                                      auto toBeRemoved = ctx.locked->find(j) == ctx.locked->end();
-                                      if (toBeRemoved) r->tour.remove(j);
-                                      return ranges::yield_if(toBeRemoved, j);
-                                    }));
-            }
+    ranges::for_each(
+      view::take_while(
+        selectJobs(ctx, sln) | view::remove_if([&](const auto& j) { return in(*jobs, j) || in(sln.unassigned, j); }),
+        [ks = ks, routes](const auto&) { return routes->size() != ks; }),
+      [=, &sln, lsmax = lsmax](const auto& job) {
+        ranges::for_each(
+          sln.routes | view::remove_if([&](const auto& r) { return in(*routes, r) || !r->tour.has(job); }),
+          [=, &ctx](const auto& route) {
+            /// Equations 8, 9: calculate cardinality of the string removed from the tour
+            auto ltmax = std::min(static_cast<double>(route->tour.sizes().second), lsmax);
+            auto lt = static_cast<int>(std::floor(ctx.random->uniform<double>(1, ltmax + 1)));
+            auto candidates = removeSelected(ctx, route->tour, job, lt) | view::for_each([&](const auto& j) {
+                                return ranges::yield_if(ctx.locked->find(j) == ctx.locked->end(), j);
+                              }) |
+              to_vector;
+            ranges::for_each(candidates, [&](const auto& c) { route->tour.remove(c); });
+            action::insert(*jobs, candidates);
+            routes->insert(route);
           });
-        }
       });
-    }
 
-    return view::all(*jobs);
+    sln.unassigned.insert(jobs->begin(), jobs->end());
   }
 
 private:
+  template<typename T, typename C>
+  bool in(const std::set<T, C>& set, const T& item) const {
+    return set.find(item) != set.end();
+  }
+
   /// Calculates initial parameters from paper using 5,6,7 equations.
-  std::tuple<double, int> limits(const RefinementContext& ctx, const models::Solution& solution) const {
+  std::tuple<double, int> limits(const RefinementContext& ctx, const models::Solution& sln) const {
     /// Equation 5: max removed string cardinality for each tour
-    double lsmax = std::min(static_cast<double>(lmax), avgTourCardinality(solution));
+    double lsmax = std::min(static_cast<double>(lmax), avgTourCardinality(sln));
 
     /// Equation 6: max number of strings
     double ksmax = 4 * cavg / (1 + lsmax) - 1;
@@ -74,23 +79,23 @@ private:
     return {lsmax, ks};
   }
 
-  /// Returns all neighbours of seed job.
-  ranges::any_view<models::problem::Job> neighbors(const RefinementContext& ctx,
-                                                   const models::Solution& solution) const {
-    auto seed = models::solution::select_job{}(solution.routes, *ctx.random);
+  /// Returns randomly selected job and all its neighbours.
+  ranges::any_view<models::problem::Job> selectJobs(const RefinementContext& ctx, const models::Solution& sln) const {
+    auto seed = models::solution::select_job{}(sln.routes, *ctx.random);
     if (!seed) return ranges::view::empty<models::problem::Job>();
 
     auto [route, job] = seed.value();
 
-    return ctx.problem->jobs->neighbors(route->actor->vehicle->profile, job, models::common::Timestamp{0});
+    return ranges::view::concat(
+      ranges::view::single(job),
+      ctx.problem->jobs->neighbors(route->actor->vehicle->profile, job, models::common::Timestamp{0}));
   }
 
   /// Calculates average tour cardinality.
-  double avgTourCardinality(const models::Solution& solution) const {
-    return std::round(ranges::accumulate(solution.routes,
-                                         0.0,
-                                         [](const double acc, const auto& r) { return acc + r->tour.sizes().second; }) /
-                      solution.routes.size());
+  double avgTourCardinality(const models::Solution& sln) const {
+    return std::round(ranges::accumulate(
+                        sln.routes, 0.0, [](const double acc, const auto& r) { return acc + r->tour.sizes().second; }) /
+                      sln.routes.size());
   }
 
   // region String removal
