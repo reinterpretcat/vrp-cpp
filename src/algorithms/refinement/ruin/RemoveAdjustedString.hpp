@@ -46,13 +46,14 @@ struct RemoveAdjustedString {
             /// Equations 8, 9: calculate cardinality of the string removed from the tour
             auto ltmax = std::min(static_cast<double>(route->tour.sizes().second), lsmax);
             auto lt = static_cast<int>(std::floor(ctx.random->uniform<double>(1, ltmax + 1)));
-            auto candidates = removeSelected(ctx, route->tour, job, lt) | view::for_each([&](const auto& j) {
-                                return ranges::yield_if(ctx.locked->find(j) == ctx.locked->end(), j);
-                              }) |
-              to_vector;
-            ranges::for_each(candidates, [&](const auto& c) { route->tour.remove(c); });
-            action::insert(*jobs, candidates);
+
             routes->insert(route);
+            ranges::for_each(selectString(ctx, route->tour, job, lt) |
+                               view::remove_if([&](const auto& j) { return in(*ctx.locked, j); }),
+                             [&](const auto& j) {
+                               route->tour.remove(j);
+                               jobs->insert(j);
+                             });
           });
       });
 
@@ -79,6 +80,13 @@ private:
     return {lsmax, ks};
   }
 
+  /// Calculates average tour cardinality.
+  double avgTourCardinality(const models::Solution& sln) const {
+    return std::round(ranges::accumulate(
+                        sln.routes, 0.0, [](const double acc, const auto& r) { return acc + r->tour.sizes().second; }) /
+                      sln.routes.size());
+  }
+
   /// Returns randomly selected job and all its neighbours.
   ranges::any_view<models::problem::Job> selectJobs(const RefinementContext& ctx, const models::Solution& sln) const {
     auto seed = models::solution::select_job{}(sln.routes, *ctx.random);
@@ -91,44 +99,39 @@ private:
       ctx.problem->jobs->neighbors(route->actor->vehicle->profile, job, models::common::Timestamp{0}));
   }
 
-  /// Calculates average tour cardinality.
-  double avgTourCardinality(const models::Solution& sln) const {
-    return std::round(ranges::accumulate(
-                        sln.routes, 0.0, [](const double acc, const auto& r) { return acc + r->tour.sizes().second; }) /
-                      sln.routes.size());
-  }
-
-  // region String removal
+  // region String selection
 
   /// Removes string for selected customer.
-  ranges::any_view<models::problem::Job> removeSelected(const RefinementContext& ctx,
-                                                        const models::solution::Tour& tour,
-                                                        const models::problem::Job& job,
-                                                        int cardinality) const {
+  ranges::any_view<models::problem::Job> selectString(const RefinementContext& ctx,
+                                                      const models::solution::Tour& tour,
+                                                      const models::problem::Job& job,
+                                                      int cardinality) const {
     auto index = static_cast<int>(tour.index(job));
-    return ctx.random->isHeadsNotTails() ? removeSequentialString(ctx, tour, index, cardinality)
-                                         : removePreservedString(ctx, tour, index, cardinality);
+    return ctx.random->isHeadsNotTails() ? sequentialString(ctx, tour, index, cardinality)
+                                         : preservedString(ctx, tour, index, cardinality);
   }
 
   /// Remove sequential string.
-  ranges::any_view<models::problem::Job> removeSequentialString(const RefinementContext& ctx,
-                                                                const models::solution::Tour& tour,
-                                                                int index,
-                                                                int cardinality) const {
+  ranges::any_view<models::problem::Job> sequentialString(const RefinementContext& ctx,
+                                                          const models::solution::Tour& tour,
+                                                          int index,
+                                                          int cardinality) const {
+    using namespace ranges;
+
     auto bounds = lowerBounds(cardinality, static_cast<int>(tour.sizes().second), index) | ranges::to_vector;
     auto start = bounds.at(ctx.random->uniform<int>(0, bounds.size() - 1));
 
-    return ranges::view::for_each(ranges::view::ints(start, start + cardinality), [&tour](int i) {
+    return view::for_each(view::ints(start, start + cardinality) | view::reverse, [&tour](int i) {
       auto j = tour.get(static_cast<size_t>(i))->job;
       return ranges::yield_if(j.has_value(), j.value());
     });
   }
 
   /// Remove string with preserved customers.
-  ranges::any_view<models::problem::Job> removePreservedString(const RefinementContext& ctx,
-                                                               const models::solution::Tour& tour,
-                                                               int index,
-                                                               int cardinality) const {
+  ranges::any_view<models::problem::Job> preservedString(const RefinementContext& ctx,
+                                                         const models::solution::Tour& tour,
+                                                         int index,
+                                                         int cardinality) const {
     int size = static_cast<int>(tour.sizes().second);
     int split = preservedCardinality(cardinality, size, *ctx.random);
     int total = cardinality + split;
