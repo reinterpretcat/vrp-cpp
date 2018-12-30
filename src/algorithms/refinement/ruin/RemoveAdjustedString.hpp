@@ -132,6 +132,8 @@ private:
                                                          const models::solution::Tour& tour,
                                                          int index,
                                                          int cardinality) const {
+    using namespace ranges;
+
     int size = static_cast<int>(tour.sizes().second);
     int split = preservedCardinality(cardinality, size, *ctx.random);
     int total = cardinality + split;
@@ -141,8 +143,11 @@ private:
     auto splitStart = ctx.random->uniform<int>(startTotal, startTotal + cardinality - 1);
     auto splitEnd = splitStart + split;
 
-    // TODO reverse index traversal
-    return ranges::view::for_each(ranges::view::ints(startTotal, startTotal + total), [=, &tour](int i) {
+    // NOTE if selected job is in split range we should remove it anyway,
+    // this line makes sure that string cardinality is kept as requested.
+    total -= (index >= splitStart && index < splitEnd ? 1 : 0);
+
+    return view::for_each(view::ints(startTotal, startTotal + total) | view::reverse, [=, &tour](int i) {
       auto j = tour.get(static_cast<size_t>(i))->job;
       auto isSplit = i >= splitStart && i < splitEnd && i != index;
       return ranges::yield_if(!isSplit && j.has_value(), j.value());

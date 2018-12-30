@@ -16,12 +16,15 @@ namespace {
 /// int distribution values:
 /// 1. route index in solution
 /// 2*. job index in selected route tour
-/// 3*. selected algorithm: 1: sequential algorithm
+/// 3*. selected algorithm: 1: sequential algorithm(**)
 /// 4*. string removal index(-ies)
 /// double distribution values:
 /// 1. string count
 /// 2*. string size(-s)
 /// (*) - specific for each route.
+/// (**) - calls more int and double distributions:
+///     int 5. split start
+///     dbl 3. alpha param
 template<typename T>
 struct FakeDistribution {
   std::vector<T> values = {};
@@ -39,9 +42,13 @@ namespace vrp::test {
 
 SCENARIO("adjusted string removal can ruin solution", "[algorithms][refinement][ruin]") {
   auto [ints, doubles, ids] = GENERATE(table<std::vector<int>, std::vector<double>, std::vector<std::string>>({
+    // sequential
     {{1, 2, 1, 1}, {1, 3}, {"c6", "c7", "c8"}},
     {{0, 2, 1, 1, 1, 1, 2}, {2, 3, 2}, {"c1", "c2", "c3", "c7", "c8"}},
     {{1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, {3, 3, 3, 3}, {"c1", "c11", "c12", "c13", "c2", "c3", "c6", "c7", "c8"}},
+    // preserved
+    {{1, 0, 2, 0, 2}, {1, 3, 0.5}, {"c5", "c6", "c9"}},
+    {{1, 2, 2, 0, 2}, {1, 3, 0.5}, {"c5", "c6", "c7"}},
   }));
 
   GIVEN("solution with 3 routes within 5 service jobs in each") {
