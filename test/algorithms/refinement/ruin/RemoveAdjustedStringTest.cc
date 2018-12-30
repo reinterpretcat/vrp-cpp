@@ -96,4 +96,25 @@ SCENARIO("adjusted string removal can ruin solution with multiple routes", "[alg
     }
   }
 }
+
+SCENARIO("adjusted string removal can ruin solution using data generators", "[algorithms][refinement][ruin]") {
+  auto jobs = GENERATE(range(10, 12));
+  auto routes = GENERATE(range(1, 3));
+  auto cardinality = GENERATE(range(5, 12));
+  auto average = GENERATE(range(5, 12));
+  auto alpha = GENERATE(values<double>({0.01, 0.1}));
+
+  GIVEN("solution with service jobs") {
+    auto [problem, solution] = generate_matrix_routes{}(jobs, routes);
+
+    WHEN("ruin without locked jobs") {
+      auto context =
+        RefinementContext{problem, std::make_shared<Random>(), std::make_shared<std::set<Job, compare_jobs>>()};
+
+      RemoveAdjustedString{cardinality, average, alpha}.operator()(context, *solution);
+
+      THEN("should ruin some jobs") { REQUIRE(!solution->unassigned.empty()); }
+    }
+  }
+}
 }

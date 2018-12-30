@@ -17,8 +17,8 @@ public:
   using RealDistribution = std::function<double(double min, double max)>;
 
   /// Creates random with default int and real distributions.
-  explicit Random(std::random_device device) :
-    generator_(device()),
+  Random() :
+    generator_(std::random_device()()),
     intDist_(std::bind(&Random::intDist, this, std::placeholders::_1, std::placeholders::_2)),
     realDist_(std::bind(&Random::realDist, this, std::placeholders::_1, std::placeholders::_2)) {}
 
