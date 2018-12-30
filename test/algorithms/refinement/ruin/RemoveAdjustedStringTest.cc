@@ -40,7 +40,35 @@ struct FakeDistribution {
 
 namespace vrp::test {
 
-SCENARIO("adjusted string removal can ruin solution", "[algorithms][refinement][ruin]") {
+SCENARIO("adjusted string removal can ruin solution with single route", "[algorithms][refinement][ruin]") {
+  auto [ints, doubles, ids] = GENERATE(table<std::vector<int>, std::vector<double>, std::vector<std::string>>({
+    // sequential
+    {{0, 3, 1, 1}, {1, 5}, {"c1", "c2", "c3", "c4", "c5"}},
+    // preserved
+    {{0, 2, 2, 0, 3}, {1, 5, 0.5, 0.005}, {"c0", "c1", "c2", "c5", "c6"}},
+    {{0, 2, 2, 0, 3}, {1, 5, 0.5, 0.5, 0.005}, {"c0", "c1", "c2", "c6", "c7"}},
+    {{0, 2, 2, 2, 3}, {1, 5, 0.5, 0.5, 0.005}, {"c2", "c6", "c7", "c8", "c9"}},
+  }));
+
+  GIVEN("solution with single route and 10 service jobs") {
+    auto [problem, solution] = generate_matrix_routes{}(10, 1);
+
+    WHEN("ruin without locked jobs") {
+      auto context = RefinementContext{
+        problem,
+        std::make_shared<Random>(FakeDistribution<int>{ints, 0}, FakeDistribution<double>{doubles, 0}),
+        std::make_shared<std::set<Job, compare_jobs>>()};
+
+      RemoveAdjustedString{}.operator()(context, *solution);
+
+      THEN("should ruin expected jobs") {
+        CHECK_THAT(get_job_ids_from_set{}.operator()(solution->unassigned), Equals(ids));
+      }
+    }
+  }
+}
+
+SCENARIO("adjusted string removal can ruin solution with multiple routes", "[algorithms][refinement][ruin]") {
   auto [ints, doubles, ids] = GENERATE(table<std::vector<int>, std::vector<double>, std::vector<std::string>>({
     // sequential
     {{1, 2, 1, 1}, {1, 3}, {"c6", "c7", "c8"}},
