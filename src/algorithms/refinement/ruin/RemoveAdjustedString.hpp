@@ -111,7 +111,7 @@ private:
                                          : preservedString(ctx, tour, index, cardinality);
   }
 
-  /// Remove sequential string.
+  /// Selects sequential string.
   ranges::any_view<models::problem::Job> sequentialString(const RefinementContext& ctx,
                                                           const models::solution::Tour& tour,
                                                           int index,
@@ -127,7 +127,7 @@ private:
     });
   }
 
-  /// Remove string with preserved customers.
+  /// Selects string with preserved customers.
   ranges::any_view<models::problem::Job> preservedString(const RefinementContext& ctx,
                                                          const models::solution::Tour& tour,
                                                          int index,
@@ -141,6 +141,7 @@ private:
     auto splitStart = ctx.random->uniform<int>(startTotal, startTotal + cardinality - 1);
     auto splitEnd = splitStart + split;
 
+    // TODO reverse index traversal
     return ranges::view::for_each(ranges::view::ints(startTotal, startTotal + total), [=, &tour](int i) {
       auto j = tour.get(static_cast<size_t>(i))->job;
       auto isSplit = i >= splitStart && i < splitEnd && i != index;
