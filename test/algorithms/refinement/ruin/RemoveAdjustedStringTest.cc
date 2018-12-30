@@ -39,19 +39,22 @@ namespace vrp::test {
 SCENARIO("adjusted string removal can ruin solution", "[algorithms][refinement][ruin]") {
   auto ras = RemoveAdjustedString{};
 
+  auto [ints, doubles, ids] = GENERATE(table<std::vector<int>, std::vector<double>, std::vector<std::string>>({
+    {{1, 2, 1, 1}, {1, 3}, {"c6", "c7", "c8"}},
+  }));
+
   GIVEN("solution with 3 routes within 5 service jobs in each") {
     auto [problem, solution] = generate_matrix_routes{}(5, 3);
 
     WHEN("ruin without locked jobs") {
       auto context = RefinementContext{
         problem,
-        std::make_shared<Random>(FakeDistribution<int>{{1, 2, 1, 1}, 0}, FakeDistribution<double>{{1, 3}, 0}),
+        std::make_shared<Random>(FakeDistribution<int>{ints, 0}, FakeDistribution<double>{doubles, 0}),
         std::make_shared<std::set<Job, compare_jobs>>()};
       ras.operator()(context, *solution);
 
       THEN("should ruin expected jobs") {
-        CHECK_THAT(get_job_ids_from_set{}.operator()(solution->unassigned),
-                   Equals(std::vector<std::string>{"c6", "c7", "c8"}));
+        CHECK_THAT(get_job_ids_from_set{}.operator()(solution->unassigned), Equals(ids));
       }
     }
   }
