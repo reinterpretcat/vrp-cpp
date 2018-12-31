@@ -30,7 +30,7 @@ set(SOURCE_FILES
         algorithms/construction/InsertionProgress.hpp
 
 
-        algorithms/refinement/ruin/RemoveAdjustedString.hpp
+        algorithms/refinement/rr/ruin/RemoveAdjustedString.hpp
 
 
         algorithms/DefaultAlgorithm.hpp
