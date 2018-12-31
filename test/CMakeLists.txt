@@ -33,7 +33,7 @@ set(SOURCE_FILES
         test_utils/algorithms/construction/Insertions.hpp
         test_utils/algorithms/construction/Contexts.hpp
         test_utils/algorithms/construction/Results.hpp
-        test_utils/algorithms/constraints/Helpers.hpp
+        test_utils/algorithms/construction/constraints/Helpers.hpp
         test_utils/algorithms/refinement/MatrixRoutes.hpp
         test_utils/fakes/TestTransportCosts.hpp
         test_utils/models/Comparators.hpp
