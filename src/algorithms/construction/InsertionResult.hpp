@@ -56,7 +56,7 @@ make_result_success(const InsertionSuccess& success) {
 
 /// Compares two insertion results and returns the cheapest by cost.
 inline InsertionResult
-get_cheapest(const InsertionResult& left, const InsertionResult& right) {
+get_best_result(const InsertionResult& left, const InsertionResult& right) {
   return utils::mono_result<InsertionResult>(right.visit(ranges::overload(
     [&](const InsertionSuccess& success) {
       if (left.index() == 1) return right;

@@ -58,7 +58,7 @@ struct InsertionEvaluator final {
             })));
 
           // propagate best result or failure
-          return get_cheapest(inner, result);
+          return get_best_result(inner, result);
         });
       });
   }
