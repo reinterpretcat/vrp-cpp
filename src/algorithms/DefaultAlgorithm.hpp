@@ -9,7 +9,7 @@
 namespace vrp::algorithms {
 
 /// Specifies default algorithm logic.
-template<typename Heuristic = construction::CheapestInsertion<construction::InsertionEvaluator>>
+template<typename Heuristic = construction::CheapestInsertion>
 struct DefaultAlgorithm final {
   using Individuum = construction::InsertionContext;
 

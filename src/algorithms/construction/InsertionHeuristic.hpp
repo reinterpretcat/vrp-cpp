@@ -3,16 +3,37 @@
 #include "algorithms/construction/InsertionContext.hpp"
 #include "algorithms/construction/InsertionResult.hpp"
 
+#include <pstl/execution>
+#include <pstl/numeric>
+
 namespace vrp::algorithms::construction {
 
-/// Specifies generic insertion heuristic interface.
-template<typename Algorithm>
+/// Specifies generic insertion heuristic logic.
+/// Evaluator template param specifies the logic responsible for job insertion
+/// evaluation: where is job's insertion point.
+/// Selector template param specifies the logic which selects job to be inserted.
+template<typename Evaluator, typename Selector>
 struct InsertionHeuristic {
+  explicit InsertionHeuristic(const Evaluator& evaluator) : evaluator_(evaluator) {}
+
+  void accept(const InsertionSuccess& success) { evaluator_.accept(success.route); }
+
   InsertionContext operator()(const InsertionContext& ctx) const {
-    return static_cast<const Algorithm*>(this)->insert(ctx);
+    auto newCtx = InsertionContext(ctx);
+    auto selector = Selector{};
+    while (!newCtx.jobs.empty()) {
+      insert(std::transform_reduce(pstl::execution::par,
+                                   newCtx.jobs.begin(),
+                                   newCtx.jobs.end(),
+                                   make_result_failure(),
+                                   [&](const auto& acc, const auto& result) { return selector(acc, result); },
+                                   [&](const auto& job) { return evaluator_.evaluate(job, newCtx); }),
+             newCtx);
+    }
+    return std::move(newCtx);
   }
 
-protected:
+private:
   /// Inserts result into context.
   void insert(const InsertionResult& result, InsertionContext& ctx) const {
     result.visit(ranges::overload(
@@ -35,5 +56,7 @@ protected:
         ctx.jobs.clear();
       }));
   }
+
+  const Evaluator evaluator_;
 };
 }

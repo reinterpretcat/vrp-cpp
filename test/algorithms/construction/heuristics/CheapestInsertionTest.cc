@@ -66,8 +66,7 @@ SCENARIO("cheapest insertion inserts service", "[algorithms][construction][inser
       .add(test_build_vehicle{}.id("v1").details({{0, v1, {0, 100}}}).owned())
       .add(test_build_vehicle{}.id("v2").details({{20, v2, {0, 100}}}).owned());
 
-    auto insertion = CheapestInsertion<InsertionEvaluator>{
-      {std::make_shared<TestTransportCosts>(), std::make_shared<ActivityCosts>()}};
+    auto insertion = CheapestInsertion{{std::make_shared<TestTransportCosts>(), std::make_shared<ActivityCosts>()}};
 
     WHEN("analyzes insertion context") {
       auto result = insertion(test_build_insertion_context{}
@@ -96,7 +95,7 @@ SCENARIO("cheapest insertion handles artificial problems with demand", "[algorit
       auto [evaluator, ctx] = createInsertion<create_sequential_problem_stream>(vehicles, capacity);
 
       WHEN("calculates solution") {
-        auto solution = CheapestInsertion<InsertionEvaluator>{evaluator}.operator()(ctx);
+        auto solution = CheapestInsertion{evaluator}.operator()(ctx);
         THEN("all jobs processed") {
           REQUIRE(solution.jobs.empty());
           REQUIRE(solution.unassigned.size() == unassigned);
@@ -112,7 +111,7 @@ SCENARIO("cheapest insertion handles artificial problems with times", "[algorith
     auto [evaluator, ctx] = createInsertion<create_time_problem_stream>(1, 10);
 
     WHEN("calculates solution") {
-      auto solution = CheapestInsertion<InsertionEvaluator>{evaluator}.insert(ctx);
+      auto solution = CheapestInsertion{evaluator}.operator()(ctx);
 
       THEN("all jobs processed") {
         REQUIRE(solution.jobs.empty());
@@ -139,7 +138,7 @@ SCENARIO("cheapest insertion handles artificial problems with waiting", "[algori
     auto [evaluator, ctx] = createInsertion<create_waiting_problem_stream>();
 
     WHEN("calculates solution") {
-      auto solution = CheapestInsertion<InsertionEvaluator>{evaluator}.insert(ctx);
+      auto solution = CheapestInsertion{evaluator}.operator()(ctx);
 
       THEN("all jobs processed") {
         REQUIRE(solution.jobs.empty());
@@ -156,7 +155,7 @@ SCENARIO("cheapest insertion handles solomon set problems", "[algorithms][constr
     auto [evaluator, ctx] = createInsertion<create_c101_25_problem_stream>();
 
     WHEN("calculates solution") {
-      auto solution = CheapestInsertion<InsertionEvaluator>{evaluator}.operator()(ctx);
+      auto solution = CheapestInsertion{evaluator}.operator()(ctx);
       auto ids = get_job_ids_from_all_routes{}.operator()(solution);
 
       THEN("has expected solution") {
