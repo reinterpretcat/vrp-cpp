@@ -63,6 +63,11 @@ public:
     return *this;
   }
 
+  build_insertion_context& random(std::shared_ptr<utils::Random> random) {
+    context_.random = random;
+    return *this;
+  }
+
   InsertionContext&& owned() { return std::move(context_); }
 
   std::shared_ptr<InsertionContext> shared() { return std::make_shared<InsertionContext>(std::move(context_)); }

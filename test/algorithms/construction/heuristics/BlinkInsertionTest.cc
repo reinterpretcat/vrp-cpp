@@ -1,4 +1,5 @@
 #include "algorithms/construction/heuristics/BlinkInsertion.hpp"
+
 #include "streams/in/Solomon.hpp"
 #include "test_utils/algorithms/construction/Insertions.hpp"
 #include "test_utils/fakes/TestTransportCosts.hpp"
@@ -20,10 +21,10 @@ SCENARIO("blink insertion handles solomon set problems", "[algorithms][construct
     auto stream = create_c101_25_problem_stream{}();
     auto problem = read_solomon_type<cartesian_distance<1>>{}.operator()(stream);
     auto ctx = vrp::test::test_build_insertion_context{}
-        .jobs(problem.jobs->all())
-        .registry(std::make_shared<Registry>(problem.fleet))
-        .constraint(problem.constraint)
-        .owned();
+                 .jobs(problem.jobs->all())
+                 .registry(std::make_shared<Registry>(problem.fleet))
+                 .constraint(problem.constraint)
+                 .owned();
     auto evaluator = InsertionEvaluator{problem.transport, problem.activity};
 
     WHEN("calculates solution") {
@@ -38,5 +39,4 @@ SCENARIO("blink insertion handles solomon set problems", "[algorithms][construct
     }
   }
 }
-
 }

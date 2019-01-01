@@ -7,6 +7,7 @@
 #include "models/problem/Job.hpp"
 #include "models/solution/Registry.hpp"
 #include "models/solution/Route.hpp"
+#include "utils/Random.hpp"
 
 #include <map>
 #include <set>
@@ -33,5 +34,8 @@ struct InsertionContext final {
 
   /// Map of routes within their state.
   std::map<std::shared_ptr<models::solution::Route>, std::shared_ptr<InsertionRouteState>> routes;
+
+  /// Random generator.
+  std::shared_ptr<utils::Random> random;
 };
 }
