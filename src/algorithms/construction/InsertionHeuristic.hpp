@@ -20,7 +20,7 @@ struct InsertionHeuristic {
 
   InsertionContext operator()(const InsertionContext& ctx) const {
     auto newCtx = InsertionContext(ctx);
-    auto selector = Selector{};
+    auto selector = Selector{ctx};
     while (!newCtx.jobs.empty()) {
       insert(std::transform_reduce(pstl::execution::par,
                                    newCtx.jobs.begin(),

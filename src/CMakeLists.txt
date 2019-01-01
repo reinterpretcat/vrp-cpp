@@ -17,6 +17,7 @@ set(SOURCE_FILES
         algorithms/construction/evaluators/ServiceInsertionEvaluator.hpp
         algorithms/construction/evaluators/ShipmentInsertionEvaluator.hpp
 
+        algorithms/construction/heuristics/BlinkInsertion.hpp
         algorithms/construction/heuristics/CheapestInsertion.hpp
 
         algorithms/construction/InsertionActivityContext.hpp

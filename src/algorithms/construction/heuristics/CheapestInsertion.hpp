@@ -8,6 +8,9 @@ namespace vrp::algorithms::construction {
 
 /// Selects always best insertion result.
 struct select_insertion_greedy final {
+
+  const InsertionContext& ctx;
+
   InsertionResult operator()(const InsertionResult& left, const InsertionResult& right) const {
     return get_best_result(left, right);
   }

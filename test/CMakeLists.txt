@@ -18,6 +18,7 @@ set(SOURCE_FILES
 
         algorithms/construction/evaluators/ServiceInsertionEvaluatorTest.cc
         algorithms/construction/evaluators/JobInsertionEvaluatorTest.cc
+        algorithms/construction/heuristics/BlinkInsertionTest.cc
         algorithms/construction/heuristics/CheapestInsertionTest.cc
         algorithms/construction/InsertionConstraintTest.cc
         algorithms/construction/InsertionEvaluatorTest.cc
