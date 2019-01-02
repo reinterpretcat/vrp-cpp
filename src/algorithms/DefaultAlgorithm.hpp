@@ -18,7 +18,9 @@ struct DefaultAlgorithm final {
     std::shared_ptr<std::vector<Individuum>> individuums = std::make_shared<std::vector<Individuum>>();
 
     /// Returns best individuum as solution.
-    models::Solution best() { return {}; }
+    models::Solution best() {
+      // TODO
+    }
   };
 
   /// Creates initial population.

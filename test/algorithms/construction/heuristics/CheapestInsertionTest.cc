@@ -29,7 +29,7 @@ createInsertion(std::stringstream stream) {
   auto problem = read_solomon_type<cartesian_distance<1>>{}.operator()(stream);
   auto ctx = vrp::test::test_build_insertion_context{}
                .jobs(problem.jobs->all())
-               .registry(std::make_shared<Registry>(problem.fleet))
+               .registry(std::make_shared<Registry>(*problem.fleet))
                .constraint(problem.constraint)
                .owned();
 
@@ -60,9 +60,8 @@ SCENARIO("cheapest insertion inserts service", "[algorithms][construction][inser
   }));
 
   GIVEN("one service job and two vehicles") {
-    auto fleet = std::make_shared<Fleet>();
-    (*fleet)  //
-      .add(test_build_driver{}.owned())
+    auto fleet = Fleet{};
+    fleet.add(test_build_driver{}.owned())
       .add(test_build_vehicle{}.id("v1").details({{0, v1, {0, 100}}}).owned())
       .add(test_build_vehicle{}.id("v2").details({{20, v2, {0, 100}}}).owned());
 

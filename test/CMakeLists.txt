@@ -23,6 +23,7 @@ set(SOURCE_FILES
         algorithms/construction/InsertionConstraintTest.cc
         algorithms/construction/InsertionEvaluatorTest.cc
 
+        algorithms/refinement/rr/recreate/RecreateWithBlinks.cc
         algorithms/refinement/rr/ruin/RemoveAdjustedStringTest.cc
 
         models/extensions/problem/DistancesTest.cc

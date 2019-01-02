@@ -22,7 +22,7 @@ SCENARIO("blink insertion handles solomon set problems", "[algorithms][construct
     auto problem = read_solomon_type<cartesian_distance<1>>{}.operator()(stream);
     auto ctx = vrp::test::test_build_insertion_context{}
                  .jobs(problem.jobs->all())
-                 .registry(std::make_shared<Registry>(problem.fleet))
+                 .registry(std::make_shared<Registry>(*problem.fleet))
                  .constraint(problem.constraint)
                  .owned();
     auto evaluator = InsertionEvaluator{problem.transport, problem.activity};

@@ -5,7 +5,6 @@
 #include "models/problem/Fleet.hpp"
 #include "models/solution/Actor.hpp"
 
-#include <memory>
 #include <range/v3/all.hpp>
 #include <set>
 #include <unordered_map>
@@ -15,16 +14,16 @@ namespace vrp::models::solution {
 
 /// Specifies an entity responsible for providing actors and keeping track of their usage.
 struct Registry {
-  explicit Registry(const std::shared_ptr<const problem::Fleet>& fleet) : actors_(), details_() {
+  explicit Registry(const problem::Fleet& fleet) : actors_(), details_() {
     // TODO we should also consider multiple drivers to support smart vehicle-driver assignment
-    assert(ranges::distance(fleet->drivers()) == 1);
-    assert(ranges::distance(fleet->vehicles()) > 0);
+    assert(ranges::distance(fleet.drivers()) == 1);
+    assert(ranges::distance(fleet.vehicles()) > 0);
 
     using namespace ranges;
 
     // clang-format off
-    actors_ = fleet->vehicles() | view::for_each([&](const auto v) {
-      auto drivers = fleet->drivers();
+    actors_ = fleet.vehicles() | view::for_each([&](const auto v) {
+      auto drivers = fleet.drivers();
       auto driver = *std::begin(drivers);
       auto vehicle = v;
 

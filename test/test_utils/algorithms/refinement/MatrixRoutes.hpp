@@ -33,10 +33,14 @@ struct generate_matrix_routes final {
     auto routes = std::vector<std::shared_ptr<Route>>{};
     auto jobs = std::set<Job, compare_jobs>{};
 
+    auto driver = test_build_driver{}.shared();
+    fleet->add(*driver);
+
     ranges::for_each(ranges::view::ints(0, cols), [&](int i) {
       auto vehicle = test_build_vehicle{}.id(std::string("v" + std::to_string(i))).shared();
-      auto actor = test_build_actor{}.vehicle(vehicle).shared();
-      fleet->add(*vehicle);
+      auto actor = test_build_actor{}.driver(driver).vehicle(vehicle).shared();
+
+      fleet->add(*actor->vehicle);
       routes.push_back(test_build_route{}.actor(actor).shared());
 
       ranges::for_each(ranges::view::ints(0, rows), [&](int j) {
@@ -51,6 +55,9 @@ struct generate_matrix_routes final {
       });
     });
 
+    auto registry = Registry(*fleet);
+    ranges::for_each(routes, [&](const auto& route) { registry.use(*route->actor); });
+
     auto matrix = std::make_shared<Matrix>(Matrix{values<Duration>(rows, cols), values<Distance>(rows, cols)});
 
     return Result{
@@ -59,7 +66,7 @@ struct generate_matrix_routes final {
                                         std::make_shared<algorithms::construction::InsertionConstraint>(),
                                         std::make_shared<costs::ActivityCosts>(),
                                         matrix}),
-      std::make_shared<Solution>(Solution{0, routes, std::set<Job, compare_jobs>{}})};
+      std::make_shared<Solution>(Solution{0, std::move(registry), routes, std::set<Job, compare_jobs>{}})};
   }
 
 private:

@@ -3,6 +3,7 @@
 #include "models/common/Cost.hpp"
 #include "models/extensions/problem/Comparators.hpp"
 #include "models/problem/Job.hpp"
+#include "models/solution/Registry.hpp"
 #include "models/solution/Route.hpp"
 #include "models/solution/Statistic.hpp"
 
@@ -15,6 +16,9 @@ namespace vrp::models {
 struct Solution final {
   /// Solution cost.
   common::Cost cost;
+
+  /// Actor's registry.
+  solution::Registry registry;
 
   /// List of assigned routes.
   std::vector<std::shared_ptr<solution::Route>> routes;

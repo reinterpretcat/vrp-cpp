@@ -24,9 +24,8 @@ SCENARIO("insertion evaluator can handle service insertion", "[algorithms][const
   }));
 
   GIVEN("two different vehicles") {
-    auto fleet = std::make_shared<Fleet>();
-    (*fleet)  //
-      .add(test_build_driver{}.owned())
+    auto fleet = Fleet{};
+    fleet.add(test_build_driver{}.owned())
       .add(test_build_vehicle{}.id("v1").details({{0, v1, {0, 100}}}).owned())
       .add(test_build_vehicle{}.id("v2").details({{20, v2, {0, 100}}}).owned());
 
