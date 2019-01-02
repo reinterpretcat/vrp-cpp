@@ -18,7 +18,7 @@ struct Solution final {
   common::Cost cost;
 
   /// Actor's registry.
-  solution::Registry registry;
+  std::shared_ptr<solution::Registry> registry;
 
   /// List of assigned routes.
   std::vector<std::shared_ptr<solution::Route>> routes;
