@@ -37,6 +37,9 @@ struct Registry {
   /// Marks actor as used. Returns true whether it is first usage.
   bool use(const Actor& actor) { return details_[actor.vehicle->id].insert(actor.detail).second; }
 
+  /// Marks
+  void free(const Actor& actor) { details_[actor.vehicle->id].erase(actor.detail); }
+
   /// Return available for use actors.
   ranges::any_view<std::shared_ptr<const Actor>> actors() const {
     return ranges::view::all(actors_) | ranges::view::remove_if([&](const auto& a) {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "algorithms/refinement/RefinementContext.hpp"
+#include "algorithms/refinement/extensions/RemoveEmptyTours.hpp"
 #include "models/Solution.hpp"
 #include "models/extensions/solution/Selectors.hpp"
 #include "models/problem/Job.hpp"
@@ -56,6 +57,8 @@ struct RemoveAdjustedString {
                              });
           });
       });
+
+    remove_empty_tours{}(sln);
 
     sln.unassigned.insert(jobs->begin(), jobs->end());
   }
