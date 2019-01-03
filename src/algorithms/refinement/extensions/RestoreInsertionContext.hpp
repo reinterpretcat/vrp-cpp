@@ -12,7 +12,6 @@ namespace vrp::algorithms::refinement {
 /// Restores insertion context after solution modifications.
 struct restore_insertion_context final {
   construction::InsertionContext operator()(const RefinementContext& ctx, models::Solution& sln) {
-    using namespace ranges;
     using namespace vrp::algorithms::construction;
 
     auto routes = std::map<std::shared_ptr<models::solution::Route>, std::shared_ptr<InsertionRouteState>>{};
@@ -22,10 +21,8 @@ struct restore_insertion_context final {
       routes.insert({route, state});
     });
 
-    // TODO calculate progress
-
     return construction::build_insertion_context{}
-      .progress({})
+      .progress({sln.cost, static_cast<double>(sln.unassigned.size()) / ctx.problem->jobs->size()})
       .registry(sln.registry)
       .constraint(ctx.problem->constraint)
       .jobs(std::move(sln.unassigned))
