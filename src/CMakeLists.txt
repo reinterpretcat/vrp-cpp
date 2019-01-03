@@ -32,6 +32,7 @@ set(SOURCE_FILES
 
 
         algorithms/refinement/extensions/RemoveEmptyTours.hpp
+        algorithms/refinement/extensions/RestoreInsertionContext.hpp
         algorithms/refinement/rr/recreate/RecreateWithBlinks.hpp
         algorithms/refinement/rr/ruin/RemoveAdjustedString.hpp
 
