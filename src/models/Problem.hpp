@@ -13,18 +13,18 @@ namespace vrp::models {
 /// Defines VRP problem.
 struct Problem final {
   /// Specifies used fleet.
-  std::shared_ptr<problem::Fleet> fleet;
+  std::shared_ptr<const problem::Fleet> fleet;
 
   /// Specifies used jobs.
-  std::shared_ptr<problem::Jobs> jobs;
+  std::shared_ptr<const problem::Jobs> jobs;
 
   /// Specifies constraints.
-  std::shared_ptr<algorithms::construction::InsertionConstraint> constraint;
+  std::shared_ptr<const algorithms::construction::InsertionConstraint> constraint;
 
   /// Specifies activity costs.
-  std::shared_ptr<costs::ActivityCosts> activity;
+  std::shared_ptr<const costs::ActivityCosts> activity;
 
   /// Specifies transport costs.
-  std::shared_ptr<costs::TransportCosts> transport;
+  std::shared_ptr<const costs::TransportCosts> transport;
 };
 }

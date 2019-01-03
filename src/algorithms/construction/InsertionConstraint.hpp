@@ -86,7 +86,7 @@ public:
   // region Acceptance
 
   /// Accepts route and recalculates its states.
-  void accept(models::solution::Route& route, InsertionRouteState& state) {
+  void accept(models::solution::Route& route, InsertionRouteState& state) const {
     ranges::for_each(constraints_, [&](const auto& c) { c->accept(route, state); });
   }
 

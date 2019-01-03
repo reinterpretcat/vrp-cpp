@@ -24,7 +24,7 @@ struct InsertionContext final {
   std::shared_ptr<models::solution::Registry> registry;
 
   /// Used constraint.
-  std::shared_ptr<InsertionConstraint> constraint;
+  std::shared_ptr<const InsertionConstraint> constraint;
 
   /// Set of jobs which require assignment.
   std::set<models::problem::Job, models::problem::compare_jobs> jobs;

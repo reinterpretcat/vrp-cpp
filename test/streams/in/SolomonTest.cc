@@ -73,7 +73,7 @@ SCENARIO("solomon files can be read from input stream", "[streams][in]") {
       }
 
       THEN("transport costs have expected matrix") {
-        CHECK_THAT(dynamic_cast<decltype(solomon)::RoutingMatrix*>(problem.transport.get())->matrix() |
+        CHECK_THAT(dynamic_cast<const decltype(solomon)::RoutingMatrix*>(problem.transport.get())->matrix() |
                      view::transform([](const auto& d) { return d / 1000; }),
                    Equals(std::vector<Distance>{0, 1, 3, 7, 1, 0, 2, 6, 3, 2, 0, 4, 7, 6, 4, 0}));
       }
