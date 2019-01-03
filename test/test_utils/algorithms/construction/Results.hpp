@@ -34,12 +34,12 @@ struct get_job_ids_from_routes final {
 };
 
 /// Returns sorted job ids from job set.
-struct get_job_ids_from_set final {
-  std::vector<std::string> operator()(const std::set<models::problem::Job, models::problem::compare_jobs>& jobs) {
+struct get_job_ids_from_map final {
+  std::vector<std::string> operator()(const std::map<models::problem::Job, int, models::problem::compare_jobs>& jobs) {
     using namespace ranges;
 
-    return view::all(jobs) | view::transform([](const auto& j) { return vrp::test::get_job_id{}(j); }) | to_vector |
-      action::sort;
+    return view::all(jobs) | view::transform([](const auto& pair) { return vrp::test::get_job_id{}(pair.first); }) |
+      to_vector | action::sort;
   }
 };
 }

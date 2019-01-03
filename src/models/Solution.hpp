@@ -7,6 +7,7 @@
 #include "models/solution/Route.hpp"
 #include "models/solution/Statistic.hpp"
 
+#include <map>
 #include <memory>
 #include <vector>
 
@@ -23,8 +24,8 @@ struct Solution final {
   /// List of assigned routes.
   std::vector<std::shared_ptr<solution::Route>> routes;
 
-  /// Collection of unassigned jobs.
-  std::set<problem::Job, problem::compare_jobs> unassigned;
+  /// Map of unassigned jobs within reason code.
+  std::map<models::problem::Job, int, models::problem::compare_jobs> unassigned;
 };
 
 }  // namespace vrp::models::solution

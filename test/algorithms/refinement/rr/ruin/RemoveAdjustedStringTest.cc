@@ -62,7 +62,7 @@ SCENARIO("adjusted string removal can ruin solution with single route", "[algori
       RemoveAdjustedString{}.operator()(context, *solution);
 
       THEN("should ruin expected jobs") {
-        CHECK_THAT(get_job_ids_from_set{}.operator()(solution->unassigned), Equals(ids));
+        CHECK_THAT(get_job_ids_from_map{}.operator()(solution->unassigned), Equals(ids));
       }
     }
   }
@@ -91,7 +91,7 @@ SCENARIO("adjusted string removal can ruin solution with multiple routes", "[alg
       RemoveAdjustedString{}.operator()(context, *solution);
 
       THEN("should ruin expected jobs") {
-        CHECK_THAT(get_job_ids_from_set{}.operator()(solution->unassigned), Equals(ids));
+        CHECK_THAT(get_job_ids_from_map{}.operator()(solution->unassigned), Equals(ids));
       }
     }
   }

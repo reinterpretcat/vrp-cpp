@@ -58,15 +58,20 @@ struct RemoveAdjustedString {
           });
       });
 
-    remove_empty_tours{}(sln);
+    ranges::for_each(*jobs, [&](const auto& job) { sln.unassigned.insert({job, 0}); });
 
-    sln.unassigned.insert(jobs->begin(), jobs->end());
+    remove_empty_tours{}(sln);
   }
 
 private:
   template<typename T, typename C>
   bool in(const std::set<T, C>& set, const T& item) const {
     return set.find(item) != set.end();
+  }
+
+  template<typename T, typename C>
+  bool in(const std::map<T, int, C>& map, const T& item) const {
+    return map.find(item) != map.end();
   }
 
   /// Calculates initial parameters from paper using 5,6,7 equations.
