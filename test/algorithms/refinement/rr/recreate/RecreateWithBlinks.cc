@@ -16,7 +16,7 @@ using namespace vrp::streams::in;
 
 namespace vrp::test {
 
-SCENARIO("recreate with blinks handles simple problem", "[algorithms][construction][insertion]") {
+SCENARIO("recreate with blinks handles simple problem", "[algorithms][refinement][recreate]") {
   //  GIVEN("c101_25 problem") {
   //    auto stream = create_c101_25_problem_stream{}();
   //    auto problem = read_solomon_type<cartesian_distance<1>>{}.operator()(stream);
