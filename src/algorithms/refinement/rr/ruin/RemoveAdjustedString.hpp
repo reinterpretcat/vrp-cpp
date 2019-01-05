@@ -1,7 +1,6 @@
 #pragma once
 
 #include "algorithms/refinement/RefinementContext.hpp"
-#include "algorithms/refinement/extensions/RemoveEmptyTours.hpp"
 #include "models/Solution.hpp"
 #include "models/extensions/solution/Selectors.hpp"
 #include "models/problem/Job.hpp"
@@ -60,7 +59,7 @@ struct RemoveAdjustedString {
 
     ranges::for_each(*jobs, [&](const auto& job) { sln.unassigned.insert({job, 0}); });
 
-    remove_empty_tours{}(sln);
+    // remove_empty_tours{}(sln);
   }
 
 private:

@@ -31,9 +31,8 @@ set(SOURCE_FILES
         algorithms/construction/InsertionProgress.hpp
 
 
-        algorithms/refinement/extensions/RemoveEmptyTours.hpp
         algorithms/refinement/extensions/RestoreInsertionContext.hpp
-        algorithms/refinement/rr/recreate/RecreateWithBlinks.hpp
+        algorithms/refinement/rr/recreate/RecreateWithBlinksTest.hpp
         algorithms/refinement/rr/ruin/RemoveAdjustedString.hpp
 
 
