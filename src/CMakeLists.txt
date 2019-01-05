@@ -56,6 +56,7 @@ set(SOURCE_FILES
         models/extensions/problem/Distances.hpp
         models/extensions/problem/Factories.hpp
         models/extensions/solution/Comparators.hpp
+        models/extensions/solution/DeepCopies.hpp
         models/extensions/solution/Factories.hpp
         models/extensions/solution/Selectors.hpp
 
