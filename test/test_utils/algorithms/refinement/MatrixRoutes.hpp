@@ -66,7 +66,7 @@ struct generate_matrix_routes final {
                                         std::make_shared<algorithms::construction::InsertionConstraint>(),
                                         std::make_shared<costs::ActivityCosts>(),
                                         matrix}),
-      std::make_shared<Solution>(Solution{0, std::move(registry), routes, std::map<Job, int, compare_jobs>{}})};
+      std::make_shared<Solution>(Solution{std::move(registry), routes, std::map<Job, int, compare_jobs>{}})};
   }
 
 private:

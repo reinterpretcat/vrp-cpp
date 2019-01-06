@@ -15,9 +15,6 @@ namespace vrp::models {
 
 /// Represents a VRP solution.
 struct Solution final {
-  /// Solution cost.
-  common::Cost cost;
-
   /// Actor's registry.
   std::shared_ptr<const solution::Registry> registry;
 

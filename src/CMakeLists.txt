@@ -32,7 +32,7 @@ set(SOURCE_FILES
 
 
         algorithms/refinement/extensions/RestoreInsertionContext.hpp
-        algorithms/refinement/rr/recreate/RecreateWithBlinksTest.hpp
+        algorithms/refinement/rr/recreate/RecreateWithBlinks.hpp
         algorithms/refinement/rr/ruin/RemoveAdjustedString.hpp
 
 
