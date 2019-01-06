@@ -13,16 +13,16 @@
 
 namespace vrp::models {
 
-/// Represents VRP solution.
+/// Represents a VRP solution.
 struct Solution final {
   /// Solution cost.
   common::Cost cost;
 
   /// Actor's registry.
-  std::shared_ptr<solution::Registry> registry;
+  std::shared_ptr<const solution::Registry> registry;
 
   /// List of assigned routes.
-  std::vector<std::shared_ptr<solution::Route>> routes;
+  std::vector<std::shared_ptr<const solution::Route>> routes;
 
   /// Map of unassigned jobs within reason code.
   std::map<models::problem::Job, int, models::problem::compare_jobs> unassigned;

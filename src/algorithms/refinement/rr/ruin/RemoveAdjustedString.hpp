@@ -1,6 +1,7 @@
 #pragma once
 
 #include "algorithms/refinement/RefinementContext.hpp"
+#include "algorithms/refinement/extensions/RestoreInsertionContext.hpp"
 #include "models/Solution.hpp"
 #include "models/extensions/solution/Selectors.hpp"
 #include "models/problem/Job.hpp"
@@ -28,8 +29,10 @@ struct RemoveAdjustedString {
   double alpha = 0.01;
 
   /// Ruins jobs from given solution.
-  void operator()(const RefinementContext& ctx, models::Solution& sln) const {
+  construction::InsertionContext operator()(const RefinementContext& ctx, const models::Solution& sln) const {
     using namespace ranges;
+
+    auto iCtx = restore_insertion_context{}(ctx, sln);
 
     auto jobs = std::make_shared<std::set<models::problem::Job, models::problem::compare_jobs>>();
     auto routes = std::make_shared<std::set<std::shared_ptr<models::solution::Route>>>();
@@ -40,26 +43,27 @@ struct RemoveAdjustedString {
         selectJobs(ctx, sln) | view::remove_if([&](const auto& j) { return in(*jobs, j) || in(sln.unassigned, j); }),
         [ks = ks, routes](const auto&) { return routes->size() != ks; }),
       [=, &sln, lsmax = lsmax](const auto& job) {
-        ranges::for_each(
-          sln.routes | view::remove_if([&](const auto& r) { return in(*routes, r) || !r->tour.has(job); }),
-          [=, &ctx](const auto& route) {
+        ranges::for_each(  //
+          iCtx.routes | view::remove_if([&](const auto& r) { return in(*routes, r.first) || !r.first->tour.has(job); }),
+          [=, &ctx](const auto& routeState) {
             /// Equations 8, 9: calculate cardinality of the string removed from the tour
-            auto ltmax = std::min(static_cast<double>(route->tour.sizes().second), lsmax);
+            auto ltmax = std::min(static_cast<double>(routeState.first->tour.sizes().second), lsmax);
             auto lt = static_cast<int>(std::floor(ctx.random->uniform<double>(1, ltmax + 1)));
 
-            routes->insert(route);
-            ranges::for_each(selectString(ctx, route->tour, job, lt) |
+            routes->insert(routeState.first);
+            ranges::for_each(selectString(ctx, routeState.first->tour, job, lt) |
                                view::remove_if([&](const auto& j) { return in(*ctx.locked, j); }),
                              [&](const auto& j) {
-                               route->tour.remove(j);
+                               routeState.first->tour.remove(j);
                                jobs->insert(j);
                              });
+            ctx.problem->constraint->accept(*routeState.first, *routeState.second);
           });
       });
 
-    ranges::for_each(*jobs, [&](const auto& job) { sln.unassigned.insert({job, 0}); });
+    ranges::for_each(*jobs, [&](const auto& job) { iCtx.unassigned.insert({job, 0}); });
 
-    // remove_empty_tours{}(sln);
+    return std::move(iCtx);
   }
 
 private:

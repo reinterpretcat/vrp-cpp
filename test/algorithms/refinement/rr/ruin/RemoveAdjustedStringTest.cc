@@ -59,10 +59,10 @@ SCENARIO("adjusted string removal can ruin solution with single route", "[algori
         std::make_shared<Random>(FakeDistribution<int>{ints, 0}, FakeDistribution<double>{doubles, 0}),
         std::make_shared<std::set<Job, compare_jobs>>()};
 
-      RemoveAdjustedString{}.operator()(context, *solution);
+      auto iContext = RemoveAdjustedString{}.operator()(context, *solution);
 
       THEN("should ruin expected jobs") {
-        CHECK_THAT(get_job_ids_from_map{}.operator()(solution->unassigned), Equals(ids));
+        CHECK_THAT(get_job_ids_from_map{}.operator()(iContext.unassigned), Equals(ids));
       }
     }
   }
@@ -88,10 +88,10 @@ SCENARIO("adjusted string removal can ruin solution with multiple routes", "[alg
         std::make_shared<Random>(FakeDistribution<int>{ints, 0}, FakeDistribution<double>{doubles, 0}),
         std::make_shared<std::set<Job, compare_jobs>>()};
 
-      RemoveAdjustedString{}.operator()(context, *solution);
+      auto iContext = RemoveAdjustedString{}.operator()(context, *solution);
 
       THEN("should ruin expected jobs") {
-        CHECK_THAT(get_job_ids_from_map{}.operator()(solution->unassigned), Equals(ids));
+        CHECK_THAT(get_job_ids_from_map{}.operator()(iContext.unassigned), Equals(ids));
       }
     }
   }
@@ -111,9 +111,9 @@ SCENARIO("adjusted string removal can ruin solution using data generators", "[al
       auto context =
         RefinementContext{problem, std::make_shared<Random>(), std::make_shared<std::set<Job, compare_jobs>>()};
 
-      RemoveAdjustedString{cardinality, average, alpha}.operator()(context, *solution);
+      auto iContext = RemoveAdjustedString{cardinality, average, alpha}.operator()(context, *solution);
 
-      THEN("should ruin some jobs") { REQUIRE(!solution->unassigned.empty()); }
+      THEN("should ruin some jobs") { REQUIRE(!iContext.unassigned.empty()); }
     }
   }
 }

@@ -11,7 +11,7 @@
 namespace vrp::algorithms::refinement {
 
 /// Restores insertion context from solution.
-/// Please note that empty routes are excluded from result.
+/// Please note that empty routes are excluded from result and state is not updated.
 struct restore_insertion_context final {
   construction::InsertionContext operator()(const RefinementContext& ctx, const models::Solution& sln) {
     using namespace vrp::algorithms::construction;
@@ -24,14 +24,10 @@ struct restore_insertion_context final {
 
     auto routes = std::map<std::shared_ptr<models::solution::Route>, std::shared_ptr<InsertionRouteState>>{};
     ranges::for_each(sln.routes, [&](const auto& r) {
-      if (r->tour.empty()) {
+      if (r->tour.empty())
         registry->free(*r->actor);
-      } else {
-        auto route = deep_copy_route{}(r);
-        auto state = std::make_shared<InsertionRouteState>();
-        ctx.problem->constraint->accept(*route, *state);
-        routes.insert({route, state});
-      }
+      else
+        routes.insert({deep_copy_route{}(r), std::make_shared<InsertionRouteState>()});
     });
 
     return construction::build_insertion_context{}

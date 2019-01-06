@@ -30,7 +30,7 @@ struct generate_matrix_routes final {
     using namespace vrp::models::solution;
 
     auto fleet = std::make_shared<Fleet>();
-    auto routes = std::vector<std::shared_ptr<Route>>{};
+    auto routes = std::vector<std::shared_ptr<const Route>>{};
     auto jobs = std::set<Job, compare_jobs>{};
 
     auto driver = test_build_driver{}.shared();
@@ -51,7 +51,7 @@ struct generate_matrix_routes final {
                             .shared());
 
         jobs.insert(job);
-        routes[i]->tour.add(test_build_activity{}.job(job).shared());
+        const_cast<Route*>(routes[i].get())->tour.add(test_build_activity{}.job(job).shared());
       });
     });
 
