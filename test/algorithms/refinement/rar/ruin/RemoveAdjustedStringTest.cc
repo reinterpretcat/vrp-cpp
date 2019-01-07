@@ -1,4 +1,4 @@
-#include "algorithms/refinement/rr/ruin/RemoveAdjustedString.hpp"
+#include "algorithms/refinement/rar/ruin/RemoveAdjustedString.hpp"
 
 #include "test_utils/algorithms/construction/Results.hpp"
 #include "test_utils/algorithms/refinement/MatrixRoutes.hpp"

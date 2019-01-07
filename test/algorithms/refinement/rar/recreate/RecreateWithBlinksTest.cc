@@ -1,4 +1,4 @@
-#include "algorithms/refinement/rr/recreate/RecreateWithBlinks.hpp"
+#include "algorithms/refinement/rar/recreate/RecreateWithBlinks.hpp"
 
 #include "streams/in/Solomon.hpp"
 #include "test_utils/algorithms/construction/Insertions.hpp"

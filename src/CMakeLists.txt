@@ -34,8 +34,8 @@ set(SOURCE_FILES
         algorithms/objectives/MaximizeJobAssignment.hpp
 
         algorithms/refinement/extensions/RestoreInsertionContext.hpp
-        algorithms/refinement/rr/recreate/RecreateWithBlinks.hpp
-        algorithms/refinement/rr/ruin/RemoveAdjustedString.hpp
+        algorithms/refinement/rar/recreate/RecreateWithBlinks.hpp
+        algorithms/refinement/rar/ruin/RemoveAdjustedString.hpp
 
 
         algorithms/DefaultAlgorithm.hpp

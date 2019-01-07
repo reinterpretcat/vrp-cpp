@@ -26,8 +26,8 @@ set(SOURCE_FILES
         algorithms/objectives/MaximizeJobAssignmentTest.cc
 
         algorithms/refinement/extensions/RestoreInsertionContextTest.cc
-        algorithms/refinement/rr/recreate/RecreateWithBlinksTest.cc
-        algorithms/refinement/rr/ruin/RemoveAdjustedStringTest.cc
+        algorithms/refinement/rar/recreate/RecreateWithBlinksTest.cc
+        algorithms/refinement/rar/ruin/RemoveAdjustedStringTest.cc
 
         models/extensions/problem/DistancesTest.cc
         models/problem/FleetTest.cc
