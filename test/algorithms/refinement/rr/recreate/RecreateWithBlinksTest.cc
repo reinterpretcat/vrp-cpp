@@ -8,29 +8,44 @@
 #include "test_utils/streams/SolomonStreams.hpp"
 
 using namespace vrp::algorithms::construction;
+using namespace vrp::algorithms::refinement;
+using namespace vrp::models;
 using namespace vrp::models::costs;
+using namespace vrp::models::problem;
 using namespace vrp::models::solution;
 using namespace vrp::streams::in;
+using namespace ranges;
 
 #include <catch/catch.hpp>
 
 namespace vrp::test {
 
 SCENARIO("recreate with blinks handles simple problem", "[algorithms][refinement][recreate]") {
-  //  GIVEN("c101_25 problem") {
-  //    auto stream = create_c101_25_problem_stream{}();
-  //    auto problem = read_solomon_type<cartesian_distance<1>>{}.operator()(stream);
-  //
-  //    WHEN("calculates solution") {
-  //      auto solution = BlinkInsertion<>{evaluator}.operator()(ctx);
-  //
-  //      THEN("has expected solution") {
-  //        REQUIRE(solution.jobs.empty());
-  //        REQUIRE(solution.unassigned.empty());
-  //        REQUIRE(!solution.routes.empty());
-  //        REQUIRE(!solution.routes.empty());
-  //      }
-  //    }
-  //  }
+  GIVEN("one service job and two vehicles") {
+    auto fleet = Fleet{};
+    fleet.add(test_build_driver{}.owned())
+      .add(test_build_vehicle{}.id("v1").details({{0, {}, {0, 100}}}).owned())
+      .add(test_build_vehicle{}.id("v2").details({{20, {}, {0, 100}}}).owned());
+
+    auto recreate = RecreateWithBlinks{};
+
+    WHEN("analyzes insertion context") {
+      auto problem = std::make_shared<Problem>(
+        Problem{{}, {}, {}, std::make_shared<ActivityCosts>(), std::make_shared<TestTransportCosts>()});
+      auto result = recreate({problem, {}, {}},
+                             test_build_insertion_context{}
+                               .registry(std::make_shared<Registry>(fleet))
+                               .constraint(std::make_shared<InsertionConstraint>())
+                               .jobs({as_job(test_build_service{}.location(3).shared())})
+                               .owned());
+
+      THEN("returns new solution with job inserted") {
+        REQUIRE(result.unassigned.empty());
+        REQUIRE(result.routes.size() == 1);
+        REQUIRE(result.routes.front()->actor->vehicle->id == "v1");
+        REQUIRE(result.routes.front()->tour.get(0)->detail.location == 3);
+      }
+    }
+  }
 }
 }
