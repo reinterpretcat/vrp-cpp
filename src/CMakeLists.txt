@@ -31,6 +31,8 @@ set(SOURCE_FILES
         algorithms/construction/InsertionProgress.hpp
 
 
+        algorithms/objectives/MaximizeJobAssignment.hpp
+
         algorithms/refinement/extensions/RestoreInsertionContext.hpp
         algorithms/refinement/rr/recreate/RecreateWithBlinks.hpp
         algorithms/refinement/rr/ruin/RemoveAdjustedString.hpp
