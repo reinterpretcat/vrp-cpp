@@ -1,4 +1,4 @@
-#include "algorithms/objectives/MaximizeJobAssignment.hpp"
+#include "algorithms/objectives/PenalizeUnassignedJobs.hpp"
 
 #include "test_utils/algorithms/construction/constraints/Helpers.hpp"
 #include "test_utils/fakes/TestTransportCosts.hpp"
@@ -30,7 +30,7 @@ createRoute(const vrp::models::solution::Route::Actor& actor, const vrp::models:
 
 namespace vrp::test {
 
-SCENARIO("maximize job assignment calculates cost properly", "[algorithms][objectives]") {
+SCENARIO("penalize unassigned jobs calculates cost properly", "[algorithms][objectives]") {
   auto fleet = Fleet{};
   fleet.add(test_build_driver{}.owned())
     .add(test_build_vehicle{}.id("v1").owned())
@@ -56,7 +56,7 @@ SCENARIO("maximize job assignment calculates cost properly", "[algorithms][objec
     auto solution = Solution{registry, {route1, route2}, {{DefaultService, 0}}};
 
     WHEN("calculates objective costs") {
-      auto [actual, penalty] = maximize_job_assignment<>{}(problem, solution);
+      auto [actual, penalty] = penalize_unassigned_jobs<>{}(problem, solution);
 
       THEN("actual cost is correct") { REQUIRE(actual == 251); }
 

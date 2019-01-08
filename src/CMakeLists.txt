@@ -31,7 +31,7 @@ set(SOURCE_FILES
         algorithms/construction/InsertionProgress.hpp
 
 
-        algorithms/objectives/MaximizeJobAssignment.hpp
+        algorithms/objectives/PenalizeUnassignedJobs.hpp
 
         algorithms/refinement/extensions/RestoreInsertionContext.hpp
         algorithms/refinement/rar/recreate/RecreateWithBlinks.hpp

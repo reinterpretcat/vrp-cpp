@@ -11,7 +11,7 @@ namespace vrp::algorithms::objectives {
 /// Objective function which maximize job assignment by applying
 /// penalty cost to each unassigned job.
 template<int Penalty = 1000>
-struct maximize_job_assignment final {
+struct penalize_unassigned_jobs final {
   /// Estimates solution returning total cost and included penalty.
   std::pair<models::common::Cost, models::common::Cost> operator()(const models::Problem& problem,
                                                                    const models::Solution& sln) const {

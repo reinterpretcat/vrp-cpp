@@ -23,7 +23,7 @@ set(SOURCE_FILES
         algorithms/construction/InsertionConstraintTest.cc
         algorithms/construction/InsertionEvaluatorTest.cc
 
-        algorithms/objectives/MaximizeJobAssignmentTest.cc
+        algorithms/objectives/PenalizeUnassignedJobsTest.cc
 
         algorithms/refinement/extensions/RestoreInsertionContextTest.cc
         algorithms/refinement/rar/recreate/RecreateWithBlinksTest.cc
