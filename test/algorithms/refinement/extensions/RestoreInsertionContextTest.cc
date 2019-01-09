@@ -34,7 +34,9 @@ SCENARIO("restore insertion context skips empty routes", "[algorithms][refinemen
 
     auto refinementCtx = RefinementContext{generate_matrix_routes{}(1, 1).first,
                                            std::make_shared<Random>(),
-                                           std::make_shared<std::set<Job, compare_jobs>>()};
+                                           std::make_shared<std::set<Job, compare_jobs>>(),
+                                           {},
+                                           0};
     auto solution = Solution{registry, {route1, route2}, {}};
     WHEN("clean is used") {
       auto insertionCtx = restore_insertion_context{}.operator()(refinementCtx, solution);

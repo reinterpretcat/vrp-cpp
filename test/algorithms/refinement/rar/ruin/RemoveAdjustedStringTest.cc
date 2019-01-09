@@ -57,7 +57,9 @@ SCENARIO("adjusted string removal can ruin solution with single route", "[algori
       auto context = RefinementContext{
         problem,
         std::make_shared<Random>(FakeDistribution<int>{ints, 0}, FakeDistribution<double>{doubles, 0}),
-        std::make_shared<std::set<Job, compare_jobs>>()};
+        std::make_shared<std::set<Job, compare_jobs>>(),
+        {},
+        0};
 
       auto iContext = RemoveAdjustedString{}.operator()(context, *solution);
 
@@ -86,7 +88,9 @@ SCENARIO("adjusted string removal can ruin solution with multiple routes", "[alg
       auto context = RefinementContext{
         problem,
         std::make_shared<Random>(FakeDistribution<int>{ints, 0}, FakeDistribution<double>{doubles, 0}),
-        std::make_shared<std::set<Job, compare_jobs>>()};
+        std::make_shared<std::set<Job, compare_jobs>>(),
+        {},
+        0};
 
       auto iContext = RemoveAdjustedString{}.operator()(context, *solution);
 
@@ -109,7 +113,7 @@ SCENARIO("adjusted string removal can ruin solution using data generators", "[al
 
     WHEN("ruin without locked jobs") {
       auto context =
-        RefinementContext{problem, std::make_shared<Random>(), std::make_shared<std::set<Job, compare_jobs>>()};
+        RefinementContext{problem, std::make_shared<Random>(), std::make_shared<std::set<Job, compare_jobs>>(), {}, 0};
 
       auto iContext = RemoveAdjustedString{cardinality, average, alpha}.operator()(context, *solution);
 
