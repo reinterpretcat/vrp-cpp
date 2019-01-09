@@ -13,6 +13,9 @@ namespace vrp::algorithms::refinement {
 
 /// Contains information needed to perform refinement.
 struct RefinementContext final {
+  /// Specifies individuum type.
+  using Individuum = std::shared_ptr<std::pair<models::common::Cost, models::Solution>>;
+
   /// Original problem.
   std::shared_ptr<const models::Problem> problem;
 
@@ -22,10 +25,10 @@ struct RefinementContext final {
   /// Specifies jobs which should not be affected.
   std::shared_ptr<const std::set<models::problem::Job, models::problem::compare_jobs>> locked;
 
-  /// Specifies discovered and accepted solutions with their cost.
-  std::shared_ptr<std::vector<std::pair<models::common::Cost, models::Solution>>> solutions;
+  /// Specifies sorted collection discovered and accepted solutions with their cost.
+  std::shared_ptr<std::vector<Individuum>> population;
 
-  /// Specifies refinement iteration.
-  int iteration;
+  /// Specifies refinement generation (or iteration).
+  int generation;
 };
 }

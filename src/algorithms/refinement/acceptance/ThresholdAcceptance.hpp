@@ -1,6 +1,7 @@
 #pragma once
 
 #include "algorithms/refinement/RefinementContext.hpp"
+#include "algorithms/refinement/extensions/SelectBestSolution.hpp"
 #include "models/Solution.hpp"
 #include "models/common/Cost.hpp"
 
@@ -17,9 +18,10 @@ namespace vrp::algorithms::refinement {
 /// The initial threshold T0 is used to be a half of the standard deviation of the objective
 /// function during a random walk, half-life alpha is 0.1, and schedule variable
 /// x is increased from 0 to 1 during the optimization run.
+template<typename Selector = select_best_solution>
 struct ThresholdAcceptance final {
   /// Specifies initial threshold.
-  common::Cost initial;
+  models::common::Cost initial;
 
   /// Specifies half-life alpha parameter.
   double alpha;
@@ -27,14 +29,17 @@ struct ThresholdAcceptance final {
   /// Specifies amount of iterations before acceptance starts to be greedy.
   int iterations;
 
-  bool operator()(const RefinementContext& ctx, const models::Solution& sln) const {
-    // TODO
+  /// Specifies selector which selects solution from context.
+  Selector selector;
+
+  bool operator()(const RefinementContext& ctx, const RefinementContext::Individuum& individuum) const {
+    return individuum->first <= selector(ctx)->first + getThreshold(ctx);
   }
 
 private:
-  common::Cost getThreshold(const RefinementContext& ctx) const {
-    return ctx.iteration < iterations ? initial * std::exp(-1.0 * std::log(2) * ctx.iteration / (alpha * iterations))
-                                      : 0;
+  models::common::Cost getThreshold(const RefinementContext& ctx) const {
+    return ctx.generation < iterations ? initial * std::exp(-1.0 * std::log(2) * ctx.generation / (alpha * iterations))
+                                       : 0;
   }
 };
 }

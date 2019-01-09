@@ -33,8 +33,9 @@ set(SOURCE_FILES
 
         algorithms/objectives/PenalizeUnassignedJobs.hpp
 
-        algorithms/acceptance/ThresholdAcceptance.hpp
+        algorithms/refinement/acceptance/ThresholdAcceptance.hpp
         algorithms/refinement/extensions/RestoreInsertionContext.hpp
+        algorithms/refinement/extensions/SelectBestSolution.hpp
         algorithms/refinement/rar/recreate/RecreateWithBlinks.hpp
         algorithms/refinement/rar/ruin/RemoveAdjustedString.hpp
 
