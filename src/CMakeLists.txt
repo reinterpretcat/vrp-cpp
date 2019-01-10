@@ -31,6 +31,7 @@ set(SOURCE_FILES
         algorithms/construction/InsertionProgress.hpp
 
 
+        algorithms/objectives/ObjectiveFunction.hpp
         algorithms/objectives/PenalizeUnassignedJobs.hpp
 
 

@@ -1,5 +1,6 @@
 #include "algorithms/refinement/rar/recreate/RecreateWithBlinks.hpp"
 
+#include "algorithms/objectives/PenalizeUnassignedJobs.hpp"
 #include "streams/in/Solomon.hpp"
 #include "test_utils/algorithms/construction/Insertions.hpp"
 #include "test_utils/fakes/TestTransportCosts.hpp"
@@ -9,6 +10,7 @@
 
 using namespace vrp::algorithms::construction;
 using namespace vrp::algorithms::refinement;
+using namespace vrp::algorithms::objectives;
 using namespace vrp::models;
 using namespace vrp::models::costs;
 using namespace vrp::models::problem;
@@ -30,8 +32,12 @@ SCENARIO("recreate with blinks handles simple problem", "[algorithms][refinement
     auto recreate = RecreateWithBlinks{};
 
     WHEN("analyzes insertion context") {
-      auto problem = std::make_shared<Problem>(
-        Problem{{}, {}, {}, std::make_shared<ActivityCosts>(), std::make_shared<TestTransportCosts>()});
+      auto problem = std::make_shared<Problem>(Problem{{},
+                                                       {},
+                                                       {},
+                                                       std::make_shared<penalize_unassigned_jobs<>>(),
+                                                       std::make_shared<ActivityCosts>(),
+                                                       std::make_shared<TestTransportCosts>()});
       auto result = recreate({problem, {}, {}},
                              test_build_insertion_context{}
                                .registry(std::make_shared<Registry>(fleet))

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "algorithms/construction/InsertionConstraint.hpp"
+#include "algorithms/objectives/ObjectiveFunction.hpp"
 #include "models/costs/ActivityCosts.hpp"
 #include "models/costs/TransportCosts.hpp"
 #include "models/problem/Fleet.hpp"
@@ -20,6 +21,9 @@ struct Problem final {
 
   /// Specifies constraints.
   std::shared_ptr<const algorithms::construction::InsertionConstraint> constraint;
+
+  /// Specifies objective function.
+  std::shared_ptr<const algorithms::objectives::ObjectiveFunction> objective;
 
   /// Specifies activity costs.
   std::shared_ptr<const costs::ActivityCosts> activity;

@@ -2,6 +2,7 @@
 
 #include "algorithms/construction/constraints/VehicleActivitySize.hpp"
 #include "algorithms/construction/constraints/VehicleActivityTiming.hpp"
+#include "algorithms/objectives/PenalizeUnassignedJobs.hpp"
 #include "models/Problem.hpp"
 #include "models/costs/ActivityCosts.hpp"
 #include "models/costs/TransportCosts.hpp"
@@ -108,6 +109,7 @@ struct read_solomon_type final {
     return {fleet,
             std::make_shared<models::problem::Jobs>(*matrix, ranges::view::all(jobs), ranges::view::single("car")),
             constraint,
+            std::make_shared<algorithms::objectives::penalize_unassigned_jobs<>>(),
             activity,
             matrix};
   }

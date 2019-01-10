@@ -52,11 +52,10 @@ SCENARIO("penalize unassigned jobs calculates cost properly", "[algorithms][obje
     auto route2 = createRoute(actor1, {11, 11});
     route2->tour.add(test_build_activity{}.detail({5, 1, DefaultTimeWindow}).shared());
 
-    auto problem = Problem{{}, {}, {}, std::make_shared<ActivityCosts>(), std::make_shared<TestTransportCosts>()};
     auto solution = Solution{registry, {route1, route2}, {{DefaultService, 0}}};
 
     WHEN("calculates objective costs") {
-      auto [actual, penalty] = penalize_unassigned_jobs<>{}(problem, solution);
+      auto [actual, penalty] = penalize_unassigned_jobs<>{}(solution, ActivityCosts{}, TestTransportCosts{});
 
       THEN("actual cost is correct") { REQUIRE(actual == 251); }
 
