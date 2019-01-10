@@ -54,21 +54,20 @@ class Solver final {
 public:
   models::Solution operator()(const models::Problem& problem) const {
     auto logger = Logging{};
-    auto population = Initial{}(problem);
+    auto ctx = Initial{}(problem);
 
-    logger(population);
+    logger(ctx);
 
-    auto last = ranges::accumulate(
-      SolutionSpace{Selection{population}, Refinement{population}, Acceptance{population}, Termination{population}},
-      0,
-      [&](const int iteration, const auto& individuum) {
-        logger(individuum, iteration);
-        return iteration + 1;
-      });
+    auto last = ranges::accumulate(SolutionSpace{Selection{ctx}, Refinement{ctx}, Acceptance{ctx}, Termination{ctx}},
+                                   0,
+                                   [&](const int iteration, const auto& individuum) {
+                                     logger(individuum, iteration);
+                                     return iteration + 1;
+                                   });
 
     logger(last);
 
-    return population.best();
+    return ctx.population->front();
   }
 };
 }

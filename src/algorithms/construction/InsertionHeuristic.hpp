@@ -16,8 +16,6 @@ template<typename Evaluator, typename Selector>
 struct InsertionHeuristic {
   explicit InsertionHeuristic(const Evaluator& evaluator) : evaluator_(evaluator) {}
 
-  void accept(const InsertionSuccess& success) { evaluator_.accept(success.route); }
-
   InsertionContext operator()(const InsertionContext& ctx) const {
     auto newCtx = InsertionContext(ctx);
     auto selector = Selector(ctx);
