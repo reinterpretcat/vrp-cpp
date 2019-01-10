@@ -1,8 +1,6 @@
 #pragma once
 
-#include "models/Problem.hpp"
-#include "models/Solution.hpp"
-#include "models/common/Cost.hpp"
+#include "algorithms/objectives/ObjectiveFunction.hpp"
 
 #include <range/v3/all.hpp>
 
@@ -11,10 +9,9 @@ namespace vrp::algorithms::objectives {
 /// Objective function which maximize job assignment by applying
 /// penalty cost to each unassigned job.
 template<int Penalty = 1000>
-struct penalize_unassigned_jobs final {
+struct penalize_unassigned_jobs final : public ObjectiveFunction {
   /// Estimates solution returning total cost and included penalty.
-  std::pair<models::common::Cost, models::common::Cost> operator()(const models::Problem& problem,
-                                                                   const models::Solution& sln) const {
+  ObjectiveFunction::Result operator()(const models::Problem& problem, const models::Solution& sln) const override {
     using namespace models::common;
     using namespace ranges;
 
