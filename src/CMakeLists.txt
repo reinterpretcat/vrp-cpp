@@ -38,6 +38,7 @@ set(SOURCE_FILES
         algorithms/refinement/extensions/SelectBestSolution.hpp
         algorithms/refinement/rar/recreate/RecreateWithBlinks.hpp
         algorithms/refinement/rar/ruin/RemoveAdjustedString.hpp
+        algorithms/refinement/termination/MaxIterationCriteria.hpp
 
 
         algorithms/DefaultAlgorithm.hpp

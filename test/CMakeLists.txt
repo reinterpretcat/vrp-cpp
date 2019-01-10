@@ -29,6 +29,7 @@ set(SOURCE_FILES
         algorithms/refinement/extensions/RestoreInsertionContextTest.cc
         algorithms/refinement/rar/recreate/RecreateWithBlinksTest.cc
         algorithms/refinement/rar/ruin/RemoveAdjustedStringTest.cc
+        algorithms/refinement/termination/MaxIterationCriteriaTest.cc
 
         models/extensions/problem/DistancesTest.cc
         models/problem/FleetTest.cc
