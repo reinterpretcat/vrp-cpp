@@ -26,6 +26,7 @@ set(SOURCE_FILES
         algorithms/objectives/PenalizeUnassignedJobsTest.cc
 
         algorithms/refinement/acceptance/ThresholdAcceptanceTest.cc
+        algorithms/refinement/extensions/RemoveEmptyToursTest.cc
         algorithms/refinement/extensions/RestoreInsertionContextTest.cc
         algorithms/refinement/rar/recreate/RecreateWithBlinksTest.cc
         algorithms/refinement/rar/ruin/RemoveAdjustedStringTest.cc
