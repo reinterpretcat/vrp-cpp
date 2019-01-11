@@ -62,7 +62,7 @@ struct RemoveAdjustedString {
           });
       });
 
-    ranges::for_each(*jobs, [&](const auto& job) { iCtx.unassigned.insert({job, 0}); });
+    ranges::copy(*jobs, ranges::inserter(iCtx.jobs, iCtx.jobs.begin()));
 
     remove_empty_tours{}(iCtx);
 
