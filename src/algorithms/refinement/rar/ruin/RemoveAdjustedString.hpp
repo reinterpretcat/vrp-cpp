@@ -57,11 +57,16 @@ struct RemoveAdjustedString {
                                routeState.first->tour.remove(j);
                                jobs->insert(j);
                              });
-            ctx.problem->constraint->accept(*routeState.first, *routeState.second);
+            if (routeState.first->tour.empty()) {
+              iCtx.registry->free(*routeState.first->actor);
+            } else {
+              ctx.problem->constraint->accept(*routeState.first, *routeState.second);
+            }
           });
       });
 
     ranges::for_each(*jobs, [&](const auto& job) { iCtx.unassigned.insert({job, 0}); });
+    iCtx.routes = iCtx.routes | view::remove_if([&](const auto& r) { return r.first->tour.empty(); });
 
     return std::move(iCtx);
   }

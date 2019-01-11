@@ -117,7 +117,11 @@ SCENARIO("adjusted string removal can ruin solution using data generators", "[al
 
       auto iContext = RemoveAdjustedString{cardinality, average, alpha}.operator()(context, *solution);
 
-      THEN("should ruin some jobs") { REQUIRE(!iContext.unassigned.empty()); }
+      THEN("should ruin some jobs and remove empty tours") {
+        REQUIRE(!iContext.unassigned.empty());
+        REQUIRE(ranges::accumulate(
+          iContext.routes, true, [](bool acc, const auto& pair) { return acc && !pair.first->tour.empty(); }));
+      }
     }
   }
 }
