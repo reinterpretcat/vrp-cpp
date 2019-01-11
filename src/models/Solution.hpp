@@ -25,4 +25,7 @@ struct Solution final {
   std::map<models::problem::Job, int, models::problem::compare_jobs> unassigned;
 };
 
+/// Specifies solution with its cost.
+using EstimatedSolution = std::pair<std::shared_ptr<const models::Solution>, models::common::ObjectiveCost>;
+
 }  // namespace vrp::models::solution

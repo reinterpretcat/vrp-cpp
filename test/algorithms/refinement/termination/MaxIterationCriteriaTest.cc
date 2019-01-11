@@ -5,6 +5,7 @@
 using namespace vrp::algorithms::refinement;
 using namespace vrp::models;
 using namespace vrp::models::problem;
+using namespace vrp::models::solution;
 using namespace vrp::utils;
 
 namespace {
@@ -28,7 +29,7 @@ SCENARIO("max iteration criteria", "[algorithms][refinement][termination]") {
   GIVEN("refinement context") {
     auto termination = MaxIterationCriteria{max};
     WHEN("termination criteria") {
-      auto result = termination(createContext(iteration));
+      auto result = termination(createContext(iteration), EstimatedSolution{}, false);
       THEN("returns expected result") { REQUIRE(result == expected); }
     }
   }

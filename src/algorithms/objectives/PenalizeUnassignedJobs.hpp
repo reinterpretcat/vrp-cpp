@@ -11,9 +11,9 @@ namespace vrp::algorithms::objectives {
 template<int Penalty = 1000>
 struct penalize_unassigned_jobs final : public ObjectiveFunction {
   /// Estimates solution returning total cost and included penalty.
-  ObjectiveFunction::Result operator()(const models::Solution& sln,
-                                       const models::costs::ActivityCosts& activity,
-                                       const models::costs::TransportCosts& transport) const override {
+  models::common::ObjectiveCost operator()(const models::Solution& sln,
+                                           const models::costs::ActivityCosts& activity,
+                                           const models::costs::TransportCosts& transport) const override {
     using namespace models::common;
     using namespace ranges;
 

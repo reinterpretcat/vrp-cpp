@@ -1,7 +1,5 @@
 #include "Solver.hpp"
 
-#include "algorithms/DefaultAlgorithm.hpp"
-
 #include <catch/catch.hpp>
 
 using namespace vrp::algorithms;

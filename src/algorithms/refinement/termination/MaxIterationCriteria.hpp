@@ -9,6 +9,8 @@ struct MaxIterationCriteria final {
   int maxIterations;
 
   /// Returns true if algorithm should be terminated.
-  bool operator()(const RefinementContext& ctx) const { return ctx.generation > maxIterations; }
+  bool operator()(const RefinementContext& ctx, const models::EstimatedSolution&, bool accepted) const {
+    return ctx.generation > maxIterations;
+  }
 };
 }

@@ -14,7 +14,9 @@ namespace vrp::algorithms::refinement {
 template<typename Heuristic = construction::CheapestInsertion>
 struct create_refinement_context final {
   RefinementContext operator()(const models::Problem& problem) const {
+    using namespace ranges;
     using namespace vrp::algorithms::construction;
+    using Population = RefinementContext::Population;
 
     auto random = std::make_shared<utils::Random>();
 
@@ -28,10 +30,18 @@ struct create_refinement_context final {
         .jobs(problem.jobs->all())
         .owned());
 
-    // create population
-    auto population = std::make_shared<std::vector<RefinementContext::Individuum>>();
+    // create solution and calculate its cost
+    auto sln = std::make_shared<models::Solution>(
+      models::Solution{iCtx.registry,
+                       iCtx.routes | view::transform([](const auto& pair) { return pair.first; }) | to_vector,
+                       std::move(iCtx.unassigned)});
+    auto cost = problem.objective->operator()(*sln, *problem.activity, *problem.transport);
 
-    return RefinementContext{std::make_shared<models::Problem>(problem), random, {}, population, 0};
+    return RefinementContext{std::make_shared<models::Problem>(problem),
+                             random,
+                             {},
+                             std::make_shared<Population>(Population{models::EstimatedSolution{sln, cost}}),
+                             0};
   }
 };
 }

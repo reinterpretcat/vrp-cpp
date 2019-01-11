@@ -32,8 +32,8 @@ struct ThresholdAcceptance final {
   /// Specifies selector which selects solution from context.
   Selector selector;
 
-  bool operator()(const RefinementContext& ctx, const RefinementContext::Individuum& individuum) const {
-    return individuum->first <= selector(ctx)->first + getThreshold(ctx);
+  bool operator()(const RefinementContext& ctx, const models::EstimatedSolution& individuum) const {
+    return individuum.second.total() <= selector(ctx).second.total() + getThreshold(ctx);
   }
 
 private:

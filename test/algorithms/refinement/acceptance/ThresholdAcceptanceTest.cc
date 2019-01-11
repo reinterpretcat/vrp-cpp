@@ -17,14 +17,14 @@ createContext(int generation) {
     {}, std::make_shared<Random>(), std::make_shared<std::set<Job, compare_jobs>>(), {}, generation};
 }
 
-inline RefinementContext::Individuum
+inline EstimatedSolution
 createSolution(Cost cost) {
-  return std::make_shared<std::pair<Cost, Solution>>(cost, Solution{});
+  return {std::make_shared<Solution>(), {cost, 0}};
 }
 
 struct select_fake_solution final {
   Cost cost;
-  RefinementContext::Individuum operator()(const RefinementContext& ctx) const { return createSolution(cost); }
+  EstimatedSolution operator()(const RefinementContext& ctx) const { return createSolution(cost); }
 };
 }
 

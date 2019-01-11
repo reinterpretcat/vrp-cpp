@@ -37,14 +37,14 @@ set(SOURCE_FILES
 
         algorithms/refinement/acceptance/ThresholdAcceptance.hpp
         algorithms/refinement/extensions/CreateRefinementContext.hpp
+        algorithms/refinement/extensions/LogToConsole.hpp
         algorithms/refinement/extensions/RestoreInsertionContext.hpp
         algorithms/refinement/extensions/SelectBestSolution.hpp
+        algorithms/refinement/rar/RuinAndRecreateSolution.hpp
         algorithms/refinement/rar/recreate/RecreateWithBlinks.hpp
         algorithms/refinement/rar/ruin/RemoveAdjustedString.hpp
         algorithms/refinement/termination/MaxIterationCriteria.hpp
 
-
-        algorithms/DefaultAlgorithm.hpp
 
         models/common/Cost.hpp
         models/common/Dimension.hpp
