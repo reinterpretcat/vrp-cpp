@@ -16,8 +16,9 @@ struct log_to_console final {
   }
 
   /// Called when new individuum is discovered.
-  void operator()(const models::EstimatedSolution& individuum, int generation) const {
-    std::cout << "new solution is discovered at generation " << generation << ":" << std::endl;
+  void operator()(const RefinementContext& ctx, const models::EstimatedSolution& individuum, bool accepted) const {
+    std::cout << "new " << (accepted ? "accepted" : "skipped") << " solution is discovered at generation "
+              << ctx.generation << ":" << std::endl;
     logIndividuum(individuum);
   }
 

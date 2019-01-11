@@ -30,53 +30,47 @@ class Solver final {
   class SolutionSpace : public ranges::view_facade<SolutionSpace> {
     friend ranges::range_access;
 
-    const auto& read() const {
+    auto read() const {
       auto child = refinement_(ctx_, selector_(ctx_));
       auto accepted = acceptance_(ctx_, child);
       terminated_ = termination_(ctx_, child, accepted);
       if (accepted) {
-        ctx_.population->push_back(child);
+        // ctx_.population->push_back(child);
         // TODO sort population by cost
       }
 
-      return child;
+      return std::pair(child, accepted);
     }
 
     bool equal(ranges::default_sentinel) const { return terminated_; }
 
     void next() { ++ctx_.generation; }
 
-    bool terminated_ = false;
+    Context ctx_;
 
-    Context& ctx_;
-    Selection selector_;
-    Refinement refinement_;
-    Acceptance acceptance_;
-    Termination termination_;
+    mutable bool terminated_ = false;
+    mutable Selection selector_;
+    mutable Refinement refinement_;
+    mutable Acceptance acceptance_;
+    mutable Termination termination_;
 
   public:
-    SolutionSpace(Context& ctx,
-                  Selection selector,
-                  Refinement refinement,
-                  Acceptance acceptance,
-                  Termination termination) :
-      ctx_(ctx),
-      selector_(std::move(selector)),
-      refinement_(std::move(refinement)),
-      acceptance_(std::move(acceptance)),
-      termination_(std::move(termination)){};
+    SolutionSpace() = default;
+    explicit SolutionSpace(const Context& ctx) : ctx_(ctx), selector_(), refinement_(), acceptance_(), termination_(){};
   };
 
 public:
-  models::Solution operator()(const models::Problem& problem) const {
+  models::EstimatedSolution operator()(const models::Problem& problem) const {
     auto logger = Logging{};
     auto ctx = Initial{}(problem);
-    auto space = SolutionSpace{ctx, Selection{}, Refinement{}, Acceptance{}, Termination{}};
+    auto space = SolutionSpace{ctx};
 
     logger(ctx);
 
-    auto last = ranges::accumulate(space, 0, [&](const int generation, const auto& individuum) {
-      logger(individuum, generation);
+    auto last = ranges::accumulate(space, 0, [&](int generation, const auto& pair) {
+      const auto& [individuum, accepted] = pair;
+      ctx.generation = generation;
+      logger(ctx, individuum, accepted);
       return generation + 1;
     });
 

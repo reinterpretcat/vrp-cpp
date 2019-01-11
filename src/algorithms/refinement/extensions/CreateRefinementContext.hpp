@@ -33,7 +33,10 @@ struct create_refinement_context final {
     // create solution and calculate its cost
     auto sln = std::make_shared<models::Solution>(
       models::Solution{iCtx.registry,
-                       iCtx.routes | view::transform([](const auto& pair) { return pair.first; }) | to_vector,
+                       iCtx.routes | view::transform([](const auto& pair) {
+                         return static_cast<std::shared_ptr<const models::solution::Route>>(pair.first);
+                       }) |
+                         to_vector,
                        std::move(iCtx.unassigned)});
     auto cost = problem.objective->operator()(*sln, *problem.activity, *problem.transport);
 
