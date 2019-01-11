@@ -38,6 +38,7 @@ set(SOURCE_FILES
         algorithms/refinement/acceptance/ThresholdAcceptance.hpp
         algorithms/refinement/extensions/CreateRefinementContext.hpp
         algorithms/refinement/extensions/LogToConsole.hpp
+        algorithms/refinement/extensions/RemoveEmptyTours.hpp
         algorithms/refinement/extensions/RestoreInsertionContext.hpp
         algorithms/refinement/extensions/SelectBestSolution.hpp
         algorithms/refinement/rar/RuinAndRecreateSolution.hpp

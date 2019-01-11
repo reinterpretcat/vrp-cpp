@@ -1,6 +1,7 @@
 #pragma once
 
 #include "algorithms/refinement/RefinementContext.hpp"
+#include "algorithms/refinement/extensions/RemoveEmptyTours.hpp"
 #include "algorithms/refinement/extensions/RestoreInsertionContext.hpp"
 #include "models/Solution.hpp"
 #include "models/extensions/solution/Selectors.hpp"
@@ -57,16 +58,13 @@ struct RemoveAdjustedString {
                                routeState.first->tour.remove(j);
                                jobs->insert(j);
                              });
-            if (routeState.first->tour.empty()) {
-              iCtx.registry->free(*routeState.first->actor);
-            } else {
-              ctx.problem->constraint->accept(*routeState.first, *routeState.second);
-            }
+            ctx.problem->constraint->accept(*routeState.first, *routeState.second);
           });
       });
 
     ranges::for_each(*jobs, [&](const auto& job) { iCtx.unassigned.insert({job, 0}); });
-    iCtx.routes = iCtx.routes | view::remove_if([&](const auto& r) { return r.first->tour.empty(); });
+
+    remove_empty_tours{}(iCtx);
 
     return std::move(iCtx);
   }
