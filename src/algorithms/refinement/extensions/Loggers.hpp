@@ -34,4 +34,16 @@ private:
               << "\n\t\troutes:" << es.first->routes.size() << std::endl;
   }
 };
+
+/// Dummy logging which does nothing.
+struct log_to_nothing final {
+  /// Called when context is created.
+  void operator()(const RefinementContext& ctx) const {}
+
+  /// Called when new individuum is discovered.
+  void operator()(const RefinementContext& ctx, const models::EstimatedSolution& individuum, bool accepted) const {}
+
+  /// Called when search is completed
+  void operator()(const RefinementContext& ctx, int generation) const {}
+};
 }

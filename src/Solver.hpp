@@ -3,7 +3,7 @@
 #include "algorithms/construction/extensions/Insertions.hpp"
 #include "algorithms/refinement/acceptance/ThresholdAcceptance.hpp"
 #include "algorithms/refinement/extensions/CreateRefinementContext.hpp"
-#include "algorithms/refinement/extensions/LogToConsole.hpp"
+#include "algorithms/refinement/extensions/Loggers.hpp"
 #include "algorithms/refinement/extensions/SelectBestSolution.hpp"
 #include "algorithms/refinement/rar/RuinAndRecreateSolution.hpp"
 #include "algorithms/refinement/termination/MaxIterationCriteria.hpp"
