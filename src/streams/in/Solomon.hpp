@@ -160,6 +160,7 @@ private:
         ranges::for_each(ranges::view::ints(0, std::get<0>(vehicle)), [&](auto i) {
           fleet.add(models::problem::build_vehicle{}
                       .id(std::string("v") + std::to_string(i + 1))
+                      .profile("car")
                       .costs({0, 1, 0, 0, 0})
                       .dimens({{SizeDimKey, std::get<1>(vehicle)}})
                       .details({{0,

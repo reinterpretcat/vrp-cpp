@@ -31,12 +31,14 @@ class Solver final {
     friend ranges::range_access;
 
     auto read() const {
-      auto child = refinement_(ctx_, selector_(ctx_));
-      auto accepted = acceptance_(ctx_, child);
-      terminated_ = termination_(ctx_, child, accepted);
+      auto child = refinement_(ctx, selector_(ctx));
+      auto accepted = acceptance_(ctx, child);
+      terminated_ = termination_(ctx, child, accepted);
+
       if (accepted) {
-        // ctx_.population->push_back(child);
-        // TODO sort population by cost
+        ctx.population->push_back(child);
+        ranges::action::sort(*ctx.population,
+                             [](const auto& lhs, const auto& rhs) { return lhs.second.total() > rhs.second.total(); });
       }
 
       return std::pair(child, accepted);
@@ -44,9 +46,7 @@ class Solver final {
 
     bool equal(ranges::default_sentinel) const { return terminated_; }
 
-    void next() { ++ctx_.generation; }
-
-    Context ctx_;
+    void next() { ++ctx.generation; }
 
     mutable bool terminated_ = false;
     mutable Selection selector_;
@@ -55,28 +55,33 @@ class Solver final {
     mutable Termination termination_;
 
   public:
+    Context ctx;
+
     SolutionSpace() = default;
-    explicit SolutionSpace(const Context& ctx) : ctx_(ctx), selector_(), refinement_(), acceptance_(), termination_(){};
+    explicit SolutionSpace(const models::Problem& problem) :
+      ctx(Initial{}(problem)),
+      selector_(),
+      refinement_(),
+      acceptance_(),
+      termination_(){};
   };
 
 public:
   models::EstimatedSolution operator()(const models::Problem& problem) const {
     auto logger = Logging{};
-    auto ctx = Initial{}(problem);
-    auto space = SolutionSpace{ctx};
+    auto space = SolutionSpace{problem};
 
-    logger(ctx);
+    logger(space.ctx);
 
     auto last = ranges::accumulate(space, 0, [&](int generation, const auto& pair) {
       const auto& [individuum, accepted] = pair;
-      ctx.generation = generation;
-      logger(ctx, individuum, accepted);
+      logger(space.ctx, individuum, accepted);
       return generation + 1;
     });
 
-    logger(ctx, last);
+    logger(space.ctx, last);
 
-    return ctx.population->front();
+    return space.ctx.population->front();
   }
 };
 

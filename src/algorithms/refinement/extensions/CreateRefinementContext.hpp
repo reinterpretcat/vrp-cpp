@@ -17,6 +17,7 @@ struct create_refinement_context final {
     using namespace ranges;
     using namespace vrp::algorithms::construction;
     using Population = RefinementContext::Population;
+    using LockedJobs = std::set<models::problem::Job, models::problem::compare_jobs>;
 
     auto random = std::make_shared<utils::Random>();
 
@@ -42,7 +43,7 @@ struct create_refinement_context final {
 
     return RefinementContext{std::make_shared<models::Problem>(problem),
                              random,
-                             {},
+                             std::make_shared<const LockedJobs>(),
                              std::make_shared<Population>(Population{models::EstimatedSolution{sln, cost}}),
                              0};
   }
