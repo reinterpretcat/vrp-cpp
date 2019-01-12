@@ -1,11 +1,14 @@
 #include "models/solution/Registry.hpp"
 
+#include "streams/in/Solomon.hpp"
 #include "test_utils/models/Factories.hpp"
+#include "test_utils/streams/SolomonStreams.hpp"
 
 #include <catch/catch.hpp>
 
 using namespace vrp::models::problem;
 using namespace vrp::models::solution;
+using namespace vrp::streams::in;
 using namespace ranges;
 
 namespace vrp::test {
@@ -57,6 +60,16 @@ SCENARIO("registry can provide unique actors", "[models][solution][registry]") {
         REQUIRE(actors.back()->detail.start == 1);
         CHECK_THAT(ids, Catch::Matchers::Equals(std::vector<std::string>{"v3", "v2"}));
       }
+    }
+  }
+
+  GIVEN("c101 problem with 25 customers") {
+    auto stream = create_c101_25_problem_stream{}();
+    auto problem = read_solomon_type<cartesian_distance<1>>{}.operator()(stream);
+    auto registry = Registry(*problem.fleet);
+
+    WHEN("unique actors requested") {
+      THEN("then returns one actor") { REQUIRE(ranges::distance(registry.unique()) == 1); }
     }
   }
 }
