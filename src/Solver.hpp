@@ -1,7 +1,7 @@
 #pragma once
 
 #include "algorithms/construction/extensions/Insertions.hpp"
-#include "algorithms/refinement/acceptance/ThresholdAcceptance.hpp"
+#include "algorithms/refinement/acceptance/GreedyAcceptance.hpp"
 #include "algorithms/refinement/extensions/CreateRefinementContext.hpp"
 #include "algorithms/refinement/extensions/Loggers.hpp"
 #include "algorithms/refinement/extensions/SelectBestSolution.hpp"
@@ -89,7 +89,7 @@ public:
 using DefaultSolver = Solver<algorithms::refinement::create_refinement_context<>,
                              algorithms::refinement::select_best_solution,
                              algorithms::refinement::ruin_and_recreate_solution<>,
-                             algorithms::refinement::ThresholdAcceptance<>,
+                             algorithms::refinement::GreedyAcceptance<>,
                              algorithms::refinement::MaxIterationCriteria,
                              algorithms::refinement::log_to_console>;
 }

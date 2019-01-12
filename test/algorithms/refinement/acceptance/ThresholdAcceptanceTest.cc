@@ -1,32 +1,11 @@
 #include "algorithms/refinement/acceptance/ThresholdAcceptance.hpp"
 
+#include "test_utils/algorithms/acceptance/Factories.hpp"
+
 #include <catch/catch.hpp>
 
 using namespace vrp::algorithms::refinement;
-using namespace vrp::models;
 using namespace vrp::models::common;
-using namespace vrp::models::problem;
-using namespace vrp::models::solution;
-using namespace vrp::utils;
-
-namespace {
-
-inline RefinementContext
-createContext(int generation) {
-  return RefinementContext{
-    {}, std::make_shared<Random>(), std::make_shared<std::set<Job, compare_jobs>>(), {}, generation};
-}
-
-inline EstimatedSolution
-createSolution(Cost cost) {
-  return {std::make_shared<Solution>(), {cost, 0}};
-}
-
-struct select_fake_solution final {
-  Cost cost;
-  EstimatedSolution operator()(const RefinementContext& ctx) const { return createSolution(cost); }
-};
-}
 
 namespace vrp::test {
 

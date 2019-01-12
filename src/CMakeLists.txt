@@ -35,6 +35,7 @@ set(SOURCE_FILES
         algorithms/objectives/PenalizeUnassignedJobs.hpp
 
 
+        algorithms/refinement/acceptance/GreedyAcceptance.hpp
         algorithms/refinement/acceptance/ThresholdAcceptance.hpp
         algorithms/refinement/extensions/CreateRefinementContext.hpp
         algorithms/refinement/extensions/Loggers.hpp

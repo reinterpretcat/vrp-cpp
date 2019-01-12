@@ -25,6 +25,7 @@ set(SOURCE_FILES
 
         algorithms/objectives/PenalizeUnassignedJobsTest.cc
 
+        algorithms/refinement/acceptance/GreedyAcceptanceTest.cc
         algorithms/refinement/acceptance/ThresholdAcceptanceTest.cc
         algorithms/refinement/extensions/RemoveEmptyToursTest.cc
         algorithms/refinement/extensions/RestoreInsertionContextTest.cc
@@ -39,6 +40,7 @@ set(SOURCE_FILES
         models/solution/TourTest.cc
         models/solution/RegistryTest.cc
 
+        test_utils/algorithms/acceptance/Factories.hpp
         test_utils/algorithms/construction/Insertions.hpp
         test_utils/algorithms/construction/Contexts.hpp
         test_utils/algorithms/construction/Results.hpp
