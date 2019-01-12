@@ -73,8 +73,9 @@ public:
 
     logger(space.ctx);
 
-    auto last = ranges::accumulate(space, 0, [&](int generation, const auto& pair) {
+    auto last = ranges::accumulate(space, 1, [&](int generation, const auto& pair) {
       const auto& [individuum, accepted] = pair;
+      space.ctx.generation = generation;
       logger(space.ctx, individuum, accepted);
       return generation + 1;
     });

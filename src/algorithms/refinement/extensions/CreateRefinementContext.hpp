@@ -45,7 +45,7 @@ struct create_refinement_context final {
                              random,
                              std::make_shared<const LockedJobs>(),
                              std::make_shared<Population>(Population{models::EstimatedSolution{sln, cost}}),
-                             0};
+                             1};
   }
 };
 }

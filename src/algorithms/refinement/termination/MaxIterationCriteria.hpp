@@ -6,7 +6,7 @@ namespace vrp::algorithms::refinement {
 
 /// Stops when maximum amount of iterations is reached.
 struct MaxIterationCriteria final {
-  int maxIterations;
+  int maxIterations = 10;
 
   /// Returns true if algorithm should be terminated.
   bool operator()(const RefinementContext& ctx, const models::EstimatedSolution&, bool accepted) const {
