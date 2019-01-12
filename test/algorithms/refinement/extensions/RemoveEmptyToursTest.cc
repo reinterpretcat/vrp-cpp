@@ -42,7 +42,7 @@ SCENARIO("remove empty tours works", "[algorithms][refinement][extensions]") {
       }
 
       THEN("empty route's actor is released in registry") {
-        auto actors = ctx.registry->actors() | ranges::to_vector;
+        auto actors = ctx.registry->available() | ranges::to_vector;
         REQUIRE(actors.size() == 1);
         REQUIRE(actors.front()->vehicle->id == "v1");
       }

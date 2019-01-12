@@ -59,7 +59,7 @@ public:
   void free(const Actor& actor) { details_[actor.vehicle->id].erase(actor.detail); }
 
   /// Returns all available for use actors.
-  ranges::any_view<std::shared_ptr<const Actor>> actors() const { return availableActors(); }
+  ranges::any_view<std::shared_ptr<const Actor>> available() const { return availableActors(); }
 
   /// Returns unique actors.
   ranges::any_view<std::shared_ptr<const Actor>> unique() const { return availableActors() | ranges::view::unique; }

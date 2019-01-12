@@ -39,10 +39,10 @@ struct InsertionEvaluator final {
         // determine current actor type hash
         auto type = rs.first->actor == nullptr ? 0 : actorHash(*rs.first->actor);
         // create list of all actors
-        auto actors =
-          view::concat(rs.first->actor == nullptr ? view::empty<Route::Actor>()
-                                                  : static_cast<any_view<Route::Actor>>(view::single(rs.first->actor)),
-                       ctx.registry->actors() | view::remove_if([=](const auto& a) { return actorHash(*a) == type; }));
+        auto actors = view::concat(
+          rs.first->actor == nullptr ? view::empty<Route::Actor>()
+                                     : static_cast<any_view<Route::Actor>>(view::single(rs.first->actor)),
+          ctx.registry->available() | view::remove_if([=](const auto& a) { return actorHash(*a) == type; }));
 
         return ranges::accumulate(actors, outer, [&](const auto& inner, const auto& newActor) {
           // create actor specific route context
