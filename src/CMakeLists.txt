@@ -38,10 +38,11 @@ set(SOURCE_FILES
         algorithms/refinement/acceptance/GreedyAcceptance.hpp
         algorithms/refinement/acceptance/ThresholdAcceptance.hpp
         algorithms/refinement/extensions/CreateRefinementContext.hpp
-        algorithms/refinement/extensions/Loggers.hpp
         algorithms/refinement/extensions/RemoveEmptyTours.hpp
         algorithms/refinement/extensions/RestoreInsertionContext.hpp
         algorithms/refinement/extensions/SelectBestSolution.hpp
+        algorithms/refinement/logging/LogToConsole.hpp
+        algorithms/refinement/logging/LogToNothing.hpp
         algorithms/refinement/rar/RuinAndRecreateSolution.hpp
         algorithms/refinement/rar/recreate/RecreateWithBlinks.hpp
         algorithms/refinement/rar/ruin/RemoveAdjustedString.hpp
