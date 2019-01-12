@@ -13,7 +13,17 @@
 namespace vrp::models::solution {
 
 /// Specifies an entity responsible for providing actors and keeping track of their usage.
-struct Registry {
+class Registry {
+  /// Returns all available actors with deducted return type.
+  auto availableActors() const {
+    return ranges::view::all(actors_) | ranges::view::remove_if([&](const auto& a) {
+             auto set = details_.find(a->vehicle->id);
+             auto ctx = std::pair(set, (set != details_.end()));
+             return ctx.second && ctx.first->second.find(a->detail) != ctx.first->second.end();
+           });
+  }
+
+public:
   explicit Registry(const problem::Fleet& fleet) : actors_(), details_() {
     // TODO we should also consider multiple drivers to support smart vehicle-driver assignment
     assert(ranges::distance(fleet.drivers()) == 1);
@@ -22,6 +32,8 @@ struct Registry {
     using namespace ranges;
 
     // clang-format off
+
+    // create actors from vehicles and driver(s)
     actors_ = fleet.vehicles() | view::for_each([&](const auto v) {
       auto drivers = fleet.drivers();
       auto driver = *std::begin(drivers);
@@ -31,6 +43,12 @@ struct Registry {
           view::transform([&](const auto& d) { return Actor::Detail{d.start, d.end, d.time}; }) |
           view::transform([=](const auto& d) { return std::make_shared<const Actor>(Actor{vehicle, driver, d}); });
     });
+
+    // sort actors to simplify unique function below.
+    ranges::action::sort(actors_, [](const auto& lhs, const auto& rhs) {
+      return compare_actor_details{}(lhs->detail, rhs->detail);
+    });
+
     // clang-format on
   }
 
@@ -40,14 +58,11 @@ struct Registry {
   /// Marks actor as available.
   void free(const Actor& actor) { details_[actor.vehicle->id].erase(actor.detail); }
 
-  /// Return available for use actors.
-  ranges::any_view<std::shared_ptr<const Actor>> actors() const {
-    return ranges::view::all(actors_) | ranges::view::remove_if([&](const auto& a) {
-             auto set = details_.find(a->vehicle->id);
-             auto ctx = std::pair(set, (set != details_.end()));
-             return ctx.second && ctx.first->second.find(a->detail) != ctx.first->second.end();
-           });
-  }
+  /// Returns all available for use actors.
+  ranges::any_view<std::shared_ptr<const Actor>> actors() const { return availableActors(); }
+
+  /// Returns unique actors.
+  ranges::any_view<std::shared_ptr<const Actor>> unique() const { return availableActors() | ranges::view::unique; }
 
 private:
   std::vector<std::shared_ptr<const Actor>> actors_;

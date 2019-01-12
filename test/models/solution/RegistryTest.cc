@@ -10,7 +10,7 @@ using namespace ranges;
 
 namespace vrp::test {
 
-SCENARIO("registry can provide actors", "[models][solution][registry]") {
+SCENARIO("registry can provide available actors", "[models][solution][registry]") {
   GIVEN("registry with one driver and multiple vehicles") {
     auto fleet = Fleet{};
     fleet.add(test_build_driver{}.owned())
@@ -34,6 +34,30 @@ SCENARIO("registry can provide actors", "[models][solution][registry]") {
       auto actors = ranges::for_each(registry.actors(), [&](const auto& actor) { registry.use(*actor); });
 
       THEN("then returns zero actors") { REQUIRE(ranges::distance(registry.actors()) == 0); }
+    }
+  }
+}
+
+SCENARIO("registry can provide unique actors", "[models][solution][registry]") {
+  GIVEN("registry with one driver and multiple vehicles") {
+    auto fleet = Fleet{};
+    fleet.add(test_build_driver{}.owned())
+      .add(test_build_vehicle{}.id("v1").details({{0, {}, {0, 100}}}).owned())
+      .add(test_build_vehicle{}.id("v2").details({{0, {}, {0, 100}}, {1, {}, {0, 50}}}).owned())
+      .add(test_build_vehicle{}.id("v3").details({{0, {}, {0, 100}}}).owned());
+
+    auto registry = Registry(fleet);
+
+    WHEN("unique actors requested") {
+      auto actors = registry.unique() | to_vector;
+      auto ids = actors | view::transform([](const auto& a) { return a->vehicle->id; }) | to_vector;
+
+      THEN("then returns two unique actor") {
+        REQUIRE(actors.size() == 2);
+        REQUIRE(actors.front()->detail.start == 0);
+        REQUIRE(actors.back()->detail.start == 1);
+        CHECK_THAT(ids, Catch::Matchers::Equals(std::vector<std::string>{"v3", "v2"}));
+      }
     }
   }
 }
