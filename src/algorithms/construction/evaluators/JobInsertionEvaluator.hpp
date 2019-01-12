@@ -124,6 +124,8 @@ protected:
 
     auto newCosts = tpCostLeft + tpCostRight + progress.completeness * (actCostLeft + actCostRight);
 
+    if (routeCtx.route.first->tour.empty()) return newCosts;
+
     auto [tpCostOld, actCostOld, depTimeOld] =
       analyze(*route->actor,
               prev.type == Activity::Type::Start ? *route->start : prev,
@@ -152,7 +154,6 @@ protected:
                           const models::solution::Tour::Activity& a) const {
     return make_result_success({e.bestCost, a->job.value(), {{a, e.index}}, i.actor, i.route, i.departure});
   }
-
 
 private:
   using Cost = models::common::Cost;
