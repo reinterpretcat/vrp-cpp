@@ -38,7 +38,7 @@ class Solver final {
       if (accepted) {
         ctx.population->push_back(child);
         ranges::action::sort(*ctx.population,
-                             [](const auto& lhs, const auto& rhs) { return lhs.second.total() > rhs.second.total(); });
+                             [](const auto& lhs, const auto& rhs) { return lhs.second.total() < rhs.second.total(); });
       }
 
       return std::pair(child, accepted);
