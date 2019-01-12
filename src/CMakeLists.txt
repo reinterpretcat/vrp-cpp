@@ -92,6 +92,7 @@ set(SOURCE_FILES
         models/Solution.hpp
 
         streams/in/Solomon.hpp
+        streams/out/DumpSolutionAsText.hpp
 
         utils/extensions/Hash.hpp
         utils/extensions/Variant.hpp

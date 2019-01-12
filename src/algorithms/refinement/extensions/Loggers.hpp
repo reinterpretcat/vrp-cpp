@@ -2,6 +2,7 @@
 
 #include "algorithms/refinement/RefinementContext.hpp"
 #include "models/Solution.hpp"
+#include "streams/out/DumpSolutionAsText.hpp"
 
 #include <iostream>
 
@@ -30,8 +31,7 @@ struct log_to_console final {
 
 private:
   void logIndividuum(const models::EstimatedSolution& es) const {
-    std::cout << "\t\tcost:" << es.second.actual << " + " << es.second.penalty
-              << "\n\t\troutes:" << es.first->routes.size() << std::endl;
+    streams::out::dump_solution_as_text{}(std::cout, es);
   }
 };
 
