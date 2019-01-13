@@ -3,6 +3,7 @@ project(Solver LANGUAGES CXX)
 find_package(ClangTidy)
 
 set(SOURCE_FILES
+
         algorithms/construction/constraints/VehicleActivitySize.hpp
         algorithms/construction/constraints/VehicleActivityTiming.hpp
         algorithms/construction/constraints/VehicleFixedCost.hpp

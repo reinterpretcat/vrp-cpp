@@ -68,5 +68,3 @@ add_executable(${LIBRARY_TEST}
 set_target_properties(${LIBRARY_TEST} PROPERTIES
         LINKER_LANGUAGE CXX
         )
-
-cotire(${LIBRARY_TEST})
