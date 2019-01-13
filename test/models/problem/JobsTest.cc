@@ -11,13 +11,15 @@ using namespace vrp::models::costs;
 using namespace vrp::models::problem;
 using namespace vrp::models;
 using namespace ranges;
-using namespace Catch::Matchers;
 
 namespace {
 
 struct ProfileAwareTransportCosts final : public TransportCosts {
-  Duration duration(const std::string& p, const Location& from, const Location& to, const Timestamp&) const override {
-    return measure<Duration>(p, from, to);
+  vrp::models::common::Duration duration(const std::string& p,
+                                         const Location& from,
+                                         const Location& to,
+                                         const Timestamp&) const override {
+    return measure<vrp::models::common::Duration>(p, from, to);
   }
 
   Distance distance(const std::string& p, const Location& from, const Location& to, const Timestamp&) const override {
@@ -62,7 +64,7 @@ SCENARIO("job neighbourhood", "[algorithms][ruin][jobs]") {
       auto result = jobs.neighbors("p1", species.at(index), Timestamp{}) |
         view::transform([](const auto& j) { return get_job_id{}(j); }) | to_vector;
 
-      THEN("returns expected jobs") { CHECK_THAT(result, Equals(expected)); }
+      THEN("returns expected jobs") { CHECK_THAT(result, Catch::Matchers::Equals(expected)); }
     }
   }
 }

@@ -28,9 +28,7 @@ public:
     intDist_(std::move(intDist)),
     realDist_(std::move(realDist)) {}
 
-  explicit Random(std::mt19937::result_type seed) : Random() {
-    generator_.seed(seed);
-  }
+  explicit Random(std::mt19937::result_type seed) : Random() { generator_.seed(seed); }
 
   /// Produces integral random value, uniformly distributed on the closed interval [min, max]
   template<class T, typename std::enable_if<std::is_integral<T>::value, int>::type = 0>

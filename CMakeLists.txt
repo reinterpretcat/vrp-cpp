@@ -10,6 +10,8 @@ set(EXTERNAL_SOURCE ${PROJECT_SOURCE_DIR}/external)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${EXTERNAL_SOURCE}/cmake/")
 
+include(cotire)
+
 find_program(CCACHE_FOUND ccache)
 if(CCACHE_FOUND)
     message("-- Found ccache")

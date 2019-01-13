@@ -15,7 +15,7 @@ using JobDetails = std::vector<JobDetail>;
 namespace {
 
 JobDetail
-detail(const std::optional<Location>& location) {
+jobDetail(const std::optional<Location>& location) {
   return {location, 0, {vrp::test::DefaultTimeWindow}};
 }
 }
@@ -24,11 +24,11 @@ namespace vrp::test {
 
 SCENARIO("distance between jobs", "[models][extensions][problem]") {
   GIVEN("service jobs") {
-    auto [d1, d2, expected] =
-      GENERATE(table<JobDetails, JobDetails, Distance>({{{detail({0})}, {detail({10})}, 10},
-                                                        {{detail({0})}, {detail({})}, 0},
-                                                        {{detail({3})}, {detail({5}), detail({2})}, 1},
-                                                        {{detail({2}), detail({1})}, {detail({10}), detail({9})}, 7}}));
+    auto [d1, d2, expected] = GENERATE(table<JobDetails, JobDetails, Distance>(
+      {{{jobDetail({0})}, {jobDetail({10})}, 10},
+       {{jobDetail({0})}, {jobDetail({})}, 0},
+       {{jobDetail({3})}, {jobDetail({5}), jobDetail({2})}, 1},
+       {{jobDetail({2}), jobDetail({1})}, {jobDetail({10}), jobDetail({9})}, 7}}));
 
     auto s1 = as_job(test_build_service{}.details(std::move(d1)).shared());
     auto s2 = as_job(test_build_service{}.details(std::move(d2)).shared());
