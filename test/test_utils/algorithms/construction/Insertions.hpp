@@ -7,7 +7,7 @@ namespace vrp::test {
 
 struct test_build_insertion_progress : public vrp::algorithms::construction::build_insertion_progress {
   explicit test_build_insertion_progress() : vrp::algorithms::construction::build_insertion_progress() {
-    cost(1000).completeness(1);
+    cost(1000).completeness(1).total(1);
   }
 };
 

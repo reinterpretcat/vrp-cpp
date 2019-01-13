@@ -30,9 +30,15 @@ public:
     return *this;
   }
 
-  InsertionProgress&& owned() { return std::move(progress_); }
+  InsertionProgress&& owned() {
+    assert (progress_.total > 0);
+    return std::move(progress_);
+  }
 
-  std::shared_ptr<InsertionProgress> shared() { return std::make_shared<InsertionProgress>(std::move(progress_)); }
+  std::shared_ptr<InsertionProgress> shared() {
+    assert (progress_.total > 0);
+    return std::make_shared<InsertionProgress>(std::move(progress_));
+  }
 
 private:
   InsertionProgress progress_;

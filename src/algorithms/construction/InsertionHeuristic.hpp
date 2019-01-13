@@ -54,7 +54,7 @@ private:
         ctx.jobs.clear();
       }));
 
-    ctx.progress.completeness = 1 - static_cast<double>(ctx.jobs.size()) / ctx.progress.total;
+    ctx.progress.completeness = std::max(0.5, 1 - static_cast<double>(ctx.jobs.size()) / ctx.progress.total);
   }
 
   const Evaluator evaluator_;
