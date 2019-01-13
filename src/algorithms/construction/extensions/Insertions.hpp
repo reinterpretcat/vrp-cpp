@@ -31,12 +31,12 @@ public:
   }
 
   InsertionProgress&& owned() {
-    assert (progress_.total > 0);
+    assert(progress_.total > 0);
     return std::move(progress_);
   }
 
   std::shared_ptr<InsertionProgress> shared() {
-    assert (progress_.total > 0);
+    assert(progress_.total > 0);
     return std::make_shared<InsertionProgress>(std::move(progress_));
   }
 

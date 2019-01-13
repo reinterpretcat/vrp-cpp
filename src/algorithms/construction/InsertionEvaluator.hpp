@@ -6,7 +6,6 @@
 #include "algorithms/construction/evaluators/ServiceInsertionEvaluator.hpp"
 #include "algorithms/construction/evaluators/ShipmentInsertionEvaluator.hpp"
 #include "algorithms/construction/extensions/Routes.hpp"
-#include "algorithms/construction/extensions/States.hpp"
 #include "models/extensions/solution/Factories.hpp"
 #include "models/problem/Fleet.hpp"
 #include "models/solution/Registry.hpp"
@@ -36,13 +35,11 @@ struct InsertionEvaluator final {
                    view::all(ctx.routes | view::transform([](const auto& v) { return std::pair(v.first, v.second); }))),
       make_result_failure(),
       [&](const auto& outer, const auto& rs) {
-        // determine current actor type hash
-        auto type = rs.first->actor == nullptr ? 0 : actorHash(*rs.first->actor);
         // create list of all actors
-        auto actors = view::concat(
-          rs.first->actor == nullptr ? view::empty<Route::Actor>()
-                                     : static_cast<any_view<Route::Actor>>(view::single(rs.first->actor)),
-          ctx.registry->available() | view::remove_if([=](const auto& a) { return actorHash(*a) == type; }));
+        auto actors =
+          view::concat(rs.first->actor == nullptr ? view::empty<Route::Actor>()
+                                                  : static_cast<any_view<Route::Actor>>(view::single(rs.first->actor)),
+                       ctx.registry->unique());
 
         return ranges::accumulate(actors, outer, [&](const auto& inner, const auto& newActor) {
           // create actor specific route context
