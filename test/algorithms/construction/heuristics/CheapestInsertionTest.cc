@@ -28,7 +28,7 @@ std::tuple<InsertionEvaluator, InsertionContext>
 createInsertion(std::stringstream stream) {
   auto problem = read_solomon_type<cartesian_distance<1>>{}.operator()(stream);
   auto ctx = vrp::test::test_build_insertion_context{}
-               .progress(test_build_insertion_progress{}.owned())
+               .progress(vrp::test::test_build_insertion_progress{}.owned())
                .jobs(problem.jobs->all())
                .registry(std::make_shared<Registry>(*problem.fleet))
                .constraint(problem.constraint)
