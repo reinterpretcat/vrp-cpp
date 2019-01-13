@@ -24,7 +24,11 @@ struct create_refinement_context final {
     // create initial solution represented by insertion context.
     auto iCtx = Heuristic{InsertionEvaluator{problem.transport, problem.activity}}(
       build_insertion_context{}
-        .progress(build_insertion_progress{}.cost(std::numeric_limits<double>::max()).completeness(0).owned())
+        .progress(build_insertion_progress{}
+                    .cost(std::numeric_limits<double>::max())
+                    .completeness(1)
+                    .total(static_cast<int>(problem.jobs->size()))
+                    .owned())
         .registry(std::make_shared<models::solution::Registry>(*problem.fleet))
         .constraint(problem.constraint)
         .random(random)

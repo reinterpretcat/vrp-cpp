@@ -53,6 +53,8 @@ private:
         ranges::for_each(ctx.jobs, [&](const auto& job) { ctx.unassigned[job] = failure.constraint; });
         ctx.jobs.clear();
       }));
+
+    ctx.progress.completeness = 1 - static_cast<double>(ctx.jobs.size()) / ctx.progress.total;
   }
 
   const Evaluator evaluator_;

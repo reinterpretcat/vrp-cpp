@@ -11,5 +11,8 @@ struct InsertionProgress final {
 
   /// Specifies solution completeness.
   double completeness;
+
+  /// Total amount of jobs.
+  int total;
 };
 }

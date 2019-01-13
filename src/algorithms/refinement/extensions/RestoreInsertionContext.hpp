@@ -34,6 +34,7 @@ struct restore_insertion_context final {
       .progress(build_insertion_progress{}
                   .cost(std::numeric_limits<double>::max())
                   .completeness(1 - static_cast<double>(sln.unassigned.size()) / ctx.problem->jobs->size())
+                  .total(ctx.problem->jobs->size())
                   .owned())
       .registry(registry)
       .constraint(ctx.problem->constraint)

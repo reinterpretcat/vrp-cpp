@@ -6,6 +6,7 @@
 #include "algorithms/construction/InsertionRouteContext.hpp"
 #include "models/extensions/problem/Comparators.hpp"
 
+#include <cmath>
 #include <limits>
 #include <memory>
 
@@ -20,7 +21,12 @@ public:
   }
 
   build_insertion_progress& completeness(double value) {
-    progress_.completeness = value;
+    progress_.completeness = std::max(0.5, value);
+    return *this;
+  }
+
+  build_insertion_progress& total(int value) {
+    progress_.total = value;
     return *this;
   }
 
