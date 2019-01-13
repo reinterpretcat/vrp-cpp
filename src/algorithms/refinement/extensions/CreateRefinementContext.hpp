@@ -19,7 +19,8 @@ struct create_refinement_context final {
     using Population = RefinementContext::Population;
     using LockedJobs = std::set<models::problem::Job, models::problem::compare_jobs>;
 
-    auto random = std::make_shared<utils::Random>();
+    // TODO remove seed for production use
+    auto random = std::make_shared<utils::Random>(0);
 
     // create initial solution represented by insertion context.
     auto iCtx = Heuristic{InsertionEvaluator{problem.transport, problem.activity}}(
