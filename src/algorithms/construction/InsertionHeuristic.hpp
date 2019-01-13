@@ -10,21 +10,23 @@ namespace vrp::algorithms::construction {
 
 /// Specifies generic insertion heuristic logic.
 /// Evaluator template param specifies the logic responsible for job insertion
-/// evaluation: where is job's insertion point.
-/// Selector template param specifies the logic which selects job to be inserted.
-template<typename Evaluator, typename Selector>
+///     evaluation: where is job's insertion point.
+/// JobSelector template param specifies the logic responsible for job selection.
+/// ResultSelector template param specifies the logic which selects which result to be inserted.
+template<typename Evaluator, typename JobSelector, typename ResultSelector>
 struct InsertionHeuristic {
   explicit InsertionHeuristic(const Evaluator& evaluator) : evaluator_(evaluator) {}
 
   InsertionContext operator()(const InsertionContext& ctx) const {
     auto newCtx = InsertionContext(ctx);
-    auto selector = Selector(ctx);
+    auto rSelector = ResultSelector(ctx);
     while (!newCtx.jobs.empty()) {
+      auto [begin, end] = JobSelector{}(newCtx);
       insert(std::transform_reduce(pstl::execution::par,
-                                   newCtx.jobs.begin(),
-                                   newCtx.jobs.end(),
+                                   begin,
+                                   end,
                                    make_result_failure(),
-                                   [&](const auto& acc, const auto& result) { return selector(acc, result); },
+                                   [&](const auto& acc, const auto& result) { return rSelector(acc, result); },
                                    [&](const auto& job) { return evaluator_.evaluate(job, newCtx); }),
              newCtx);
     }

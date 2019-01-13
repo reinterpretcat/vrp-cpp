@@ -29,10 +29,20 @@ private:
   mutable std::mutex lock_;
 };
 
+/// Selects jobs range based on SISR rules.
+struct select_insertion_range_blinks final {
+  auto operator()(const InsertionContext& ctx) const {
+    // TODO
+    return std::pair(ctx.jobs.begin(), ctx.jobs.end());
+  }
+};
+
 /// Specifies insertion with blinks heuristic.
 /// NOTE insertion heuristics processes all jobs simultaneously, so
 /// sorting part by different customer property (e.g. demand, far, close) from the
 /// original paper is omitted.
 template<int Nominator = 1, int Denominator = 100>
-using BlinkInsertion = InsertionHeuristic<InsertionEvaluator, select_insertion_with_blinks<Nominator, Denominator>>;
+using BlinkInsertion = InsertionHeuristic<InsertionEvaluator,
+                                          select_insertion_range_blinks,
+                                          select_insertion_with_blinks<Nominator, Denominator>>;
 }
