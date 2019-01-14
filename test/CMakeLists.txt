@@ -68,3 +68,6 @@ add_executable(${LIBRARY_TEST}
 set_target_properties(${LIBRARY_TEST} PROPERTIES
         LINKER_LANGUAGE CXX
         )
+
+message("LIBS: ${TBB_LIBRARIES}")
+target_link_libraries(${LIBRARY_TEST} ${TBB_LIBRARIES})
