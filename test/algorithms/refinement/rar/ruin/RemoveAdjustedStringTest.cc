@@ -63,7 +63,7 @@ SCENARIO("adjusted string removal can ruin solution with single route", "[algori
 
       auto iContext = RemoveAdjustedString{}.operator()(context, *solution);
 
-      THEN("should ruin expected jobs") { CHECK_THAT(get_job_ids_from_set{}.operator()(iContext.jobs), Equals(ids)); }
+      THEN("should ruin expected jobs") { CHECK_THAT(get_job_ids_from_jobs{}.operator()(iContext.jobs), Equals(ids)); }
     }
   }
 }
@@ -92,7 +92,7 @@ SCENARIO("adjusted string removal can ruin solution with multiple routes", "[alg
 
       auto iContext = RemoveAdjustedString{}.operator()(context, *solution);
 
-      THEN("should ruin expected jobs") { CHECK_THAT(get_job_ids_from_set{}.operator()(iContext.jobs), Equals(ids)); }
+      THEN("should ruin expected jobs") { CHECK_THAT(get_job_ids_from_jobs{}.operator()(iContext.jobs), Equals(ids)); }
     }
   }
 }

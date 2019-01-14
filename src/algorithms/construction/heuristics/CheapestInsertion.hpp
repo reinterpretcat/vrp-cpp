@@ -15,12 +15,21 @@ struct select_insertion_result_greedy final {
   }
 };
 
-/// Selects jobs range greedy.
-struct select_insertion_range_greedy final {
-  auto operator()(const InsertionContext& ctx) const { return std::pair(ctx.jobs.begin(), ctx.jobs.end()); }
+/// Selects jobs range sample.
+struct select_insertion_range_sample final {
+  auto operator()(InsertionContext& ctx) const {
+    const int minSize = 1;
+    const int maxSize = 1;
+    // TODO sort
+    ctx.random->shuffle(ctx.jobs.begin(), ctx.jobs.end());
+
+    auto sampleSize = std::min(static_cast<int>(ctx.jobs.size()), ctx.random->uniform<int>(minSize, maxSize));
+
+    return std::pair(ctx.jobs.begin(), ctx.jobs.begin() + sampleSize);
+  }
 };
 
 /// Specifies cheapest insertion heuristic.
 using CheapestInsertion =
-  InsertionHeuristic<InsertionEvaluator, select_insertion_range_greedy, select_insertion_result_greedy>;
+  InsertionHeuristic<InsertionEvaluator, select_insertion_range_sample, select_insertion_result_greedy>;
 }

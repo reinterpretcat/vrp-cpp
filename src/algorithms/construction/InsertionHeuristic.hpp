@@ -2,7 +2,9 @@
 
 #include "algorithms/construction/InsertionContext.hpp"
 #include "algorithms/construction/InsertionResult.hpp"
+#include "models/extensions/problem/Properties.hpp"
 
+#include <algorithm>
 #include <pstl/execution>
 #include <pstl/numeric>
 
@@ -48,7 +50,16 @@ private:
         ranges::for_each(success.activities | ranges::view::reverse,
                          [&](const auto& act) { success.route.first->tour.insert(act.first, act.second); });
 
-        ctx.jobs.erase(success.job);
+        // fast erase job from vector
+        std::iter_swap(std::find_if(ctx.jobs.begin(),
+                                    ctx.jobs.end(),
+                                    [&](const auto& job) {
+                                      const static auto getter = models::problem::get_job_id{};
+                                      return getter(job) == getter(success.job);
+                                    }),
+                       ctx.jobs.end() - 1);
+        ctx.jobs.erase(ctx.jobs.end() - 1);
+
         ctx.constraint->accept(*success.route.first, *success.route.second);
       },
       [&](const InsertionFailure& failure) {

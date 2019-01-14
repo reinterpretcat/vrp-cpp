@@ -64,7 +64,7 @@ public:
     return *this;
   }
 
-  build_insertion_context& jobs(std::set<models::problem::Job, models::problem::compare_jobs>&& value) {
+  build_insertion_context& jobs(std::vector<models::problem::Job>&& value) {
     context_.jobs = value;
     return *this;
   }

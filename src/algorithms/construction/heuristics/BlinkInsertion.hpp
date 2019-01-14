@@ -31,9 +31,15 @@ private:
 
 /// Selects jobs range based on SISR rules.
 struct select_insertion_range_blinks final {
-  auto operator()(const InsertionContext& ctx) const {
-    // TODO
-    return std::pair(ctx.jobs.begin(), ctx.jobs.end());
+  auto operator()(InsertionContext& ctx) const {
+    const int minSize = 2;
+    const int maxSize = 5;
+    // TODO sort
+    ctx.random->shuffle(ctx.jobs.begin(), ctx.jobs.end());
+
+    auto sampleSize = std::min(static_cast<int>(ctx.jobs.size()), ctx.random->uniform<int>(minSize, maxSize));
+
+    return std::pair(ctx.jobs.begin(), ctx.jobs.begin() + sampleSize);
   }
 };
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <chrono>
 #include <functional>
 #include <random>
@@ -44,6 +45,11 @@ public:
 
   /// Flips a coin and returns true if it is "heads", false otherwise.
   bool isHeadsNotTails() { return uniform<int>(1, 2) == 1; }
+
+  template<typename Iterator>
+  void shuffle(Iterator begin, Iterator end) {
+    std::shuffle(begin, end, generator_);
+  }
 
 private:
   int intDist(int min, int max) { return std::uniform_int_distribution<int>(min, max)(generator_); }

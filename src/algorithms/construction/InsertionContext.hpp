@@ -10,8 +10,8 @@
 #include "utils/Random.hpp"
 
 #include <map>
-#include <set>
 #include <utility>
+#include <vector>
 
 namespace vrp::algorithms::construction {
 
@@ -26,8 +26,8 @@ struct InsertionContext final {
   /// Used constraint.
   std::shared_ptr<const InsertionConstraint> constraint;
 
-  /// Set of jobs which require assignment.
-  std::set<models::problem::Job, models::problem::compare_jobs> jobs;
+  /// List of jobs which require assignment.
+  std::vector<models::problem::Job> jobs;
 
   /// Map of unassigned jobs within reason code.
   std::map<models::problem::Job, int, models::problem::compare_jobs> unassigned;

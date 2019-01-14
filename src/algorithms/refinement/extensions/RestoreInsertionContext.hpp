@@ -18,9 +18,7 @@ struct restore_insertion_context final {
     using namespace vrp::models::solution;
 
     auto registry = deep_copy_registry{}(sln.registry);
-
-    auto jobs = std::set<models::problem::Job, models::problem::compare_jobs>{};
-    ranges::for_each(sln.unassigned, [&](const auto& j) { jobs.insert(j.first); });
+    auto jobs = sln.unassigned | ranges::view::transform([&](const auto& j) { return j.first; }) | ranges::to_vector;
 
     auto routes = std::map<std::shared_ptr<models::solution::Route>, std::shared_ptr<InsertionRouteState>>{};
     ranges::for_each(sln.routes, [&](const auto& r) {
@@ -34,7 +32,7 @@ struct restore_insertion_context final {
       .progress(build_insertion_progress{}
                   .cost(std::numeric_limits<double>::max())
                   .completeness(1 - static_cast<double>(sln.unassigned.size()) / ctx.problem->jobs->size())
-                  .total(ctx.problem->jobs->size())
+                  .total(static_cast<int>(ctx.problem->jobs->size()))
                   .owned())
       .registry(registry)
       .constraint(ctx.problem->constraint)
