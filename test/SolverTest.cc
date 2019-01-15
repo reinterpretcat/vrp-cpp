@@ -23,7 +23,7 @@ SCENARIO("DefaultSolver can solve c101 problem", "[solver][default]") {
 
       THEN("has valid solution") {
         REQUIRE(estimatedSolution.first->unassigned.empty());
-        REQUIRE(estimatedSolution.first->routes.size() <= 6);
+        REQUIRE(estimatedSolution.first->routes.size() == 3);
       }
     }
   }
