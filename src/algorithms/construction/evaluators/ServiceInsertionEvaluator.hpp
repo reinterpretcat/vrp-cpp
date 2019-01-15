@@ -63,11 +63,11 @@ private:
     auto [start, end] = waypoints(*ctx.actor, ctx.departure);
     auto tour = view::concat(view::single(start), ctx.route.first->tour.activities(), view::single(end));
     auto legs = view::zip(tour | view::sliding(2), view::iota(static_cast<size_t>(0)));
-    auto evalCtx = EvaluationContext::make_one(0, progress.bestCost, ctx.departure, {}, 0);
+    auto evalCtx = EvaluationContext::empty(progress.bestCost, ctx.departure);
 
     // 1. analyze route legs
     auto result = ranges::accumulate(legs, evalCtx, [&](const auto& out, const auto& view) {
-      if (out.shouldBreak()) return out;
+      if (out.isStopped) return out;
 
       auto [items, index] = view;
       auto [prev, next] = std::tie(*std::begin(items), *(std::begin(items) + 1));
@@ -75,12 +75,12 @@ private:
 
       // 2. analyze service details
       return ranges::accumulate(view::all(service.details), out, [&](const auto& in1, const auto& detail) {
-        if (in1.shouldBreak()) return in1;
+        if (in1.isStopped) return in1;
 
         // TODO check whether tw is empty
         // 3. analyze detail time windows
         return ranges::accumulate(view::all(detail.times), in1, [&](const auto& in2, const auto& time) {
-          if (in2.shouldBreak()) return in2;
+          if (in2.isStopped) return in2;
 
           activity->detail.time = time;
           activity->detail.duration = detail.duration;
@@ -91,16 +91,13 @@ private:
 
           // 4. analyze possible locations
           return ranges::accumulate(view::all(locations), in2, [&](const auto& in3, const auto& location) {
-            if (in3.shouldBreak()) return in3;
+            if (in3.isStopped) return in3;
 
             activity->detail.location = location;
 
             // check hard activity constraint
             auto status = constraint.hard(ctx, actCtx);
-            if (status.has_value())
-              return std::get<0>(status.value()) || in3.code == 0
-                ? EvaluationContext::make_invalid(std::get<1>(status.value()), std::get<0>(status.value()))
-                : in3;
+            if (status.has_value()) return EvaluationContext::fail(status.value(), in3);
 
             // calculate all costs on activity level
             auto actCosts = constraint.soft(ctx, actCtx) + activityCosts(ctx, actCtx, progress);
@@ -109,9 +106,9 @@ private:
             // calculate end time (departure) for the next leg
             auto endTime = in3.departure + departure(*ctx.actor, *actCtx.prev, *actCtx.next, evalCtx.departure);
 
-            return totalCosts < in3.bestCost
-              ? EvaluationContext::make_one(actCtx.index, totalCosts, endTime, {location, detail.duration, time})
-              : EvaluationContext::make_one(in3.index, in3.bestCost, endTime, in3.detail);
+            return totalCosts < in3.cost
+              ? EvaluationContext::success(actCtx.index, totalCosts, endTime, {location, detail.duration, time})
+              : EvaluationContext::skip(endTime, in3);
           });
         });
       });

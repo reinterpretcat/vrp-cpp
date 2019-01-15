@@ -28,13 +28,13 @@ protected:
   /// Specifies evaluation context.
   struct EvaluationContext final {
     /// True, if processing has to be stopped.
-    bool isBreak;
+    bool isStopped;
     /// Violation code.
     int code = 0;
     /// Insertion index.
     size_t index = 0;
     /// Best cost.
-    models::common::Cost bestCost = std::numeric_limits<models::common::Cost>::max();
+    models::common::Cost cost = std::numeric_limits<models::common::Cost>::max();
 
     /// Activity departure time.
     models::common::Timestamp departure = 0;
@@ -42,25 +42,31 @@ protected:
     /// Activity detail.
     ActivityDetail detail;
 
-    /// Creates invalidated context.
-    static EvaluationContext make_invalid(int code, bool isBreak) {
-      return EvaluationContext{isBreak, code, 0, std::numeric_limits<models::common::Cost>::max(), 0, {}};
+    /// Creates a new context.
+    static EvaluationContext empty(const models::common::Cost& cost, const models::common::Timestamp& departure) {
+      return {false, 0, 0, cost, departure, {}};
     }
 
-    /// Checks whether context is invalidated.
-    bool shouldBreak() const { return isBreak; }
+    /// Creates a new context from old one when insertion failed.
+    static EvaluationContext fail(std::tuple<bool, int> error, const EvaluationContext& other) {
+      return {std::get<0>(error), std::get<1>(error), other.index, other.cost, other.departure, other.detail};
+    }
+
+    /// Creates a new context from old one when insertion worse.
+    static EvaluationContext skip(const models::common::Timestamp& departure, const EvaluationContext& other) {
+      return {other.isStopped, other.code, other.index, other.cost, departure, other.detail};
+    }
+
+    /// Creates a new context.
+    static EvaluationContext success(size_t index,
+                                     const models::common::Cost& cost,
+                                     const models::common::Timestamp& departure,
+                                     const ActivityDetail& detail) {
+      return {false, 0, index, cost, departure, detail};
+    }
 
     /// Checks whether insertion is found.
-    bool isSuccess() const { return code < 0; }
-
-    /// Creates new context.
-    static EvaluationContext make_one(size_t index,
-                                      const models::common::Cost& bestCost,
-                                      const models::common::Timestamp& departure,
-                                      const ActivityDetail& detail,
-                                      int code = -1) {
-      return {false, code, index, bestCost, departure, detail};
-    }
+    bool isSuccess() const { return cost < std::numeric_limits<models::common::Cost>::max(); }
   };
 
   /// Calculates vehicle specific costs.
@@ -152,7 +158,7 @@ protected:
   InsertionResult success(const EvaluationContext& e,
                           const InsertionRouteContext& i,
                           const models::solution::Tour::Activity& a) const {
-    return make_result_success({e.bestCost, a->job.value(), {{a, e.index}}, i.actor, i.route, i.departure});
+    return make_result_success({e.cost, a->job.value(), {{a, e.index}}, i.actor, i.route, i.departure});
   }
 
 private:

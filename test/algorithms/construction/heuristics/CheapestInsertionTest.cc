@@ -155,11 +155,11 @@ SCENARIO("cheapest insertion handles two customers with one route", "[algorithms
     struct create_timing_problem_stream {
       std::stringstream operator()() {
         return SolomonBuilder()
-            .setVehicle(25, 200)
-            .addCustomer({0, 40, 50, 0, 0, 1236, 0})
-            .addCustomer({1, 45, 68, 10, 912, 967, 90})
-            .addCustomer({2, 45, 70, 30, 825, 870, 90})
-            .build();
+          .setVehicle(25, 200)
+          .addCustomer({0, 40, 50, 0, 0, 1236, 0})
+          .addCustomer({1, 45, 68, 10, 912, 967, 90})
+          .addCustomer({2, 45, 70, 30, 825, 870, 90})
+          .build();
       }
     };
     auto [evaluator, ctx] = createInsertion<create_timing_problem_stream>();
@@ -189,7 +189,7 @@ SCENARIO("cheapest insertion handles solomon set problems", "[algorithms][constr
         REQUIRE(solution.jobs.empty());
         REQUIRE(solution.unassigned.empty());
         REQUIRE(!solution.routes.empty());
-        REQUIRE(solution.routes.size() == 6);
+        REQUIRE(solution.routes.size() == 3);
         REQUIRE(ranges::accumulate(ids, 0, [](const auto acc, const auto next) { return acc + 1; }) == 25);
       }
     }
