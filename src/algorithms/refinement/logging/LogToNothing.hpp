@@ -3,6 +3,8 @@
 #include "algorithms/refinement/RefinementContext.hpp"
 #include "models/Solution.hpp"
 
+#include <chrono>
+
 namespace vrp::algorithms::refinement {
 
 /// Dummy logging which does nothing.
@@ -14,6 +16,6 @@ struct log_to_nothing final {
   void operator()(const RefinementContext& ctx, const models::EstimatedSolution& individuum, bool accepted) const {}
 
   /// Called when search is completed
-  void operator()(const RefinementContext& ctx, int generation) const {}
+  void operator()(const RefinementContext& ctx, std::chrono::milliseconds::rep time) const {}
 };
 }

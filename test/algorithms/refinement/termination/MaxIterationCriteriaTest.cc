@@ -22,7 +22,7 @@ namespace vrp::test {
 SCENARIO("max iteration criteria", "[algorithms][refinement][termination]") {
   auto [max, iteration, expected] = GENERATE(table<int, int, bool>({
     {10, 9, false},
-    {10, 10, false},
+    {10, 10, true},
     {10, 11, true},
   }));
 

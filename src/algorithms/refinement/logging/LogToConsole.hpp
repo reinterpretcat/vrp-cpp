@@ -4,6 +4,7 @@
 #include "models/Solution.hpp"
 #include "streams/out/DumpSolutionAsText.hpp"
 
+#include <chrono>
 #include <iostream>
 
 namespace vrp::algorithms::refinement {
@@ -23,9 +24,9 @@ struct log_to_console final {
     logIndividuum(individuum);
   }
 
-  /// Called when search is completed
-  void operator()(const RefinementContext& ctx, int generation) const {
-    std::cout << "stopped at generation " << generation << ", best known is:" << std::endl;
+  /// Called when search is completed.
+  void operator()(const RefinementContext& ctx, std::chrono::milliseconds::rep time) const {
+    std::cout << "stopped at generation " << ctx.generation << ", took: " << time << "ms, best known is:" << std::endl;
     logIndividuum(ctx.population->front());
   }
 

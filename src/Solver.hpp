@@ -9,6 +9,7 @@
 #include "algorithms/refinement/termination/MaxIterationCriteria.hpp"
 #include "models/Problem.hpp"
 #include "models/Solution.hpp"
+#include "utils/Measure.hpp"
 
 #include <memory>
 #include <set>
@@ -73,14 +74,16 @@ public:
 
     logger(space.ctx);
 
-    auto last = ranges::accumulate(space, 1, [&](int generation, const auto& pair) {
-      const auto& [individuum, accepted] = pair;
-      space.ctx.generation = generation;
-      logger(space.ctx, individuum, accepted);
-      return generation + 1;
+    auto time = utils::measure<>::execution([&]() {
+      ranges::accumulate(space, 1, [&](int generation, const auto& pair) {
+        const auto& [individuum, accepted] = pair;
+        space.ctx.generation = generation;
+        logger(space.ctx, individuum, accepted);
+        return generation + 1;
+      });
     });
 
-    logger(space.ctx, last);
+    logger(space.ctx, time);
 
     return space.ctx.population->front();
   }

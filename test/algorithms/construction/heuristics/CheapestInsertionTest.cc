@@ -189,7 +189,7 @@ SCENARIO("cheapest insertion handles solomon set problems", "[algorithms][constr
         REQUIRE(solution.jobs.empty());
         REQUIRE(solution.unassigned.empty());
         REQUIRE(!solution.routes.empty());
-        REQUIRE(solution.routes.size() == 3);
+        REQUIRE(solution.routes.size() <= 4);
         REQUIRE(ranges::accumulate(ids, 0, [](const auto acc, const auto next) { return acc + 1; }) == 25);
       }
     }
