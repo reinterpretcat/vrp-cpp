@@ -27,7 +27,7 @@ struct create_refinement_context final {
       build_insertion_context{}
         .progress(build_insertion_progress{}
                     .cost(std::numeric_limits<double>::max())
-                    .completeness(1)
+                    .completeness(0)
                     .total(static_cast<int>(problem.jobs->size()))
                     .owned())
         .registry(std::make_shared<models::solution::Registry>(*problem.fleet))
