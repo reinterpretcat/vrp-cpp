@@ -166,12 +166,12 @@ SCENARIO("cheapest insertion handles two customers with one route", "[algorithms
 
     WHEN("calculates solution") {
       auto solution = CheapestInsertion{evaluator}.operator()(ctx);
-      auto ids = get_job_ids_from_all_routes{}.operator()(solution);
 
       THEN("has solution with one route") {
         REQUIRE(solution.jobs.empty());
         REQUIRE(solution.unassigned.empty());
         REQUIRE(solution.routes.size() == 1);
+        CHECK_THAT(get_job_ids_from_all_routes{}.operator()(solution), Equals(std::vector<std::string>{"c2", "c1"}));
       }
     }
   }
