@@ -18,8 +18,8 @@ struct select_insertion_result_greedy final {
 /// Selects jobs range sample.
 struct select_insertion_range_sample final {
   auto operator()(InsertionContext& ctx) const {
-    const int minSize = 100;
-    const int maxSize = 100;
+    const int minSize = 4;
+    const int maxSize = 8;
     // TODO sort
     ctx.random->shuffle(ctx.jobs.begin(), ctx.jobs.end());
 
