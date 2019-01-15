@@ -98,6 +98,7 @@ set(SOURCE_FILES
         streams/out/DumpSolutionAsText.hpp
 
         utils/extensions/Hash.hpp
+        utils/extensions/Ranges.hpp
         utils/extensions/Variant.hpp
 
         Solver.hpp

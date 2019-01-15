@@ -12,6 +12,7 @@
 #include "models/extensions/problem/Factories.hpp"
 #include "models/extensions/solution/Factories.hpp"
 #include "models/problem/Service.hpp"
+#include "utils/extensions/Ranges.hpp"
 
 #include <numeric>
 #include <range/v3/all.hpp>
@@ -64,24 +65,19 @@ private:
     auto tour = view::concat(view::single(start), ctx.route.first->tour.activities(), view::single(end));
     auto legs = view::zip(tour | view::sliding(2), view::iota(static_cast<size_t>(0)));
     auto evalCtx = EvaluationContext::empty(progress.bestCost, ctx.departure);
+    auto pred = [](const EvaluationContext& ctx) { return !ctx.isStopped; };
 
     // 1. analyze route legs
-    auto result = ranges::accumulate(legs, evalCtx, [&](const auto& out, const auto& view) {
-      if (out.isStopped) return out;
-
+    auto result = utils::accumulate_while(legs, evalCtx, pred, [&](const auto& out, const auto& view) {
       auto [items, index] = view;
       auto [prev, next] = std::tie(*std::begin(items), *(std::begin(items) + 1));
       auto actCtx = InsertionActivityContext{index, out.departure, prev, activity, next};
 
       // 2. analyze service details
-      return ranges::accumulate(view::all(service.details), out, [&](const auto& in1, const auto& detail) {
-        if (in1.isStopped) return in1;
-
+      return utils::accumulate_while(view::all(service.details), out, pred, [&](const auto& in1, const auto& detail) {
         // TODO check whether tw is empty
         // 3. analyze detail time windows
-        return ranges::accumulate(view::all(detail.times), in1, [&](const auto& in2, const auto& time) {
-          if (in2.isStopped) return in2;
-
+        return utils::accumulate_while(view::all(detail.times), in1, pred, [&](const auto& in2, const auto& time) {
           activity->detail.time = time;
           activity->detail.duration = detail.duration;
 
@@ -90,9 +86,7 @@ private:
             : view::concat(view::single(actCtx.prev->detail.location), view::single(actCtx.next->detail.location));
 
           // 4. analyze possible locations
-          return ranges::accumulate(view::all(locations), in2, [&](const auto& in3, const auto& location) {
-            if (in3.isStopped) return in3;
-
+          return utils::accumulate_while(view::all(locations), in2, pred, [&](const auto& in3, const auto& location) {
             activity->detail.location = location;
 
             // check hard activity constraint
