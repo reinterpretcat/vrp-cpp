@@ -16,7 +16,7 @@ struct measure {
   }
 
   template<typename Func, typename Logger>
-  static auto execution_return_result(Func&& func, Logger&& logger) {
+  static auto execution_with_result(Func&& func, Logger&& logger) {
     auto start = std::chrono::system_clock::now();
     auto result = func();
     auto duration = std::chrono::duration_cast<TimeT>(std::chrono::system_clock::now() - start);

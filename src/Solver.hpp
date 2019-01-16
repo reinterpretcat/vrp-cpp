@@ -32,13 +32,13 @@ class Solver final {
     friend ranges::range_access;
 
     auto read() const {
-      auto child = refinement_(ctx, selector_(ctx));
-      auto accepted = acceptance_(ctx, child);
-      terminated_ = termination_(ctx, child, accepted);
+      auto child = refinement_(*ctx, selector_(*ctx));
+      auto accepted = acceptance_(*ctx, child);
+      terminated_ = termination_(*ctx, child, accepted);
 
       if (accepted) {
-        ctx.population->push_back(child);
-        ranges::action::sort(*ctx.population,
+        ctx->population->push_back(child);
+        ranges::action::sort(*ctx->population,
                              [](const auto& lhs, const auto& rhs) { return lhs.second.total() < rhs.second.total(); });
       }
 
@@ -47,7 +47,9 @@ class Solver final {
 
     bool equal(ranges::default_sentinel) const { return terminated_; }
 
-    void next() { ++ctx.generation; }
+    void next() {
+      if (!terminated_) { ++ctx->generation; }
+    }
 
     mutable bool terminated_ = false;
     mutable Selection selector_;
@@ -56,15 +58,17 @@ class Solver final {
     mutable Termination termination_;
 
   public:
-    Context ctx;
+    std::shared_ptr<Context> ctx;
 
     SolutionSpace() = default;
-    explicit SolutionSpace(const models::Problem& problem) :
-      ctx(Initial{}(problem)),
+    explicit SolutionSpace(std::shared_ptr<Context> context) :
+      ctx(std::move(context)),
       selector_(),
       refinement_(),
       acceptance_(),
-      termination_(){};
+      termination_() {
+      ctx->generation = 1;
+    }
   };
 
 public:
@@ -72,28 +76,26 @@ public:
     auto logger = Logging{};
 
     // create solution space within initial solution
-    auto space = utils::measure<>::execution_return_result(
+    auto space = utils::measure<>::execution_with_result(
       [&problem]() {
-        return SolutionSpace{problem};  //
+        auto ctx = std::make_shared<Context>(Initial{}(problem));
+        return SolutionSpace{ctx};  //
       },
-      [&logger](auto& s, auto duration) {
-        logger(s.ctx, duration);
-        s.ctx.generation = 1;
+      [&logger](const auto& result, auto duration) {
+        logger(*result.ctx, duration);  //
       });
 
     // explore solution space and return best individuum
-    return utils::measure<>::execution_return_result(
+    return utils::measure<>::execution_with_result(
       [&]() {
-        ranges::accumulate(space, 1, [&](int generation, const auto& pair) {
+        ranges::for_each(space, [&space, &logger](const auto& pair) {
           const auto& [individuum, accepted] = pair;
-          space.ctx.generation = generation;
-          logger(space.ctx, individuum, accepted);
-          return generation + 1;
+          logger(*space.ctx, individuum, accepted);
         });
-        return space.ctx.population->front();
+        return space.ctx->population->front();
       },
-      [&space, &logger](const auto& best, auto duration) {
-        logger(space.ctx, best, duration);  //
+      [&space, &logger](const auto& result, auto duration) {
+        logger(*space.ctx, result, duration);  //
       });
   }
 };
