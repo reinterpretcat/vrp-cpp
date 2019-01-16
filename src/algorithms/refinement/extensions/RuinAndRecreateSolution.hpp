@@ -1,7 +1,7 @@
 #pragma once
 
-#include "algorithms/refinement/rar/recreate/RecreateWithBlinks.hpp"
-#include "algorithms/refinement/rar/ruin/RemoveAdjustedString.hpp"
+#include "algorithms/refinement/recreate/RecreateWithBlinks.hpp"
+#include "algorithms/refinement/ruin/RemoveAdjustedString.hpp"
 
 namespace vrp::algorithms::refinement {
 
