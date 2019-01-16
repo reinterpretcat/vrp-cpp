@@ -1,4 +1,4 @@
-#include "algorithms/refinement/rar/recreate/RecreateWithBlinks.hpp"
+#include "algorithms/refinement/recreate/RecreateWithBlinks.hpp"
 
 #include "algorithms/objectives/PenalizeUnassignedJobs.hpp"
 #include "streams/in/Solomon.hpp"

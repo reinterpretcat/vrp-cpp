@@ -28,10 +28,10 @@ set(SOURCE_FILES
         algorithms/refinement/acceptance/GreedyAcceptanceTest.cc
         algorithms/refinement/acceptance/ThresholdAcceptanceTest.cc
         algorithms/refinement/extensions/RemoveEmptyToursTest.cc
+        algorithms/refinement/extensions/RuinAndRecreateSolutionTest.cc
         algorithms/refinement/extensions/RestoreInsertionContextTest.cc
-        algorithms/refinement/rar/recreate/RecreateWithBlinksTest.cc
-        algorithms/refinement/rar/ruin/RemoveAdjustedStringTest.cc
-        algorithms/refinement/rar/RuinAndRecreateSolutionTest.cc
+        algorithms/refinement/recreate/RecreateWithBlinksTest.cc
+        algorithms/refinement/ruin/RemoveAdjustedStringTest.cc
         algorithms/refinement/termination/MaxIterationCriteriaTest.cc
 
         models/extensions/problem/DistancesTest.cc

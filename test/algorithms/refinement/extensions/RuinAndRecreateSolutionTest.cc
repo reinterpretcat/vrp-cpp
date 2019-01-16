@@ -1,4 +1,4 @@
-#include "algorithms/refinement/rar/RuinAndRecreateSolution.hpp"
+#include "algorithms/refinement/RuinAndRecreateSolution.hpp"
 
 #include "algorithms/refinement/extensions/CreateRefinementContext.hpp"
 #include "streams/in/Solomon.hpp"
