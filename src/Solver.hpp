@@ -70,22 +70,31 @@ class Solver final {
 public:
   models::EstimatedSolution operator()(const models::Problem& problem) const {
     auto logger = Logging{};
-    auto space = SolutionSpace{problem};
 
-    logger(space.ctx);
-
-    auto time = utils::measure<>::execution([&]() {
-      ranges::accumulate(space, 1, [&](int generation, const auto& pair) {
-        const auto& [individuum, accepted] = pair;
-        space.ctx.generation = generation;
-        logger(space.ctx, individuum, accepted);
-        return generation + 1;
+    // create solution space within initial solution
+    auto space = utils::measure<>::execution_return_result(
+      [&problem]() {
+        return SolutionSpace{problem};  //
+      },
+      [&logger](auto& s, auto duration) {
+        logger(s.ctx, duration);
+        s.ctx.generation = 1;
       });
-    });
 
-    logger(space.ctx, time);
-
-    return space.ctx.population->front();
+    // explore solution space and return best individuum
+    return utils::measure<>::execution_return_result(
+      [&]() {
+        ranges::accumulate(space, 1, [&](int generation, const auto& pair) {
+          const auto& [individuum, accepted] = pair;
+          space.ctx.generation = generation;
+          logger(space.ctx, individuum, accepted);
+          return generation + 1;
+        });
+        return space.ctx.population->front();
+      },
+      [&space, &logger](const auto& best, auto duration) {
+        logger(space.ctx, best, duration);  //
+      });
   }
 };
 

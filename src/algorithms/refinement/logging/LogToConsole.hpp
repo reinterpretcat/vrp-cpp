@@ -11,22 +11,23 @@ namespace vrp::algorithms::refinement {
 
 /// Logs basic information to console.
 struct log_to_console final {
-  /// Called when context is created.
-  void operator()(const RefinementContext& ctx) const {
-    std::cout << "initial solution:\n";
+  /// Called when search is started and then, completed.
+  void operator()(const RefinementContext& ctx, std::chrono::milliseconds time) const {
+    std::cout << "search for initial population took: " << time.count() << "ms:" << std::endl;
     logIndividuum(ctx.population->front());
   }
 
   /// Called when new individuum is discovered.
   void operator()(const RefinementContext& ctx, const models::EstimatedSolution& individuum, bool accepted) const {
-    std::cout << "new " << (accepted ? "accepted" : "skipped") << " solution is discovered at generation "
-              << ctx.generation << ":" << std::endl;
+    std::cout << (accepted ? "ACCEPTED" : "skipped") << " solution is discovered at generation " << ctx.generation
+              << ":" << std::endl;
     logIndividuum(individuum);
   }
 
-  /// Called when search is completed.
-  void operator()(const RefinementContext& ctx, std::chrono::milliseconds::rep time) const {
-    std::cout << "stopped at generation " << ctx.generation << ", took: " << time << "ms, best known is:" << std::endl;
+  /// Called when search is ended within best solution.
+  void operator()(const RefinementContext& ctx, const models::EstimatedSolution& best, std::chrono::milliseconds time) {
+    std::cout << "stopped at generation " << ctx.generation << ", refinement took: " << time.count()
+              << "ms, best known individuum is:" << std::endl;
     logIndividuum(ctx.population->front());
   }
 
