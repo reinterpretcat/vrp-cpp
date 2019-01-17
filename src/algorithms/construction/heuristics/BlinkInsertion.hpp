@@ -30,13 +30,22 @@ private:
   mutable std::mutex lock_;
 };
 
+/// Sorts jobs according to SISR rules.
+struct blink_sorter final {
+  void operator()(InsertionContext& ctx) const {
+    // TODO sort according to SISR rules
+    // 2: random, 2 : size, 1 : far, 1: close
+    ctx.random->shuffle(ctx.jobs.begin(), ctx.jobs.end());
+  }
+};
+
 /// Selects jobs range based on SISR rules.
 struct select_insertion_range_blinks final {
   auto operator()(InsertionContext& ctx) const {
     const int minSize = 2;
     const int maxSize = 5;
-    // TODO sort according to SISR rules
-    ctx.random->shuffle(ctx.jobs.begin(), ctx.jobs.end());
+
+    blink_sorter{}(ctx);
 
     auto sampleSize = std::min(static_cast<int>(ctx.jobs.size()), ctx.random->uniform<int>(minSize, maxSize));
 
