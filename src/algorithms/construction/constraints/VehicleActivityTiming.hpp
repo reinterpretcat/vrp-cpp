@@ -38,6 +38,7 @@ struct VehicleActivityTiming final
         keys_[key] = std::make_pair(a.detail.time.end, a.detail.end.value_or(a.detail.start));
       }
     });
+    assert(!keys_.empty());
   }
 
   /// Accept route and updates its insertion state.
@@ -68,14 +69,14 @@ struct VehicleActivityTiming final
       ranges::accumulate(view::reverse(route.tour.activities()), init, [&](const auto& acc, const auto& act) {
         const auto& [endTime, prevLoc] = acc;
 
-        auto duration =
-          std::max<std::int64_t>(0,
-                                 transport_->duration(actor.vehicle->profile, act->detail.location, prevLoc, endTime) -
-                                   activity_->duration(actor, *act, endTime));
-        auto potentialLatest = endTime > duration ? endTime - duration : 0;
+        auto potentialLatest = static_cast<std::int64_t>(endTime) -
+          static_cast<std::int64_t>(
+                                 transport_->duration(actor.vehicle->profile, act->detail.location, prevLoc, endTime) +
+                                 activity_->duration(actor, *act, endTime));
+        auto latestArrivalTime = static_cast<models::common::Timestamp>(
+          std::min(static_cast<std::int64_t>(act->detail.time.end), potentialLatest));
 
-        auto latestArrivalTime = std::min(act->detail.time.end, potentialLatest);
-        if (latestArrivalTime < act->detail.time.start || endTime < duration) state.put<bool>(stateKey, true);
+        if (latestArrivalTime < act->detail.time.start) state.put<bool>(stateKey, true);
 
         state.put<models::common::Timestamp>(stateKey, *act, latestArrivalTime);
 

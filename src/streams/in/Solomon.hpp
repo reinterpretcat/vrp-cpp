@@ -95,9 +95,6 @@ struct read_solomon_type final {
     auto fleet = std::make_shared<models::problem::Fleet>();
     auto activity = std::make_shared<ServiceCosts>();
     auto constraint = std::make_shared<InsertionConstraint>();
-    (*constraint)
-      .addHard<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(fleet, matrix, activity))
-      .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>());
 
     skipLines(input, 4);
     auto vehicle = readFleet(input, *fleet, *matrix);
@@ -105,6 +102,10 @@ struct read_solomon_type final {
     auto jobs = readJobs(input, *fleet, *matrix, vehicle);
 
     matrix->generate();
+
+    (*constraint)
+      .addHard<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(fleet, matrix, activity))
+      .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>());
 
     return {fleet,
             std::make_shared<models::problem::Jobs>(*matrix, ranges::view::all(jobs), ranges::view::single("car")),
