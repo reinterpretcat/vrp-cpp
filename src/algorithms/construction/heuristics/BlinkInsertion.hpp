@@ -34,8 +34,8 @@ struct select_insertion_range_blinks final {
   auto operator()(InsertionContext& ctx) const {
     const int minSize = 2;
     const int maxSize = 5;
-    // TODO sort
-    // ctx.random->shuffle(ctx.jobs.begin(), ctx.jobs.end());
+    // TODO sort according to SISR rules
+    ctx.random->shuffle(ctx.jobs.begin(), ctx.jobs.end());
 
     auto sampleSize = std::min(static_cast<int>(ctx.jobs.size()), ctx.random->uniform<int>(minSize, maxSize));
 

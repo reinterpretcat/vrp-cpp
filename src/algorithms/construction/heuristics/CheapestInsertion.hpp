@@ -20,8 +20,8 @@ struct select_insertion_range_sample final {
   auto operator()(InsertionContext& ctx) const {
     const int minSize = 4;
     const int maxSize = 8;
-    // TODO sort
-    // ctx.random->shuffle(ctx.jobs.begin(), ctx.jobs.end());
+
+    ctx.random->shuffle(ctx.jobs.begin(), ctx.jobs.end());
 
     auto sampleSize = std::min(static_cast<int>(ctx.jobs.size()), ctx.random->uniform<int>(minSize, maxSize));
 
