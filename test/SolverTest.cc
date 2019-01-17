@@ -12,7 +12,7 @@ using namespace vrp::streams::in;
 
 namespace vrp::test {
 
-SCENARIO("DefaultSolver can solve c101 problem", "[solver][default]") {
+SCENARIO("Solver can solve c101 problem greedy acceptance and default RaR", "[solver][default]") {
   auto solver = Solver<algorithms::refinement::create_refinement_context<>,
                        algorithms::refinement::select_best_solution,
                        algorithms::refinement::ruin_and_recreate_solution<>,
@@ -29,7 +29,7 @@ SCENARIO("DefaultSolver can solve c101 problem", "[solver][default]") {
 
       THEN("has valid solution") {
         REQUIRE(estimatedSolution.first->unassigned.empty());
-        REQUIRE(estimatedSolution.first->routes.size() <= 5);
+        REQUIRE(estimatedSolution.first->routes.size() <= 6);
       }
     }
   }

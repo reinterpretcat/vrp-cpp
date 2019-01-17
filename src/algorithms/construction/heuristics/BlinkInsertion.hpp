@@ -16,7 +16,8 @@ struct select_insertion_with_blinks final {
   explicit select_insertion_with_blinks(const InsertionContext& ctx) : ctx_(ctx), lock_() {}
 
   InsertionResult operator()(const InsertionResult& left, const InsertionResult& right) const {
-    return isBlink() ? left : get_best_result(left, right);
+    // NOTE cannot blink having invalid left result
+    return left.index() == 0 && isBlink() ? left : get_best_result(left, right);
   }
 
 private:

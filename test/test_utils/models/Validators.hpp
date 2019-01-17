@@ -14,7 +14,7 @@ namespace vrp::test {
 
 /// Validates solution against time and size violations.
 /// NOTE supports only deliveries at the moment.
-template<typename Size>
+template<typename Size, bool AllowUnassigned>
 struct validate_solution final {
   using SizeHandler = typename algorithms::construction::VehicleActivitySize<Size>;
 
@@ -47,17 +47,19 @@ private:
         return r->tour.activities() | ranges::view::transform([](const auto& a) { return get_job_id{}(*a->job); });
       }) |
       ranges::to_vector | ranges::action::sort;
-    if (ids.size() /*+ solution.unassigned.size()*/ != problem.jobs->size()) fail("unexpected job ids");
+
+    if (ids.size() + (AllowUnassigned ? solution.unassigned.size() : 0) != problem.jobs->size())
+      fail("unexpected job ids");
   }
 
   void checkActivity(const models::Problem& problem,
                      State& state,
                      const models::solution::Tour::Activity& activity) const {
-    logActivity(activity);
+    // logActivity(activity);
     checkSize(state, activity);
     checkTime(problem, state, activity);
     checkLocation(state, activity);
-    logState(state);
+    // logState(state);
   }
 
   void checkLocation(State& state, const models::solution::Tour::Activity& activity) const {

@@ -33,6 +33,6 @@ struct log_and_validate final {
 
 private:
   algorithms::refinement::log_to_console logger = {};
-  validate_solution<int> validator = {};
+  validate_solution<int, false> validator = {};
 };
 }
