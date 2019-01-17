@@ -35,7 +35,7 @@ struct select_insertion_range_blinks final {
     const int minSize = 2;
     const int maxSize = 5;
     // TODO sort
-    ctx.random->shuffle(ctx.jobs.begin(), ctx.jobs.end());
+    // ctx.random->shuffle(ctx.jobs.begin(), ctx.jobs.end());
 
     auto sampleSize = std::min(static_cast<int>(ctx.jobs.size()), ctx.random->uniform<int>(minSize, maxSize));
 

@@ -177,6 +177,32 @@ SCENARIO("cheapest insertion handles two customers with one route", "[algorithms
   }
 }
 
+SCENARIO("cheapest insertion handles cannot handle two customers with one route",
+         "[algorithms][construction][insertion]") {
+  GIVEN("two customers with strict tw") {
+    struct create_timing_problem_stream {
+      std::stringstream operator()() {
+        return SolomonBuilder()
+          .setVehicle(25, 200)
+          .addCustomer({0, 40, 50, 0, 0, 1236, 0})
+          .addCustomer({5, 42, 65, 10, 15, 67, 90})
+          .addCustomer({13, 22, 75, 30, 30, 92, 90})
+          .build();
+      }
+    };
+    auto [evaluator, ctx] = createInsertion<create_timing_problem_stream>();
+
+    WHEN("calculates solution") {
+      auto solution = CheapestInsertion{evaluator}.operator()(ctx);
+
+      THEN("has solution with two routes") {
+        REQUIRE(solution.jobs.empty());
+        REQUIRE(solution.routes.size() == 2);
+      }
+    }
+  }
+}
+
 SCENARIO("cheapest insertion handles solomon set problems", "[algorithms][construction][insertion]") {
   GIVEN("c101_25 problem") {
     auto [evaluator, ctx] = createInsertion<create_c101_25_problem_stream>();

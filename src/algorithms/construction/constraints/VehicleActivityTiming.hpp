@@ -135,8 +135,8 @@ struct VehicleActivityTiming final
     auto endTimeAtNewAct = std::max(arrTimeAtNewAct, target.detail.time.start)  //
       + activity_->duration(actor, target, arrTimeAtNewAct);
 
-    std::int64_t time =
-      transport_->duration(actor.vehicle->profile, target.detail.location, nextActLocation, latestArrTimeAtNextAct) -
+    auto time =
+      transport_->duration(actor.vehicle->profile, target.detail.location, nextActLocation, latestArrTimeAtNextAct) +
       activity_->duration(actor, target, arrTimeAtNewAct);
 
     std::int64_t latestArrTimeAtNewAct = std::min<std::int64_t>(

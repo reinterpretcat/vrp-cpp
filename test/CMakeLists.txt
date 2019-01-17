@@ -46,11 +46,13 @@ set(SOURCE_FILES
         test_utils/algorithms/construction/Results.hpp
         test_utils/algorithms/construction/constraints/Helpers.hpp
         test_utils/algorithms/refinement/MatrixRoutes.hpp
+        test_utils/algorithms/refinement/LogAndValidate.hpp
         test_utils/fakes/TestTransportCosts.hpp
         test_utils/models/Comparators.hpp
         test_utils/models/Extensions.hpp
         test_utils/models/Factories.hpp
         test_utils/models/Matchers.hpp
+        test_utils/models/Validators.hpp
         test_utils/streams/SolomonBuilder.hpp
         test_utils/streams/SolomonStreams.hpp
 

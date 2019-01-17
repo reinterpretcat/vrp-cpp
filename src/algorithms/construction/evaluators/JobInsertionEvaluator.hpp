@@ -48,8 +48,10 @@ protected:
     }
 
     /// Creates a new context from old one when insertion failed.
-    static EvaluationContext fail(std::tuple<bool, int> error, const EvaluationContext& other) {
-      return {std::get<0>(error), std::get<1>(error), other.index, other.cost, other.departure, other.detail};
+    static EvaluationContext fail(std::tuple<bool, int> error,
+                                  const models::common::Timestamp& departure,
+                                  const EvaluationContext& other) {
+      return {std::get<0>(error), std::get<1>(error), other.index, other.cost, departure, other.detail};
     }
 
     /// Creates a new context from old one when insertion worse.

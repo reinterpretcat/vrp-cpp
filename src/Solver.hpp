@@ -5,7 +5,7 @@
 #include "algorithms/refinement/extensions/CreateRefinementContext.hpp"
 #include "algorithms/refinement/extensions/RuinAndRecreateSolution.hpp"
 #include "algorithms/refinement/extensions/SelectBestSolution.hpp"
-#include "algorithms/refinement/logging/LogToConsole.hpp"
+#include "algorithms/refinement/logging/LogToNothing.hpp"
 #include "algorithms/refinement/termination/MaxIterationCriteria.hpp"
 #include "models/Problem.hpp"
 #include "models/Solution.hpp"
@@ -105,5 +105,5 @@ using DefaultSolver = Solver<algorithms::refinement::create_refinement_context<>
                              algorithms::refinement::ruin_and_recreate_solution<>,
                              algorithms::refinement::GreedyAcceptance<>,
                              algorithms::refinement::MaxIterationCriteria,
-                             algorithms::refinement::log_to_console>;
+                             algorithms::refinement::log_to_nothing>;
 }

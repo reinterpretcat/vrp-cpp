@@ -78,13 +78,14 @@ struct VehicleActivitySize final
     return value <= getSize(routeCtx.actor->vehicle) ? success() : stop(code_);
   }
 
-private:
+  /// Returns size of an entity (vehicle or job).
   template<typename T>
-  inline Size getSize(const std::shared_ptr<const T>& holder) const {
+  static Size getSize(const std::shared_ptr<const T>& holder) {
     return std::any_cast<Size>(holder->dimens.find(StateKey)->second);
   }
 
-  inline Size getSize(const models::solution::Tour::Activity& activity) const {
+  /// Returns size of activity.
+  static Size getSize(const models::solution::Tour::Activity& activity) {
     return activity->type == models::solution::Activity::Type::Job && activity->job.has_value()
       ? utils::mono_result<Size>(activity->job.value().visit(ranges::overload(
           [&](const std::shared_ptr<const models::problem::Service>& service) { return getSize(service); },
@@ -92,6 +93,7 @@ private:
       : Size{};
   }
 
+private:
   int code_;
 };
 }

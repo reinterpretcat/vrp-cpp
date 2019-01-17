@@ -9,7 +9,7 @@ namespace vrp::algorithms::refinement {
 
 /// Dummy logging which does nothing.
 struct log_to_nothing final {
-  /// Called when search is started and then, completed.
+  /// Called when search is started.
   void operator()(const RefinementContext& ctx, std::chrono::milliseconds time) const {}
 
   /// Called when new individuum is discovered.

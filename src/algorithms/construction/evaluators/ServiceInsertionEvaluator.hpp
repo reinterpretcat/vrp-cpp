@@ -89,16 +89,16 @@ private:
           return utils::accumulate_while(view::all(locations), in2, pred, [&](const auto& in3, const auto& location) {
             activity->detail.location = location;
 
+            // calculate end time (departure) for the next leg
+            auto endTime = in3.departure + departure(*ctx.actor, *actCtx.prev, *actCtx.next, evalCtx.departure);
+
             // check hard activity constraint
             auto status = constraint.hard(ctx, actCtx);
-            if (status.has_value()) return EvaluationContext::fail(status.value(), in3);
+            if (status.has_value()) return EvaluationContext::fail(status.value(), endTime, in3);
 
             // calculate all costs on activity level
             auto actCosts = constraint.soft(ctx, actCtx) + activityCosts(ctx, actCtx, progress);
             auto totalCosts = routeCosts + actCosts;
-
-            // calculate end time (departure) for the next leg
-            auto endTime = in3.departure + departure(*ctx.actor, *actCtx.prev, *actCtx.next, evalCtx.departure);
 
             return totalCosts < in3.cost
               ? EvaluationContext::success(actCtx.index, totalCosts, endTime, {location, detail.duration, time})

@@ -11,7 +11,7 @@ namespace vrp::algorithms::refinement {
 
 /// Logs basic information to console.
 struct log_to_console final {
-  /// Called when search is started and then, completed.
+  /// Called when search is started.
   void operator()(const RefinementContext& ctx, std::chrono::milliseconds time) const {
     std::cout << "search for initial population took: " << time.count() << "ms:" << std::endl;
     logIndividuum(ctx.population->front());
