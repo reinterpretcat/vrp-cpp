@@ -22,10 +22,14 @@ struct restore_insertion_context final {
 
     auto routes = std::map<std::shared_ptr<models::solution::Route>, std::shared_ptr<InsertionRouteState>>{};
     ranges::for_each(sln.routes, [&](const auto& r) {
-      if (r->tour.empty())
+      if (r->tour.empty()) {
         registry->free(*r->actor);
-      else
-        routes.insert({deep_copy_route{}(r), std::make_shared<InsertionRouteState>()});
+      } else {
+        auto route = deep_copy_route{}(r);
+        auto state = std::make_shared<InsertionRouteState>();
+        routes.insert({route, state});
+        ctx.problem->constraint->accept(*route, *state);
+      }
     });
 
     return construction::build_insertion_context{}

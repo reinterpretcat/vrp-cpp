@@ -65,13 +65,13 @@ public:
   }
 
   build_insertion_context& jobs(std::vector<models::problem::Job>&& value) {
-    context_.jobs = value;
+    context_.jobs = std::move(value);
     return *this;
   }
 
   build_insertion_context& routes(
     std::map<std::shared_ptr<models::solution::Route>, std::shared_ptr<InsertionRouteState>>&& value) {
-    context_.routes = value;
+    context_.routes = std::move(value);
     return *this;
   }
 

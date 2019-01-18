@@ -152,7 +152,8 @@ protected:
                                      const models::common::Timestamp& depTime) const {
     auto arrival =
       depTime + transportCosts_->duration(actor.vehicle->profile, start.detail.location, end.detail.location, depTime);
-    return std::max(arrival, end.detail.time.start) + activityCosts_->duration(actor, end, arrival);
+    auto workStart = std::max(arrival, end.detail.time.start);
+    return workStart + activityCosts_->duration(actor, end, workStart);
   }
 
   InsertionResult failure(const EvaluationContext& eCtx) const { return make_result_failure(eCtx.code); }
