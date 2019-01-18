@@ -42,8 +42,8 @@ struct blink_sorter final {
 /// Selects jobs range based on SISR rules.
 struct select_insertion_range_blinks final {
   auto operator()(InsertionContext& ctx) const {
-    const int minSize = 2;
-    const int maxSize = 5;
+    const int minSize = 8;
+    const int maxSize = 16;
 
     blink_sorter{}(ctx);
 

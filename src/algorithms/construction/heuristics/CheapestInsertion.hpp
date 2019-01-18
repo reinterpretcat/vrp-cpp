@@ -18,14 +18,7 @@ struct select_insertion_result_greedy final {
 /// Selects jobs range sample.
 struct select_insertion_range_sample final {
   auto operator()(InsertionContext& ctx) const {
-    const int minSize = 4;
-    const int maxSize = 8;
-
-    ctx.random->shuffle(ctx.jobs.begin(), ctx.jobs.end());
-
-    auto sampleSize = std::min(static_cast<int>(ctx.jobs.size()), ctx.random->uniform<int>(minSize, maxSize));
-
-    return std::pair(ctx.jobs.begin(), ctx.jobs.begin() + sampleSize);
+    return std::pair(ctx.jobs.begin(), ctx.jobs.end());
   }
 };
 
