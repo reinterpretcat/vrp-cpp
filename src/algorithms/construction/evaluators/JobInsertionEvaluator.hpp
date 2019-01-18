@@ -130,7 +130,7 @@ protected:
 
     auto [tpCostRight, actCostRight, depTimeRight] = analyze(*routeCtx.actor, target, next, depTimeLeft);
 
-    auto newCosts = tpCostLeft + tpCostRight + progress.completeness * (actCostLeft + actCostRight);
+    auto newCosts = tpCostLeft + tpCostRight + /* progress.completeness * */ (actCostLeft + actCostRight);
 
     if (routeCtx.route.first->tour.empty()) return newCosts;
 
@@ -140,7 +140,7 @@ protected:
               next.type == Activity::Type::End ? *route->end : next,
               prev.type == Activity::Type::Start ? route->start->schedule.departure : prev.schedule.departure);
 
-    auto oldCosts = tpCostOld + progress.completeness * actCostOld;
+    auto oldCosts = tpCostOld + /*progress.completeness * */ actCostOld;
 
     return newCosts - oldCosts;
   }
