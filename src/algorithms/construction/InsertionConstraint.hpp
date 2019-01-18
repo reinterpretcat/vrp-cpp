@@ -33,9 +33,7 @@ struct HardRouteConstraint : virtual public Constraint {
   /// Specifies check function type.
   using CheckFunc = std::function<Result(const InsertionRouteContext&, const Job&)>;
 
-  void accept(models::solution::Route& route, InsertionRouteState& state) const override {}
-
-  virtual Result check(const InsertionRouteContext&, const Job&) const = 0;
+  virtual Result hard(const InsertionRouteContext&, const Job&) const = 0;
 };
 
 /// Specifies soft constraint which operates on route level.
@@ -46,9 +44,7 @@ struct SoftRouteConstraint : virtual public Constraint {
   /// Specifies check function type.
   using CheckFunc = std::function<models::common::Cost(const InsertionRouteContext&, const Job&)>;
 
-  void accept(models::solution::Route& route, InsertionRouteState& state) const override {}
-
-  virtual models::common::Cost check(const InsertionRouteContext&, const Job&) const = 0;
+  virtual models::common::Cost soft(const InsertionRouteContext&, const Job&) const = 0;
 };
 
 /// Specifies hard constraint which operation on activity level.
@@ -58,9 +54,7 @@ struct HardActivityConstraint : virtual public Constraint {
   /// Specifies check function type.
   using CheckFunc = std::function<Result(const InsertionRouteContext&, const InsertionActivityContext&)>;
 
-  void accept(models::solution::Route& route, InsertionRouteState& state) const override {}
-
-  virtual Result check(const InsertionRouteContext&, const InsertionActivityContext&) const = 0;
+  virtual Result hard(const InsertionRouteContext&, const InsertionActivityContext&) const = 0;
 };
 
 /// Specifies soft constraint which operation on activity level.
@@ -68,17 +62,24 @@ struct SoftActivityConstraint : virtual public Constraint {
   /// Specifies check function type.
   using CheckFunc = std::function<models::common::Cost(const InsertionRouteContext&, const InsertionActivityContext&)>;
 
-  void accept(models::solution::Route& route, InsertionRouteState& state) const override {}
-
-  virtual models::common::Cost check(const InsertionRouteContext&, const InsertionActivityContext&) const = 0;
+  virtual models::common::Cost soft(const InsertionRouteContext&, const InsertionActivityContext&) const = 0;
 };
 
 /// An insertion constraint which encapsulates behaviour of all possible constraint types.
 class InsertionConstraint final {
   template<typename Base, typename Return, typename Arg1, typename Arg2>
-  struct CheckFunctionWrapper : Base {
-    explicit CheckFunctionWrapper(typename Base::CheckFunc func) : func_(std::move(func)) {}
-    Return check(const Arg1& arg1, const Arg2& arg2) const override { return func_(arg1, arg2); }
+  struct SoftFunctionWrapper : Base {
+    explicit SoftFunctionWrapper(typename Base::CheckFunc func) : func_(std::move(func)) {}
+    void accept(models::solution::Route& route, InsertionRouteState& state) const override {}
+    Return soft(const Arg1& arg1, const Arg2& arg2) const override { return func_(arg1, arg2); }
+    typename Base::CheckFunc func_;
+  };
+
+  template<typename Base, typename Return, typename Arg1, typename Arg2>
+  struct HardFunctionWrapper : Base {
+    explicit HardFunctionWrapper(typename Base::CheckFunc func) : func_(std::move(func)) {}
+    void accept(models::solution::Route& route, InsertionRouteState& state) const override {}
+    Return hard(const Arg1& arg1, const Arg2& arg2) const override { return func_(arg1, arg2); }
     typename Base::CheckFunc func_;
   };
 
@@ -103,10 +104,10 @@ public:
 
   /// Adds hard route constraints
   InsertionConstraint& addHardRoute(HardRouteConstraint::CheckFunc constraint) {
-    using Wrapper = CheckFunctionWrapper<HardRouteConstraint,
-                                         HardRouteConstraint::Result,
-                                         InsertionRouteContext,
-                                         HardRouteConstraint::Job>;
+    using Wrapper = HardFunctionWrapper<HardRouteConstraint,
+                                        HardRouteConstraint::Result,
+                                        InsertionRouteContext,
+                                        HardRouteConstraint::Job>;
 
     auto c = std::make_shared<Wrapper>(std::move(constraint));
     constraints_.insert(c);
@@ -124,7 +125,7 @@ public:
   /// Adds soft route constraint.
   InsertionConstraint& addSoftRoute(SoftRouteConstraint::CheckFunc constraint) {
     using Wrapper =
-      CheckFunctionWrapper<SoftRouteConstraint, models::common::Cost, InsertionRouteContext, HardRouteConstraint::Job>;
+      SoftFunctionWrapper<SoftRouteConstraint, models::common::Cost, InsertionRouteContext, HardRouteConstraint::Job>;
 
     auto c = std::make_shared<Wrapper>(std::move(constraint));
     constraints_.insert(c);
@@ -145,10 +146,10 @@ public:
 
   /// Adds hard activity constraint.
   InsertionConstraint& addHardActivity(HardActivityConstraint::CheckFunc constraint) {
-    using Wrapper = CheckFunctionWrapper<HardActivityConstraint,
-                                         HardActivityConstraint::Result,
-                                         InsertionRouteContext,
-                                         InsertionActivityContext>;
+    using Wrapper = HardFunctionWrapper<HardActivityConstraint,
+                                        HardActivityConstraint::Result,
+                                        InsertionRouteContext,
+                                        InsertionActivityContext>;
 
     auto c = std::make_shared<Wrapper>(std::move(constraint));
     constraints_.insert(c);
@@ -165,10 +166,10 @@ public:
 
   /// Adds soft activity constraint.
   InsertionConstraint& addSoftActivity(SoftActivityConstraint::CheckFunc constraint) {
-    using Wrapper = CheckFunctionWrapper<SoftActivityConstraint,
-                                         models::common::Cost,
-                                         InsertionRouteContext,
-                                         InsertionActivityContext>;
+    using Wrapper = SoftFunctionWrapper<SoftActivityConstraint,
+                                        models::common::Cost,
+                                        InsertionRouteContext,
+                                        InsertionActivityContext>;
 
     auto c = std::make_shared<Wrapper>(std::move(constraint));
     constraints_.insert(c);
@@ -192,6 +193,35 @@ public:
     return *this;
   }
 
+  template<typename T>
+  InsertionConstraint& addSoft(
+    std::shared_ptr<typename std::enable_if<std::is_base_of<SoftRouteConstraint, T>::value &&
+                                              std::is_base_of<SoftActivityConstraint, T>::value,
+                                            T>::type> v) {
+    constraints_.insert(v);
+    softRouteConstraints_.push_back(v);
+    softActivityConstraints_.push_back(v);
+    return *this;
+  }
+
+  // endregion
+
+  // region Add all
+
+  template<typename T>
+  InsertionConstraint& add(
+    std::shared_ptr<typename std::enable_if<
+      std::is_base_of<HardRouteConstraint, T>::value && std::is_base_of<HardActivityConstraint, T>::value &&
+        std::is_base_of<SoftRouteConstraint, T>::value && std::is_base_of<SoftActivityConstraint, T>::value,
+      T>::type> v) {
+    constraints_.insert(v);
+    hardRouteConstraints_.push_back(v);
+    hardActivityConstraints_.push_back(v);
+    softRouteConstraints_.push_back(v);
+    softActivityConstraints_.push_back(v);
+    return *this;
+  }
+
   // endregion
 
   // region Route level evaluations
@@ -201,7 +231,7 @@ public:
   HardRouteConstraint::Result hard(const InsertionRouteContext& ctx, const HardRouteConstraint::Job& job) const {
     return ranges::accumulate(
       ranges::view::all(hardRouteConstraints_) |
-        ranges::view::transform([&](const auto& constraint) { return constraint->check(ctx, job); }) |
+        ranges::view::transform([&](const auto& constraint) { return constraint->hard(ctx, job); }) |
         ranges::view::filter([](const auto& result) { return result.has_value(); }) | ranges::view::take(1),
       HardRouteConstraint::Result{},
       [](const auto& acc, const auto& v) { return std::make_optional(v.value()); });
@@ -211,7 +241,7 @@ public:
   models::common::Cost soft(const InsertionRouteContext& ctx, const HardRouteConstraint::Job& job) const {
     return ranges::accumulate(
       ranges::view::all(softRouteConstraints_) |
-        ranges::view::transform([&](const auto& constraint) { return constraint->check(ctx, job); }),
+        ranges::view::transform([&](const auto& constraint) { return constraint->soft(ctx, job); }),
       0.0);
   }
 
@@ -223,7 +253,7 @@ public:
                                       const InsertionActivityContext& actCtx) const {
     return ranges::accumulate(
       ranges::view::all(hardActivityConstraints_) |
-        ranges::view::transform([&](const auto& constraint) { return constraint->check(routeCtx, actCtx); }) |
+        ranges::view::transform([&](const auto& constraint) { return constraint->hard(routeCtx, actCtx); }) |
         ranges::view::filter([](const auto& result) { return result.has_value(); }) | ranges::view::take(1),
       HardActivityConstraint::Result{},
       [](const auto& acc, const auto& v) { return std::make_optional(v.value()); });
@@ -232,7 +262,7 @@ public:
   models::common::Cost soft(const InsertionRouteContext& routeCtx, const InsertionActivityContext& actCtx) const {
     return ranges::accumulate(
       ranges::view::all(softActivityConstraints_) |
-        ranges::view::transform([&](const auto& constraint) { return constraint->check(routeCtx, actCtx); }),
+        ranges::view::transform([&](const auto& constraint) { return constraint->soft(routeCtx, actCtx); }),
       0.0);
   }
 

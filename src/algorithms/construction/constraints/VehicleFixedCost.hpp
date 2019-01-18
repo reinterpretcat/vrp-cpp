@@ -8,7 +8,9 @@ namespace vrp::algorithms::construction {
 struct VehicleFixedCost final : public SoftRouteConstraint {
   double weight = 1;
 
-  models::common::Cost check(const InsertionRouteContext& ctx, const Job& job) const override {
+  void accept(models::solution::Route& route, InsertionRouteState& state) const override {}
+
+  models::common::Cost soft(const InsertionRouteContext& ctx, const Job& job) const override {
     return ctx.actor->vehicle != ctx.route.first->actor->vehicle ? ctx.actor->vehicle->costs.fixed * weight : 0;
   }
 };

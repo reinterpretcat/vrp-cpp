@@ -125,7 +125,7 @@ SCENARIO("vehicle activity timing checks states", "[algorithms][construction][co
                         .next(getActivity(routeCtx, next))
                         .owned();
 
-        auto result = timing.check(routeCtx, actCtx);
+        auto result = timing.hard(routeCtx, actCtx);
 
         REQUIRE(result == expected);
       }
@@ -154,6 +154,68 @@ SCENARIO("vehicle activity timing updates activity schedule", "[algorithms][cons
       THEN("activity schedule are updated") {
         REQUIRE(compare_schedules{}(route->tour.get(0)->schedule, {10, 25}));
         REQUIRE(compare_schedules{}(route->tour.get(1)->schedule, {35, 60}));
+      }
+    }
+  }
+}
+
+SCENARIO("", "[]") {
+  auto fleet = std::make_shared<Fleet>();
+  (*fleet)  //
+    .add(test_build_vehicle{}.id("v1").details(asDetails(0, 0, {0, 1000})).owned());
+
+  GIVEN("tour with two activities") {
+    auto progress = test_build_insertion_progress{}.owned();
+    auto prev = test_build_activity{}.location(10).schedule({0, 10}).shared();
+    auto target = test_build_activity{}.location(30).duration(10).shared();
+    auto next = test_build_activity{}.location(20).time({40, 70}).shared();
+
+    // old: d(10 + 20) + t(10 + 20 + 20) = 80
+    // new: d(10 + 10 + 30) + t(20 + 10 + 30) = 110
+    WHEN("inserting in between new activity with the same actor") {
+      auto [routeCtx, actCtx] = sameActor(prev, target, next);
+      routeCtx->route.first->tour.add(prev).add(next);
+
+      THEN("cost for activity is correct") {
+        auto cost = VehicleActivityTiming(fleet,
+                                          std::make_shared<TestTransportCosts>(),  //
+                                          std::make_shared<ActivityCosts>())
+                      .soft(*routeCtx, *actCtx);
+
+        REQUIRE(cost == 30);
+      }
+    }
+  }
+
+  GIVEN("empty tour") {
+    // old: 0
+    // new: d(10) + t(10 + 1)
+    auto target = test_build_activity{}.duration(1).location(5);
+    auto progress = test_build_insertion_progress{}.owned();
+
+    WHEN("inserting new activity with the same actor") {
+      auto [routeCtx, actCtx] = sameActor(target.shared());
+
+      THEN("cost for activity is correct") {
+        auto cost = VehicleActivityTiming(fleet,
+                                          std::make_shared<TestTransportCosts>(),  //
+                                          std::make_shared<ActivityCosts>())
+                      .soft(*routeCtx, *actCtx);
+
+        REQUIRE(cost == 21);
+      }
+    }
+
+    WHEN("inserting new activity with different actor") {
+      auto [routeCtx, actCtx] = differentActor(target.shared());
+
+      THEN("cost for activity is correct") {
+        auto cost = VehicleActivityTiming(fleet,
+                                          std::make_shared<TestTransportCosts>(),  //
+                                          std::make_shared<ActivityCosts>())
+                      .soft(*routeCtx, *actCtx);
+
+        REQUIRE(cost == 21);
       }
     }
   }

@@ -96,10 +96,7 @@ private:
             auto status = constraint.hard(ctx, actCtx);
             if (status.has_value()) return EvaluationContext::fail(status.value(), endTime, in3);
 
-            // calculate all costs on activity level
-            auto actCosts = constraint.soft(ctx, actCtx) + activityCosts(ctx, actCtx, progress);
-            auto totalCosts = routeCosts + actCosts;
-
+            auto totalCosts = routeCosts + constraint.soft(ctx, actCtx);
             return totalCosts < in3.cost
               ? EvaluationContext::success(actCtx.index, totalCosts, endTime, {location, detail.duration, time})
               : EvaluationContext::skip(endTime, in3);

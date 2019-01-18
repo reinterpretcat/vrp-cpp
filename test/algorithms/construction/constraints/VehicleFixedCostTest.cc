@@ -25,7 +25,7 @@ SCENARIO("vehicle fixed cost", "[algorithms][construction][constraints]") {
         .route({test_build_route{}.actor(getActor("v1", *fleet)).shared(), std::make_shared<InsertionRouteState>()})
         .owned();
 
-    THEN("returns fixed cost as extra") { REQUIRE(fixedCost.check(routeCtx, DefaultService) == 100); }
+    THEN("returns fixed cost as extra") { REQUIRE(fixedCost.soft(routeCtx, DefaultService) == 100); }
   }
 
   GIVEN("same actors in route context") {
@@ -35,7 +35,7 @@ SCENARIO("vehicle fixed cost", "[algorithms][construction][constraints]") {
         .route({test_build_route{}.actor(getActor("v1", *fleet)).shared(), std::make_shared<InsertionRouteState>()})
         .owned();
 
-    THEN("returns zero as extra cost") { REQUIRE(fixedCost.check(routeCtx, DefaultService) == 0); }
+    THEN("returns zero as extra cost") { REQUIRE(fixedCost.soft(routeCtx, DefaultService) == 0); }
   }
 }
 }

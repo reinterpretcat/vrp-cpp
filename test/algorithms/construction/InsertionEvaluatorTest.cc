@@ -1,5 +1,6 @@
 #include "algorithms/construction/InsertionEvaluator.hpp"
 
+#include "algorithms/construction/constraints/VehicleActivityTiming.hpp"
 #include "test_utils/algorithms/construction/Insertions.hpp"
 #include "test_utils/fakes/TestTransportCosts.hpp"
 #include "test_utils/models/Factories.hpp"
@@ -24,21 +25,25 @@ SCENARIO("insertion evaluator can handle service insertion", "[algorithms][const
   }));
 
   GIVEN("two different vehicles") {
-    auto fleet = Fleet{};
-    fleet.add(test_build_driver{}.owned())
+    auto fleet = std::make_shared<Fleet>();
+    (*fleet)
+      .add(test_build_driver{}.owned())
       .add(test_build_vehicle{}.id("v1").details({{0, v1, {0, 100}}}).owned())
       .add(test_build_vehicle{}.id("v2").details({{20, v2, {0, 100}}}).owned());
+    auto transport = std::make_shared<TestTransportCosts>();
+    auto activity = std::make_shared<ActivityCosts>();
+    auto constraint = std::make_shared<InsertionConstraint>();
+    constraint->add<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(fleet, transport, activity));
 
-    auto evaluator = InsertionEvaluator{std::make_shared<TestTransportCosts>(), std::make_shared<ActivityCosts>()};
+    auto evaluator = InsertionEvaluator{transport, activity};
+
 
     WHEN("evaluates service insertion close to best vehicle") {
       auto service = test_build_service{}.location(s1).shared();
 
-      auto result = evaluator.evaluate(as_job(service),
-                                       test_build_insertion_context{}
-                                         .constraint(std::make_shared<InsertionConstraint>())
-                                         .registry(std::make_shared<Registry>(fleet))
-                                         .owned());
+      auto result = evaluator.evaluate(
+        as_job(service),
+        test_build_insertion_context{}.constraint(constraint).registry(std::make_shared<Registry>(*fleet)).owned());
 
       THEN("returns correct insertion success") {
         REQUIRE(result.index() == 0);

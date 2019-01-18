@@ -53,8 +53,8 @@ struct VehicleActivitySize final
   }
 
   /// Checks whether proposed vehicle and job can be used within route without violating size constraints.
-  HardRouteConstraint::Result check(const InsertionRouteContext& routeCtx,
-                                    const HardRouteConstraint::Job& job) const override {
+  HardRouteConstraint::Result hard(const InsertionRouteContext& routeCtx,
+                                   const HardRouteConstraint::Job& job) const override {
     return utils::mono_result<bool>(job.visit(ranges::overload(
              [&](const std::shared_ptr<const models::problem::Service>& service) {
                return getSize(service) <= getSize(routeCtx.actor->vehicle);
@@ -67,8 +67,8 @@ struct VehicleActivitySize final
   }
 
   /// Checks whether proposed activity insertion doesn't violate size constraints.
-  HardActivityConstraint::Result check(const InsertionRouteContext& routeCtx,
-                                       const InsertionActivityContext& actCtx) const override {
+  HardActivityConstraint::Result hard(const InsertionRouteContext& routeCtx,
+                                      const InsertionActivityContext& actCtx) const override {
     const auto& state = routeCtx.route.second;
 
     auto size = getSize(actCtx.target);

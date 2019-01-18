@@ -23,12 +23,6 @@ struct FakeJobInsertionEvaluator final : public JobInsertionEvaluator {
   vrp::models::common::Cost testVehicleCosts(std::shared_ptr<InsertionRouteContext> routeCtx) const {
     return vehicleCosts(*routeCtx);
   }
-
-  vrp::models::common::Cost testActivityCosts(std::shared_ptr<InsertionRouteContext> routeCtx,
-                                              std::shared_ptr<InsertionActivityContext> actCtx,
-                                              const InsertionProgress& progress) const {
-    return activityCosts(*routeCtx, *actCtx, progress);
-  }
 };
 }
 
@@ -97,58 +91,6 @@ SCENARIO("job insertion evaluator estimates vehicle costs", "[algorithms][constr
         auto cost = evaluator.testVehicleCosts(routeCtx);
 
         REQUIRE(cost == 10);
-      }
-    }
-  }
-}
-
-SCENARIO("job insertion evaluator estimates activity costs", "[algorithms][construction][insertion]") {
-  auto evaluator = FakeJobInsertionEvaluator(std::make_shared<TestTransportCosts>(),  //
-                                             std::make_shared<ActivityCosts>());
-
-  GIVEN("empty tour") {
-    // old: 0
-    // new: d(10) + t(10 + 1)
-    auto target = test_build_activity{}.duration(1).location(5);
-    auto progress = test_build_insertion_progress{}.owned();
-
-    WHEN("inserting new activity with the same actor") {
-      auto [routeCtx, actCtx] = sameActor(target.shared());
-
-      THEN("cost for activity is correct") {
-        auto cost = evaluator.testActivityCosts(routeCtx, actCtx, progress);
-
-        REQUIRE(cost == 21);
-      }
-    }
-
-    WHEN("inserting new activity with different actor") {
-      auto [routeCtx, actCtx] = differentActor(target.shared());
-
-      THEN("cost for activity is correct") {
-        auto cost = evaluator.testActivityCosts(routeCtx, actCtx, progress);
-
-        REQUIRE(cost == 21);
-      }
-    }
-  }
-
-  GIVEN("tour with two activities") {
-    auto progress = test_build_insertion_progress{}.owned();
-    auto prev = test_build_activity{}.location(10).schedule({0, 10}).shared();
-    auto target = test_build_activity{}.location(30).duration(10).shared();
-    auto next = test_build_activity{}.location(20).time({40, 70}).shared();
-
-    // old: d(10 + 20) + t(10 + 20 + 20) = 80
-    // new: d(10 + 10 + 30) + t(20 + 10 + 30) = 110
-    WHEN("inserting in between new activity with the same actor") {
-      auto [routeCtx, actCtx] = sameActor(prev, target, next);
-      routeCtx->route.first->tour.add(prev).add(next);
-
-      THEN("cost for activity is correct") {
-        auto cost = evaluator.testActivityCosts(routeCtx, actCtx, progress);
-
-        REQUIRE(cost == 30);
       }
     }
   }

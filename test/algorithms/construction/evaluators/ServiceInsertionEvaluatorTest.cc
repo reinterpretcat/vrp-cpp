@@ -22,10 +22,19 @@ namespace {
 
 auto
 createContext(const Tour::Activity& prev, const Tour::Activity& next) {
+  using namespace vrp::test;
+
+  auto transport = std::make_shared<TestTransportCosts>();
+  auto activity = std::make_shared<ActivityCosts>();
+  auto fleet = std::make_shared<Fleet>();
   auto constraint = std::make_shared<InsertionConstraint>();
-  auto routeCtx = vrp::test::test_build_insertion_route_context{}.add(prev).add(next).shared();
-  auto evaluator = std::make_shared<ServiceInsertionEvaluator>(std::make_shared<vrp::test::TestTransportCosts>(),  //
-                                                               std::make_shared<ActivityCosts>());
+
+  (*fleet).add(*DefaultDriver).add(*DefaultVehicle);
+  constraint->add<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(fleet, transport, activity));
+
+
+  auto routeCtx = test_build_insertion_route_context{}.add(prev).add(next).shared();
+  auto evaluator = std::make_shared<ServiceInsertionEvaluator>(transport, activity);
 
   return std::tuple<std::shared_ptr<InsertionRouteContext>,
                     std::shared_ptr<ServiceInsertionEvaluator>,
@@ -144,16 +153,11 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
     auto prev = test_build_activity{}.location(5).schedule({5, 5}).shared();
     auto next = test_build_activity{}.location(10).schedule({10, 10}).shared();
     auto [routeCtx, evaluator, constraint] = createContext(prev, next);
-    auto fleet = std::make_shared<Fleet>();
-    (*fleet).add(*DefaultDriver).add(*DefaultVehicle);
 
     auto [ds, index, loc] = GENERATE(
       std::make_tuple(details({{{3}, 0, {DefaultTimeWindow}}}), 0, 3),
       std::make_tuple(details({{{20}, 0, {DefaultTimeWindow}}, {{3}, 0, times({{0, 2}})}}), 1, 20),
       std::make_tuple(details({{{12}, 0, {DefaultTimeWindow}}, {{11}, 0, times({DefaultTimeWindow})}}), 1, 11));
-
-    constraint->addHard<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(
-      fleet, std::make_shared<TestTransportCosts>(), std::make_shared<ActivityCosts>()));
 
     WHEN("service is inserted") {
       auto service = test_build_service{}.details(std::vector<JobDetail>{ds}).shared();

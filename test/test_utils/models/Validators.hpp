@@ -33,6 +33,8 @@ struct validate_solution final {
       auto state = State{route, route->start->detail.location, route->start->schedule.departure, Size{}};
       checkActivity(problem, state, route->start);
 
+      if (route->actor->vehicle->id == "v22") { std::cout << ""; }
+
       ranges::for_each(route->tour.activities(),
                        [&](const auto& activity) { checkActivity(problem, state, activity); });
 
@@ -77,8 +79,11 @@ private:
       state.route->actor->vehicle->profile, state.location, activity->detail.location, state.time);
 
     auto arrival = state.time + driving;
-    if (arrival > activity->detail.time.end) fail("arrival after tw end time");
-    if (arrival != activity->schedule.arrival) fail("wrong arrival");
+
+    if (arrival > activity->detail.time.end)
+      fail(std::to_string(activity->detail.location) + " has arrival after tw end time");
+
+    if (arrival != activity->schedule.arrival) fail(std::to_string(activity->detail.location) + " has wrong arrival");
 
     auto waiting = arrival > activity->detail.time.start ? 0 : activity->detail.time.start - arrival;
 

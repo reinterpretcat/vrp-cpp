@@ -78,7 +78,7 @@ SCENARIO("vehicle activity size", "[algorithms][construction][constraints]") {
       auto [size, expected] = GENERATE(table<int, std::optional<int>>({{11, std::optional<int>{2}},  //
                                                                        {10, std::optional<int>{}}}));
 
-      auto result = VehicleActivitySize<int>{}.check(
+      auto result = VehicleActivitySize<int>{}.hard(
         routeCtx, as_job(test_build_service{}.id("v1").dimens({{"size", size}}).shared()));
 
       THEN("constraint check result is correct") { REQUIRE(result == expected); }
@@ -111,7 +111,7 @@ SCENARIO("vehicle activity size", "[algorithms][construction][constraints]") {
           .next(getActivity(routeCtx, 1))
           .owned();
 
-      auto result = sized.check(routeCtx, actCtx);
+      auto result = sized.hard(routeCtx, actCtx);
 
       REQUIRE(result == expected);
     }
