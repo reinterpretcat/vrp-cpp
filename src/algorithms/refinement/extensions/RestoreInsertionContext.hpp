@@ -30,7 +30,7 @@ struct restore_insertion_context final {
 
     return construction::build_insertion_context{}
       .progress(build_insertion_progress{}
-                  .cost(std::numeric_limits<double>::max())
+                  .cost(std::numeric_limits<models::common::Cost>::max())
                   .completeness(1 - static_cast<double>(sln.unassigned.size()) / ctx.problem->jobs->size())
                   .total(static_cast<int>(ctx.problem->jobs->size()))
                   .owned())

@@ -17,7 +17,7 @@ actorHash(const models::solution::Actor& actor) {
 
   return size_t{0} | hash_combine<Timestamp>{detail.time.start} | hash_combine<Timestamp>{detail.time.end} |
     hash_combine<Location>{detail.start} |
-    hash_combine<Location>{detail.end.value_or(std::numeric_limits<std::uint64_t>::max())};
+    hash_combine<Location>{detail.end.value_or(std::numeric_limits<Location>::max())};
 }
 
 /// Calculates actor's unique key.

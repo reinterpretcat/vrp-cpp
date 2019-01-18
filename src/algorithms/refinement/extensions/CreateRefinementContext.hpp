@@ -26,7 +26,7 @@ struct create_refinement_context final {
     auto iCtx = Heuristic{InsertionEvaluator{problem.transport, problem.activity}}(
       build_insertion_context{}
         .progress(build_insertion_progress{}
-                    .cost(std::numeric_limits<double>::max())
+                    .cost(std::numeric_limits<models::common::Cost>::max())
                     .completeness(0)
                     .total(static_cast<int>(problem.jobs->size()))
                     .owned())

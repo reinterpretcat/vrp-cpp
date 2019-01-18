@@ -5,5 +5,5 @@
 namespace vrp::models::common {
 
 /// Represents a time duration.
-using Duration = std::uint64_t;
+using Duration = std::int64_t;
 }  // namespace vrp::models::common

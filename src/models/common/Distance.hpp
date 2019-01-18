@@ -5,5 +5,5 @@
 namespace vrp::models::common {
 
 /// Represents a distance.
-using Distance = std::uint64_t;
+using Distance = std::int64_t;
 }  // namespace vrp::models::common

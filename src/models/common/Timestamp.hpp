@@ -5,5 +5,5 @@
 namespace vrp::models::common {
 
 /// Represents a time unit.
-using Timestamp = std::uint64_t;
+using Timestamp = std::int64_t;
 }  // namespace vrp::models::common
