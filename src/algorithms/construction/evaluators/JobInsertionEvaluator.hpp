@@ -36,35 +36,25 @@ protected:
     /// Best cost.
     models::common::Cost cost = std::numeric_limits<models::common::Cost>::max();
 
-    /// Activity departure time.
-    models::common::Timestamp departure = 0;
-
     /// Activity detail.
     ActivityDetail detail;
 
     /// Creates a new context.
-    static EvaluationContext empty(const models::common::Cost& cost, const models::common::Timestamp& departure) {
-      return {false, 0, 0, cost, departure, {}};
-    }
+    static EvaluationContext empty(const models::common::Cost& cost) { return {false, 0, 0, cost, {}}; }
 
     /// Creates a new context from old one when insertion failed.
-    static EvaluationContext fail(std::tuple<bool, int> error,
-                                  const models::common::Timestamp& departure,
-                                  const EvaluationContext& other) {
-      return {std::get<0>(error), std::get<1>(error), other.index, other.cost, departure, other.detail};
+    static EvaluationContext fail(std::tuple<bool, int> error, const EvaluationContext& other) {
+      return {std::get<0>(error), std::get<1>(error), other.index, other.cost /*, departure*/, other.detail};
     }
 
     /// Creates a new context from old one when insertion worse.
-    static EvaluationContext skip(const models::common::Timestamp& departure, const EvaluationContext& other) {
-      return {other.isStopped, other.code, other.index, other.cost, departure, other.detail};
+    static EvaluationContext skip(const EvaluationContext& other) {
+      return {other.isStopped, other.code, other.index, other.cost, other.detail};
     }
 
     /// Creates a new context.
-    static EvaluationContext success(size_t index,
-                                     const models::common::Cost& cost,
-                                     const models::common::Timestamp& departure,
-                                     const ActivityDetail& detail) {
-      return {false, 0, index, cost, departure, detail};
+    static EvaluationContext success(size_t index, const models::common::Cost& cost, const ActivityDetail& detail) {
+      return {false, 0, index, cost, detail};
     }
 
     /// Checks whether insertion is found.

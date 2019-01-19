@@ -159,7 +159,7 @@ SCENARIO("vehicle activity timing updates activity schedule", "[algorithms][cons
   }
 }
 
-SCENARIO("", "[]") {
+SCENARIO("vehicle activity timing can calculate soft costs", "[algorithms][construction][constraints]") {
   auto fleet = std::make_shared<Fleet>();
   (*fleet)  //
     .add(test_build_vehicle{}.id("v1").details(asDetails(0, 0, {0, 1000})).owned());

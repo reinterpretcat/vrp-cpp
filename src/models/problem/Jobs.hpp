@@ -20,7 +20,7 @@ namespace vrp::models::problem {
 /// Calculates job neighborhood in terms of the cost.
 struct Jobs final {
   Jobs(const costs::TransportCosts& transport, ranges::any_view<Job> jobs, ranges::any_view<std::string> profiles) {
-    createJobSet(jobs);
+    createJobs(jobs);
     createJobIndex(transport, profiles);
   };
 
@@ -54,7 +54,7 @@ struct Jobs final {
   std::size_t size() const { return jobs_.size(); }
 
 private:
-  void createJobSet(ranges::any_view<Job>& jobs) { ranges::copy(jobs, ranges::inserter(jobs_, jobs_.begin())); }
+  void createJobs(ranges::any_view<Job>& jobs) { ranges::copy(jobs, ranges::back_inserter(jobs_)); }
 
   /// Creates time independent job index for each profile.
   void createJobIndex(const costs::TransportCosts& transport, ranges::any_view<std::string>& profiles) {
@@ -78,7 +78,7 @@ private:
     });
   }
 
-  std::set<Job, compare_jobs> jobs_;
+  std::vector<Job> jobs_;
   std::map<std::string, std::map<Job, std::vector<std::pair<Job, common::Distance>>, compare_jobs>> index_;
 };
 }

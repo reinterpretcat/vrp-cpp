@@ -26,7 +26,7 @@ namespace {
 
 std::tuple<InsertionEvaluator, InsertionContext>
 createInsertion(std::stringstream stream) {
-  auto problem = read_solomon_type<cartesian_distance<1>>{}.operator()(stream);
+  auto problem = read_solomon_type<cartesian_distance>{}.operator()(stream);
   auto ctx = vrp::test::test_build_insertion_context{}
                .progress(vrp::test::test_build_insertion_progress{}.total(problem.jobs->size()).owned())
                .jobs(problem.jobs->all())

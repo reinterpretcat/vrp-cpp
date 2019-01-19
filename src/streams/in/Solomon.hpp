@@ -15,21 +15,21 @@
 #include <range/v3/all.hpp>
 #include <sstream>
 #include <tuple>
+#include <vector>
 
 namespace vrp::streams::in {
 
 /// Calculates cartesian distance between two points on plane in 2D.
-template<unsigned int Scale = 1>
 struct cartesian_distance final {
   models::common::Distance operator()(const std::pair<int, int>& left, const std::pair<int, int>& right) {
-    auto x = left.first - right.first;
-    auto y = left.second - right.second;
-    return static_cast<models::common::Distance>(std::round(std::sqrt(x * x + y * y) * Scale));
+    models::common::Distance x = left.first - right.first;
+    models::common::Distance y = left.second - right.second;
+    return std::sqrt(x * x + y * y);
   }
 };
 
 /// Reads problem represented by classical solomon definition from stream.
-template<typename Distance = cartesian_distance<1>>
+template<typename Distance = cartesian_distance>
 struct read_solomon_type final {
   constexpr static auto SizeDimKey = "size";
 
@@ -104,7 +104,7 @@ struct read_solomon_type final {
     matrix->generate();
 
     (*constraint)
-      .addHard<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(fleet, matrix, activity))
+      .add<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(fleet, matrix, activity))
       .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>());
 
     return {fleet,
@@ -134,16 +134,16 @@ private:
     return type;
   }
 
-  std::set<models::problem::Job, models::problem::compare_jobs> readJobs(std::istream& input,
-                                                                         models::problem::Fleet& fleet,
-                                                                         RoutingMatrix& matrix,
-                                                                         const std::tuple<int, int>& vehicle) const {
+  std::vector<models::problem::Job> readJobs(std::istream& input,
+                                             models::problem::Fleet& fleet,
+                                             RoutingMatrix& matrix,
+                                             const std::tuple<int, int>& vehicle) const {
     /// Customer defined by: id, x, y, demand, start, end, service
     using CustomerData = std::tuple<int, int, int, int, int, int, int>;
     using namespace vrp::models::common;
     using namespace vrp::models::problem;
 
-    auto jobs = std::set<Job, compare_jobs>{};
+    auto jobs = std::vector<models::problem::Job>{};
 
     auto customer = CustomerData{};
     auto last = -1;
@@ -173,7 +173,7 @@ private:
         continue;
       }
 
-      jobs.insert(as_job(
+      jobs.push_back(as_job(
         build_service{}
           .id(std::string("c") + std::to_string(id))
           .dimens({{SizeDimKey, -std::get<3>(customer)}})

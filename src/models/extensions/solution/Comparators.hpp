@@ -38,6 +38,8 @@ struct compare_actor_details final {
 /// Compares shared pointers to actors (equals).
 inline bool
 operator==(const std::shared_ptr<const Actor>& lhs, const std::shared_ptr<const Actor>& rhs) {
+  if (lhs == nullptr || rhs == nullptr) return false;
+
   return lhs->detail.start == rhs->detail.start && lhs->detail.end == rhs->detail.end &&
     lhs->detail.time.start == rhs->detail.time.start && lhs->detail.time.end == rhs->detail.time.end;
 }

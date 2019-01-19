@@ -64,14 +64,14 @@ private:
     auto [start, end] = waypoints(*ctx.actor, ctx.departure);
     auto tour = view::concat(view::single(start), ctx.route.first->tour.activities(), view::single(end));
     auto legs = view::zip(tour | view::sliding(2), view::iota(static_cast<size_t>(0)));
-    auto evalCtx = EvaluationContext::empty(progress.bestCost, ctx.departure);
+    auto evalCtx = EvaluationContext::empty(progress.bestCost /*, ctx.departure*/);
     auto pred = [](const EvaluationContext& ctx) { return !ctx.isStopped; };
 
     // 1. analyze route legs
     auto result = utils::accumulate_while(legs, evalCtx, pred, [&](const auto& out, const auto& view) {
       auto [items, index] = view;
       auto [prev, next] = std::tie(*std::begin(items), *(std::begin(items) + 1));
-      auto actCtx = InsertionActivityContext{index, out.departure, prev, activity, next};
+      auto actCtx = InsertionActivityContext{index, prev->schedule.departure, prev, activity, next};
 
       // 2. analyze service details
       return utils::accumulate_while(view::all(service.details), out, pred, [&](const auto& in1, const auto& detail) {
@@ -89,17 +89,14 @@ private:
           return utils::accumulate_while(view::all(locations), in2, pred, [&](const auto& in3, const auto& location) {
             activity->detail.location = location;
 
-            // calculate end time (departure) for the next leg
-            auto endTime = in3.departure + departure(*ctx.actor, *actCtx.prev, *actCtx.next, evalCtx.departure);
-
             // check hard activity constraint
             auto status = constraint.hard(ctx, actCtx);
-            if (status.has_value()) return EvaluationContext::fail(status.value(), endTime, in3);
+            if (status.has_value()) return EvaluationContext::fail(status.value(), in3);
 
             auto totalCosts = routeCosts + constraint.soft(ctx, actCtx);
             return totalCosts < in3.cost
-              ? EvaluationContext::success(actCtx.index, totalCosts, endTime, {location, detail.duration, time})
-              : EvaluationContext::skip(endTime, in3);
+              ? EvaluationContext::success(actCtx.index, totalCosts, {location, detail.duration, time})
+              : EvaluationContext::skip(in3);
           });
         });
       });

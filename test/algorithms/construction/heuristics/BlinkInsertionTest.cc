@@ -19,7 +19,7 @@ namespace vrp::test {
 SCENARIO("blink insertion handles solomon set problems", "[algorithms][construction][insertion]") {
   GIVEN("c101_25 problem") {
     auto stream = create_c101_25_problem_stream{}();
-    auto problem = read_solomon_type<cartesian_distance<1>>{}.operator()(stream);
+    auto problem = read_solomon_type<cartesian_distance>{}.operator()(stream);
     auto ctx = vrp::test::test_build_insertion_context{}
                  .jobs(problem.jobs->all())
                  .registry(std::make_shared<Registry>(*problem.fleet))

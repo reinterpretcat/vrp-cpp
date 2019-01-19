@@ -25,6 +25,7 @@ struct VehicleActivityTiming final
   , public SoftRouteConstraint
   , public SoftActivityConstraint {
   inline static const std::string StateKey = "op_time";
+  inline static const std::string WaitingKey = "fw_time";
 
   VehicleActivityTiming(const std::shared_ptr<const models::problem::Fleet>& fleet,
                         const std::shared_ptr<const models::costs::TransportCosts>& transport,
@@ -46,6 +47,7 @@ struct VehicleActivityTiming final
   /// Accept route and updates its insertion state.
   void accept(models::solution::Route& route, InsertionRouteState& state) const override {
     using namespace ranges;
+    using namespace models::common;
 
     const auto& actor = *route.actor;
 
@@ -66,21 +68,24 @@ struct VehicleActivityTiming final
     // update latest possible arrivals for each unique actor type
     ranges::for_each(view::all(keys_), [&](const auto& pair) {
       const auto& stateKey = pair.first;
-      auto init = std::pair{pair.second.first, pair.second.second};
+      auto init = std::tuple{pair.second.first, pair.second.second, Timestamp{0}};
 
       ranges::accumulate(view::reverse(route.tour.activities()), init, [&](const auto& acc, const auto& act) {
-        const auto& [endTime, prevLoc] = acc;
+        const auto& [endTime, prevLoc, waiting] = acc;
 
         auto potentialLatest = endTime -
           transport_->duration(actor.vehicle->profile, act->detail.location, prevLoc, endTime) -
           activity_->duration(actor, *act, endTime);
         auto latestArrivalTime = std::min(act->detail.time.end, potentialLatest);
 
+        auto futureWaiting = waiting + std::max(act->detail.time.start - act->schedule.arrival, Timestamp{0});
+
         if (latestArrivalTime < act->detail.time.start) state.put<bool>(stateKey, true);
 
-        state.put<models::common::Timestamp>(stateKey, *act, latestArrivalTime);
+        state.put<Timestamp>(stateKey, *act, latestArrivalTime);
+        state.put<Timestamp>(WaitingKey, *act, futureWaiting);
 
-        return std::make_pair(latestArrivalTime, act->detail.location);
+        return std::make_tuple(latestArrivalTime, act->detail.location, futureWaiting);
       });
     });
   }
@@ -177,11 +182,14 @@ struct VehicleActivityTiming final
               next.type == Activity::Type::End ? *route->end : next,
               prev.type == Activity::Type::Start ? route->start->schedule.departure : prev.schedule.departure);
 
-    auto oldCosts = tpCostOld + /*progress.completeness * */ actCostOld;
+    auto waitingTime =
+      routeCtx.route.second->get<Timestamp>(actorSharedKey(WaitingKey, *route->actor), next).value_or(Timestamp{0});
+    double waitingCost = std::min(waitingTime, std::max(Timestamp{0}, depTimeRight - depTimeOld)) *
+      route->actor->vehicle->costs.perWaitingTime;
+
+    auto oldCosts = tpCostOld + /*progress.completeness * */ (actCostOld + waitingCost);
 
     return newCosts - oldCosts;
-
-    return {};
   }
 
 private:

@@ -38,10 +38,10 @@ struct InsertionEvaluator final {
       make_result_failure(),
       [&](const auto& outer, const auto& rs) {
         // create list of all actors
-        auto actors =
-          view::concat(rs.first->actor == nullptr ? view::empty<Route::Actor>()
-                                                  : static_cast<any_view<Route::Actor>>(view::single(rs.first->actor)),
-                       ctx.registry->unique());
+        auto actors = view::concat(
+          rs.first->actor == nullptr ? view::empty<Route::Actor>()
+                                     : static_cast<any_view<Route::Actor>>(view::single(rs.first->actor)),
+          ctx.registry->unique() | ranges::view::remove_if([&](const auto& a) { return a == rs.first->actor; }));
 
         return ranges::accumulate(actors, outer, [&](const auto& inner, const auto& newActor) {
           // create actor specific route context
