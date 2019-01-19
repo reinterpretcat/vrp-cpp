@@ -22,14 +22,14 @@ SCENARIO("Solver can solve c101 problem greedy acceptance and default RaR", "[so
 
   GIVEN("C101 problem with 25 customers") {
     auto stream = create_c101_25_problem_stream{}();
-    auto problem = read_solomon_type<cartesian_distance<1>>{}.operator()(stream);
+    auto problem = read_solomon_type<cartesian_distance>{}.operator()(stream);
 
     WHEN("run solver") {
       auto estimatedSolution = solver(problem);
 
       THEN("has valid solution") {
         REQUIRE(estimatedSolution.first->unassigned.empty());
-        REQUIRE(estimatedSolution.first->routes.size() <= 6);
+        REQUIRE(estimatedSolution.first->routes.size() == 3);
       }
     }
   }
