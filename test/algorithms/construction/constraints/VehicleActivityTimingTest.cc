@@ -74,7 +74,7 @@ SCENARIO("vehicle activity timing checks states", "[algorithms][construction][co
 
       THEN("should update latest operation time") {
         auto result =
-          context.state->get<Timestamp>(operationTimeKey(vehicle, *fleet), *context.route->tour.get(activity))
+          context.state->get<Timestamp>(operationTimeKey(vehicle, *fleet), context.route->tour.get(activity))
             .value_or(0);
 
         REQUIRE(result == time);

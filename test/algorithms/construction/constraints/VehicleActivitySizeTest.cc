@@ -58,14 +58,14 @@ SCENARIO("vehicle activity size", "[algorithms][construction][constraints]") {
       route->tour.add(activity("s1", 1, s1)).add(activity("s2", 2, s2)).add(activity("s3", 3, s3));
       VehicleActivitySize<int>{}.accept(routeState);
 
-      THEN("has correct load at start") { REQUIRE(state->get<int>(CurrentKey, *route->start).value_or(-1) == start); }
+      THEN("has correct load at start") { REQUIRE(state->get<int>(CurrentKey, route->start).value_or(-1) == start); }
 
-      THEN("has correct load at end") { REQUIRE(state->get<int>(CurrentKey, *route->end).value_or(-1) == end); }
+      THEN("has correct load at end") { REQUIRE(state->get<int>(CurrentKey, route->end).value_or(-1) == end); }
 
       THEN("has correct current load at each activity") {
-        REQUIRE(state->get<int>(CurrentKey, *route->tour.get(0)).value_or(-1) == expS1);
-        REQUIRE(state->get<int>(CurrentKey, *route->tour.get(1)).value_or(-1) == expS2);
-        REQUIRE(state->get<int>(CurrentKey, *route->tour.get(2)).value_or(-1) == expS3);
+        REQUIRE(state->get<int>(CurrentKey, route->tour.get(0)).value_or(-1) == expS1);
+        REQUIRE(state->get<int>(CurrentKey, route->tour.get(1)).value_or(-1) == expS2);
+        REQUIRE(state->get<int>(CurrentKey, route->tour.get(2)).value_or(-1) == expS3);
       }
     }
 

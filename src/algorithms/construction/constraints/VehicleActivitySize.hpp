@@ -39,22 +39,28 @@ struct VehicleActivitySize final
       return a->job.has_value() && a->job.value().index() == 0 ? acc - (size < 0 ? size : Size{}) : acc;
     });
 
+    std::cout << "\taccept " << context.route->actor->vehicle->id << ": ";
+
     // determine actual load at each activity and max load in past
     ranges::accumulate(tour, std::pair<Size, Size>{start, start}, [&](const auto& acc, const auto& a) {
       auto size = getSize(a);
       auto current = acc.first + size;
       auto max = std::max(acc.second, current);
 
-      context.state->put<Size>(StateKeyCurrent, *a, current);
-      context.state->put<Size>(StateKeyMaxPast, *a, max);
+      context.state->put<Size>(StateKeyCurrent, a, current);
+      context.state->put<Size>(StateKeyMaxPast, a, max);
+
+      std::cout << "[" << a->detail.location << "," << max << "] ";
 
       return std::pair<Size, Size>{current, max};
     });
 
+    std::cout << "\n";
+
     // determine max load in future
     ranges::accumulate(tour | view::reverse, Size{}, [&](const auto& acc, const auto& a) {
-      auto max = std::max(acc, context.state->get<Size>(StateKeyCurrent, *a).value());
-      context.state->put<Size>(StateKeyMaxFuture, *a, max);
+      auto max = std::max(acc, context.state->get<Size>(StateKeyCurrent, a).value());
+      context.state->put<Size>(StateKeyMaxFuture, a, max);
       return max;
     });
   }
@@ -76,8 +82,12 @@ struct VehicleActivitySize final
   /// Checks whether proposed activity insertion doesn't violate size constraints.
   HardActivityConstraint::Result hard(const InsertionRouteContext& rCtx,
                                       const InsertionActivityContext& aCtx) const override {
+
+    if (rCtx.route->actor->vehicle->id == "v3" && aCtx.target->detail.location == 47 && aCtx.index == 11) {
+      std::cout << "";
+    }
     auto size = getSize(aCtx.target);
-    auto base = rCtx.state->get<Size>(size < 0 ? StateKeyMaxPast : StateKeyMaxFuture, *aCtx.prev).value_or(Size{});
+    auto base = rCtx.state->get<Size>(size < 0 ? StateKeyMaxPast : StateKeyMaxFuture, aCtx.prev).value_or(Size{});
     auto value = size < 0 ? base - size : base + size;
 
     return value <= getSize(rCtx.route->actor->vehicle) ? success() : stop(code_);

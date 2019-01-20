@@ -2,6 +2,7 @@
 
 #include "models/extensions/common/Comparators.hpp"
 #include "models/solution/Activity.hpp"
+#include "models/solution/Tour.hpp"
 #include "models/solution/Actor.hpp"
 
 #include <memory>
@@ -20,8 +21,9 @@ struct compare_activities final {
 
 /// Compares pairs of activity and key.
 struct compare_activities_with_key final {
-  bool operator()(const std::pair<Activity, std::string>& lhs, const std::pair<Activity, std::string>& rhs) const {
-    return lhs.second == rhs.second ? compare_activities{}(lhs.first, rhs.first) : lhs.second < rhs.second;
+  bool operator()(const std::pair<Tour::Activity, std::string>& lhs,
+                  const std::pair<Tour::Activity, std::string>& rhs) const {
+    return lhs.second == rhs.second ? compare_activities{}(*lhs.first, *rhs.first) : lhs.second < rhs.second;
   }
 };
 

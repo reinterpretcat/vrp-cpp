@@ -84,8 +84,8 @@ struct VehicleActivityTiming final
 
         if (latestArrivalTime < act->detail.time.start) context.state->put<bool>(stateKey, true);
 
-        context.state->put<Timestamp>(stateKey, *act, latestArrivalTime);
-        context.state->put<Timestamp>(WaitingKey, *act, futureWaiting);
+        context.state->put<Timestamp>(stateKey, act, latestArrivalTime);
+        context.state->put<Timestamp>(WaitingKey, act, futureWaiting);
 
         return std::make_tuple(latestArrivalTime, act->detail.location, futureWaiting);
       });
@@ -119,7 +119,7 @@ struct VehicleActivityTiming final
                                                                       : next.detail.location;
     auto latestArrTimeAtNextAct = next.type == solution::Activity::Type::End
       ? actor.detail.time.end
-      : routeCtx.state->get<Timestamp>(actorSharedKey(StateKey, actor), next).value_or(next.detail.time.end);
+      : routeCtx.state->get<Timestamp>(actorSharedKey(StateKey, actor), actCtx.next).value_or(next.detail.time.end);
 
     if (latestArrival < prev.detail.time.start || latestArrival < target.detail.time.start ||
         latestArrival < next.detail.time.start)
@@ -188,7 +188,9 @@ struct VehicleActivityTiming final
               next.type == Activity::Type::End ? *route.end : next,
               prev.type == Activity::Type::Start ? route.start->schedule.departure : prev.schedule.departure);
 
-    auto waitingTime = routeCtx.state->get<Timestamp>(actorSharedKey(WaitingKey, actor), next).value_or(Timestamp{0});
+    auto waitingTime =
+        routeCtx.state->get<Timestamp>(actorSharedKey(WaitingKey, actor), actCtx.next).value_or(Timestamp{0});
+
     double waitingCost =
       std::min(waitingTime, std::max(Timestamp{0}, depTimeRight - depTimeOld)) * actor.vehicle->costs.perWaitingTime;
 

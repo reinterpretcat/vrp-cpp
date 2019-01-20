@@ -22,7 +22,7 @@ struct InsertionRouteState final {
   }
 
   template<typename T>
-  std::optional<T> get(const std::string& key, const models::solution::Activity& activity) const {
+  std::optional<T> get(const std::string& key, const models::solution::Tour::Activity& activity) const {
     auto value = activityStates_.find(std::pair{activity, key});
     return value == activityStates_.end() ? std::optional<T>{} : std::make_optional(std::any_cast<T>(value->second));
   }
@@ -37,17 +37,16 @@ struct InsertionRouteState final {
   }
 
   template<typename T>
-  void put(const std::string& key, const models::solution::Activity& activity, const T& value) {
+  void put(const std::string& key, const models::solution::Tour::Activity& activity, const T& value) {
     activityStates_[std::pair{activity, key}] = value;
   }
 
   // endregion
 
 private:
-  using Activity = models::solution::Activity;
   using ActivityComparator = models::solution::compare_activities_with_key;
 
   std::unordered_map<std::string, std::any> routeStates_;
-  std::map<std::pair<Activity, std::string>, std::any, ActivityComparator> activityStates_;
+  std::map<std::pair< models::solution::Tour::Activity, std::string>, std::any, ActivityComparator> activityStates_;
 };
 }
