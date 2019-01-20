@@ -13,7 +13,7 @@ struct get_job_ids_from_all_routes {
     using namespace ranges;
 
     return ctx.routes | view::for_each([](const auto& r) {
-             return r.first->tour.activities() |
+             return r.route->tour.activities() |
                view::transform([](const auto& a) { return vrp::test::get_job_id{}(*a->job); });
            }) |
       to_vector;
@@ -26,7 +26,7 @@ struct get_job_ids_from_routes final {
     using namespace ranges;
 
     return ctx.routes | view::transform([](const auto& r) {
-             return r.first->tour.activities() |
+             return r.route->tour.activities() |
                view::transform([](const auto& a) { return vrp::test::get_job_id{}(*a->job); }) | to_vector;
            }) |
       to_vector;

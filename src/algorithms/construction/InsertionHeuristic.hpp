@@ -45,11 +45,10 @@ private:
                   << "insert " << success.activities.front().first->detail.location << " at index "
                   << success.activities.front().second << " into route with "
                   << success.context.route->tour.sizes().second << " activities "
-                  << success.context.route->actor->vehicle->id << "\n\n";
-
+                  << success.context.route->actor->vehicle->id << " total routes: " << ctx.routes.size() << "\n";
 
         ctx.registry->use(*success.context.route->actor);
-        ctx.routes[success.context.route] = success.context.state;
+        ctx.routes.insert(success.context);
 
         // NOTE assume that activities are sorted by insertion index
         ranges::for_each(success.activities | ranges::view::reverse,

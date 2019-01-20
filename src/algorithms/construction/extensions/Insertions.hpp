@@ -69,8 +69,7 @@ public:
     return *this;
   }
 
-  build_insertion_context& routes(
-    std::map<std::shared_ptr<models::solution::Route>, std::shared_ptr<InsertionRouteState>>&& value) {
+  build_insertion_context& routes(std::set<InsertionRouteContext, compare_insertion_route_contexts>&& value) {
     context_.routes = std::move(value);
     return *this;
   }

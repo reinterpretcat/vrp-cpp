@@ -45,20 +45,20 @@ struct RemoveAdjustedString {
         [ks = ks, routes](const auto&) { return routes->size() != ks; }),
       [=, &sln, lsmax = lsmax](const auto& job) {
         ranges::for_each(  //
-          iCtx.routes | view::remove_if([&](const auto& r) { return in(*routes, r.first) || !r.first->tour.has(job); }),
+          iCtx.routes | view::remove_if([&](const auto& r) { return in(*routes, r.route) || !r.route->tour.has(job); }),
           [=, &ctx](const auto& routeState) {
             /// Equations 8, 9: calculate cardinality of the string removed from the tour
-            auto ltmax = std::min(static_cast<double>(routeState.first->tour.sizes().second), lsmax);
+            auto ltmax = std::min(static_cast<double>(routeState.route->tour.sizes().second), lsmax);
             auto lt = static_cast<int>(std::floor(ctx.random->uniform<double>(1, ltmax + 1)));
 
-            routes->insert(routeState.first);
-            ranges::for_each(selectString(ctx, routeState.first->tour, job, lt) |
+            routes->insert(routeState.route);
+            ranges::for_each(selectString(ctx, routeState.route->tour, job, lt) |
                                view::remove_if([&](const auto& j) { return in(*ctx.locked, j); }),
                              [&](const auto& j) {
-                               routeState.first->tour.remove(j);
+                               routeState.route->tour.remove(j);
                                jobs->insert(j);
                              });
-            ctx.problem->constraint->accept(*routeState.first, *routeState.second);
+            ctx.problem->constraint->accept(*routeState.route, *routeState.state);
           });
       });
 

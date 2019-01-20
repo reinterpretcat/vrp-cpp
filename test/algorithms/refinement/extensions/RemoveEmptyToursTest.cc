@@ -38,7 +38,7 @@ SCENARIO("remove empty tours works", "[algorithms][refinement][extensions]") {
 
       THEN("only non empty tour is left") {
         REQUIRE(ctx.routes.size() == 1);
-        REQUIRE(ctx.routes.begin()->first->actor->vehicle->id == "v2");
+        REQUIRE(ctx.routes.begin()->route->actor->vehicle->id == "v2");
       }
 
       THEN("empty route's actor is released in registry") {

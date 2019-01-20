@@ -28,14 +28,11 @@ struct InsertionEvaluator final {
 
     // iterate through list of routes plus a new one
     return ranges::accumulate(
-      view::concat(ctx.routes | view::transform([](const auto& v) {
-                     return InsertionRouteContext{v.first, v.second};
-                   }),
-                   ctx.registry->unique() | view::transform([&](const auto& a) {
-                     auto [start, end] = waypoints(*a);
-                     return InsertionRouteContext{std::make_shared<Route>(Route{a, start, end, {}}),
-                                                  std::make_shared<InsertionRouteState>()};
-                   })),
+      view::concat(ctx.routes, ctx.registry->unique() | view::transform([&](const auto& a) {
+                                 auto [start, end] = waypoints(*a);
+                                 return InsertionRouteContext{std::make_shared<Route>(Route{a, start, end, {}}),
+                                                              std::make_shared<InsertionRouteState>()};
+                               })),
       make_result_failure(),
       [&](const auto& acc, const auto& routeCtx) {
         auto progress =

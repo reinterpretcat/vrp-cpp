@@ -111,12 +111,12 @@ SCENARIO("adjusted string removal can ruin solution using data generators", "[al
       auto context =
         RefinementContext{problem, std::make_shared<Random>(), std::make_shared<std::set<Job, compare_jobs>>(), {}, 0};
 
-      auto iContext = RemoveAdjustedString{cardinality, average, alpha}.operator()(context, *solution);
+      auto result = RemoveAdjustedString{cardinality, average, alpha}.operator()(context, *solution);
 
       THEN("should ruin some jobs and remove empty tours") {
-        REQUIRE(!iContext.jobs.empty());
+        REQUIRE(!result.jobs.empty());
         REQUIRE(ranges::accumulate(
-          iContext.routes, true, [](bool acc, const auto& pair) { return acc && !pair.first->tour.empty(); }));
+          result.routes, true, [](bool acc, const auto& pair) { return acc && !pair.route->tour.empty(); }));
       }
     }
   }

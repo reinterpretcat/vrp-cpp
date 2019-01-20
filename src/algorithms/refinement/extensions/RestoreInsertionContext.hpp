@@ -20,7 +20,7 @@ struct restore_insertion_context final {
     auto registry = deep_copy_registry{}(sln.registry);
     auto jobs = sln.unassigned | ranges::view::transform([&](const auto& j) { return j.first; }) | ranges::to_vector;
 
-    auto routes = std::map<std::shared_ptr<models::solution::Route>, std::shared_ptr<InsertionRouteState>>{};
+    auto routes = std::set<InsertionRouteContext, compare_insertion_route_contexts>{};
     ranges::for_each(sln.routes, [&](const auto& r) {
       if (r->tour.empty()) {
         registry->free(*r->actor);

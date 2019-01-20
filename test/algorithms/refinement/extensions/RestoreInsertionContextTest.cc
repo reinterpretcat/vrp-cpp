@@ -43,7 +43,7 @@ SCENARIO("restore insertion context skips empty routes", "[algorithms][refinemen
 
       THEN("only non empty tour is left") {
         REQUIRE(insertionCtx.routes.size() == 1);
-        REQUIRE(insertionCtx.routes.begin()->first->actor->vehicle->id == "v2");
+        REQUIRE(insertionCtx.routes.begin()->route->actor->vehicle->id == "v2");
       }
 
       THEN("empty route's actor is released in registry") {
