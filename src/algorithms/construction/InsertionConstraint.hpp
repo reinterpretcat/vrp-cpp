@@ -5,6 +5,7 @@
 #include "algorithms/construction/InsertionRouteContext.hpp"
 #include "models/common/Cost.hpp"
 #include "models/solution/Activity.hpp"
+#include "utils/extensions/Ranges.hpp"
 
 #include <functional>
 #include <memory>
@@ -229,20 +230,18 @@ public:
   /// Checks whether all hard route constraints are fulfilled.
   /// Returns the code of first failed constraint or empty value.
   HardRouteConstraint::Result hard(const InsertionRouteContext& ctx, const HardRouteConstraint::Job& job) const {
-    return ranges::accumulate(
-      ranges::view::all(hardRouteConstraints_) |
-        ranges::view::transform([&](const auto& constraint) { return constraint->hard(ctx, job); }) |
-        ranges::view::filter([](const auto& result) { return result.has_value(); }) | ranges::view::take(1),
-      HardRouteConstraint::Result{},
-      [](const auto& acc, const auto& v) { return std::make_optional(v.value()); });
+    return utils::accumulate_while(ranges::view::all(hardRouteConstraints_),
+                                   HardRouteConstraint::Result{},
+                                   [](const auto& r) { return !r.has_value(); },
+                                   [&](const auto&, const auto& constraint) { return constraint->hard(ctx, job); });
   }
 
   /// Checks soft route constraints and aggregates associated penalties.
   models::common::Cost soft(const InsertionRouteContext& ctx, const HardRouteConstraint::Job& job) const {
     return ranges::accumulate(
-      ranges::view::all(softRouteConstraints_) |
-        ranges::view::transform([&](const auto& constraint) { return constraint->soft(ctx, job); }),
-      0.0);
+      ranges::view::all(softRouteConstraints_), models::common::Cost{}, [&](const auto& acc, const auto& constraint) {
+        return acc + constraint->soft(ctx, job);
+      });
   }
 
   // endregion
@@ -251,19 +250,18 @@ public:
 
   HardActivityConstraint::Result hard(const InsertionRouteContext& routeCtx,
                                       const InsertionActivityContext& actCtx) const {
-    return ranges::accumulate(
-      ranges::view::all(hardActivityConstraints_) |
-        ranges::view::transform([&](const auto& constraint) { return constraint->hard(routeCtx, actCtx); }) |
-        ranges::view::filter([](const auto& result) { return result.has_value(); }) | ranges::view::take(1),
+    return utils::accumulate_while(
+      ranges::view::all(hardActivityConstraints_),
       HardActivityConstraint::Result{},
-      [](const auto& acc, const auto& v) { return std::make_optional(v.value()); });
+      [](const auto& r) { return !r.has_value(); },
+      [&](const auto&, const auto& constraint) { return constraint->hard(routeCtx, actCtx); });
   }
 
   models::common::Cost soft(const InsertionRouteContext& routeCtx, const InsertionActivityContext& actCtx) const {
     return ranges::accumulate(
-      ranges::view::all(softActivityConstraints_) |
-        ranges::view::transform([&](const auto& constraint) { return constraint->soft(routeCtx, actCtx); }),
-      0.0);
+      ranges::view::all(softActivityConstraints_),
+      models::common::Cost{},
+      [&](const auto& acc, const auto& constraint) { return acc + constraint->soft(routeCtx, actCtx); });
   }
 
   // endregion
