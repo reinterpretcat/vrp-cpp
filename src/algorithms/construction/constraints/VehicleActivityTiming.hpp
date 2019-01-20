@@ -45,10 +45,12 @@ struct VehicleActivityTiming final
   }
 
   /// Accept route and updates its insertion state.
-  void accept(models::solution::Route& route, InsertionRouteState& state) const override {
+  void accept(InsertionRouteContext& context) const override {
     using namespace ranges;
     using namespace models::common;
 
+    const auto& route = *context.route;
+    const auto& state = *context.state;
     const auto& actor = *route.actor;
 
     // update each activity schedule
@@ -70,7 +72,7 @@ struct VehicleActivityTiming final
       const auto& stateKey = pair.first;
       auto init = std::tuple{pair.second.first, pair.second.second, Timestamp{0}};
 
-      ranges::accumulate(view::reverse(route.tour.activities()), init, [&](const auto& acc, const auto& act) {
+      ranges::accumulate(view::reverse(context.route->tour.activities()), init, [&](const auto& acc, const auto& act) {
         const auto& [endTime, prevLoc, waiting] = acc;
 
         auto potentialLatest = endTime -
@@ -80,10 +82,10 @@ struct VehicleActivityTiming final
 
         auto futureWaiting = waiting + std::max(act->detail.time.start - act->schedule.arrival, Timestamp{0});
 
-        if (latestArrivalTime < act->detail.time.start) state.put<bool>(stateKey, true);
+        if (latestArrivalTime < act->detail.time.start) context.state->put<bool>(stateKey, true);
 
-        state.put<Timestamp>(stateKey, *act, latestArrivalTime);
-        state.put<Timestamp>(WaitingKey, *act, futureWaiting);
+        context.state->put<Timestamp>(stateKey, *act, latestArrivalTime);
+        context.state->put<Timestamp>(WaitingKey, *act, futureWaiting);
 
         return std::make_tuple(latestArrivalTime, act->detail.location, futureWaiting);
       });

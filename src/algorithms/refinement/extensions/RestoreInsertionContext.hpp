@@ -25,10 +25,9 @@ struct restore_insertion_context final {
       if (r->tour.empty()) {
         registry->free(*r->actor);
       } else {
-        auto route = deep_copy_route{}(r);
-        auto state = std::make_shared<InsertionRouteState>();
-        routes.insert({route, state});
-        ctx.problem->constraint->accept(*route, *state);
+        auto context = InsertionRouteContext{deep_copy_route{}(r), std::make_shared<InsertionRouteState>()};
+        routes.insert(context);
+        ctx.problem->constraint->accept(context);
       }
     });
 

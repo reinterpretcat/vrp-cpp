@@ -51,12 +51,11 @@ SCENARIO("vehicle activity timing checks states", "[algorithms][construction][co
       .add(test_build_vehicle{}.id("v4").details(asDetails(40, {}, {0, 100})).owned());
 
     WHEN("accept route for first vehicle with three activities") {
-      auto state = InsertionRouteState{};
-      auto route = createRoute(*fleet);
+      auto context = InsertionRouteContext{createRoute(*fleet), std::make_shared<InsertionRouteState>()};
       VehicleActivityTiming(fleet,
                             std::make_shared<TestTransportCosts>(),  //
                             std::make_shared<ActivityCosts>())
-        .accept(*route, state);
+        .accept(context);
 
       auto [vehicle, activity, time] = GENERATE(table<std::string, size_t, Timestamp>({
         {"v1", 2, 70},
@@ -74,7 +73,9 @@ SCENARIO("vehicle activity timing checks states", "[algorithms][construction][co
       }));
 
       THEN("should update latest operation time") {
-        auto result = state.get<Timestamp>(operationTimeKey(vehicle, *fleet), *route->tour.get(activity)).value_or(0);
+        auto result =
+          context.state->get<Timestamp>(operationTimeKey(vehicle, *fleet), *context.route->tour.get(activity))
+            .value_or(0);
 
         REQUIRE(result == time);
       }
@@ -92,12 +93,11 @@ SCENARIO("vehicle activity timing checks states", "[algorithms][construction][co
       .add(test_build_vehicle{}.id("v6").details(asDetails(0, {40}, {0, 40})).owned());
 
     WHEN("accept and checks route for first vehicle with three activities") {
-      auto state = std::make_shared<InsertionRouteState>();
-      auto route = createRoute(*fleet);
+      auto context = InsertionRouteContext{createRoute(*fleet), std::make_shared<InsertionRouteState>()};
       auto timing = VehicleActivityTiming(fleet,
                                           std::make_shared<TestTransportCosts>(),  //
                                           std::make_shared<ActivityCosts>());
-      timing.accept(*route, *state);
+      timing.accept(context);
 
       auto [vehicle, location, departure, prev, next, expected] =
         GENERATE(table<std::string, Location, Timestamp, int, int, HardActivityConstraint::Result>(
@@ -114,7 +114,7 @@ SCENARIO("vehicle activity timing checks states", "[algorithms][construction][co
            {"v6", 40, 30, 2, EndActivityIndex, success()}}));
 
       THEN("returns fulfilled for insertion at the end") {
-        auto routeCtx = test_build_insertion_route_context{}.route(route).state(state).owned();
+        auto routeCtx = test_build_insertion_route_context{}.route(context.route).state(context.state).owned();
         auto actCtx = test_build_insertion_activity_context{}
                         .prev(getActivity(routeCtx, prev))
                         .target(test_build_activity{}.location(location).shared())
@@ -135,9 +135,9 @@ SCENARIO("vehicle activity timing updates activity schedule", "[algorithms][cons
     .add(test_build_vehicle{}.id("v1").details(asDetails(0, 0, {0, 1000})).owned());
 
   GIVEN("route with two activities with waiting time") {
-    auto state = InsertionRouteState{};
-    auto route = test_build_route{}.actor(getActor("v1", *fleet)).shared();
-    route->tour
+    auto context = InsertionRouteContext{test_build_route{}.actor(getActor("v1", *fleet)).shared(),
+                                         std::make_shared<InsertionRouteState>()};
+    context.route->tour
       .add(test_build_activity{}.location(10).time({20, 30}).duration(5).shared())  //
       .add(test_build_activity{}.location(20).time({50, 10}).duration(10).shared());
 
@@ -145,11 +145,11 @@ SCENARIO("vehicle activity timing updates activity schedule", "[algorithms][cons
       VehicleActivityTiming(fleet,
                             std::make_shared<TestTransportCosts>(),  //
                             std::make_shared<ActivityCosts>())
-        .accept(*route, state);
+        .accept(context);
 
       THEN("activity schedule are updated") {
-        REQUIRE(compare_schedules{}(route->tour.get(0)->schedule, {10, 25}));
-        REQUIRE(compare_schedules{}(route->tour.get(1)->schedule, {35, 60}));
+        REQUIRE(compare_schedules{}(context.route->tour.get(0)->schedule, {10, 25}));
+        REQUIRE(compare_schedules{}(context.route->tour.get(1)->schedule, {35, 60}));
       }
     }
   }

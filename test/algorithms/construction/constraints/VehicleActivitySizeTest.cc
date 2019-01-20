@@ -46,7 +46,8 @@ SCENARIO("vehicle activity size", "[algorithms][construction][constraints]") {
     fleet->add(test_build_vehicle{}.id("v1").dimens({{"size", 10}}).details(asDetails(0, {}, {0, 100})).owned());
 
     WHEN("accept route with three service activities") {
-      auto [route, state] = createRouteState(*fleet);
+      auto routeState = createRouteState(*fleet);
+      auto [route, state] = routeState;
 
       auto [s1, s2, s3, start, expS1, expS2, expS3, end] = GENERATE(table<int, int, int, int, int, int, int, int>({
         {-1, 2, -3, 4, 3, 5, 2, 2},  //
@@ -55,7 +56,7 @@ SCENARIO("vehicle activity size", "[algorithms][construction][constraints]") {
       }));
 
       route->tour.add(activity("s1", 1, s1)).add(activity("s2", 2, s2)).add(activity("s3", 3, s3));
-      VehicleActivitySize<int>{}.accept(*route, *state);
+      VehicleActivitySize<int>{}.accept(routeState);
 
       THEN("has correct load at start") { REQUIRE(state->get<int>(CurrentKey, *route->start).value_or(-1) == start); }
 
@@ -69,7 +70,8 @@ SCENARIO("vehicle activity size", "[algorithms][construction][constraints]") {
     }
 
     WHEN("check route and service job with different sizes") {
-      auto [route, state] = createRouteState(*fleet);
+      auto routeState = createRouteState(*fleet);
+      auto [route, state] = routeState;
       auto routeCtx = test_build_insertion_route_context{}.route(route).state(state).owned();
 
       auto [size, expected] = GENERATE(table<int, std::optional<int>>({{11, std::optional<int>{2}},  //
@@ -92,10 +94,11 @@ SCENARIO("vehicle activity size", "[algorithms][construction][constraints]") {
                                                                        {5, 1, -5, stop(2)},
                                                                        {4, -1, -5, success()}}));
 
-      auto [route, state] = createRouteState(*fleet);
+      auto routeState = createRouteState(*fleet);
+      auto [route, state] = routeState;
       route->tour.add(activity("s1", 1, s1)).add(activity("s3", 3, s3));
       auto sized = VehicleActivitySize<int>{};
-      sized.accept(*route, *state);
+      sized.accept(routeState);
       auto routeCtx = test_build_insertion_route_context{}.route(route).state(state).owned();
       auto actCtx =
         test_build_insertion_activity_context{}
@@ -114,11 +117,11 @@ SCENARIO("vehicle activity size", "[algorithms][construction][constraints]") {
 
     WHEN("has tree services with exact max size") {
       auto [prev, next] = GENERATE(table<int, int>({{-1, 0}, {0, 1}, {1, 2}, {2, -2}}));
-      auto [route, state] = createRouteState(*fleet);
+      auto routeState = createRouteState(*fleet);
+      auto [route, state] = routeState;
       route->tour.add(activity("s1", 1, -3)).add(activity("s2", 2, -5)).add(activity("s3", 3, -2));
       auto sized = VehicleActivitySize<int>{};
-      sized.accept(*route, *state);
-
+      sized.accept(routeState);
       auto routeCtx = test_build_insertion_route_context{}.route(route).state(state).owned();
       auto actCtx =
         test_build_insertion_activity_context{}

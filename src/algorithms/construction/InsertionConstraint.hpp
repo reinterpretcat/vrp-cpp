@@ -20,7 +20,7 @@ namespace vrp::algorithms::construction {
 struct Constraint {
   /// Accept route and updates its state to allow more efficient constraint checks.
   /// Called in thread-safe context, so it is a chance to apply some changes.
-  virtual void accept(models::solution::Route& route, InsertionRouteState& state) const = 0;
+  virtual void accept(InsertionRouteContext& context) const = 0;
 
   virtual ~Constraint() = default;
 };
@@ -71,7 +71,7 @@ class InsertionConstraint final {
   template<typename Base, typename Return, typename Arg1, typename Arg2>
   struct SoftFunctionWrapper : Base {
     explicit SoftFunctionWrapper(typename Base::CheckFunc func) : func_(std::move(func)) {}
-    void accept(models::solution::Route& route, InsertionRouteState& state) const override {}
+    void accept(InsertionRouteContext& context) const override {}
     Return soft(const Arg1& arg1, const Arg2& arg2) const override { return func_(arg1, arg2); }
     typename Base::CheckFunc func_;
   };
@@ -79,7 +79,7 @@ class InsertionConstraint final {
   template<typename Base, typename Return, typename Arg1, typename Arg2>
   struct HardFunctionWrapper : Base {
     explicit HardFunctionWrapper(typename Base::CheckFunc func) : func_(std::move(func)) {}
-    void accept(models::solution::Route& route, InsertionRouteState& state) const override {}
+    void accept(InsertionRouteContext& context) const override {}
     Return hard(const Arg1& arg1, const Arg2& arg2) const override { return func_(arg1, arg2); }
     typename Base::CheckFunc func_;
   };
@@ -88,8 +88,8 @@ public:
   // region Acceptance
 
   /// Accepts route and recalculates its states.
-  void accept(models::solution::Route& route, InsertionRouteState& state) const {
-    ranges::for_each(constraints_, [&](const auto& c) { c->accept(route, state); });
+  void accept(InsertionRouteContext& context) const {
+    ranges::for_each(constraints_, [&](const auto& c) { c->accept(context); });
   }
 
   // endregion

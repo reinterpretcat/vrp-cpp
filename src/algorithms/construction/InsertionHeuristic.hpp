@@ -25,22 +25,22 @@ struct InsertionHeuristic {
     auto rSelector = ResultSelector(ctx);
     while (!newCtx.jobs.empty()) {
       auto [begin, end] = JobSelector{}(newCtx);
-      insert(std::transform_reduce(pstl::execution::seq,
-                                   begin,
-                                   end,
-                                   make_result_failure(),
-                                   [&](const auto& acc, const auto& result) { return rSelector(acc, result); },
-                                   [&](const auto& job) { return evaluator_.evaluate(job, newCtx); }),
-             newCtx);
+      auto result = std::transform_reduce(pstl::execution::seq,
+                                          begin,
+                                          end,
+                                          make_result_failure(),
+                                          [&](const auto& acc, const auto& result) { return rSelector(acc, result); },
+                                          [&](const auto& job) { return evaluator_.evaluate(job, newCtx); });
+      insert(result, newCtx);
     }
     return std::move(newCtx);
   }
 
 private:
   /// Inserts result into context.
-  void insert(const InsertionResult& result, InsertionContext& ctx) const {
+  void insert(InsertionResult& result, InsertionContext& ctx) const {
     result.visit(ranges::overload(
-      [&](const InsertionSuccess& success) {
+      [&](InsertionSuccess& success) {
         std::cout << "left " << ctx.jobs.size() << " "
                   << "insert " << success.activities.front().first->detail.location << " at index "
                   << success.activities.front().second << " into route with "
@@ -54,6 +54,7 @@ private:
         ranges::for_each(success.activities | ranges::view::reverse,
                          [&](const auto& act) { success.context.route->tour.insert(act.first, act.second); });
 
+        // TODO restore logic once bug is found
         // fast erase job from vector
         ctx.jobs.erase(std::find_if(ctx.jobs.begin(), ctx.jobs.end(), [&](const auto& job) {
           const static auto getter = models::problem::get_job_id{};
@@ -61,9 +62,10 @@ private:
         }));
         // ctx.jobs.erase(ctx.jobs.end() - 1);
 
-        ctx.constraint->accept(*success.context.route, *success.context.state);
+        ctx.constraint->accept(success.context);
       },
-      [&](const InsertionFailure& failure) {
+      [&](InsertionFailure& failure) {
+        // TODO handle properly
         ranges::for_each(ctx.jobs, [&](const auto& job) { ctx.unassigned[job] = failure.constraint; });
         ctx.jobs.clear();
       }));

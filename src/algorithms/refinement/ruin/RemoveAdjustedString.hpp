@@ -58,7 +58,7 @@ struct RemoveAdjustedString {
                                routeState.route->tour.remove(j);
                                jobs->insert(j);
                              });
-            ctx.problem->constraint->accept(*routeState.route, *routeState.state);
+            ctx.problem->constraint->accept(const_cast<construction::InsertionRouteContext&>(routeState));
           });
       });
 

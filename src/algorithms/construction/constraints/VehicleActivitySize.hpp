@@ -5,6 +5,7 @@
 #include "utils/extensions/Variant.hpp"
 
 #include <cmath>
+#include <iostream>
 #include <string>
 #include <utility>
 
@@ -25,8 +26,10 @@ struct VehicleActivitySize final
   explicit VehicleActivitySize(int code = 2) : code_(code) {}
 
   /// Accept route and updates its insertion state.
-  void accept(models::solution::Route& route, InsertionRouteState& state) const override {
+  void accept(InsertionRouteContext& context) const override {
     using namespace ranges;
+
+    const auto& route = *context.route;
 
     auto tour = view::concat(view::single(route.start), route.tour.activities(), view::single(route.end));
 
@@ -42,16 +45,16 @@ struct VehicleActivitySize final
       auto current = acc.first + size;
       auto max = std::max(acc.second, current);
 
-      state.put<Size>(StateKeyCurrent, *a, current);
-      state.put<Size>(StateKeyMaxPast, *a, max);
+      context.state->put<Size>(StateKeyCurrent, *a, current);
+      context.state->put<Size>(StateKeyMaxPast, *a, max);
 
       return std::pair<Size, Size>{current, max};
     });
 
     // determine max load in future
     ranges::accumulate(tour | view::reverse, Size{}, [&](const auto& acc, const auto& a) {
-      auto max = std::max(acc, state.get<Size>(StateKeyCurrent, *a).value());
-      state.put<Size>(StateKeyMaxFuture, *a, max);
+      auto max = std::max(acc, context.state->get<Size>(StateKeyCurrent, *a).value());
+      context.state->put<Size>(StateKeyMaxFuture, *a, max);
       return max;
     });
   }
