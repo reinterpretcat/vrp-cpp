@@ -4,6 +4,10 @@
 #include "algorithms/construction/extensions/Constraints.hpp"
 #include "utils/extensions/Variant.hpp"
 
+#include <cmath>
+#include <string>
+#include <utility>
+
 namespace vrp::algorithms::construction {
 
 /// Checks whether vehicle can handle activity of given size.
@@ -57,25 +61,23 @@ struct VehicleActivitySize final
                                    const HardRouteConstraint::Job& job) const override {
     return utils::mono_result<bool>(job.visit(ranges::overload(
              [&](const std::shared_ptr<const models::problem::Service>& service) {
-               return getSize(service) <= getSize(routeCtx.actor->vehicle);
+               return getSize(service) <= getSize(routeCtx.route->actor->vehicle);
              },
              [&](const std::shared_ptr<const models::problem::Shipment>& shipment) {
-               return getSize(routeCtx.actor->vehicle) <= getSize(shipment);
+               return getSize(routeCtx.route->actor->vehicle) <= getSize(shipment);
              })))
       ? HardRouteConstraint::Result{}
       : HardRouteConstraint::Result{code_};
   }
 
   /// Checks whether proposed activity insertion doesn't violate size constraints.
-  HardActivityConstraint::Result hard(const InsertionRouteContext& routeCtx,
-                                      const InsertionActivityContext& actCtx) const override {
-    const auto& state = routeCtx.route.second;
-
-    auto size = getSize(actCtx.target);
-    auto base = state->get<Size>(size < 0 ? StateKeyMaxPast : StateKeyMaxFuture, *actCtx.prev).value_or(Size{});
+  HardActivityConstraint::Result hard(const InsertionRouteContext& rCtx,
+                                      const InsertionActivityContext& aCtx) const override {
+    auto size = getSize(aCtx.target);
+    auto base = rCtx.state->get<Size>(size < 0 ? StateKeyMaxPast : StateKeyMaxFuture, *aCtx.prev).value_or(Size{});
     auto value = size < 0 ? base - size : base + size;
 
-    return value <= getSize(routeCtx.actor->vehicle) ? success() : stop(code_);
+    return value <= getSize(rCtx.route->actor->vehicle) ? success() : stop(code_);
   }
 
   /// Returns size of an entity (vehicle or job).

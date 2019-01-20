@@ -85,18 +85,20 @@ public:
         logger(*result.ctx, duration);  //
       });
 
-    // explore solution space and return best individuum
-    return utils::measure<>::execution_with_result(
-      [&]() {
-        ranges::for_each(space, [&space, &logger](const auto& pair) {
-          const auto& [individuum, accepted] = pair;
-          logger(*space.ctx, individuum, accepted);
-        });
-        return space.ctx->population->front();
-      },
-      [&space, &logger](const auto& result, auto duration) {
-        logger(*space.ctx, result, duration);  //
-      });
+    return space.ctx->population->front();
+
+    //    // explore solution space and return best individuum
+    //    return utils::measure<>::execution_with_result(
+    //      [&]() {
+    //        ranges::for_each(space, [&space, &logger](const auto& pair) {
+    //          const auto& [individuum, accepted] = pair;
+    //          logger(*space.ctx, individuum, accepted);
+    //        });
+    //        return space.ctx->population->front();
+    //      },
+    //      [&space, &logger](const auto& result, auto duration) {
+    //        logger(*space.ctx, result, duration);  //
+    //      });
   }
 };
 }

@@ -22,7 +22,7 @@ namespace {
 
 const auto CurrentKey = VehicleActivitySize<int>::StateKeyCurrent;
 
-InsertionRouteContext::RouteState
+InsertionRouteContext
 createRouteState(const Fleet& fleet) {
   auto route = test_build_route{}.actor(getActor("v1", fleet)).shared();
   auto state = std::make_shared<InsertionRouteState>();
@@ -70,10 +70,7 @@ SCENARIO("vehicle activity size", "[algorithms][construction][constraints]") {
 
     WHEN("check route and service job with different sizes") {
       auto [route, state] = createRouteState(*fleet);
-      auto routeCtx = test_build_insertion_route_context{}  //
-                        .actor(getActor("v1", *fleet))
-                        .route({route, state})
-                        .owned();
+      auto routeCtx = test_build_insertion_route_context{}.route(route).state(state).owned();
 
       auto [size, expected] = GENERATE(table<int, std::optional<int>>({{11, std::optional<int>{2}},  //
                                                                        {10, std::optional<int>{}}}));
@@ -99,21 +96,41 @@ SCENARIO("vehicle activity size", "[algorithms][construction][constraints]") {
       route->tour.add(activity("s1", 1, s1)).add(activity("s3", 3, s3));
       auto sized = VehicleActivitySize<int>{};
       sized.accept(*route, *state);
-      auto routeCtx = test_build_insertion_route_context{}  //
-                        .actor(getActor("v1", *fleet))
-                        .route({route, state})
-                        .owned();
+      auto routeCtx = test_build_insertion_route_context{}.route(route).state(state).owned();
       auto actCtx =
         test_build_insertion_activity_context{}
-          .departure(0)
           .prev(getActivity(routeCtx, 0))
           .target(test_build_activity{}.job(as_job(test_build_service{}.dimens({{"size", s2}}).shared())).shared())
           .next(getActivity(routeCtx, 1))
           .owned();
 
-      auto result = sized.hard(routeCtx, actCtx);
 
-      REQUIRE(result == expected);
+      THEN("constraint check result is correct") {
+        auto result = sized.hard(routeCtx, actCtx);
+
+        REQUIRE(result == expected);
+      }
+    }
+
+    WHEN("has tree services with exact max size") {
+      auto [prev, next] = GENERATE(table<int, int>({{-1, 0}, {0, 1}, {1, 2}, {2, -2}}));
+      auto [route, state] = createRouteState(*fleet);
+      route->tour.add(activity("s1", 1, -3)).add(activity("s2", 2, -5)).add(activity("s3", 3, -2));
+      auto sized = VehicleActivitySize<int>{};
+      sized.accept(*route, *state);
+
+      auto routeCtx = test_build_insertion_route_context{}.route(route).state(state).owned();
+      auto actCtx =
+        test_build_insertion_activity_context{}
+          .prev(getActivity(routeCtx, prev))
+          .target(test_build_activity{}.job(as_job(test_build_service{}.dimens({{"size", -1}}).shared())).shared())
+          .next(getActivity(routeCtx, next))
+          .owned();
+
+      THEN("cannot insert new service") {
+        auto result = sized.hard(routeCtx, actCtx);
+        REQUIRE(result == stop(2));
+      }
     }
   }
 }

@@ -34,7 +34,7 @@ createContext(const Tour::Activity& prev, const Tour::Activity& next) {
 
 
   auto routeCtx = test_build_insertion_route_context{}.add(prev).add(next).shared();
-  auto evaluator = std::make_shared<ServiceInsertionEvaluator>(transport, activity);
+  auto evaluator = std::make_shared<ServiceInsertionEvaluator>();
 
   return std::tuple<std::shared_ptr<InsertionRouteContext>,
                     std::shared_ptr<ServiceInsertionEvaluator>,
@@ -64,8 +64,7 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
     auto progress = test_build_insertion_progress{}.owned();
     auto constraint = std::make_shared<InsertionConstraint>();
     auto route = test_build_route{}.owned();
-    auto evaluator =
-      ServiceInsertionEvaluator(std::make_shared<TestTransportCosts>(), std::make_shared<ActivityCosts>());
+    auto evaluator = ServiceInsertionEvaluator{};
 
     WHEN("service has failed constraint") {
       constraint->addHardRoute([](const auto&, const auto&) { return HardRouteConstraint::Result{42}; });
@@ -84,7 +83,6 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
 
       THEN("returns insertion success") {
         REQUIRE(result.index() == 0);
-        REQUIRE(ranges::get<0>(result).departure == 0);
         REQUIRE(ranges::get<0>(result).activities[0].second == 0);
         REQUIRE(ranges::get<0>(result).activities[0].first->detail.location == DefaultJobLocation);
       }
@@ -96,7 +94,6 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
 
       THEN("returns correct insertion success") {
         REQUIRE(result.index() == 0);
-        REQUIRE(ranges::get<0>(result).departure == 0);
         REQUIRE(ranges::get<0>(result).activities[0].second == 0);
         REQUIRE(ranges::get<0>(result).activities[0].first->detail.location == 0);
       }
@@ -119,7 +116,6 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
 
       THEN("returns correct insertion success") {
         REQUIRE(result.index() == 0);
-        REQUIRE(ranges::get<0>(result).departure == 0);
         REQUIRE(ranges::get<0>(result).activities[0].second == index);
         REQUIRE(ranges::get<0>(result).activities[0].first->detail.location == location);
       }

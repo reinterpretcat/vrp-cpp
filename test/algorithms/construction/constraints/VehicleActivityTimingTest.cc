@@ -114,12 +114,8 @@ SCENARIO("vehicle activity timing checks states", "[algorithms][construction][co
            {"v6", 40, 30, 2, EndActivityIndex, success()}}));
 
       THEN("returns fulfilled for insertion at the end") {
-        auto routeCtx = test_build_insertion_route_context{}  //
-                          .actor(getActor(vehicle, *fleet))
-                          .route({route, state})
-                          .owned();
+        auto routeCtx = test_build_insertion_route_context{}.route(route).state(state).owned();
         auto actCtx = test_build_insertion_activity_context{}
-                        .departure(departure)
                         .prev(getActivity(routeCtx, prev))
                         .target(test_build_activity{}.location(location).shared())
                         .next(getActivity(routeCtx, next))
@@ -174,7 +170,7 @@ SCENARIO("vehicle activity timing can calculate soft costs", "[algorithms][const
     // new: d(10 + 10 + 30) + t(20 + 10 + 30) = 110
     WHEN("inserting in between new activity with the same actor") {
       auto [routeCtx, actCtx] = sameActor(prev, target, next);
-      routeCtx->route.first->tour.add(prev).add(next);
+      routeCtx->route->tour.add(prev).add(next);
 
       THEN("cost for activity is correct") {
         auto cost = VehicleActivityTiming(fleet,
@@ -195,19 +191,6 @@ SCENARIO("vehicle activity timing can calculate soft costs", "[algorithms][const
 
     WHEN("inserting new activity with the same actor") {
       auto [routeCtx, actCtx] = sameActor(target.shared());
-
-      THEN("cost for activity is correct") {
-        auto cost = VehicleActivityTiming(fleet,
-                                          std::make_shared<TestTransportCosts>(),  //
-                                          std::make_shared<ActivityCosts>())
-                      .soft(*routeCtx, *actCtx);
-
-        REQUIRE(cost == 21);
-      }
-    }
-
-    WHEN("inserting new activity with different actor") {
-      auto [routeCtx, actCtx] = differentActor(target.shared());
 
       THEN("cost for activity is correct") {
         auto cost = VehicleActivityTiming(fleet,

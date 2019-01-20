@@ -14,3 +14,5 @@ https://github.com/justusc/FindTBB
 # TODO
 
  * handle jobs which cannot be assigned
+ * simplify registry
+ * check movement syntax within builders to avoid copying

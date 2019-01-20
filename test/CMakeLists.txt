@@ -14,10 +14,8 @@ set(SOURCE_FILES
 
         algorithms/construction/constraints/VehicleActivitySizeTest.cc
         algorithms/construction/constraints/VehicleActivityTimingTest.cc
-        algorithms/construction/constraints/VehicleFixedCostTest.cc
 
         algorithms/construction/evaluators/ServiceInsertionEvaluatorTest.cc
-        algorithms/construction/evaluators/JobInsertionEvaluatorTest.cc
         algorithms/construction/heuristics/BlinkInsertionTest.cc
         algorithms/construction/heuristics/CheapestInsertionTest.cc
         algorithms/construction/InsertionConstraintTest.cc
@@ -61,6 +59,8 @@ set(SOURCE_FILES
         SolverTest.cc
 
         )
+
+#set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
 
 add_executable(${LIBRARY_TEST}
         main.cpp

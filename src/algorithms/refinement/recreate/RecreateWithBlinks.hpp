@@ -18,7 +18,7 @@ struct RecreateWithBlinks final {
     using namespace ranges;
     using ConstRoute = std::shared_ptr<const models::solution::Route>;
 
-    auto evaluator = InsertionEvaluator{rCtx.problem->transport, rCtx.problem->activity};
+    auto evaluator = InsertionEvaluator{};
     auto resultCtx = BlinkInsertion<>{evaluator}.operator()(iCtx);
 
     return models::Solution{

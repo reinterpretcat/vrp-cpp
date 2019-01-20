@@ -5,6 +5,7 @@
 #include "models/extensions/problem/Properties.hpp"
 
 #include <algorithm>
+#include <iostream>
 #include <pstl/execution>
 #include <pstl/numeric>
 
@@ -24,7 +25,7 @@ struct InsertionHeuristic {
     auto rSelector = ResultSelector(ctx);
     while (!newCtx.jobs.empty()) {
       auto [begin, end] = JobSelector{}(newCtx);
-      insert(std::transform_reduce(pstl::execution::par,
+      insert(std::transform_reduce(pstl::execution::seq,
                                    begin,
                                    end,
                                    make_result_failure(),
@@ -40,27 +41,28 @@ private:
   void insert(const InsertionResult& result, InsertionContext& ctx) const {
     result.visit(ranges::overload(
       [&](const InsertionSuccess& success) {
-        success.route.first->actor = success.actor;
-        success.route.first->start->schedule.departure = success.departure;
+        std::cout << "left " << ctx.jobs.size() << " "
+                  << "insert " << success.activities.front().first->detail.location << " at index "
+                  << success.activities.front().second << " into route with "
+                  << success.context.route->tour.sizes().second << " activities "
+                  << success.context.route->actor->vehicle->id << "\n\n";
 
-        ctx.registry->use(*success.actor);
-        ctx.routes[success.route.first] = success.route.second;
+
+        ctx.registry->use(*success.context.route->actor);
+        ctx.routes[success.context.route] = success.context.state;
 
         // NOTE assume that activities are sorted by insertion index
         ranges::for_each(success.activities | ranges::view::reverse,
-                         [&](const auto& act) { success.route.first->tour.insert(act.first, act.second); });
+                         [&](const auto& act) { success.context.route->tour.insert(act.first, act.second); });
 
         // fast erase job from vector
-        std::iter_swap(std::find_if(ctx.jobs.begin(),
-                                    ctx.jobs.end(),
-                                    [&](const auto& job) {
-                                      const static auto getter = models::problem::get_job_id{};
-                                      return getter(job) == getter(success.job);
-                                    }),
-                       ctx.jobs.end() - 1);
-        ctx.jobs.erase(ctx.jobs.end() - 1);
+        ctx.jobs.erase(std::find_if(ctx.jobs.begin(), ctx.jobs.end(), [&](const auto& job) {
+          const static auto getter = models::problem::get_job_id{};
+          return getter(job) == getter(success.job);
+        }));
+        // ctx.jobs.erase(ctx.jobs.end() - 1);
 
-        ctx.constraint->accept(*success.route.first, *success.route.second);
+        ctx.constraint->accept(*success.context.route, *success.context.state);
       },
       [&](const InsertionFailure& failure) {
         ranges::for_each(ctx.jobs, [&](const auto& job) { ctx.unassigned[job] = failure.constraint; });

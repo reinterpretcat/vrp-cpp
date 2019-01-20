@@ -93,7 +93,7 @@ struct VehicleActivityTiming final
   /// Checks whether proposed vehicle can be used within route without violating time windows.
   HardRouteConstraint::Result hard(const InsertionRouteContext& routeCtx,
                                    const HardRouteConstraint::Job&) const override {
-    return routeCtx.route.second->get<bool>(actorSharedKey(StateKey, *routeCtx.actor)).value_or(false)
+    return routeCtx.state->get<bool>(actorSharedKey(StateKey, *routeCtx.route->actor)).value_or(false)
       ? HardRouteConstraint::Result{code_}
       : HardRouteConstraint::Result{};
   }
@@ -104,17 +104,20 @@ struct VehicleActivityTiming final
     using namespace vrp::models;
     using namespace vrp::models::common;
 
-    const auto& actor = *routeCtx.actor;
+    const auto& actor = *routeCtx.route->actor;
     const auto& prev = *actCtx.prev;
     const auto& target = *actCtx.target;
     const auto& next = *actCtx.next;
+
+    const auto departure = prev.schedule.departure;
+    const auto& profile = actor.vehicle->profile;
 
     auto latestArrival = actor.detail.time.end;
     auto nextActLocation = next.type == solution::Activity::Type::End ? actor.detail.end.value_or(next.detail.location)
                                                                       : next.detail.location;
     auto latestArrTimeAtNextAct = next.type == solution::Activity::Type::End
       ? actor.detail.time.end
-      : routeCtx.route.second->get<Timestamp>(actorSharedKey(StateKey, actor), next).value_or(next.detail.time.end);
+      : routeCtx.state->get<Timestamp>(actorSharedKey(StateKey, actor), next).value_or(next.detail.time.end);
 
     if (latestArrival < prev.detail.time.start || latestArrival < target.detail.time.start ||
         latestArrival < next.detail.time.start)
@@ -122,30 +125,29 @@ struct VehicleActivityTiming final
 
     if (target.detail.time.end < prev.detail.time.start) return fail(code_);
 
-    auto arrTimeAtNext = actCtx.departure +
-      transport_->duration(actor.vehicle->profile, prev.detail.location, nextActLocation, actCtx.departure);
+    auto arrTimeAtNext = departure + transport_->duration(profile, prev.detail.location, nextActLocation, departure);
     if (arrTimeAtNext > latestArrTimeAtNextAct) return fail(code_);
 
     if (target.detail.time.start > next.detail.time.end) return stop(code_);
 
-    auto arrTimeAtTargetAct = actCtx.departure +
-      transport_->duration(actor.vehicle->profile, prev.detail.location, target.detail.location, actCtx.departure);
+    auto arrTimeAtTargetAct =
+      departure + transport_->duration(profile, prev.detail.location, target.detail.location, departure);
 
     auto endTimeAtNewAct =
       std::max(arrTimeAtTargetAct, target.detail.time.start) + activity_->duration(actor, target, arrTimeAtTargetAct);
 
-    auto latestArrTimeAtNewAct = std::min(
-      target.detail.time.end,
-      latestArrTimeAtNextAct -
-        transport_->duration(actor.vehicle->profile, target.detail.location, nextActLocation, latestArrTimeAtNextAct) +
-        activity_->duration(actor, target, arrTimeAtTargetAct));
+    auto latestArrTimeAtNewAct =
+      std::min(target.detail.time.end,
+               latestArrTimeAtNextAct -
+                 transport_->duration(profile, target.detail.location, nextActLocation, latestArrTimeAtNextAct) +
+                 activity_->duration(actor, target, arrTimeAtTargetAct));
 
     if (arrTimeAtTargetAct > latestArrTimeAtNewAct) return stop(code_);
 
     if (next.type == solution::Activity::Type::End && !actor.detail.end.has_value()) return success();
 
-    auto arrTimeAtNextAct = endTimeAtNewAct +
-      transport_->duration(actor.vehicle->profile, target.detail.location, nextActLocation, endTimeAtNewAct);
+    auto arrTimeAtNextAct =
+      endTimeAtNewAct + transport_->duration(profile, target.detail.location, nextActLocation, endTimeAtNewAct);
 
     return arrTimeAtNextAct > latestArrTimeAtNextAct ? stop(code_) : success();
   }
@@ -166,26 +168,27 @@ struct VehicleActivityTiming final
     const auto& prev = *actCtx.prev;
     const auto& target = *actCtx.target;
     const auto& next = *actCtx.next;
-    const auto& route = routeCtx.route.first;
 
-    auto [tpCostLeft, actCostLeft, depTimeLeft] = analyze(*routeCtx.actor, prev, target, actCtx.departure);
+    const auto& route = *routeCtx.route;
+    const auto& actor = *route.actor;
 
-    auto [tpCostRight, actCostRight, depTimeRight] = analyze(*routeCtx.actor, target, next, depTimeLeft);
+    auto [tpCostLeft, actCostLeft, depTimeLeft] = analyze(actor, prev, target, prev.schedule.departure);
+
+    auto [tpCostRight, actCostRight, depTimeRight] = analyze(actor, target, next, depTimeLeft);
 
     auto newCosts = tpCostLeft + tpCostRight + /* progress.completeness * */ (actCostLeft + actCostRight);
 
-    if (routeCtx.route.first->tour.empty()) return newCosts;
+    if (route.tour.empty()) return newCosts;
 
     auto [tpCostOld, actCostOld, depTimeOld] =
-      analyze(*route->actor,
-              prev.type == Activity::Type::Start ? *route->start : prev,
-              next.type == Activity::Type::End ? *route->end : next,
-              prev.type == Activity::Type::Start ? route->start->schedule.departure : prev.schedule.departure);
+      analyze(actor,
+              prev.type == Activity::Type::Start ? *route.start : prev,
+              next.type == Activity::Type::End ? *route.end : next,
+              prev.type == Activity::Type::Start ? route.start->schedule.departure : prev.schedule.departure);
 
-    auto waitingTime =
-      routeCtx.route.second->get<Timestamp>(actorSharedKey(WaitingKey, *route->actor), next).value_or(Timestamp{0});
-    double waitingCost = std::min(waitingTime, std::max(Timestamp{0}, depTimeRight - depTimeOld)) *
-      route->actor->vehicle->costs.perWaitingTime;
+    auto waitingTime = routeCtx.state->get<Timestamp>(actorSharedKey(WaitingKey, actor), next).value_or(Timestamp{0});
+    double waitingCost =
+      std::min(waitingTime, std::max(Timestamp{0}, depTimeRight - depTimeOld)) * actor.vehicle->costs.perWaitingTime;
 
     auto oldCosts = tpCostOld + /*progress.completeness * */ (actCostOld + waitingCost);
 

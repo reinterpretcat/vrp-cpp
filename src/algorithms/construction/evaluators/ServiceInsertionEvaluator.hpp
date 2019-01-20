@@ -4,7 +4,6 @@
 #include "algorithms/construction/InsertionConstraint.hpp"
 #include "algorithms/construction/InsertionResult.hpp"
 #include "algorithms/construction/evaluators/JobInsertionEvaluator.hpp"
-#include "algorithms/construction/extensions/Routes.hpp"
 #include "models/common/Cost.hpp"
 #include "models/common/TimeWindow.hpp"
 #include "models/costs/ActivityCosts.hpp"
@@ -22,10 +21,6 @@
 namespace vrp::algorithms::construction {
 
 struct ServiceInsertionEvaluator final : private JobInsertionEvaluator {
-  ServiceInsertionEvaluator(std::shared_ptr<const models::costs::TransportCosts> transportCosts,
-                            std::shared_ptr<const models::costs::ActivityCosts> activityCosts) :
-    JobInsertionEvaluator(std::move(transportCosts), std::move(activityCosts)) {}
-
   /// Evaluates service insertion possibility.
   InsertionResult evaluate(const std::shared_ptr<const models::problem::Service>& service,
                            const InsertionRouteContext& ctx,
@@ -53,25 +48,24 @@ private:
     using namespace ranges;
     using namespace vrp::models;
 
-    auto activity = models::solution::build_activity{}  //
-                      .job(job)                         //
-                      .shared();
+    const auto& route = *ctx.route;
+
+    auto activity = models::solution::build_activity{}.job(job).shared();
 
     // calculate additional costs on route level.
-    auto routeCosts = constraint.soft(ctx, job) + vehicleCosts(ctx);
+    auto routeCosts = constraint.soft(ctx, job);
 
     // form route legs from a new route view.
-    auto [start, end] = waypoints(*ctx.actor, ctx.departure);
-    auto tour = view::concat(view::single(start), ctx.route.first->tour.activities(), view::single(end));
+    auto tour = view::concat(view::single(route.start), route.tour.activities(), view::single(route.end));
     auto legs = view::zip(tour | view::sliding(2), view::iota(static_cast<size_t>(0)));
-    auto evalCtx = EvaluationContext::empty(progress.bestCost /*, ctx.departure*/);
+    auto evalCtx = EvaluationContext::empty(progress.bestCost);
     auto pred = [](const EvaluationContext& ctx) { return !ctx.isStopped; };
 
     // 1. analyze route legs
     auto result = utils::accumulate_while(legs, evalCtx, pred, [&](const auto& out, const auto& view) {
       auto [items, index] = view;
       auto [prev, next] = std::tie(*std::begin(items), *(std::begin(items) + 1));
-      auto actCtx = InsertionActivityContext{index, prev->schedule.departure, prev, activity, next};
+      auto actCtx = InsertionActivityContext{index, prev, activity, next};
 
       // 2. analyze service details
       return utils::accumulate_while(view::all(service.details), out, pred, [&](const auto& in1, const auto& detail) {

@@ -23,14 +23,8 @@ struct InsertionSuccess final {
   /// Specifies activities within index where they have to be inserted.
   std::vector<std::pair<models::solution::Tour::Activity, size_t>> activities;
 
-  /// Specifies actor which should be used.
-  models::solution::Route::Actor actor;
-
-  /// Specifies route where insertion happens.
-  InsertionRouteContext::RouteState route;
-
-  /// Specifies new vehicle departure time.
-  models::common::Timestamp departure;
+  /// Specifies route context where insertion happens.
+  InsertionRouteContext context;
 };
 
 /// Specifies insertion failure.

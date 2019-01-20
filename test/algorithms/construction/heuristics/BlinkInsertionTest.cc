@@ -25,7 +25,7 @@ SCENARIO("blink insertion handles solomon set problems", "[algorithms][construct
                  .registry(std::make_shared<Registry>(*problem.fleet))
                  .constraint(problem.constraint)
                  .owned();
-    auto evaluator = InsertionEvaluator{problem.transport, problem.activity};
+    auto evaluator = InsertionEvaluator{};
 
     WHEN("calculates solution") {
       auto solution = BlinkInsertion<>{evaluator}.operator()(ctx);

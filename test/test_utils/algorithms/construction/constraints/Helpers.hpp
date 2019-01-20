@@ -11,10 +11,10 @@ constexpr int EndActivityIndex = -2;
 
 inline models::solution::Tour::Activity
 getActivity(const algorithms::construction::InsertionRouteContext& ctx, int index) {
-  if (index == StartActivityIndex) return ctx.route.first->start;
-  if (index == EndActivityIndex) return ctx.route.first->end;
+  if (index == StartActivityIndex) return ctx.route->start;
+  if (index == EndActivityIndex) return ctx.route->end;
 
-  return ctx.route.first->tour.get(static_cast<size_t>(index));
+  return ctx.route->tour.get(static_cast<size_t>(index));
 }
 
 inline std::shared_ptr<models::solution::Actor>

@@ -91,18 +91,13 @@ private:
 /// Creates insertion route context.
 class build_insertion_route_context {
 public:
-  build_insertion_route_context& actor(models::solution::Route::Actor value) {
-    context_.actor = std::move(value);
-    return *this;
-  }
-
-  build_insertion_route_context& route(const InsertionRouteContext::RouteState& value) {
+  build_insertion_route_context& route(const std::shared_ptr<models::solution::Route>& value) {
     context_.route = value;
     return *this;
   }
 
-  build_insertion_route_context& departure(models::common::Timestamp departure) {
-    context_.departure = departure;
+  build_insertion_route_context& state(const std::shared_ptr<InsertionRouteState>& value) {
+    context_.state = value;
     return *this;
   }
 
@@ -121,11 +116,6 @@ class build_insertion_activity_context {
 public:
   build_insertion_activity_context& index(size_t value) {
     context_.index = value;
-    return *this;
-  }
-
-  build_insertion_activity_context& departure(models::common::Timestamp value) {
-    context_.departure = value;
     return *this;
   }
 

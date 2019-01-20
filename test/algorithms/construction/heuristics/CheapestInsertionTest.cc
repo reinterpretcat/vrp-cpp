@@ -2,7 +2,6 @@
 
 #include "algorithms/construction/constraints/VehicleActivitySize.hpp"
 #include "algorithms/construction/constraints/VehicleActivityTiming.hpp"
-#include "algorithms/construction/constraints/VehicleFixedCost.hpp"
 #include "streams/in/Solomon.hpp"
 #include "test_utils/algorithms/construction/Insertions.hpp"
 #include "test_utils/algorithms/construction/Results.hpp"
@@ -34,7 +33,7 @@ createInsertion(std::stringstream stream) {
                .constraint(problem.constraint)
                .owned();
 
-  return {{problem.transport, problem.activity}, ctx};
+  return {{}, ctx};
 }
 
 template<typename ProblemStream>
@@ -71,7 +70,7 @@ SCENARIO("cheapest insertion inserts service", "[algorithms][construction][inser
     auto constraint = std::make_shared<InsertionConstraint>();
     constraint->add<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(fleet, transport, activity));
 
-    auto insertion = CheapestInsertion{{transport, activity}};
+    auto insertion = CheapestInsertion{InsertionEvaluator{}};
 
     WHEN("analyzes insertion context") {
       auto result = insertion(test_build_insertion_context{}
