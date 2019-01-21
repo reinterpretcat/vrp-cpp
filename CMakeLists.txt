@@ -6,6 +6,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(MAIN_SOURCE ${PROJECT_SOURCE_DIR}/src)
 set(TEST_SOURCE ${PROJECT_SOURCE_DIR}/test)
+set(EXAMPLE_SOURCE ${PROJECT_SOURCE_DIR}/example)
 set(EXTERNAL_SOURCE ${PROJECT_SOURCE_DIR}/external)
 
 set(TBB_ROOT_DIR ${PROJECT_SOURCE_DIR}/external/tbb)
@@ -27,3 +28,4 @@ find_package(TBB REQUIRED)
 
 add_subdirectory(src)
 add_subdirectory(test)
+add_subdirectory(example)

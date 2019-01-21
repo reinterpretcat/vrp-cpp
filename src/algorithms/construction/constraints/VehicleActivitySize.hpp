@@ -82,7 +82,6 @@ struct VehicleActivitySize final
   /// Checks whether proposed activity insertion doesn't violate size constraints.
   HardActivityConstraint::Result hard(const InsertionRouteContext& rCtx,
                                       const InsertionActivityContext& aCtx) const override {
-
     if (rCtx.route->actor->vehicle->id == "v3" && aCtx.target->detail.location == 47 && aCtx.index == 11) {
       std::cout << "";
     }

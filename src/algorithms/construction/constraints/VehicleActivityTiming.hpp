@@ -189,7 +189,7 @@ struct VehicleActivityTiming final
               prev.type == Activity::Type::Start ? route.start->schedule.departure : prev.schedule.departure);
 
     auto waitingTime =
-        routeCtx.state->get<Timestamp>(actorSharedKey(WaitingKey, actor), actCtx.next).value_or(Timestamp{0});
+      routeCtx.state->get<Timestamp>(actorSharedKey(WaitingKey, actor), actCtx.next).value_or(Timestamp{0});
 
     double waitingCost =
       std::min(waitingTime, std::max(Timestamp{0}, depTimeRight - depTimeOld)) * actor.vehicle->costs.perWaitingTime;

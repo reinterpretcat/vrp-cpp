@@ -47,6 +47,6 @@ private:
   using ActivityComparator = models::solution::compare_activities_with_key;
 
   std::unordered_map<std::string, std::any> routeStates_;
-  std::map<std::pair< models::solution::Tour::Activity, std::string>, std::any, ActivityComparator> activityStates_;
+  std::map<std::pair<models::solution::Tour::Activity, std::string>, std::any, ActivityComparator> activityStates_;
 };
 }

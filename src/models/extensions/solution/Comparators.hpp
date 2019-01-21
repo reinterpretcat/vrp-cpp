@@ -2,8 +2,8 @@
 
 #include "models/extensions/common/Comparators.hpp"
 #include "models/solution/Activity.hpp"
-#include "models/solution/Tour.hpp"
 #include "models/solution/Actor.hpp"
+#include "models/solution/Tour.hpp"
 
 #include <memory>
 #include <utility>
