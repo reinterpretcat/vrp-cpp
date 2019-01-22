@@ -10,7 +10,7 @@ struct remove_empty_tours final {
     for (auto it = ctx.routes.begin(); it != ctx.routes.end();) {
       auto isEmpty = it->route->tour.empty();
       if (isEmpty) {
-        ctx.registry->free(*it->route->actor);
+        ctx.registry->free(it->route->actor);
         it = ctx.routes.erase(it);
       } else
         ++it;

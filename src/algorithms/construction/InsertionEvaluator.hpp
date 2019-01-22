@@ -11,6 +11,8 @@
 #include "models/solution/Registry.hpp"
 #include "utils/extensions/Variant.hpp"
 
+#include <chrono>
+#include <iostream>
 #include <numeric>
 #include <utility>
 #include <vector>
@@ -28,7 +30,7 @@ struct InsertionEvaluator final {
 
     // iterate through list of routes plus a new one
     return ranges::accumulate(
-      view::concat(ctx.routes, ctx.registry->unique() | view::transform([&](const auto& a) {
+      view::concat(ctx.routes, ctx.registry->next() | view::transform([&](const auto& a) {
                                  auto [start, end] = waypoints(*a);
                                  return InsertionRouteContext{std::make_shared<Route>(Route{a, start, end, {}}),
                                                               std::make_shared<InsertionRouteState>()};

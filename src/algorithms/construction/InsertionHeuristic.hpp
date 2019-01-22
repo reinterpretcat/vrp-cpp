@@ -5,6 +5,7 @@
 #include "models/extensions/problem/Properties.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <iostream>
 #include <pstl/execution>
 #include <pstl/numeric>
@@ -47,7 +48,7 @@ private:
                   << success.context.route->tour.sizes().second << " activities "
                   << success.context.route->actor->vehicle->id << " total routes: " << ctx.routes.size() << "\n";
 
-        ctx.registry->use(*success.context.route->actor);
+        ctx.registry->use(success.context.route->actor);
         ctx.routes.insert(success.context);
 
         // NOTE assume that activities are sorted by insertion index

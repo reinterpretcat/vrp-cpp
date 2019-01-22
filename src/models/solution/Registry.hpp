@@ -14,58 +14,48 @@ namespace vrp::models::solution {
 
 /// Specifies an entity responsible for providing actors and keeping track of their usage.
 class Registry {
-  /// Returns all available actors with deducted return type.
-  auto availableActors() const {
-    return ranges::view::all(actors_) | ranges::view::remove_if([&](const auto& a) {
-             auto set = details_.find(a->vehicle->id);
-             auto ctx = std::pair(set, (set != details_.end()));
-             return ctx.second && ctx.first->second.find(a->detail) != ctx.first->second.end();
-           });
-  }
-
 public:
-  explicit Registry(const problem::Fleet& fleet) : actors_(), details_() {
+  using SharedActor = std::shared_ptr<const Actor>;
+
+  explicit Registry(const problem::Fleet& fleet) : actors_() {
     // TODO we should also consider multiple drivers to support smart vehicle-driver assignment
     assert(ranges::distance(fleet.drivers()) == 1);
     assert(ranges::distance(fleet.vehicles()) > 0);
 
     using namespace ranges;
 
+    // TODO consider support for more than one driver
+    auto drivers = fleet.drivers();
+    auto driver = *std::begin(drivers);
+
     // clang-format off
 
-    // create actors from vehicles and driver(s)
-    actors_ = fleet.vehicles() | view::for_each([&](const auto v) {
-      auto drivers = fleet.drivers();
-      auto driver = *std::begin(drivers);
-      auto vehicle = v;
-
-      return view::all(v->details) |
-          view::transform([&](const auto& d) { return Actor::Detail{d.start, d.end, d.time}; }) |
-          view::transform([=](const auto& d) { return std::make_shared<const Actor>(Actor{vehicle, driver, d}); });
-    });
-
-    // sort actors to simplify unique function below.
-    ranges::action::sort(actors_, [](const auto& lhs, const auto& rhs) {
-      return compare_actor_details{}(lhs->detail, rhs->detail);
+    ranges::for_each(fleet.vehicles(), [&](const auto& vehicle) {
+      ranges::for_each(vehicle->details | view::transform([&](const auto& d) {
+          return std::make_shared<const Actor>(Actor{vehicle, driver, Actor::Detail{d.start, d.end, d.time}});
+        }),
+        [&](const auto& actor) {
+          actors_[actor->detail].insert(actor);
+      });
     });
 
     // clang-format on
   }
 
   /// Marks actor as used. Returns true whether it is first usage.
-  bool use(const Actor& actor) { return details_[actor.vehicle->id].insert(actor.detail).second; }
+  void use(const SharedActor& actor) { actors_[actor->detail].erase(actor); }
 
   /// Marks actor as available.
-  void free(const Actor& actor) { details_[actor.vehicle->id].erase(actor.detail); }
+  void free(const SharedActor& actor) { actors_[actor->detail].insert(actor); }
 
-  /// Returns all available for use actors.
-  ranges::any_view<std::shared_ptr<const Actor>> available() const { return availableActors(); }
-
-  /// Returns unique actors.
-  ranges::any_view<std::shared_ptr<const Actor>> unique() const { return availableActors() | ranges::view::unique; }
+  /// Returns next possible actors of different types.
+  ranges::any_view<const SharedActor> next() const {
+    return ranges::view::for_each(
+      actors_, [](const auto& pair) { return ranges::view::all(pair.second) | ranges::view::take(1); });
+  }
 
 private:
-  std::vector<std::shared_ptr<const Actor>> actors_;
-  std::unordered_map<std::string, std::set<Actor::Detail, compare_actor_details>> details_;
+  /// Specifies available actors grouped by detail.
+  std::map<Actor::Detail, std::set<SharedActor>, compare_actor_details> actors_;
 };
 }

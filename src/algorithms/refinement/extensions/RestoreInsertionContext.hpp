@@ -23,7 +23,7 @@ struct restore_insertion_context final {
     auto routes = std::set<InsertionRouteContext, compare_insertion_route_contexts>{};
     ranges::for_each(sln.routes, [&](const auto& r) {
       if (r->tour.empty()) {
-        registry->free(*r->actor);
+        registry->free(r->actor);
       } else {
         auto context = InsertionRouteContext{deep_copy_route{}(r), std::make_shared<InsertionRouteState>()};
         routes.insert(context);
