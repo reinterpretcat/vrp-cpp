@@ -74,24 +74,16 @@ private:
         return utils::accumulate_while(view::all(detail.times), in1, pred, [&](const auto& in2, const auto& time) {
           activity->detail.time = time;
           activity->detail.duration = detail.duration;
+          activity->detail.location = detail.location.value_or(actCtx.prev->detail.location);
 
-          auto locations = detail.location.has_value()
-            ? static_cast<any_view<common::Location>>(view::single(detail.location.value()))
-            : view::concat(view::single(actCtx.prev->detail.location), view::single(actCtx.next->detail.location));
+          // check hard activity constraint
+          auto status = constraint.hard(ctx, actCtx);
+          if (status.has_value()) return EvaluationContext::fail(status.value(), in2);
 
-          // 4. analyze possible locations
-          return utils::accumulate_while(view::all(locations), in2, pred, [&](const auto& in3, const auto& location) {
-            activity->detail.location = location;
-
-            // check hard activity constraint
-            auto status = constraint.hard(ctx, actCtx);
-            if (status.has_value()) return EvaluationContext::fail(status.value(), in3);
-
-            auto totalCosts = routeCosts + constraint.soft(ctx, actCtx);
-            return totalCosts < in3.cost
-              ? EvaluationContext::success(actCtx.index, totalCosts, {location, detail.duration, time})
-              : EvaluationContext::skip(in3);
-          });
+          auto totalCosts = routeCosts + constraint.soft(ctx, actCtx);
+          return totalCosts < in2.cost
+            ? EvaluationContext::success(actCtx.index, totalCosts, {activity->detail.location, detail.duration, time})
+            : EvaluationContext::skip(in2);
         });
       });
     });
