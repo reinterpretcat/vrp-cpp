@@ -48,6 +48,11 @@ public:
   /// Marks actor as available.
   void free(const SharedActor& actor) { actors_[actor->detail].insert(actor); }
 
+  /// Returns list of all available actors.
+  ranges::any_view<const SharedActor> available() const {
+    return ranges::view::for_each(actors_, [](const auto& pair) { return ranges::view::all(pair.second); });
+  }
+
   /// Returns next possible actors of different types.
   ranges::any_view<const SharedActor> next() const {
     return ranges::view::for_each(

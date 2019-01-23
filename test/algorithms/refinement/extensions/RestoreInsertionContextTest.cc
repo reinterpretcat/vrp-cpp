@@ -25,8 +25,8 @@ SCENARIO("restore insertion context skips empty routes", "[algorithms][refinemen
   GIVEN("solution with empty and non empty tours") {
     auto actor1 = getActor("v1", fleet);
     auto actor2 = getActor("v2", fleet);
-    registry->use(*actor1);
-    registry->use(*actor2);
+    registry->use(actor1);
+    registry->use(actor2);
 
     auto route1 = test_build_route{}.actor(actor1).shared();
     auto route2 = test_build_route{}.actor(actor2).shared();

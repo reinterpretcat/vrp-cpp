@@ -27,13 +27,13 @@ SCENARIO("registry can provide available actors", "[models][solution][registry]"
     }
 
     WHEN("one is used and all available actors requested") {
-      ranges::for_each(registry.available() | view::take(1), [&](const auto& actor) { registry.use(*actor); });
+      ranges::for_each(registry.available() | view::take(1), [&](const auto& actor) { registry.use(actor); });
 
       THEN("then returns two actors") { REQUIRE(ranges::distance(registry.available()) == 2); }
     }
 
     WHEN("all are used and all available actors requested") {
-      ranges::for_each(registry.available(), [&](const auto& actor) { registry.use(*actor); });
+      ranges::for_each(registry.available(), [&](const auto& actor) { registry.use(actor); });
 
       THEN("then returns zero actors") { REQUIRE(ranges::distance(registry.available()) == 0); }
     }
@@ -50,11 +50,11 @@ SCENARIO("registry can provide unique actors", "[models][solution][registry]") {
 
     auto registry = Registry(fleet);
 
-    WHEN("unique actors requested") {
-      auto actors = registry.unique() | to_vector;
+    WHEN("next actors requested") {
+      auto actors = registry.next() | to_vector;
       auto ids = actors | view::transform([](const auto& a) { return a->vehicle->id; }) | to_vector;
 
-      THEN("then returns two unique actor") {
+      THEN("then returns two unique actors") {
         REQUIRE(actors.size() == 2);
         REQUIRE(actors.front()->detail.start == 0);
         REQUIRE(actors.back()->detail.start == 1);
@@ -69,7 +69,7 @@ SCENARIO("registry can provide unique actors", "[models][solution][registry]") {
     auto registry = Registry(*problem.fleet);
 
     WHEN("unique actors requested") {
-      THEN("then returns one actor") { REQUIRE(ranges::distance(registry.unique()) == 1); }
+      THEN("then returns one actor") { REQUIRE(ranges::distance(registry.next()) == 1); }
     }
   }
 }

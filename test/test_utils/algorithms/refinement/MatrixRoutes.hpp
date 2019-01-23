@@ -57,7 +57,7 @@ struct generate_matrix_routes final {
     });
 
     auto registry = std::make_shared<Registry>(*fleet);
-    ranges::for_each(routes, [&](const auto& route) { registry->use(*route->actor); });
+    ranges::for_each(routes, [&](const auto& route) { registry->use(route->actor); });
 
     auto matrix = std::make_shared<Matrix>(Matrix{values<Duration>(rows, cols), values<Distance>(rows, cols)});
 

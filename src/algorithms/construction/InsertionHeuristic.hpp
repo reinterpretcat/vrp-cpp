@@ -25,6 +25,7 @@ struct InsertionHeuristic {
     auto newCtx = InsertionContext(ctx);
     auto rSelector = ResultSelector(ctx);
     while (!newCtx.jobs.empty()) {
+      auto s = std::chrono::system_clock::now();
       auto [begin, end] = JobSelector{}(newCtx);
       auto result = std::transform_reduce(pstl::execution::seq,
                                           begin,
@@ -33,6 +34,8 @@ struct InsertionHeuristic {
                                           [&](const auto& acc, const auto& result) { return rSelector(acc, result); },
                                           [&](const auto& job) { return evaluator_.evaluate(job, newCtx); });
       insert(result, newCtx);
+      auto e = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - s);
+      std::cout << "took " << e.count() << "ms\n";
     }
     return std::move(newCtx);
   }

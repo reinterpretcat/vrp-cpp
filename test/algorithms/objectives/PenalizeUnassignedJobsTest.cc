@@ -40,8 +40,8 @@ SCENARIO("penalize unassigned jobs calculates cost properly", "[algorithms][obje
   GIVEN("solution with two routes and one unassigned job") {
     auto actor1 = getActor("v1", fleet);
     auto actor2 = getActor("v2", fleet);
-    registry->use(*actor1);
-    registry->use(*actor2);
+    registry->use(actor1);
+    registry->use(actor2);
 
     auto route1 = createRoute(actor1, {40, 40});
     route1
