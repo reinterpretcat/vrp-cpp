@@ -6,6 +6,7 @@
 #include "algorithms/construction/evaluators/ServiceInsertionEvaluator.hpp"
 #include "algorithms/construction/evaluators/ShipmentInsertionEvaluator.hpp"
 #include "algorithms/construction/extensions/Insertions.hpp"
+#include "models/extensions/problem/Helpers.hpp"
 #include "models/extensions/solution/Factories.hpp"
 #include "models/problem/Fleet.hpp"
 #include "models/solution/Registry.hpp"
@@ -39,21 +40,20 @@ struct InsertionEvaluator final {
       [&](const auto& acc, const auto& routeCtx) {
         auto progress =
           build_insertion_progress{}
-            .cost(utils::mono_result<models::common::Cost>(acc.visit(ranges::overload(
-              [](const InsertionSuccess& success) { return success.cost; },
-              [](const InsertionFailure& failure) { return std::numeric_limits<models::common::Cost>::max(); }))))
+            .cost(acc.index() == 0 ? ranges::get<0>(acc).cost : std::numeric_limits<models::common::Cost>::max())
             .total(ctx.progress.total)
             .completeness(ctx.progress.completeness)
             .owned();
 
         // evaluate its insertion cost
-        auto result = utils::mono_result<InsertionResult>(job.visit(ranges::overload(
+        auto result = models::problem::analyze_job<InsertionResult>(
+          job,
           [&](const std::shared_ptr<const models::problem::Service>& service) {
             return serviceInsertionEvaluator_.evaluate(service, routeCtx, *ctx.constraint, progress);
           },
           [&](const std::shared_ptr<const models::problem::Shipment>& shipment) {
             return shipmentInsertionEvaluator_.evaluate(shipment, routeCtx, *ctx.constraint, progress);
-          })));
+          });
 
         // propagate best result or failure
         return get_best_result(acc, result);

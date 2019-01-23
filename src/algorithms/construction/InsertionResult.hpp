@@ -6,6 +6,7 @@
 #include "models/solution/Actor.hpp"
 #include "models/solution/Route.hpp"
 #include "models/solution/Tour.hpp"
+#include "utils/extensions/Variant.hpp"
 
 #include <memory>
 #include <range/v3/utility/variant.hpp>
@@ -51,14 +52,12 @@ make_result_success(const InsertionSuccess& success) {
 /// Compares two insertion results and returns the cheapest by cost.
 inline InsertionResult
 get_best_result(const InsertionResult& left, const InsertionResult& right) {
-  return utils::mono_result<InsertionResult>(right.visit(ranges::overload(
-    [&](const InsertionSuccess& success) {
-      if (left.index() == 1) return right;
-      return ranges::get<0>(left).cost > success.cost ? make_result_success(success) : left;
-    },
-    [&](const InsertionFailure& failure) {
-      return left.index() == 1 ? make_result_failure(failure.constraint) : left;
-    })));
+  // NOTE seems this approach is much faster than visit&overload
+  if (right.index() == 0) {
+    if (left.index() == 1) return right;
+    return ranges::get<0>(left).cost > ranges::get<0>(right).cost ? make_result_success(ranges::get<0>(right)) : left;
+  }
+  return left.index() == 1 ? make_result_failure(ranges::get<1>(right).constraint) : left;
 }
 
 }  // namespace vrp::algorithms::construction

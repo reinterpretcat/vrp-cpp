@@ -2,6 +2,7 @@
 
 #include "algorithms/construction/InsertionConstraint.hpp"
 #include "algorithms/construction/extensions/Constraints.hpp"
+#include "models/extensions/problem/Helpers.hpp"
 #include "utils/extensions/Variant.hpp"
 
 #include <cmath>
@@ -61,14 +62,15 @@ struct VehicleActivitySize final
   /// Checks whether proposed vehicle and job can be used within route without violating size constraints.
   HardRouteConstraint::Result hard(const InsertionRouteContext& routeCtx,
                                    const HardRouteConstraint::Job& job) const override {
-    return utils::mono_result<bool>(job.visit(ranges::overload(
+    return models::problem::analyze_job<bool>(  //
+             job,
              [&](const std::shared_ptr<const models::problem::Service>& service) {
                return canHandleSize(routeCtx, getSize(service), routeCtx.route->start);
              },
              [&](const std::shared_ptr<const models::problem::Shipment>& shipment) {
                // TODO handle shipment similar to service
                return getSize(routeCtx.route->actor->vehicle) <= getSize(shipment);
-             })))
+             })
       ? HardRouteConstraint::Result{}
       : HardRouteConstraint::Result{code_};
   }
@@ -88,9 +90,10 @@ struct VehicleActivitySize final
   /// Returns size of activity.
   static Size getSize(const models::solution::Tour::Activity& activity) {
     return activity->type == models::solution::Activity::Type::Job && activity->job.has_value()
-      ? utils::mono_result<Size>(activity->job.value().visit(ranges::overload(
+      ? models::problem::analyze_job<Size>(
+          activity->job.value(),
           [&](const std::shared_ptr<const models::problem::Service>& service) { return getSize(service); },
-          [&](const std::shared_ptr<const models::problem::Shipment>& shipment) { return getSize(shipment); })))
+          [&](const std::shared_ptr<const models::problem::Shipment>& shipment) { return getSize(shipment); })
       : Size{};
   }
 
