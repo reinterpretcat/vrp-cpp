@@ -25,7 +25,6 @@ struct InsertionHeuristic {
     auto newCtx = InsertionContext(ctx);
     auto rSelector = ResultSelector(ctx);
     while (!newCtx.jobs.empty()) {
-      auto s = std::chrono::system_clock::now();
       auto [begin, end] = JobSelector{}(newCtx);
       auto result = std::transform_reduce(pstl::execution::seq,
                                           begin,
@@ -34,8 +33,6 @@ struct InsertionHeuristic {
                                           [&](const auto& acc, const auto& result) { return rSelector(acc, result); },
                                           [&](const auto& job) { return evaluator_.evaluate(job, newCtx); });
       insert(result, newCtx);
-      auto e = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - s);
-      std::cout << "took " << e.count() << "ms\n";
     }
     return std::move(newCtx);
   }
@@ -45,12 +42,6 @@ private:
   void insert(InsertionResult& result, InsertionContext& ctx) const {
     result.visit(ranges::overload(
       [&](InsertionSuccess& success) {
-        std::cout << "left " << ctx.jobs.size() << " "
-                  << "insert " << success.activities.front().first->detail.location << " at index "
-                  << success.activities.front().second << " into route with "
-                  << success.context.route->tour.sizes().second << " activities "
-                  << success.context.route->actor->vehicle->id << " total routes: " << ctx.routes.size() << "\n";
-
         ctx.registry->use(success.context.route->actor);
         ctx.routes.insert(success.context);
 
@@ -58,13 +49,15 @@ private:
         ranges::for_each(success.activities | ranges::view::reverse,
                          [&](const auto& act) { success.context.route->tour.insert(act.first, act.second); });
 
-        // TODO restore logic once bug is found
         // fast erase job from vector
-        ctx.jobs.erase(std::find_if(ctx.jobs.begin(), ctx.jobs.end(), [&](const auto& job) {
-          const static auto getter = models::problem::get_job_id{};
-          return getter(job) == getter(success.job);
-        }));
-        // ctx.jobs.erase(ctx.jobs.end() - 1);
+        std::iter_swap(std::find_if(ctx.jobs.begin(),
+                                    ctx.jobs.end(),
+                                    [&](const auto& job) {
+                                      const static auto getter = models::problem::get_job_id{};
+                                      return getter(job) == getter(success.job);
+                                    }),
+                       ctx.jobs.end() - 1);
+        ctx.jobs.erase(ctx.jobs.end() - 1);
 
         ctx.constraint->accept(success.context);
       },
