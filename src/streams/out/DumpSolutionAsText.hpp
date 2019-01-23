@@ -1,6 +1,7 @@
 #pragma once
 
 #include "models/Solution.hpp"
+#include "models/extensions/problem/Helpers.hpp"
 
 #include <ostream>
 #include <range/v3/all.hpp>
@@ -25,9 +26,10 @@ struct dump_solution_as_text final {
 
 private:
   std::string getId(const models::problem::Job& job) const {
-    return utils::mono_result(const_cast<models::problem::Job&>(job).visit(
-      ranges::overload([](const std::shared_ptr<const models::problem::Service>& service) { return service->id; },
-                       [](const std::shared_ptr<const models::problem::Shipment>& shipment) { return shipment->id; })));
+    return models::problem::analyze_job<std::string>(
+      const_cast<models::problem::Job&>(job),
+      [](const std::shared_ptr<const models::problem::Service>& service) { return service->id; },
+      [](const std::shared_ptr<const models::problem::Shipment>& shipment) { return shipment->id; });
   }
 };
 }

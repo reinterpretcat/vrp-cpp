@@ -23,11 +23,6 @@ using namespace Catch::Generators;
 
 namespace {
 
-std::string
-operationTimeKey(const std::string& id, const Fleet& fleet) {
-  return actorSharedKey(VehicleActivityTiming::StateKey, *getActor(id, fleet));
-}
-
 Tour::Activity
 withDeparture(const Tour::Activity& activity, Timestamp departure) {
   activity->schedule.departure = departure;
@@ -57,12 +52,6 @@ SCENARIO("vehicle activity timing checks states", "[algorithms][construction][co
       .add(test_build_vehicle{}.id("v4").details(asDetails(40, {}, {0, 100})).owned());
 
     WHEN("accept route for first vehicle with three activities") {
-      auto context = InsertionRouteContext{createRoute(*fleet), std::make_shared<InsertionRouteState>()};
-      VehicleActivityTiming(fleet,
-                            std::make_shared<TestTransportCosts>(),  //
-                            std::make_shared<ActivityCosts>())
-        .accept(context);
-
       auto [vehicle, activity, time] = GENERATE(table<std::string, size_t, Timestamp>({
         {"v1", 2, 70},
         {"v2", 2, 30},
@@ -78,9 +67,15 @@ SCENARIO("vehicle activity timing checks states", "[algorithms][construction][co
         {"v4", 0, 70}  //
       }));
 
+      auto context = InsertionRouteContext{createRoute(*fleet, vehicle), std::make_shared<InsertionRouteState>()};
+      VehicleActivityTiming(fleet,
+                            std::make_shared<TestTransportCosts>(),  //
+                            std::make_shared<ActivityCosts>())
+        .accept(context);
+
       THEN("should update latest operation time") {
         auto result =
-          context.state->get<Timestamp>(operationTimeKey(vehicle, *fleet), context.route->tour.get(activity))
+          context.state->get<Timestamp>(VehicleActivityTiming::LatestArrivalKey, context.route->tour.get(activity))
             .value_or(0);
 
         REQUIRE(result == time);

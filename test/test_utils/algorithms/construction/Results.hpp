@@ -1,7 +1,7 @@
 #pragma once
 
 #include "algorithms/construction/InsertionContext.hpp"
-#include "test_utils/models/Extensions.hpp"
+#include "models/extensions/problem/Properties.hpp"
 
 #include <range/v3/all.hpp>
 
@@ -14,7 +14,7 @@ struct get_job_ids_from_all_routes {
 
     return ctx.routes | view::for_each([](const auto& r) {
              return r.route->tour.activities() |
-               view::transform([](const auto& a) { return vrp::test::get_job_id{}(*a->job); });
+               view::transform([](const auto& a) { return vrp::models::problem::get_job_id{}(*a->job); });
            }) |
       to_vector;
   }
@@ -27,7 +27,7 @@ struct get_job_ids_from_routes final {
 
     return ctx.routes | view::transform([](const auto& r) {
              return r.route->tour.activities() |
-               view::transform([](const auto& a) { return vrp::test::get_job_id{}(*a->job); }) | to_vector;
+               view::transform([](const auto& a) { return vrp::models::problem::get_job_id{}(*a->job); }) | to_vector;
            }) |
       to_vector;
   }
@@ -38,16 +38,17 @@ struct get_job_ids_from_jobs final {
   std::vector<std::string> operator()(const std::vector<models::problem::Job>& jobs) const {
     using namespace ranges;
 
-    return view::all(jobs) | view::transform([](const auto& j) { return vrp::test::get_job_id{}(j); }) | to_vector |
-      action::sort;
+    return view::all(jobs) | view::transform([](const auto& j) { return vrp::models::problem::get_job_id{}(j); }) |
+      to_vector | action::sort;
   }
 
   std::vector<std::string> operator()(
     const std::map<models::problem::Job, int, models::problem::compare_jobs>& jobs) const {
     using namespace ranges;
 
-    return view::all(jobs) | view::transform([](const auto& pair) { return vrp::test::get_job_id{}(pair.first); }) |
-      to_vector | action::sort;
+    return view::all(jobs) |
+      view::transform([](const auto& pair) { return vrp::models::problem::get_job_id{}(pair.first); }) | to_vector |
+      action::sort;
   }
 };
 }

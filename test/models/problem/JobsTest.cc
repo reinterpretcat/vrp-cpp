@@ -1,7 +1,6 @@
 #include "models/problem/Jobs.hpp"
 
 #include "models/extensions/problem/Factories.hpp"
-#include "test_utils/models/Extensions.hpp"
 #include "test_utils/models/Factories.hpp"
 
 #include <catch/catch.hpp>

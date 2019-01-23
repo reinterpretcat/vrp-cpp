@@ -12,7 +12,6 @@ using namespace vrp::models;
 using namespace vrp::models::costs;
 using namespace vrp::models::problem;
 using namespace vrp::models::solution;
-using namespace vrp::utils;
 
 namespace {
 

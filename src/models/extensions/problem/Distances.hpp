@@ -1,8 +1,8 @@
 #pragma once
 
 #include "models/costs/TransportCosts.hpp"
+#include "models/extensions/problem/Helpers.hpp"
 #include "models/problem/Job.hpp"
-#include "utils/extensions/Variant.hpp"
 
 #include <range/v3/all.hpp>
 
@@ -16,23 +16,26 @@ struct job_distance final {
 
   common::Distance operator()(const Job& lhs, const Job& rhs) const {
     using namespace ranges;
+    auto left = getLocations(lhs) | to_vector;
+    auto right = getLocations(rhs) | to_vector;
 
-    static const auto fun = ranges::overload(
+    return ranges::min(view::cartesian_product(left, right) | view::transform([&](const auto& tuple) {
+                         return transport.distance(profile, std::get<0>(tuple), std::get<1>(tuple), departure);
+                       }));
+  }
+
+private:
+  ranges::any_view<common::Location> getLocations(const Job& job) const {
+    return analyze_job<ranges::any_view<common::Location>>(
+      job,
       [](const std::shared_ptr<const Service>& service) -> ranges::any_view<common::Location> {
-        return view::for_each(service->details, [](const auto& d) {
+        return ranges::view::for_each(service->details, [](const auto& d) {
           return ranges::yield(d.location.has_value() ? d.location.value() : 0);
         });
       },
       [](const std::shared_ptr<const Shipment>& shipment) -> ranges::any_view<common::Location> {
         throw std::domain_error("not implemented");
       });
-
-    auto left = utils::mono_result(const_cast<problem::Job&>(lhs).visit(fun)) | to_vector;
-    auto right = utils::mono_result(const_cast<problem::Job&>(rhs).visit(fun)) | to_vector;
-
-    return ranges::min(view::cartesian_product(left, right) | view::transform([&](const auto& tuple) {
-                         return transport.distance(profile, std::get<0>(tuple), std::get<1>(tuple), departure);
-                       }));
   }
 };
 }

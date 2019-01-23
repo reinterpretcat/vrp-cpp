@@ -3,7 +3,6 @@
 #include "algorithms/construction/constraints/VehicleActivitySize.hpp"
 #include "models/Problem.hpp"
 #include "models/Solution.hpp"
-#include "test_utils/models/Extensions.hpp"
 
 #include <catch/catch.hpp>
 #include <iostream>
@@ -44,10 +43,10 @@ struct validate_solution final {
 
 private:
   void checkIds(const models::Problem& problem, const models::Solution& solution) const {
-    auto ids =
-      solution.routes | ranges::view::for_each([](const auto& r) {
-        return r->tour.activities() | ranges::view::transform([](const auto& a) { return get_job_id{}(*a->job); });
-      }) |
+    auto ids = solution.routes | ranges::view::for_each([](const auto& r) {
+                 return r->tour.activities() |
+                   ranges::view::transform([](const auto& a) { return models::problem::get_job_id{}(*a->job); });
+               }) |
       ranges::to_vector | ranges::action::sort;
 
     if (ids.size() + (AllowUnassigned ? solution.unassigned.size() : 0) != problem.jobs->size())
@@ -116,7 +115,7 @@ private:
   std::string getId(const models::solution::Tour::Activity& activity) const {
     if (activity->type == models::solution::Activity::Type::Start) return "start";
     if (activity->type == models::solution::Activity::Type::End) return "end";
-    return get_job_id{}(*activity->job);
+    return models::problem::get_job_id{}(*activity->job);
   }
 
   void fail(const std::string& msg) const {
