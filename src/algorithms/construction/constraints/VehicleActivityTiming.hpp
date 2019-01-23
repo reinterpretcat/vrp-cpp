@@ -8,6 +8,7 @@
 #include "models/common/Location.hpp"
 #include "models/common/Timestamp.hpp"
 #include "models/costs/ActivityCosts.hpp"
+#include "models/extensions/solution/Comparators.hpp"
 #include "models/problem/Fleet.hpp"
 
 #include <algorithm>
@@ -24,7 +25,7 @@ struct VehicleActivityTiming final
   , public HardActivityConstraint
   , public SoftRouteConstraint
   , public SoftActivityConstraint {
-  inline static const std::string StateKey = "op_time";
+  inline static const std::string LatestArrivalKey = "la_time";
   inline static const std::string WaitingKey = "fw_time";
 
   VehicleActivityTiming(const std::shared_ptr<const models::problem::Fleet>& fleet,
@@ -32,17 +33,8 @@ struct VehicleActivityTiming final
                         const std::shared_ptr<const models::costs::ActivityCosts>& activity,
                         int code = 1) :
     code_(code),
-    keys_(),
     transport_(transport),
-    activity_(activity) {
-    ranges::for_each(empty_actors(*fleet), [&](const auto& a) {
-      auto key = actorSharedKey(StateKey, a);
-      if (keys_.find(key) == keys_.end()) {
-        keys_[key] = std::make_pair(a.detail.time.end, a.detail.end.value_or(a.detail.start));
-      }
-    });
-    assert(!keys_.empty());
-  }
+    activity_(activity) {}
 
   /// Accept route and updates its insertion state.
   void accept(InsertionRouteContext& context) const override {
@@ -67,37 +59,30 @@ struct VehicleActivityTiming final
         return std::pair{a->detail.location, a->schedule.departure};
       });
 
-    // update latest possible arrivals for each unique actor type
-    ranges::for_each(view::all(keys_), [&](const auto& pair) {
-      const auto& stateKey = pair.first;
-      auto init = std::tuple{pair.second.first, pair.second.second, Timestamp{0}};
+    // update latest arrival and waiting states
+    auto init = std::tuple{actor.detail.time.end, actor.detail.end.value_or(actor.detail.start), Timestamp{0}};
+    ranges::accumulate(view::reverse(context.route->tour.activities()), init, [&](const auto& acc, const auto& act) {
+      const auto& [endTime, prevLoc, waiting] = acc;
 
-      ranges::accumulate(view::reverse(context.route->tour.activities()), init, [&](const auto& acc, const auto& act) {
-        const auto& [endTime, prevLoc, waiting] = acc;
+      auto potentialLatest = endTime -
+        transport_->duration(actor.vehicle->profile, act->detail.location, prevLoc, endTime) -
+        activity_->duration(actor, *act, endTime);
+      auto latestArrivalTime = std::min(act->detail.time.end, potentialLatest);
 
-        auto potentialLatest = endTime -
-          transport_->duration(actor.vehicle->profile, act->detail.location, prevLoc, endTime) -
-          activity_->duration(actor, *act, endTime);
-        auto latestArrivalTime = std::min(act->detail.time.end, potentialLatest);
+      auto futureWaiting = waiting + std::max(act->detail.time.start - act->schedule.arrival, Timestamp{0});
 
-        auto futureWaiting = waiting + std::max(act->detail.time.start - act->schedule.arrival, Timestamp{0});
+      context.state->put<Timestamp>(LatestArrivalKey, act, latestArrivalTime);
+      context.state->put<Timestamp>(WaitingKey, act, futureWaiting);
 
-        if (latestArrivalTime < act->detail.time.start) context.state->put<bool>(stateKey, true);
-
-        context.state->put<Timestamp>(stateKey, act, latestArrivalTime);
-        context.state->put<Timestamp>(WaitingKey, act, futureWaiting);
-
-        return std::make_tuple(latestArrivalTime, act->detail.location, futureWaiting);
-      });
+      return std::make_tuple(latestArrivalTime, act->detail.location, futureWaiting);
     });
   }
 
   /// Checks whether proposed vehicle can be used within route without violating time windows.
   HardRouteConstraint::Result hard(const InsertionRouteContext& routeCtx,
                                    const HardRouteConstraint::Job&) const override {
-    return routeCtx.state->get<bool>(actorSharedKey(StateKey, *routeCtx.route->actor)).value_or(false)
-      ? HardRouteConstraint::Result{code_}
-      : HardRouteConstraint::Result{};
+    // TODO check that job's and actor's TWs have intersection
+    return HardRouteConstraint::Result{};
   }
 
   /// Checks whether proposed activity insertion doesn't violate time windows.
@@ -119,7 +104,7 @@ struct VehicleActivityTiming final
                                                                       : next.detail.location;
     auto latestArrTimeAtNextAct = next.type == solution::Activity::Type::End
       ? actor.detail.time.end
-      : routeCtx.state->get<Timestamp>(actorSharedKey(StateKey, actor), actCtx.next).value_or(next.detail.time.end);
+      : routeCtx.state->get<Timestamp>(LatestArrivalKey, actCtx.next).value_or(next.detail.time.end);
 
     if (latestArrival < prev.detail.time.start || latestArrival < target.detail.time.start ||
         latestArrival < next.detail.time.start)
@@ -188,8 +173,7 @@ struct VehicleActivityTiming final
               next.type == Activity::Type::End ? *route.end : next,
               prev.type == Activity::Type::Start ? route.start->schedule.departure : prev.schedule.departure);
 
-    auto waitingTime =
-      routeCtx.state->get<Timestamp>(actorSharedKey(WaitingKey, actor), actCtx.next).value_or(Timestamp{0});
+    auto waitingTime = routeCtx.state->get<Timestamp>(WaitingKey, actCtx.next).value_or(Timestamp{0});
 
     double waitingCost =
       std::min(waitingTime, std::max(Timestamp{0}, depTimeRight - depTimeOld)) * actor.vehicle->costs.perWaitingTime;
@@ -219,7 +203,6 @@ private:
   }
 
   int code_;
-  std::unordered_map<std::string, std::pair<models::common::Timestamp, models::common::Location>> keys_;
   std::shared_ptr<const models::costs::TransportCosts> transport_;
   std::shared_ptr<const models::costs::ActivityCosts> activity_;
 };
