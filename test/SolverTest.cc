@@ -5,7 +5,6 @@
 #include "test_utils/streams/SolomonStreams.hpp"
 
 #include <catch/catch.hpp>
-#include <fstream>
 
 using namespace vrp::algorithms;
 using namespace vrp::algorithms::construction;
@@ -22,8 +21,7 @@ SCENARIO("Solver can solve c101 problem greedy acceptance and default RaR", "[so
                        vrp::test::log_and_validate>{};
 
   GIVEN("C101 problem with 25 customers") {
-    auto stream =
-      std::fstream("/home/builuk/playground/vrp/resources/data/solomon/benchmarks/c101.100.txt", std::ios::in);
+    auto stream = create_c101_25_problem_stream{}();
     auto problem = read_solomon_type<cartesian_distance>{}.operator()(stream);
 
     WHEN("run solver") {
@@ -31,7 +29,7 @@ SCENARIO("Solver can solve c101 problem greedy acceptance and default RaR", "[so
 
       THEN("has valid solution") {
         REQUIRE(estimatedSolution.first->unassigned.empty());
-        // REQUIRE(estimatedSolution.first->routes.size() == 3);
+        REQUIRE(estimatedSolution.first->routes.size() == 3);
       }
     }
   }
