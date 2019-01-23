@@ -3,7 +3,6 @@
 #include "algorithms/construction/InsertionConstraint.hpp"
 #include "algorithms/construction/extensions/Constraints.hpp"
 #include "models/extensions/problem/Helpers.hpp"
-#include "utils/extensions/Variant.hpp"
 
 #include <cmath>
 #include <string>

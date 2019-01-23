@@ -6,7 +6,6 @@
 #include "models/solution/Actor.hpp"
 #include "models/solution/Route.hpp"
 #include "models/solution/Tour.hpp"
-#include "utils/extensions/Variant.hpp"
 
 #include <memory>
 #include <range/v3/utility/variant.hpp>

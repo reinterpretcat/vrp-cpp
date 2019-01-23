@@ -10,7 +10,6 @@
 #include "models/extensions/solution/Factories.hpp"
 #include "models/problem/Fleet.hpp"
 #include "models/solution/Registry.hpp"
-#include "utils/extensions/Variant.hpp"
 
 #include <chrono>
 #include <iostream>

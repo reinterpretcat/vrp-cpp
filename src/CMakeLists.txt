@@ -101,7 +101,6 @@ set(SOURCE_FILES
         utils/Measure.hpp
         utils/extensions/Hash.hpp
         utils/extensions/Ranges.hpp
-        utils/extensions/Variant.hpp
 
         Solver.hpp
 
