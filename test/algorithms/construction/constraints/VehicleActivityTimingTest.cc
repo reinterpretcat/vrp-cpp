@@ -27,13 +27,19 @@ std::string
 operationTimeKey(const std::string& id, const Fleet& fleet) {
   return actorSharedKey(VehicleActivityTiming::StateKey, *getActor(id, fleet));
 }
+
+Tour::Activity
+withDeparture(const Tour::Activity& activity, Timestamp departure) {
+  activity->schedule.departure = departure;
+  return activity;
+}
 }
 
 namespace vrp::test {
 
 SCENARIO("vehicle activity timing checks states", "[algorithms][construction][constraints]") {
-  auto createRoute = [](const auto& fleet) {
-    auto route = test_build_route{}.actor(getActor("v1", fleet)).shared();
+  auto createRoute = [](const auto& fleet, const std::string& vehicle = "v1") {
+    auto route = test_build_route{}.actor(getActor(vehicle, fleet)).shared();
     route->tour
       .add(test_build_activity{}.location(10).shared())  //
       .add(test_build_activity{}.location(20).shared())  //
@@ -93,12 +99,6 @@ SCENARIO("vehicle activity timing checks states", "[algorithms][construction][co
       .add(test_build_vehicle{}.id("v6").details(asDetails(0, {40}, {0, 40})).owned());
 
     WHEN("accept and checks route for first vehicle with three activities") {
-      auto context = InsertionRouteContext{createRoute(*fleet), std::make_shared<InsertionRouteState>()};
-      auto timing = VehicleActivityTiming(fleet,
-                                          std::make_shared<TestTransportCosts>(),  //
-                                          std::make_shared<ActivityCosts>());
-      timing.accept(context);
-
       auto [vehicle, location, departure, prev, next, expected] =
         GENERATE(table<std::string, Location, Timestamp, int, int, HardActivityConstraint::Result>(
           {{"v1", 50, 30, 2, EndActivityIndex, success()},  //
@@ -113,10 +113,16 @@ SCENARIO("vehicle activity timing checks states", "[algorithms][construction][co
            {"v6", 40, 10, 0, 1, stop(1)},
            {"v6", 40, 30, 2, EndActivityIndex, success()}}));
 
+      auto context = InsertionRouteContext{createRoute(*fleet, vehicle), std::make_shared<InsertionRouteState>()};
+      auto timing = VehicleActivityTiming(fleet,
+                                          std::make_shared<TestTransportCosts>(),  //
+                                          std::make_shared<ActivityCosts>());
+      timing.accept(context);
+
       THEN("returns fulfilled for insertion at the end") {
         auto routeCtx = test_build_insertion_route_context{}.route(context.route).state(context.state).owned();
         auto actCtx = test_build_insertion_activity_context{}
-                        .prev(getActivity(routeCtx, prev))
+                        .prev(withDeparture(getActivity(routeCtx, prev), departure))
                         .target(test_build_activity{}.location(location).shared())
                         .next(getActivity(routeCtx, next))
                         .owned();

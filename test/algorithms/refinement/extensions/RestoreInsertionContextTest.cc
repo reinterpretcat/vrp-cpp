@@ -23,8 +23,9 @@ SCENARIO("restore insertion context skips empty routes", "[algorithms][refinemen
   auto registry = std::make_shared<Registry>(fleet);
 
   GIVEN("solution with empty and non empty tours") {
-    auto actor1 = getActor("v1", fleet);
-    auto actor2 = getActor("v2", fleet);
+    auto actors = registry->available() | ranges::to_vector;
+    auto actor1 = actors.front();
+    auto actor2 = actors.back();
     registry->use(actor1);
     registry->use(actor2);
 
@@ -43,13 +44,13 @@ SCENARIO("restore insertion context skips empty routes", "[algorithms][refinemen
 
       THEN("only non empty tour is left") {
         REQUIRE(insertionCtx.routes.size() == 1);
-        REQUIRE(insertionCtx.routes.begin()->route->actor->vehicle->id == "v2");
+        REQUIRE(insertionCtx.routes.begin()->route->actor == actor2);
       }
 
       THEN("empty route's actor is released in registry") {
-        auto actors = insertionCtx.registry->available() | ranges::to_vector;
-        REQUIRE(actors.size() == 1);
-        REQUIRE(actors.front()->vehicle->id == "v1");
+        auto available = insertionCtx.registry->available() | ranges::to_vector;
+        REQUIRE(available.size() == 1);
+        REQUIRE(available.front() == actor1);
       }
     }
   }

@@ -22,10 +22,12 @@ SCENARIO("remove empty tours works", "[algorithms][refinement][extensions]") {
   auto registry = std::make_shared<Registry>(fleet);
 
   GIVEN("empty and non empty routes") {
-    auto actor1 = getActor("v1", fleet);
-    auto actor2 = getActor("v2", fleet);
+    auto actors = registry->available() | ranges::to_vector;
+    auto actor1 = actors.front();
+    auto actor2 = actors.back();
     registry->use(actor1);
     registry->use(actor2);
+
 
     auto route1 = test_build_route{}.actor(actor1).shared();
     auto route2 = test_build_route{}.actor(actor2).shared();
@@ -38,13 +40,13 @@ SCENARIO("remove empty tours works", "[algorithms][refinement][extensions]") {
 
       THEN("only non empty tour is left") {
         REQUIRE(ctx.routes.size() == 1);
-        REQUIRE(ctx.routes.begin()->route->actor->vehicle->id == "v2");
+        REQUIRE(ctx.routes.begin()->route->actor == actor2);
       }
 
       THEN("empty route's actor is released in registry") {
-        auto actors = ctx.registry->available() | ranges::to_vector;
-        REQUIRE(actors.size() == 1);
-        REQUIRE(actors.front()->vehicle->id == "v1");
+        auto available = ctx.registry->available() | ranges::to_vector;
+        REQUIRE(available.size() == 1);
+        REQUIRE(available.front() == actor1);
       }
     }
   }
