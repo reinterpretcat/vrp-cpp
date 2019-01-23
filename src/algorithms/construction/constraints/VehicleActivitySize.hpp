@@ -11,8 +11,8 @@
 namespace vrp::algorithms::construction {
 
 /// Checks whether vehicle can handle activity of given size.
-/// Assume that "negative" size is delivery (unloaded from vehicle),
-/// positive is pickup (loaded to vehicle).
+/// Size can be interpreted as vehicle capacity change after visiting specific activity.
+/// So, "negative" size is delivery (unloaded from vehicle), positive is pickup (loaded to vehicle).
 template<typename Size>
 struct VehicleActivitySize final
   : public HardRouteConstraint
@@ -39,7 +39,7 @@ struct VehicleActivitySize final
     });
 
     // determine actual load at each activity and max load in past
-    ranges::accumulate(tour, std::pair<Size, Size>{start, start}, [&](const auto& acc, const auto& a) {
+    auto end = ranges::accumulate(tour, std::pair<Size, Size>{start, start}, [&](const auto& acc, const auto& a) {
       auto size = getSize(a);
       auto current = acc.first + size;
       auto max = std::max(acc.second, current);
@@ -51,7 +51,7 @@ struct VehicleActivitySize final
     });
 
     // determine max load in future
-    ranges::accumulate(tour | view::reverse, Size{}, [&](const auto& acc, const auto& a) {
+    ranges::accumulate(tour | view::reverse, end.first, [&](const auto& acc, const auto& a) {
       auto max = std::max(acc, context.state->get<Size>(StateKeyCurrent, a).value());
       context.state->put<Size>(StateKeyMaxFuture, a, max);
       return max;
@@ -63,9 +63,10 @@ struct VehicleActivitySize final
                                    const HardRouteConstraint::Job& job) const override {
     return utils::mono_result<bool>(job.visit(ranges::overload(
              [&](const std::shared_ptr<const models::problem::Service>& service) {
-               return getSize(service) <= getSize(routeCtx.route->actor->vehicle);
+               return canHandleSize(routeCtx, getSize(service), routeCtx.route->start);
              },
              [&](const std::shared_ptr<const models::problem::Shipment>& shipment) {
+               // TODO handle shipment similar to service
                return getSize(routeCtx.route->actor->vehicle) <= getSize(shipment);
              })))
       ? HardRouteConstraint::Result{}
@@ -75,11 +76,7 @@ struct VehicleActivitySize final
   /// Checks whether proposed activity insertion doesn't violate size constraints.
   HardActivityConstraint::Result hard(const InsertionRouteContext& rCtx,
                                       const InsertionActivityContext& aCtx) const override {
-    auto size = getSize(aCtx.target);
-    auto base = rCtx.state->get<Size>(size < 0 ? StateKeyMaxPast : StateKeyMaxFuture, aCtx.prev).value_or(Size{});
-    auto value = size < 0 ? base - size : base + size;
-
-    return value <= getSize(rCtx.route->actor->vehicle) ? success() : stop(code_);
+    return canHandleSize(rCtx, getSize(aCtx.target), aCtx.prev) ? success() : stop(code_);
   }
 
   /// Returns size of an entity (vehicle or job).
@@ -99,5 +96,14 @@ struct VehicleActivitySize final
 
 private:
   int code_;
+
+  /// Estimates whether given size can be loaded into vehicle after activity in tour.
+  bool canHandleSize(const InsertionRouteContext& routeCtx,
+                     const Size& size,
+                     const models::solution::Tour::Activity& pivot) const {
+    auto base = routeCtx.state->get<Size>(size < 0 ? StateKeyMaxPast : StateKeyMaxFuture, pivot).value_or(Size{});
+    auto value = size < 0 ? base - size : base + size;
+    return value <= getSize(routeCtx.route->actor->vehicle);
+  }
 };
 }
