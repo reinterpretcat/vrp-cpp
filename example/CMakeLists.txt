@@ -15,6 +15,9 @@ set(SOURCE_FILES
 
         )
 
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2")
+#set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -O2")
+
 add_executable(${LIBRARY_EXAMPLE}
         ${SOURCE_FILES}
         )

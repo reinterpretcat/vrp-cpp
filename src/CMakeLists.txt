@@ -11,7 +11,6 @@ set(SOURCE_FILES
         algorithms/construction/extensions/Constraints.hpp
         algorithms/construction/extensions/Fleets.hpp
         algorithms/construction/extensions/Insertions.hpp
-        algorithms/construction/extensions/States.hpp
 
         algorithms/construction/evaluators/JobInsertionEvaluator.hpp
         algorithms/construction/evaluators/ServiceInsertionEvaluator.hpp
