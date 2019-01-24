@@ -4,17 +4,19 @@
 #include "models/solution/Activity.hpp"
 #include "models/solution/Actor.hpp"
 #include "models/solution/Tour.hpp"
+#include "utils/extensions/Hash.hpp"
 
 #include <memory>
 #include <utility>
 
 namespace vrp::models::solution {
 
-/// Compares pairs of activity and key.
-struct compare_activities_with_key final {
-  bool operator()(const std::pair<Tour::Activity, std::string>& lhs,
-                  const std::pair<Tour::Activity, std::string>& rhs) const {
-    return lhs.second == rhs.second ? lhs.first.get() < rhs.first.get() : lhs.second < rhs.second;
+/// Creates a hash from activity and key.
+struct hash_activities_with_key final {
+  std::size_t operator()(const std::pair<Tour::Activity, std::string>& item) const {
+    auto hash1 = std::hash<Tour::Activity>{}(item.first);
+    auto hash2 = std::hash<std::string>{}(item.second);
+    return hash1 | utils::hash_combine<size_t>{hash2};
   }
 };
 

@@ -44,9 +44,10 @@ struct InsertionRouteState final {
   // endregion
 
 private:
-  using ActivityComparator = models::solution::compare_activities_with_key;
+  using ActivityHasher = models::solution::hash_activities_with_key;
+  using ActivityWithKey = std::pair<models::solution::Tour::Activity, std::string>;
 
   std::unordered_map<std::string, std::any> routeStates_;
-  std::map<std::pair<models::solution::Tour::Activity, std::string>, std::any, ActivityComparator> activityStates_;
+  std::unordered_map<ActivityWithKey, std::any, ActivityHasher> activityStates_;
 };
 }
