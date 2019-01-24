@@ -8,8 +8,7 @@
 #include "models/common/TimeWindow.hpp"
 #include "models/costs/ActivityCosts.hpp"
 #include "models/costs/TransportCosts.hpp"
-#include "models/extensions/problem/Factories.hpp"
-#include "models/extensions/solution/Factories.hpp"
+#include "models/extensions/problem/Helpers.hpp"
 #include "models/problem/Service.hpp"
 #include "utils/extensions/Ranges.hpp"
 
@@ -47,10 +46,11 @@ private:
                           const InsertionProgress& progress) const {
     using namespace ranges;
     using namespace vrp::models;
+    using ActivityType = solution::Activity::Type;
 
     const auto& route = *ctx.route;
 
-    auto activity = models::solution::build_activity{}.job(job).shared();
+    auto activity = std::make_shared<solution::Activity>(solution::Activity{ActivityType::Job, {}, {}, job});
 
     // calculate additional costs on route level.
     auto routeCosts = constraint.soft(ctx, job);

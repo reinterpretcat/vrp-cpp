@@ -11,18 +11,6 @@
 
 namespace vrp::models::problem {
 
-/// Creates job from service.
-inline Job
-as_job(const std::shared_ptr<const Service>& service) {
-  return {ranges::emplaced_index<0>, service};
-}
-
-/// Creates job from shipment.
-inline Job
-as_job(const std::shared_ptr<const Shipment>& shipment) {
-  return {ranges::emplaced_index<1>, shipment};
-}
-
 /// A helper class to create service job.
 class build_service {
 public:
