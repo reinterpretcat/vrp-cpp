@@ -2,7 +2,7 @@
 
 #include "algorithms/construction/InsertionContext.hpp"
 #include "algorithms/construction/InsertionResult.hpp"
-#include "models/extensions/problem/Properties.hpp"
+#include "models/extensions/problem/Helpers.hpp"
 
 #include <algorithm>
 #include <chrono>

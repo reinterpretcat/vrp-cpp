@@ -1,6 +1,6 @@
 #pragma once
 
-#include "models/extensions/problem/Properties.hpp"
+#include "models/extensions/problem/Helpers.hpp"
 
 #include <memory>
 

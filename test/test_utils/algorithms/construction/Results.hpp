@@ -1,7 +1,7 @@
 #pragma once
 
 #include "algorithms/construction/InsertionContext.hpp"
-#include "models/extensions/problem/Properties.hpp"
+#include "models/extensions/problem/Helpers.hpp"
 
 #include <range/v3/all.hpp>
 
