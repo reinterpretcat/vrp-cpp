@@ -12,7 +12,7 @@ set(SOURCE_FILES
         algorithms/construction/extensions/Fleets.hpp
         algorithms/construction/extensions/Insertions.hpp
 
-        algorithms/construction/evaluators/JobInsertionEvaluator.hpp
+        algorithms/construction/evaluators/EvaluationContext.hpp
         algorithms/construction/evaluators/ServiceInsertionEvaluator.hpp
         algorithms/construction/evaluators/ShipmentInsertionEvaluator.hpp
 

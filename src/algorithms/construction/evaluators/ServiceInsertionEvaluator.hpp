@@ -3,11 +3,9 @@
 #include "algorithms/construction/InsertionActivityContext.hpp"
 #include "algorithms/construction/InsertionConstraint.hpp"
 #include "algorithms/construction/InsertionResult.hpp"
-#include "algorithms/construction/evaluators/JobInsertionEvaluator.hpp"
+#include "algorithms/construction/evaluators/EvaluationContext.hpp"
 #include "models/common/Cost.hpp"
 #include "models/common/TimeWindow.hpp"
-#include "models/costs/ActivityCosts.hpp"
-#include "models/costs/TransportCosts.hpp"
 #include "models/extensions/problem/Helpers.hpp"
 #include "models/problem/Service.hpp"
 #include "utils/extensions/Ranges.hpp"
@@ -19,7 +17,7 @@
 
 namespace vrp::algorithms::construction {
 
-struct ServiceInsertionEvaluator final : private JobInsertionEvaluator {
+struct ServiceInsertionEvaluator final {
   /// Evaluates service insertion possibility.
   InsertionResult evaluate(const std::shared_ptr<const models::problem::Service>& service,
                            const InsertionRouteContext& ctx,
@@ -36,7 +34,6 @@ struct ServiceInsertionEvaluator final : private JobInsertionEvaluator {
 
 private:
   using Activity = models::solution::Tour::Activity;
-  using EvaluationContext = JobInsertionEvaluator::EvaluationContext;
 
   /// Analyzes tour trying to find best insertion index.
   InsertionResult analyze(const models::problem::Job& job,
@@ -49,7 +46,6 @@ private:
     using ActivityType = solution::Activity::Type;
 
     const auto& route = *ctx.route;
-
     auto activity = std::make_shared<solution::Activity>(solution::Activity{ActivityType::Job, {}, {}, job});
 
     // calculate additional costs on route level.
@@ -72,10 +68,7 @@ private:
         // TODO check whether tw is empty
         // 3. analyze detail time windows
         return utils::accumulate_while(view::all(detail.times), in1, pred, [&](const auto& in2, const auto& time) {
-          activity->detail.time = time;
-          activity->detail.duration = detail.duration;
-          activity->detail.location = detail.location.value_or(actCtx.prev->detail.location);
-
+          activity->detail = {detail.location.value_or(actCtx.prev->detail.location), detail.duration, time};
           // check hard activity constraint
           auto status = constraint.hard(ctx, actCtx);
           if (status.has_value()) return EvaluationContext::fail(status.value(), in2);
@@ -90,7 +83,9 @@ private:
 
     activity->detail = result.detail;
 
-    return result.isSuccess() ? success(result, ctx, activity) : failure(result);
+    return result.isSuccess()
+      ? make_result_success({result.cost, activity->job.value(), {{activity, result.index}}, ctx})
+      : make_result_failure(result.code);
   }
 };
 
