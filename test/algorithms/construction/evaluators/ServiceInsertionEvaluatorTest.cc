@@ -66,17 +66,6 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
     auto route = test_build_route{}.owned();
     auto evaluator = ServiceInsertionEvaluator{};
 
-    WHEN("service has failed constraint") {
-      constraint->addHardRoute([](const auto&, const auto&) { return HardRouteConstraint::Result{42}; });
-      auto result = evaluator.evaluate(
-        ranges::get<0>(DefaultService), test_build_insertion_route_context{}.owned(), *constraint, progress);
-
-      THEN("returns insertion failure with proper code") {
-        REQUIRE(result.index() == 1);
-        REQUIRE(ranges::get<1>(result).constraint == 42);
-      }
-    }
-
     WHEN("service is ok") {
       auto result = evaluator.evaluate(
         ranges::get<0>(DefaultService), test_build_insertion_route_context{}.owned(), *constraint, progress);

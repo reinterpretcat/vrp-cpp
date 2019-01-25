@@ -44,6 +44,11 @@ struct InsertionEvaluator final {
             .completeness(ctx.progress.completeness)
             .owned();
 
+        // check hard constraints on route level.
+        auto error = ctx.constraint->hard(routeCtx, job);
+        if (error.has_value())
+          return get_best_result(acc, {ranges::emplaced_index<1>, InsertionFailure{error.value()}});
+
         // evaluate its insertion cost
         auto result = models::problem::analyze_job<InsertionResult>(
           job,

@@ -62,4 +62,25 @@ SCENARIO("insertion evaluator can handle service insertion with time constraints
     }
   }
 }
+
+SCENARIO("insertion evaluator can handle service insertion with violation", "[algorithms][construction][insertion]") {
+  GIVEN("failed constraint") {
+    auto constraint = std::make_shared<InsertionConstraint>();
+    constraint->addHardRoute([](const auto&, const auto&) { return HardRouteConstraint::Result{42}; });
+    auto evaluator = InsertionEvaluator{};
+    auto fleet = std::make_shared<Fleet>();
+    (*fleet).add(test_build_driver{}.owned()).add(test_build_vehicle{}.id("v1").details({{0, {}, {0, 100}}}).owned());
+
+    WHEN("service is evaluated") {
+      auto result = evaluator.evaluate(
+        DefaultService,
+        test_build_insertion_context{}.constraint(constraint).registry(std::make_shared<Registry>(*fleet)).owned());
+
+      THEN("returns insertion failure with proper code") {
+        REQUIRE(result.index() == 1);
+        REQUIRE(ranges::get<1>(result).constraint == 42);
+      }
+    }
+  }
+}
 }

@@ -23,30 +23,13 @@ struct ServiceInsertionEvaluator final {
                            const InsertionRouteContext& ctx,
                            const InsertionConstraint& constraint,
                            const InsertionProgress& progress) const {
-    auto job = models::problem::as_job(service);
-
-    // check hard constraints on route level.
-    auto error = constraint.hard(ctx, job);
-    if (error.has_value()) return {ranges::emplaced_index<1>, InsertionFailure{error.value()}};
-
-    return analyze(job, *service, ctx, constraint, progress);
-  }
-
-private:
-  using Activity = models::solution::Tour::Activity;
-
-  /// Analyzes tour trying to find best insertion index.
-  InsertionResult analyze(const models::problem::Job& job,
-                          const models::problem::Service& service,
-                          const InsertionRouteContext& ctx,
-                          const InsertionConstraint& constraint,
-                          const InsertionProgress& progress) const {
     using namespace ranges;
     using namespace vrp::models;
     using ActivityType = solution::Activity::Type;
 
-    const auto& route = *ctx.route;
+    auto job = models::problem::as_job(service);
     auto activity = std::make_shared<solution::Activity>(solution::Activity{ActivityType::Job, {}, {}, job});
+    const auto& route = *ctx.route;
 
     // calculate additional costs on route level.
     auto routeCosts = constraint.soft(ctx, job);
@@ -64,7 +47,7 @@ private:
       auto actCtx = InsertionActivityContext{index, prev, activity, next};
 
       // 2. analyze service details
-      return utils::accumulate_while(view::all(service.details), out, pred, [&](const auto& in1, const auto& detail) {
+      return utils::accumulate_while(view::all(service->details), out, pred, [&](const auto& in1, const auto& detail) {
         // TODO check whether tw is empty
         // 3. analyze detail time windows
         return utils::accumulate_while(view::all(detail.times), in1, pred, [&](const auto& in2, const auto& time) {
