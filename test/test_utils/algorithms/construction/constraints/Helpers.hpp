@@ -25,17 +25,17 @@ getActor(const std::string& id, const models::problem::Fleet& fleet) {
     models::solution::Actor{vehicle, DefaultDriver, detail.start, detail.end, detail.time});
 }
 
-inline models::problem::VehicleDetail
+inline models::problem::Vehicle::Detail
 asDetail(const models::common::Location start,
          const std::optional<models::common::Location>& end,
          const models::common::TimeWindow time) {
-  return models::problem::VehicleDetail{start, end, time};
+  return models::problem::Vehicle::Detail{start, end, time};
 }
 
-inline std::vector<models::problem::VehicleDetail>
+inline std::vector<models::problem::Vehicle::Detail>
 asDetails(const models::common::Location start,
           const std::optional<models::common::Location>& end,
           const models::common::TimeWindow time) {
-  return {models::problem::VehicleDetail{start, end, time}};
+  return {models::problem::Vehicle::Detail{start, end, time}};
 }
 }

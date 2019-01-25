@@ -10,11 +10,11 @@ using namespace vrp::models::problem;
 using namespace vrp::models::common;
 using namespace Catch::Generators;
 
-using JobDetails = std::vector<JobDetail>;
+using JobDetails = std::vector<Service::Detail>;
 
 namespace {
 
-JobDetail
+Service::Detail
 jobDetail(const std::optional<Location>& location) {
   return {location, 0, {vrp::test::DefaultTimeWindow}};
 }

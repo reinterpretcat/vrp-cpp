@@ -1,6 +1,5 @@
 #include "algorithms/construction/constraints/VehicleActivitySize.hpp"
 
-#include "algorithms/construction/extensions/States.hpp"
 #include "models/costs/ActivityCosts.hpp"
 #include "models/problem/Fleet.hpp"
 #include "test_utils/algorithms/construction/Contexts.hpp"
@@ -33,7 +32,7 @@ Tour::Activity
 activity(const std::string& id, Timestamp departure, int size) {
   return test_build_activity{}
     .schedule({0, departure})
-    .job(as_job(test_build_service{}.id(id).dimens({{"size", size}}).shared()))
+    .job(as_job(test_build_service{}.dimens({{"size", size}, {"id", id}}).shared()))
     .shared();
 }
 }
@@ -78,7 +77,7 @@ SCENARIO("vehicle activity size", "[algorithms][construction][constraints]") {
                                                                        {10, std::optional<int>{}}}));
 
       auto result = VehicleActivitySize<int>{}.hard(
-        routeCtx, as_job(test_build_service{}.id("v1").dimens({{"size", size}}).shared()));
+        routeCtx, as_job(test_build_service{}.dimens({{"size", size}, {"id", "v1"}}).shared()));
 
       THEN("constraint check result is correct") { REQUIRE(result == expected); }
     }

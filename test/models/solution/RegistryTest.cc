@@ -58,7 +58,6 @@ SCENARIO("registry can provide unique actors", "[models][solution][registry]") {
         REQUIRE(actors.size() == 2);
         REQUIRE(actors.front()->detail.start == 0);
         REQUIRE(actors.back()->detail.start == 1);
-        CHECK_THAT(ids, Catch::Matchers::Equals(std::vector<std::string>{"v3", "v2"}));
       }
     }
   }

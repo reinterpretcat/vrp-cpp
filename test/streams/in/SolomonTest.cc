@@ -1,10 +1,12 @@
 #include "streams/in/Solomon.hpp"
 
+#include "models/extensions/problem/Helpers.hpp"
 #include "test_utils/streams/SolomonBuilder.hpp"
 
 #include <catch/catch.hpp>
 
 using namespace vrp::models::common;
+using namespace vrp::models::problem;
 using namespace vrp::streams::in;
 using namespace vrp::test;
 using namespace Catch::Matchers;
@@ -37,8 +39,7 @@ SCENARIO("solomon files can be read from input stream", "[streams][in]") {
       auto problem = solomon(stream);
 
       THEN("jobs have proper ids") {
-        auto ids =
-          problem.jobs->all() | view::transform([](const auto& job) { return ranges::get<0>(job)->id; }) | to_vector;
+        auto ids = problem.jobs->all() | view::transform([](const auto& job) { return get_job_id{}(job); }) | to_vector;
 
         CHECK_THAT(ids, Equals(std::vector<std::string>{"c1", "c2", "c3"}));
       }

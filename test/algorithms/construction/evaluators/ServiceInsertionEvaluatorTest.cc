@@ -51,8 +51,8 @@ locations(std::initializer_list<Location> locs) {
   return locs;
 }
 
-std::vector<JobDetail>
-details(std::initializer_list<JobDetail> ds) {
+std::vector<Service::Detail>
+details(std::initializer_list<Service::Detail> ds) {
   return ds;
 }
 }
@@ -132,9 +132,9 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
 
     WHEN("service is inserted") {
       auto ds = view::all(locs) | view::transform([&](const auto& l) {
-                  return JobDetail{{l}, 0, {DefaultTimeWindow}};
+                  return Service::Detail{{l}, 0, {DefaultTimeWindow}};
                 });
-      auto service = test_build_service{}.details(std::vector<JobDetail>{ds}).shared();
+      auto service = test_build_service{}.details(std::vector<Service::Detail>{ds}).shared();
       auto result = evaluator->evaluate(service, *routeCtx, *constraint, test_build_insertion_progress{}.owned());
 
       THEN("returns correct insertion success") {
@@ -156,7 +156,7 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
       std::make_tuple(details({{{12}, 0, {DefaultTimeWindow}}, {{11}, 0, times({DefaultTimeWindow})}}), 1, 11));
 
     WHEN("service is inserted") {
-      auto service = test_build_service{}.details(std::vector<JobDetail>{ds}).shared();
+      auto service = test_build_service{}.details(std::vector<Service::Detail>{ds}).shared();
       auto result = evaluator->evaluate(service, *routeCtx, *constraint, test_build_insertion_progress{}.owned());
 
       THEN("returns correct insertion success") {

@@ -15,12 +15,21 @@ constexpr vrp::models::common::Location DefaultJobLocation = 5;
 constexpr vrp::models::common::TimeWindow DefaultTimeWindow = {0, 1000};
 constexpr vrp::models::problem::Costs DefaultCosts = {100, 1, 1, 1, 1};
 
-const vrp::models::problem::JobDetail DefaultJobDetail = {{DefaultJobLocation}, DefaultDuration, {DefaultTimeWindow}};
-const vrp::models::problem::VehicleDetail DefaultVehicleDetail = {DefaultActorLocation, {}, DefaultTimeWindow};
+const vrp::models::problem::Service::Detail DefaultJobDetail = {{DefaultJobLocation},
+                                                                DefaultDuration,
+                                                                {DefaultTimeWindow}};
+const vrp::models::problem::Vehicle::Detail DefaultVehicleDetail = {DefaultActorLocation, {}, DefaultTimeWindow};
 
 class test_build_service : public vrp::models::problem::build_service {
 public:
-  explicit test_build_service() : vrp::models::problem::build_service() { id("service").details({DefaultJobDetail}); }
+  explicit test_build_service() : vrp::models::problem::build_service() {
+    dimens({{"id", "service"}}).details({DefaultJobDetail});
+  }
+
+  test_build_service& id(const std::string& value) {
+    service_.dimens["id"] = value;
+    return *this;
+  }
 
   test_build_service& location(const models::common::Location& value) {
     service_.details.front().location = value;
@@ -35,13 +44,6 @@ public:
   test_build_service& time(const models::common::TimeWindow& value) {
     service_.details.front().times = {value};
     return *this;
-  }
-};
-
-class test_build_detail : public vrp::models::problem::build_detail {
-public:
-  explicit test_build_detail() : vrp::models::problem::build_detail() {
-    location(DefaultJobLocation).duration(DefaultDuration).times({DefaultTimeWindow});
   }
 };
 
