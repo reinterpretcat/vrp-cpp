@@ -31,6 +31,7 @@ struct cartesian_distance final {
 /// Reads problem represented by classical solomon definition from stream.
 template<typename Distance = cartesian_distance>
 struct read_solomon_type final {
+  constexpr static auto IdDimKey = "id";
   constexpr static auto SizeDimKey = "size";
 
   struct ServiceCosts : models::costs::ActivityCosts {
@@ -175,8 +176,7 @@ private:
 
       jobs.push_back(as_job(
         build_service{}
-          .id(std::string("c") + std::to_string(id))
-          .dimens({{SizeDimKey, -std::get<3>(customer)}})
+          .dimens({{SizeDimKey, -std::get<3>(customer)}, {IdDimKey, std::string("c") + std::to_string(id)}})
           .details({{location,
                      static_cast<Duration>(std::get<6>(customer)),
                      {{static_cast<Timestamp>(std::get<4>(customer)), static_cast<Timestamp>(std::get<5>(customer))}}}})

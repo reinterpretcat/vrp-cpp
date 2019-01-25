@@ -18,18 +18,10 @@ struct dump_solution_as_text final {
       ranges::for_each(route->tour.activities(), [&](const auto& a) {
         // TODO print activities without job
         assert(a->job.has_value());
-        out << " " << getId(a->job.value());
+        out << " " << models::problem::get_job_id{}(a->job.value());
       });
     });
     out << std::endl;
-  }
-
-private:
-  std::string getId(const models::problem::Job& job) const {
-    return models::problem::analyze_job<std::string>(
-      const_cast<models::problem::Job&>(job),
-      [](const std::shared_ptr<const models::problem::Service>& service) { return service->id; },
-      [](const std::shared_ptr<const models::problem::Shipment>& shipment) { return shipment->id; });
   }
 };
 }

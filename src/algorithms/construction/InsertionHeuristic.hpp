@@ -2,6 +2,7 @@
 
 #include "algorithms/construction/InsertionContext.hpp"
 #include "algorithms/construction/InsertionResult.hpp"
+#include "models/extensions/problem/Comparators.hpp"
 #include "models/extensions/problem/Helpers.hpp"
 
 #include <algorithm>
@@ -50,13 +51,11 @@ private:
                          [&](const auto& act) { success.context.route->tour.insert(act.first, act.second); });
 
         // fast erase job from vector
-        std::iter_swap(std::find_if(ctx.jobs.begin(),
-                                    ctx.jobs.end(),
-                                    [&](const auto& job) {
-                                      const static auto getter = models::problem::get_job_id{};
-                                      return getter(job) == getter(success.job);
-                                    }),
-                       ctx.jobs.end() - 1);
+        std::iter_swap(
+          std::find_if(ctx.jobs.begin(),
+                       ctx.jobs.end(),
+                       [&](const auto& job) { return models::problem::is_the_same_jobs{}(job, success.job); }),
+          ctx.jobs.end() - 1);
         ctx.jobs.erase(ctx.jobs.end() - 1);
 
         ctx.constraint->accept(success.context);

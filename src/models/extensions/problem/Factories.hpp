@@ -14,18 +14,13 @@ namespace vrp::models::problem {
 /// A helper class to create service job.
 class build_service {
 public:
-  build_service& id(const std::string& value) {
-    service_.id = value;
-    return *this;
-  }
-
   build_service& details(std::vector<problem::JobDetail>&& value) {
-    service_.details = value;
+    service_.details = std::move(value);
     return *this;
   }
 
   build_service& dimens(common::Dimensions&& value) {
-    service_.dimens = value;
+    service_.dimens = std::move(value);
     return *this;
   }
 
