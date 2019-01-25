@@ -6,7 +6,7 @@
 #include <memory>
 #include <range/v3/all.hpp>
 #include <string>
-#include <unordered_map>
+#include <vector>
 
 namespace vrp::models::problem {
 
@@ -18,38 +18,18 @@ struct Fleet final {
   Fleet& operator=(const Fleet&) = delete;
 
   Fleet& add(const Driver& driver) {
-    if (drivers_.find(driver.id) != drivers_.end())
-      throw std::invalid_argument("Driver is already added to the fleet.");
-    drivers_.insert({driver.id, std::make_shared<const Driver>(driver)});
+    drivers_.push_back(std::make_shared<const Driver>(driver));
     return *this;
   }
 
   Fleet& add(const Vehicle& vehicle) {
-    if (vehicles_.find(vehicle.id) != vehicles_.end())
-      throw std::invalid_argument("Vehicle is already added to the fleet.");
-    vehicles_.insert({vehicle.id, std::make_shared<const Vehicle>(vehicle)});
+    vehicles_.push_back(std::make_shared<const Vehicle>(vehicle));
     return *this;
   }
 
-  ranges::any_view<std::shared_ptr<const Driver>> drivers() const {
-    return ranges::view::all(drivers_) | ranges::view::transform([](const auto& d) { return d.second; });
-  }
+  ranges::any_view<std::shared_ptr<const Driver>> drivers() const { return ranges::view::all(drivers_); }
 
-  std::shared_ptr<const Driver> driver(const std::string& id) const {
-    auto result = drivers_.find(id);
-    if (result == drivers_.end()) throw std::invalid_argument(std::string("Cannot find driver with id:") + id);
-    return result->second;
-  }
-
-  ranges::any_view<std::shared_ptr<const Vehicle>> vehicles() const {
-    return ranges::view::all(vehicles_) | ranges::view::transform([](const auto& v) { return v.second; });
-  }
-
-  std::shared_ptr<const Vehicle> vehicle(const std::string& id) const {
-    auto result = vehicles_.find(id);
-    if (result == vehicles_.end()) throw std::invalid_argument(std::string("Cannot find vehicle with id:") + id);
-    return result->second;
-  }
+  ranges::any_view<std::shared_ptr<const Vehicle>> vehicles() const { return ranges::view::all(vehicles_); }
 
   auto profiles() const {
     return vehicles() | ranges::view::transform([](const auto& v) { return v->profile; }) |  //
@@ -57,7 +37,7 @@ struct Fleet final {
   }
 
 private:
-  std::unordered_map<std::string, std::shared_ptr<const Driver>> drivers_;
-  std::unordered_map<std::string, std::shared_ptr<const Vehicle>> vehicles_;
+  std::vector<std::shared_ptr<const Driver>> drivers_;
+  std::vector<std::shared_ptr<const Vehicle>> vehicles_;
 };
 }

@@ -1,8 +1,11 @@
 #pragma once
 
 #include "algorithms/construction/InsertionRouteContext.hpp"
+#include "models/extensions/problem/Helpers.hpp"
 #include "models/problem/Fleet.hpp"
 #include "test_utils/models/Factories.hpp"
+
+#include <test_utils/models/Helpers.hpp>
 
 namespace vrp::test {
 
@@ -19,7 +22,7 @@ getActivity(const algorithms::construction::InsertionRouteContext& ctx, int inde
 
 inline std::shared_ptr<models::solution::Actor>
 getActor(const std::string& id, const models::problem::Fleet& fleet) {
-  auto vehicle = fleet.vehicle(id);
+  auto vehicle = find_vehicle_by_id{}(fleet, id);
   auto detail = vehicle->details.front();
   return std::make_shared<models::solution::Actor>(
     models::solution::Actor{vehicle, DefaultDriver, detail.start, detail.end, detail.time});

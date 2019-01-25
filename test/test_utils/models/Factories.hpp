@@ -79,7 +79,12 @@ inline std::shared_ptr<vrp::models::solution::Activity> DefaultActivity = test_b
 class test_build_vehicle : public vrp::models::problem::build_vehicle {
 public:
   explicit test_build_vehicle() : vrp::models::problem::build_vehicle() {
-    id("vehicle1").profile("car").details({DefaultVehicleDetail}).costs(DefaultCosts);
+    dimens({{"id", "vehicle1"}}).profile("car").details({DefaultVehicleDetail}).costs(DefaultCosts);
+  }
+
+  test_build_vehicle& id(const std::string& value) {
+    vehicle_.dimens["id"] = value;
+    return *this;
   }
 };
 
@@ -87,7 +92,14 @@ inline std::shared_ptr<const vrp::models::problem::Vehicle> DefaultVehicle = tes
 
 class test_build_driver : public vrp::models::problem::build_driver {
 public:
-  explicit test_build_driver() : vrp::models::problem::build_driver() { id("driver").costs({0, 0, 0, 0}); }
+  explicit test_build_driver() : vrp::models::problem::build_driver() {
+    dimens({{"id", "driver"}}).costs({0, 0, 0, 0});
+  }
+
+  test_build_driver& id(const std::string& value) {
+    driver_.dimens["id"] = value;
+    return *this;
+  }
 };
 
 inline std::shared_ptr<const vrp::models::problem::Driver> DefaultDriver = test_build_driver{}.shared();

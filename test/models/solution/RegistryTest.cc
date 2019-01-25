@@ -52,7 +52,7 @@ SCENARIO("registry can provide unique actors", "[models][solution][registry]") {
 
     WHEN("next actors requested") {
       auto actors = registry.next() | to_vector;
-      auto ids = actors | view::transform([](const auto& a) { return a->vehicle->id; }) | to_vector;
+      auto ids = actors | view::transform([](const auto& a) { return get_vehicle_id{}(*a->vehicle); }) | to_vector;
 
       THEN("then returns two unique actors") {
         REQUIRE(actors.size() == 2);

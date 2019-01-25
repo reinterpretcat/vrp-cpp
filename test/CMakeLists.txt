@@ -47,6 +47,7 @@ set(SOURCE_FILES
         test_utils/algorithms/refinement/LogAndValidate.hpp
         test_utils/fakes/TestTransportCosts.hpp
         test_utils/models/Comparators.hpp
+        test_utils/models/Helpers.hpp
         test_utils/models/Factories.hpp
         test_utils/models/Matchers.hpp
         test_utils/models/Validators.hpp

@@ -26,9 +26,6 @@ struct Vehicle final {
     common::TimeWindow time;
   };
 
-  /// Vehicle id.
-  std::string id;
-
   /// Specifies vehicle transport cost profile.
   std::string profile;
 

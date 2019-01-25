@@ -14,7 +14,7 @@ struct dump_solution_as_text final {
     out << "\t\tactual cost:" << es.second.actual << " + penalties: " << es.second.penalty
         << "\n\t\ttotal routes:" << es.first->routes.size();
     ranges::for_each(es.first->routes, [&](const auto& route) {
-      out << "\n\t\tvehicle " << route->actor->vehicle->id << ", customers:";
+      out << "\n\t\tvehicle " << models::problem::get_vehicle_id{}(*route->actor->vehicle) << ", customers:";
       ranges::for_each(route->tour.activities(), [&](const auto& a) {
         // TODO print activities without job
         assert(a->job.has_value());

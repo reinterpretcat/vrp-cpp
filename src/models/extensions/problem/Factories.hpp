@@ -34,11 +34,6 @@ protected:
 /// A helper class to build vehicle;
 class build_vehicle {
 public:
-  build_vehicle& id(std::string&& value) {
-    vehicle_.id = value;
-    return *this;
-  }
-
   build_vehicle& profile(std::string&& value) {
     vehicle_.profile = value;
     return *this;
@@ -63,15 +58,15 @@ public:
 
   std::shared_ptr<Vehicle> shared() { return std::make_shared<Vehicle>(std::move(vehicle_)); }
 
-private:
+protected:
   Vehicle vehicle_;
 };
 
 /// A helper class to build driver.
 class build_driver {
 public:
-  build_driver& id(const std::string& value) {
-    driver_.id = value;
+  build_driver& dimens(common::Dimensions&& value) {
+    driver_.dimens = std::move(value);
     return *this;
   }
 
@@ -84,7 +79,7 @@ public:
 
   std::shared_ptr<Driver> shared() { return std::make_shared<Driver>(std::move(driver_)); }
 
-private:
+protected:
   Driver driver_;
 };
 

@@ -42,7 +42,10 @@ namespace vrp::test {
 SCENARIO("vehicle activity size", "[algorithms][construction][constraints]") {
   GIVEN("fleet with 1 vehicle and route with service jobs") {
     auto fleet = std::make_shared<Fleet>();
-    fleet->add(test_build_vehicle{}.id("v1").dimens({{"size", 10}}).details(asDetails(0, {}, {0, 100})).owned());
+    fleet->add(test_build_vehicle{}
+                 .dimens({{"id", std::string("v1")}, {"size", 10}})
+                 .details(asDetails(0, {}, {0, 100}))
+                 .owned());
 
     WHEN("accept route with three service activities") {
       auto routeState = createRouteState(*fleet);
@@ -77,7 +80,7 @@ SCENARIO("vehicle activity size", "[algorithms][construction][constraints]") {
                                                                        {10, std::optional<int>{}}}));
 
       auto result = VehicleActivitySize<int>{}.hard(
-        routeCtx, as_job(test_build_service{}.dimens({{"size", size}, {"id", "v1"}}).shared()));
+        routeCtx, as_job(test_build_service{}.dimens({{"size", size}, {"id", std::string("v1")}}).shared()));
 
       THEN("constraint check result is correct") { REQUIRE(result == expected); }
     }
@@ -102,7 +105,9 @@ SCENARIO("vehicle activity size", "[algorithms][construction][constraints]") {
       auto actCtx =
         test_build_insertion_activity_context{}
           .prev(getActivity(routeCtx, 0))
-          .target(test_build_activity{}.job(as_job(test_build_service{}.dimens({{"size", s2}}).shared())).shared())
+          .target(test_build_activity{}
+                    .job(as_job(test_build_service{}.dimens({{"id", std::string("service")}, {"size", s2}}).shared()))
+                    .shared())
           .next(getActivity(routeCtx, 1))
           .owned();
 
@@ -125,7 +130,9 @@ SCENARIO("vehicle activity size", "[algorithms][construction][constraints]") {
       auto actCtx =
         test_build_insertion_activity_context{}
           .prev(getActivity(routeCtx, prev))
-          .target(test_build_activity{}.job(as_job(test_build_service{}.dimens({{"size", -1}}).shared())).shared())
+          .target(test_build_activity{}
+                    .job(as_job(test_build_service{}.dimens({{"id", std::string("service")}, {"size", -1}}).shared()))
+                    .shared())
           .next(getActivity(routeCtx, next))
           .owned();
 

@@ -81,7 +81,7 @@ SCENARIO("cheapest insertion inserts service", "[algorithms][construction][inser
       THEN("returns new context with job inserted") {
         REQUIRE(result.unassigned.empty());
         REQUIRE(result.routes.size() == 1);
-        REQUIRE(result.routes.begin()->route->actor->vehicle->id == used);
+        REQUIRE(get_vehicle_id{}(*result.routes.begin()->route->actor->vehicle) == used);
         REQUIRE(result.routes.begin()->route->tour.get(0)->detail.location == s1);
       }
     }

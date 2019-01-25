@@ -1,6 +1,8 @@
 #pragma once
 
+#include "models/problem/Driver.hpp"
 #include "models/problem/Job.hpp"
+#include "models/problem/Vehicle.hpp"
 
 #include <range/v3/utility/variant.hpp>
 
@@ -25,6 +27,12 @@ as_job(const std::shared_ptr<const Sequence>& sequence) {
   return {ranges::emplaced_index<1>, sequence};
 }
 
+/// Returns id as string from dimens.
+inline std::string
+getId(const common::Dimensions& dimens) {
+  return std::any_cast<std::string>(dimens.find("id")->second);
+}
+
 /// Returns id of the job.
 struct get_job_id final {
   std::string operator()(const Job& job) const {
@@ -33,10 +41,15 @@ struct get_job_id final {
       [](const std::shared_ptr<const Service>& service) { return getId(service->dimens); },
       [](const std::shared_ptr<const Sequence>& sequence) { return getId(sequence->dimens); });
   }
+};
 
-private:
-  static std::string getId(const common::Dimensions& dimens) {
-    return std::any_cast<std::string>(dimens.find("id")->second);
-  }
+/// Returns id of a vehicle.
+struct get_vehicle_id final {
+  std::string operator()(const Vehicle& vehicle) const { return getId(vehicle.dimens); }
+};
+
+/// Returns id of a driver.
+struct get_driver_id final {
+  std::string operator()(const Driver& driver) const { return getId(driver.dimens); }
 };
 }

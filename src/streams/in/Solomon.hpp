@@ -131,7 +131,7 @@ private:
     std::istringstream iss(line);
     iss >> std::get<0>(type) >> std::get<1>(type);
 
-    fleet.add(models::problem::build_driver{}.id("driver").costs({0, 0, 0, 0}).owned());
+    fleet.add(models::problem::build_driver{}.dimens({{"id", std::string("driver")}}).costs({0, 0, 0, 0}).owned());
     return type;
   }
 
@@ -161,10 +161,9 @@ private:
       if (id == 0) {
         ranges::for_each(ranges::view::ints(0, std::get<0>(vehicle)), [&](auto i) {
           fleet.add(models::problem::build_vehicle{}
-                      .id(std::string("v") + std::to_string(i + 1))
                       .profile("car")
                       .costs({0, 1, 0, 0, 0})
-                      .dimens({{SizeDimKey, std::get<1>(vehicle)}})
+                      .dimens({{"id", std::string("v") + std::to_string(i + 1)}, {SizeDimKey, std::get<1>(vehicle)}})
                       .details({{0,
                                  0,
                                  {static_cast<Timestamp>(std::get<4>(customer)),

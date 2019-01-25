@@ -61,7 +61,8 @@ SCENARIO("solomon files can be read from input stream", "[streams][in]") {
       }
 
       THEN("vehicles have proper ids") {
-        std::vector<std::string> ids = problem.fleet->vehicles() | view::transform([](const auto& v) { return v->id; });
+        std::vector<std::string> ids =
+          problem.fleet->vehicles() | view::transform([](const auto& v) { return get_vehicle_id{}(*v); });
 
         CHECK_THAT(ids, Contains(std::vector<std::string>{"v1", "v2"}));
       }

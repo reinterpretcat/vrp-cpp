@@ -11,14 +11,11 @@ namespace vrp::models::problem {
 /// * reuse vehicle multiple times with different drivers
 /// * solve best driver-vehicle match problem.
 struct Driver {
-  /// Specifies driver id.
-  std::string id;
-
   /// Specifies driver costs.
   Costs costs;
 
   /// Specifies dimensions supported by driver.
-  vrp::models::common::Dimensions dimensions;
+  vrp::models::common::Dimensions dimens;
 };
 
 }  // namespace vrp::models::problem

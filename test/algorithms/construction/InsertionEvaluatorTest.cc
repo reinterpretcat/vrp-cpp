@@ -56,7 +56,7 @@ SCENARIO("insertion evaluator can handle service insertion with time constraints
 
       THEN("returns correct insertion success") {
         REQUIRE(result.index() == 0);
-        REQUIRE(ranges::get<0>(result).context.route->actor->vehicle->id == used);
+        REQUIRE(get_vehicle_id{}(*ranges::get<0>(result).context.route->actor->vehicle) == used);
         REQUIRE(ranges::get<0>(result).cost == cost);
       }
     }
