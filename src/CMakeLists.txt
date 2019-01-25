@@ -78,7 +78,6 @@ set(SOURCE_FILES
         models/problem/Service.hpp
         models/problem/Shipment.hpp
         models/problem/Vehicle.hpp
-        models/problem/VehicleDetail.hpp
 
         models/solution/Actor.hpp
         models/solution/Activity.hpp

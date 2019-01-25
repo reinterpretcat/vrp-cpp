@@ -49,13 +49,13 @@ public:
     return *this;
   }
 
-  build_vehicle& details(std::vector<VehicleDetail>&& value) {
-    vehicle_.details = value;
+  build_vehicle& details(std::vector<Vehicle::Detail>&& value) {
+    vehicle_.details = std::move(value);
     return *this;
   }
 
   build_vehicle& dimens(common::Dimensions&& value) {
-    vehicle_.dimens = value;
+    vehicle_.dimens = std::move(value);
     return *this;
   }
 

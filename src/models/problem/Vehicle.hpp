@@ -5,7 +5,6 @@
 #include "models/common/Dimension.hpp"
 #include "models/common/Location.hpp"
 #include "models/common/TimeWindow.hpp"
-#include "models/problem/VehicleDetail.hpp"
 
 #include <optional>
 #include <string>
@@ -15,6 +14,18 @@ namespace vrp::models::problem {
 
 /// Represents a vehicle.
 struct Vehicle final {
+  /// Represents vehicle detail.
+  struct Detail {
+    /// Location where vehicle starts.
+    common::Location start;
+
+    /// Location where vehicle ends.
+    std::optional<common::Location> end;
+
+    /// Time windows when vehicle can be used.
+    common::TimeWindow time;
+  };
+
   /// Vehicle id.
   std::string id;
 
@@ -28,7 +39,7 @@ struct Vehicle final {
   vrp::models::common::Dimensions dimens;
 
   /// Specifies vehicle details.
-  std::vector<VehicleDetail> details;
+  std::vector<Detail> details;
 };
 
 }  // namespace vrp::models::problem
