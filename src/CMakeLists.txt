@@ -74,7 +74,6 @@ set(SOURCE_FILES
         models/problem/Driver.hpp
         models/problem/Fleet.hpp
         models/problem/Job.hpp
-        models/problem/JobDetail.hpp
         models/problem/Jobs.hpp
         models/problem/Service.hpp
         models/problem/Shipment.hpp

@@ -2,7 +2,6 @@
 
 #include "models/problem/Driver.hpp"
 #include "models/problem/Job.hpp"
-#include "models/problem/JobDetail.hpp"
 #include "models/problem/Service.hpp"
 #include "models/problem/Vehicle.hpp"
 
@@ -14,7 +13,7 @@ namespace vrp::models::problem {
 /// A helper class to create service job.
 class build_service {
 public:
-  build_service& details(std::vector<problem::JobDetail>&& value) {
+  build_service& details(std::vector<problem::Service::Detail>&& value) {
     service_.details = std::move(value);
     return *this;
   }
@@ -30,31 +29,6 @@ public:
 
 protected:
   Service service_;
-};
-
-class build_detail {
-public:
-  build_detail& location(common::Location value) {
-    detail_.location = value;
-    return *this;
-  }
-
-  build_detail& duration(common::Duration value) {
-    detail_.duration = value;
-    return *this;
-  }
-
-  build_detail& times(std::vector<common::TimeWindow>&& value) {
-    detail_.times = value;
-    return *this;
-  }
-
-  JobDetail&& owned() { return std::move(detail_); }
-
-  std::shared_ptr<JobDetail> shared() { return std::make_shared<JobDetail>(std::move(detail_)); }
-
-private:
-  JobDetail detail_;
 };
 
 /// A helper class to build vehicle;
