@@ -7,10 +7,12 @@
 namespace vrp::algorithms::construction {
 
 struct SequenceInsertionEvaluator final {
-  InsertionResult evaluate(const std::shared_ptr<const models::problem::Sequence>& sequence,
+  InsertionResult evaluate(const models::problem::Job& job,
+                           const std::shared_ptr<const models::problem::Sequence>& sequence,
                            const InsertionRouteContext& ctx,
                            const InsertionConstraint& constraint,
                            const InsertionProgress& progress) const {
+    // TODO
     return InsertionResult{ranges::emplaced_index<1>, InsertionFailure{0}};
   }
 };

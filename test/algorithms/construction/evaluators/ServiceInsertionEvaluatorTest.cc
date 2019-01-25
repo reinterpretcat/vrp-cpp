@@ -67,8 +67,11 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
     auto evaluator = ServiceInsertionEvaluator{};
 
     WHEN("service is ok") {
-      auto result = evaluator.evaluate(
-        ranges::get<0>(DefaultService), test_build_insertion_route_context{}.owned(), *constraint, progress);
+      auto result = evaluator.evaluate(DefaultService,
+                                       ranges::get<0>(DefaultService),
+                                       test_build_insertion_route_context{}.owned(),
+                                       *constraint,
+                                       progress);
 
       THEN("returns insertion success") {
         REQUIRE(result.index() == 0);
@@ -79,7 +82,8 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
 
     WHEN("service has no location") {
       auto service = test_build_service{}.details({{{}, DefaultDuration, {DefaultTimeWindow}}}).shared();
-      auto result = evaluator.evaluate(service, test_build_insertion_route_context{}.owned(), *constraint, progress);
+      auto result = evaluator.evaluate(
+        DefaultService, service, test_build_insertion_route_context{}.owned(), *constraint, progress);
 
       THEN("returns correct insertion success") {
         REQUIRE(result.index() == 0);
@@ -101,7 +105,8 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
 
     WHEN("service is inserted") {
       auto service = test_build_service{}.details({{{location}, 0, tws}}).shared();
-      auto result = evaluator->evaluate(service, *routeCtx, *constraint, test_build_insertion_progress{}.owned());
+      auto result =
+        evaluator->evaluate(DefaultService, service, *routeCtx, *constraint, test_build_insertion_progress{}.owned());
 
       THEN("returns correct insertion success") {
         REQUIRE(result.index() == 0);
@@ -124,7 +129,8 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
                   return Service::Detail{{l}, 0, {DefaultTimeWindow}};
                 });
       auto service = test_build_service{}.details(std::vector<Service::Detail>{ds}).shared();
-      auto result = evaluator->evaluate(service, *routeCtx, *constraint, test_build_insertion_progress{}.owned());
+      auto result =
+        evaluator->evaluate(DefaultService, service, *routeCtx, *constraint, test_build_insertion_progress{}.owned());
 
       THEN("returns correct insertion success") {
         REQUIRE(result.index() == 0);
@@ -146,7 +152,8 @@ SCENARIO("service insertion evaluator", "[algorithms][construction][insertion]")
 
     WHEN("service is inserted") {
       auto service = test_build_service{}.details(std::vector<Service::Detail>{ds}).shared();
-      auto result = evaluator->evaluate(service, *routeCtx, *constraint, test_build_insertion_progress{}.owned());
+      auto result =
+        evaluator->evaluate(DefaultService, service, *routeCtx, *constraint, test_build_insertion_progress{}.owned());
 
       THEN("returns correct insertion success") {
         REQUIRE(result.index() == 0);

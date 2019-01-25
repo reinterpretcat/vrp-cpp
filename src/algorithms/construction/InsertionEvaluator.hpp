@@ -53,10 +53,10 @@ struct InsertionEvaluator final {
         auto result = models::problem::analyze_job<InsertionResult>(
           job,
           [&](const std::shared_ptr<const models::problem::Service>& service) {
-            return serviceInsertionEvaluator_.evaluate(service, routeCtx, *ctx.constraint, progress);
+            return serviceInsertionEvaluator_.evaluate(job, service, routeCtx, *ctx.constraint, progress);
           },
           [&](const std::shared_ptr<const models::problem::Sequence>& sequence) {
-            return sequenceInsertionEvaluator_.evaluate(sequence, routeCtx, *ctx.constraint, progress);
+            return sequenceInsertionEvaluator_.evaluate(job, sequence, routeCtx, *ctx.constraint, progress);
           });
 
         // propagate best result or failure

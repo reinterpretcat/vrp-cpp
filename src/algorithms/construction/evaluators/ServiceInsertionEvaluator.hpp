@@ -19,7 +19,8 @@ namespace vrp::algorithms::construction {
 
 struct ServiceInsertionEvaluator final {
   /// Evaluates service insertion possibility.
-  InsertionResult evaluate(const std::shared_ptr<const models::problem::Service>& service,
+  InsertionResult evaluate(const models::problem::Job& job,
+                           const std::shared_ptr<const models::problem::Service>& service,
                            const InsertionRouteContext& ctx,
                            const InsertionConstraint& constraint,
                            const InsertionProgress& progress) const {
@@ -27,7 +28,6 @@ struct ServiceInsertionEvaluator final {
     using namespace vrp::models;
     using ActivityType = solution::Activity::Type;
 
-    auto job = models::problem::as_job(service);
     auto activity = std::make_shared<solution::Activity>(solution::Activity{ActivityType::Job, {}, {}, job});
     const auto& route = *ctx.route;
 
