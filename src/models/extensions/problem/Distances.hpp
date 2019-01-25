@@ -33,7 +33,7 @@ private:
           return ranges::yield(d.location.has_value() ? d.location.value() : 0);
         });
       },
-      [](const std::shared_ptr<const Shipment>& shipment) -> ranges::any_view<common::Location> {
+      [](const std::shared_ptr<const Sequence>& sequence) -> ranges::any_view<common::Location> {
         throw std::domain_error("not implemented");
       });
   }

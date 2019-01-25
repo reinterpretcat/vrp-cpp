@@ -21,7 +21,7 @@ private:
     return analyze_job<std::uintptr_t>(
       job,
       [](const std::shared_ptr<const Service>& service) { return reinterpret_cast<std::uintptr_t>(service.get()); },
-      [](const std::shared_ptr<const Shipment>& shipment) { return reinterpret_cast<std::uintptr_t>(shipment.get()); });
+      [](const std::shared_ptr<const Sequence>& sequence) { return reinterpret_cast<std::uintptr_t>(sequence.get()); });
   }
 };
 

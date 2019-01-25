@@ -14,7 +14,7 @@ set(SOURCE_FILES
 
         algorithms/construction/evaluators/EvaluationContext.hpp
         algorithms/construction/evaluators/ServiceInsertionEvaluator.hpp
-        algorithms/construction/evaluators/ShipmentInsertionEvaluator.hpp
+        algorithms/construction/evaluators/SequenceInsertionEvaluator.hpp
 
         algorithms/construction/heuristics/BlinkInsertion.hpp
         algorithms/construction/heuristics/CheapestInsertion.hpp
@@ -76,7 +76,7 @@ set(SOURCE_FILES
         models/problem/Job.hpp
         models/problem/Jobs.hpp
         models/problem/Service.hpp
-        models/problem/Shipment.hpp
+        models/problem/Sequence.hpp
         models/problem/Vehicle.hpp
 
         models/solution/Actor.hpp

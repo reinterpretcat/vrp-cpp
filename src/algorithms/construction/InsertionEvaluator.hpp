@@ -3,8 +3,8 @@
 #include "algorithms/construction/InsertionConstraint.hpp"
 #include "algorithms/construction/InsertionContext.hpp"
 #include "algorithms/construction/InsertionResult.hpp"
+#include "algorithms/construction/evaluators/SequenceInsertionEvaluator.hpp"
 #include "algorithms/construction/evaluators/ServiceInsertionEvaluator.hpp"
-#include "algorithms/construction/evaluators/ShipmentInsertionEvaluator.hpp"
 #include "algorithms/construction/extensions/Insertions.hpp"
 #include "models/extensions/problem/Helpers.hpp"
 #include "models/extensions/solution/Factories.hpp"
@@ -21,7 +21,7 @@ namespace vrp::algorithms::construction {
 
 /// Provides the way to evaluate insertion cost.
 struct InsertionEvaluator final {
-  InsertionEvaluator() : serviceInsertionEvaluator_(), shipmentInsertionEvaluator_() {}
+  InsertionEvaluator() : serviceInsertionEvaluator_(), sequenceInsertionEvaluator_() {}
 
   /// Evaluates possibility to preform insertion from given insertion context.
   InsertionResult evaluate(const models::problem::Job& job, const InsertionContext& ctx) const {
@@ -50,8 +50,8 @@ struct InsertionEvaluator final {
           [&](const std::shared_ptr<const models::problem::Service>& service) {
             return serviceInsertionEvaluator_.evaluate(service, routeCtx, *ctx.constraint, progress);
           },
-          [&](const std::shared_ptr<const models::problem::Shipment>& shipment) {
-            return shipmentInsertionEvaluator_.evaluate(shipment, routeCtx, *ctx.constraint, progress);
+          [&](const std::shared_ptr<const models::problem::Sequence>& sequence) {
+            return sequenceInsertionEvaluator_.evaluate(sequence, routeCtx, *ctx.constraint, progress);
           });
 
         // propagate best result or failure
@@ -85,7 +85,7 @@ private:
   }
 
   const ServiceInsertionEvaluator serviceInsertionEvaluator_;
-  const ShipmentInsertionEvaluator shipmentInsertionEvaluator_;
+  const SequenceInsertionEvaluator sequenceInsertionEvaluator_;
 };
 
 }  // namespace vrp::algorithms::construction

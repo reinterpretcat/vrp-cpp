@@ -6,8 +6,8 @@
 
 namespace vrp::algorithms::construction {
 
-struct ShipmentInsertionEvaluator final {
-  InsertionResult evaluate(const std::shared_ptr<const models::problem::Shipment>& shipment,
+struct SequenceInsertionEvaluator final {
+  InsertionResult evaluate(const std::shared_ptr<const models::problem::Sequence>& sequence,
                            const InsertionRouteContext& ctx,
                            const InsertionConstraint& constraint,
                            const InsertionProgress& progress) const {
