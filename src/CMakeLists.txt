@@ -12,10 +12,6 @@ set(SOURCE_FILES
         algorithms/construction/extensions/Fleets.hpp
         algorithms/construction/extensions/Insertions.hpp
 
-        algorithms/construction/evaluators/EvaluationContext.hpp
-        algorithms/construction/evaluators/ServiceInsertionEvaluator.hpp
-        algorithms/construction/evaluators/SequenceInsertionEvaluator.hpp
-
         algorithms/construction/heuristics/BlinkInsertion.hpp
         algorithms/construction/heuristics/CheapestInsertion.hpp
 
@@ -36,15 +32,21 @@ set(SOURCE_FILES
 
         algorithms/refinement/acceptance/GreedyAcceptance.hpp
         algorithms/refinement/acceptance/ThresholdAcceptance.hpp
+
         algorithms/refinement/extensions/CreateRefinementContext.hpp
         algorithms/refinement/extensions/RemoveEmptyTours.hpp
         algorithms/refinement/extensions/RuinAndRecreateSolution.hpp
         algorithms/refinement/extensions/RestoreInsertionContext.hpp
         algorithms/refinement/extensions/SelectBestSolution.hpp
+
         algorithms/refinement/logging/LogToConsole.hpp
         algorithms/refinement/logging/LogToNothing.hpp
+
+
         algorithms/refinement/recreate/RecreateWithBlinks.hpp
+
         algorithms/refinement/ruin/RemoveAdjustedString.hpp
+
         algorithms/refinement/termination/MaxIterationCriteria.hpp
 
 
@@ -65,6 +67,7 @@ set(SOURCE_FILES
         models/extensions/problem/Distances.hpp
         models/extensions/problem/Factories.hpp
         models/extensions/problem/Helpers.hpp
+
         models/extensions/solution/Comparators.hpp
         models/extensions/solution/DeepCopies.hpp
         models/extensions/solution/Factories.hpp
