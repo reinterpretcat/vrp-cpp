@@ -21,7 +21,6 @@ namespace vrp::algorithms::construction {
 
 /// Provides the way to evaluate insertion cost.
 struct InsertionEvaluator final {
-  InsertionEvaluator() : serviceInsertionEvaluator_(), sequenceInsertionEvaluator_() {}
 
   /// Evaluates possibility to preform insertion from given insertion context.
   InsertionResult evaluate(const models::problem::Job& job, const InsertionContext& ctx) const {
@@ -53,10 +52,10 @@ struct InsertionEvaluator final {
         auto result = models::problem::analyze_job<InsertionResult>(
           job,
           [&](const std::shared_ptr<const models::problem::Service>& service) {
-            return serviceInsertionEvaluator_.evaluate(job, service, routeCtx, *ctx.constraint, progress);
+            return ServiceInsertionEvaluator{}.evaluate(job, service, routeCtx, *ctx.constraint, progress);
           },
           [&](const std::shared_ptr<const models::problem::Sequence>& sequence) {
-            return sequenceInsertionEvaluator_.evaluate(job, sequence, routeCtx, *ctx.constraint, progress);
+            return SequenceInsertionEvaluator{}.evaluate(job, sequence, routeCtx, *ctx.constraint, progress);
           });
 
         // propagate best result or failure
@@ -88,9 +87,6 @@ private:
 
     return {start, end};
   }
-
-  const ServiceInsertionEvaluator serviceInsertionEvaluator_;
-  const SequenceInsertionEvaluator sequenceInsertionEvaluator_;
 };
 
 }  // namespace vrp::algorithms::construction
