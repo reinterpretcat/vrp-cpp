@@ -49,6 +49,21 @@ public:
 
 inline vrp::models::problem::Job DefaultService = vrp::models::problem::as_job(test_build_service{}.shared());
 
+class test_build_sequence : public vrp::models::problem::build_sequence {
+public:
+  explicit test_build_sequence() : vrp::models::problem::build_sequence() { dimens({{"id", "service"}}); }
+
+  test_build_sequence& dimens(models::common::Dimensions&& value) {
+    sequence_.dimens = std::move(value);
+    return *this;
+  }
+
+  test_build_sequence& id(const std::string& value) {
+    sequence_.dimens["id"] = value;
+    return *this;
+  }
+};
+
 class test_build_activity : public models::solution::build_activity {
 public:
   explicit test_build_activity() : models::solution::build_activity() {

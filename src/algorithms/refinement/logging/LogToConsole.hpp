@@ -33,7 +33,7 @@ struct log_to_console final {
 
 private:
   void logIndividuum(const models::EstimatedSolution& es) const {
-    streams::out::dump_solution_as_text{}(std::cout, es);
+    // streams::out::dump_solution_as_text{}(std::cout, es);
   }
 };
 }

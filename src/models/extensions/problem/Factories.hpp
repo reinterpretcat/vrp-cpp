@@ -2,6 +2,7 @@
 
 #include "models/problem/Driver.hpp"
 #include "models/problem/Job.hpp"
+#include "models/problem/Sequence.hpp"
 #include "models/problem/Service.hpp"
 #include "models/problem/Vehicle.hpp"
 
@@ -29,6 +30,27 @@ public:
 
 protected:
   Service service_;
+};
+
+/// A helper class to create sequence job.
+class build_sequence {
+public:
+  build_sequence& dimens(common::Dimensions&& value) {
+    sequence_.dimens = std::move(value);
+    return *this;
+  }
+
+  build_sequence& service(const Service& value) {
+    sequence_.jobs.push_back(value);
+    return *this;
+  }
+
+  Sequence&& owned() { return std::move(sequence_); }
+
+  std::shared_ptr<Sequence> shared() { return std::make_shared<Sequence>(std::move(sequence_)); }
+
+protected:
+  Sequence sequence_;
 };
 
 /// A helper class to build vehicle;
