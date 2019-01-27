@@ -13,7 +13,7 @@ namespace vrp::algorithms::refinement {
 /// Creates refinement context including initial solution from problem.
 template<typename Heuristic = construction::CheapestInsertion>
 struct create_refinement_context final {
-  RefinementContext operator()(const models::Problem& problem) const {
+  RefinementContext operator()(const std::shared_ptr<const models::Problem>& problem) const {
     using namespace ranges;
     using namespace vrp::algorithms::construction;
     using Population = RefinementContext::Population;
@@ -26,14 +26,14 @@ struct create_refinement_context final {
     auto iCtx =
       Heuristic{InsertionEvaluator{}}(build_insertion_context{}
                                         .progress(build_insertion_progress{}
-                                                    .cost(std::numeric_limits<models::common::Cost>::max())
+                                                    .cost(models::common::NoCost)
                                                     .completeness(0)
-                                                    .total(static_cast<int>(problem.jobs->size()))
+                                                    .total(static_cast<int>(problem->jobs->size()))
                                                     .owned())
-                                        .registry(std::make_shared<models::solution::Registry>(*problem.fleet))
-                                        .constraint(problem.constraint)
+                                        .registry(std::make_shared<models::solution::Registry>(*problem->fleet))
+                                        .problem(problem)
                                         .random(random)
-                                        .jobs(problem.jobs->all())
+                                        .jobs(problem->jobs->all())
                                         .owned());
 
     // create solution and calculate its cost
@@ -44,9 +44,9 @@ struct create_refinement_context final {
                        }) |
                          to_vector,
                        std::move(iCtx.unassigned)});
-    auto cost = problem.objective->operator()(*sln, *problem.activity, *problem.transport);
+    auto cost = problem->objective->operator()(*sln, *problem->activity, *problem->transport);
 
-    return RefinementContext{std::make_shared<models::Problem>(problem),
+    return RefinementContext{problem,
                              random,
                              std::make_shared<const LockedJobs>(),
                              std::make_shared<Population>(Population{models::EstimatedSolution{sln, cost}}),

@@ -26,10 +26,10 @@ std::tuple<InsertionEvaluator, InsertionContext>
 createInsertion(std::stringstream stream) {
   auto problem = read_solomon_type<cartesian_distance>{}.operator()(stream);
   auto ctx = vrp::test::test_build_insertion_context{}
-               .progress(vrp::test::test_build_insertion_progress{}.total(problem.jobs->size()).owned())
-               .jobs(problem.jobs->all())
-               .registry(std::make_shared<Registry>(*problem.fleet))
-               .constraint(problem.constraint)
+               .progress(vrp::test::test_build_insertion_progress{}.total(problem->jobs->size()).owned())
+               .jobs(problem->jobs->all())
+               .registry(std::make_shared<Registry>(*problem->fleet))
+               .problem(problem)
                .owned();
 
   return {{}, ctx};
@@ -64,17 +64,19 @@ SCENARIO("cheapest insertion inserts service", "[algorithms][construction][inser
       .add(test_build_driver{}.owned())
       .add(test_build_vehicle{}.id("v1").details({{0, v1, {0, 100}}}).owned())
       .add(test_build_vehicle{}.id("v2").details({{20, v2, {0, 100}}}).owned());
-    auto transport = std::make_shared<TestTransportCosts>();
-    auto activity = std::make_shared<ActivityCosts>();
     auto constraint = std::make_shared<InsertionConstraint>();
-    constraint->add<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(fleet, transport, activity));
+    auto problem = std::make_shared<models::Problem>(models::Problem{
+      {}, {}, constraint, {}, std::make_shared<ActivityCosts>(), std::make_shared<TestTransportCosts>()});
+
+    constraint->add<VehicleActivityTiming>(
+      std::make_shared<VehicleActivityTiming>(fleet, problem->transport, problem->activity));
 
     auto insertion = CheapestInsertion{InsertionEvaluator{}};
 
     WHEN("analyzes insertion context") {
       auto result = insertion(test_build_insertion_context{}
                                 .registry(std::make_shared<Registry>(*fleet))
-                                .constraint(constraint)
+                                .problem(problem)
                                 .jobs({as_job(test_build_service{}.location(s1).shared())})
                                 .owned());
 

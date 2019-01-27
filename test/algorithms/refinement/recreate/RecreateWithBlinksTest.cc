@@ -33,14 +33,14 @@ SCENARIO("recreate with blinks handles simple problem", "[algorithms][refinement
     WHEN("analyzes insertion context") {
       auto problem = std::make_shared<Problem>(Problem{{},
                                                        {},
-                                                       {},
+                                                       std::make_shared<InsertionConstraint>(),
                                                        std::make_shared<penalize_unassigned_jobs<>>(),
                                                        std::make_shared<ActivityCosts>(),
                                                        std::make_shared<TestTransportCosts>()});
       auto result = recreate({problem, {}, {}},
                              test_build_insertion_context{}
                                .registry(std::make_shared<Registry>(fleet))
-                               .constraint(std::make_shared<InsertionConstraint>())
+                               .problem(problem)
                                .jobs({as_job(test_build_service{}.location(3).shared())})
                                .owned());
 

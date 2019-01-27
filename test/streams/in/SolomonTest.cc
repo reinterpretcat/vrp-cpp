@@ -39,13 +39,13 @@ SCENARIO("solomon files can be read from input stream", "[streams][in]") {
       auto problem = solomon(stream);
 
       THEN("jobs have proper ids") {
-        auto ids = problem.jobs->all() | view::transform([](const auto& job) { return get_job_id{}(job); }) | to_vector;
+        auto ids = problem->jobs->all() | view::transform([](const auto& j) { return get_job_id{}(j); }) | to_vector;
 
         CHECK_THAT(ids, Equals(std::vector<std::string>{"c1", "c2", "c3"}));
       }
 
       THEN("jobs have proper demand") {
-        auto demands = problem.jobs->all() | view::transform([](const auto& job) {
+        auto demands = problem->jobs->all() | view::transform([](const auto& job) {
                          return std::any_cast<int>(ranges::get<0>(job)->dimens.find("size")->second);
                        }) |
           to_vector;
@@ -54,7 +54,7 @@ SCENARIO("solomon files can be read from input stream", "[streams][in]") {
       }
 
       THEN("jobs have proper service time") {
-        auto durations = problem.jobs->all() |
+        auto durations = problem->jobs->all() |
           view::transform([](const auto& job) { return ranges::get<0>(job)->details[0].duration; }) | to_vector;
 
         CHECK_THAT(durations, Equals(std::vector<models::common::Duration>{5, 11, 12}));
@@ -62,20 +62,20 @@ SCENARIO("solomon files can be read from input stream", "[streams][in]") {
 
       THEN("vehicles have proper ids") {
         std::vector<std::string> ids =
-          problem.fleet->vehicles() | view::transform([](const auto& v) { return get_vehicle_id{}(*v); });
+          problem->fleet->vehicles() | view::transform([](const auto& v) { return get_vehicle_id{}(*v); });
 
         CHECK_THAT(ids, Contains(std::vector<std::string>{"v1", "v2"}));
       }
 
       THEN("vehicles have proper capacity") {
-        std::vector<int> capacities = problem.fleet->vehicles() |
+        std::vector<int> capacities = problem->fleet->vehicles() |
           view::transform([](const auto& v) { return std::any_cast<int>(v->dimens.find("size")->second); });
 
         CHECK_THAT(capacities, Equals(std::vector<int>{10, 10}));
       }
 
       THEN("transport costs have expected matrix") {
-        CHECK_THAT(dynamic_cast<const decltype(solomon)::RoutingMatrix*>(problem.transport.get())->matrix() |
+        CHECK_THAT(dynamic_cast<const decltype(solomon)::RoutingMatrix*>(problem->transport.get())->matrix() |
                      view::transform([](const auto& d) { return d; }),
                    Equals(std::vector<Distance>{0, 1, 3, 7, 1, 0, 2, 6, 3, 2, 0, 4, 7, 6, 4, 0}));
       }

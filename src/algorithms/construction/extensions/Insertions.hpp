@@ -49,8 +49,8 @@ class build_insertion_context {
 public:
   explicit build_insertion_context() : context_({{std::numeric_limits<models::common::Cost>::max(), 0}, {}, {}, {}}) {}
 
-  build_insertion_context& constraint(const std::shared_ptr<const InsertionConstraint>& value) {
-    context_.constraint = value;
+  build_insertion_context& problem(const std::shared_ptr<const models::Problem>& value) {
+    context_.problem = value;
     return *this;
   }
 

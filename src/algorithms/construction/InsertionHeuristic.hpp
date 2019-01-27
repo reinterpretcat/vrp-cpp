@@ -58,7 +58,7 @@ private:
           ctx.jobs.end() - 1);
         ctx.jobs.erase(ctx.jobs.end() - 1);
 
-        ctx.constraint->accept(success.context);
+        ctx.problem->constraint->accept(success.context);
       },
       [&](InsertionFailure& failure) {
         // TODO handle properly

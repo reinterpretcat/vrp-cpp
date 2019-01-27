@@ -68,6 +68,7 @@ public:
                                })),
       make_result_failure(),
       [&](const auto& acc, const auto& routeCtx) {
+        // TODO we need just to change cost, simplify as this is performance expensive place
         auto progress =
           build_insertion_progress{}
             .cost(acc.index() == 0 ? ranges::get<0>(acc).cost : std::numeric_limits<models::common::Cost>::max())
@@ -76,7 +77,7 @@ public:
             .owned();
 
         // check hard constraints on route level.
-        auto error = ctx.constraint->hard(routeCtx, job);
+        auto error = ctx.problem->constraint->hard(routeCtx, job);
         if (error.has_value())
           return get_best_result(acc, {ranges::emplaced_index<1>, InsertionFailure{error.value()}});
 
@@ -84,13 +85,13 @@ public:
         auto result = models::problem::analyze_job<InsertionResult>(
           job,
           [&](const std::shared_ptr<const models::problem::Service>& service) {
-            auto [result, activity] = evaluateService(job, *service, routeCtx, *ctx.constraint, progress);
+            auto [result, activity] = evaluateService(job, *service, ctx, routeCtx, progress);
             return result.isSuccess()
               ? make_result_success({result.cost, activity->job.value(), {{activity, result.index}}, routeCtx})
               : make_result_failure(result.code);
           },
           [&](const std::shared_ptr<const models::problem::Sequence>& sequence) {
-            return evaluateSequence(job, *sequence, routeCtx, *ctx.constraint, progress);
+            return evaluateSequence(job, *sequence, ctx, routeCtx, progress);
           });
 
         // propagate best result or failure
@@ -104,8 +105,8 @@ private:
   /// Evaluates service insertion.
   std::pair<EvaluationContext, Activity> evaluateService(const models::problem::Job& job,
                                                          const models::problem::Service& service,
-                                                         const InsertionRouteContext& ctx,
-                                                         const InsertionConstraint& constraint,
+                                                         const InsertionContext& iCtx,
+                                                         const InsertionRouteContext& rCtx,
                                                          const InsertionProgress& progress,
                                                          size_t startIndex = 0) const {
     using namespace ranges;
@@ -113,10 +114,12 @@ private:
     using ActivityType = solution::Activity::Type;
 
     auto activity = std::make_shared<solution::Activity>(solution::Activity{ActivityType::Job, {}, {}, job});
-    const auto& route = *ctx.route;
+
+    const auto& constraint = *iCtx.problem->constraint;
+    const auto& route = *rCtx.route;
 
     // calculate additional costs on route level.
-    auto routeCosts = constraint.soft(ctx, job);
+    auto routeCosts = constraint.soft(rCtx, job);
 
     // form route legs from a new route view.
     auto tour = view::concat(view::single(route.start), route.tour.activities(), view::single(route.end));
@@ -137,10 +140,10 @@ private:
         return utils::accumulate_while(view::all(detail.times), in1, pred, [&](const auto& in2, const auto& time) {
           activity->detail = {detail.location.value_or(actCtx.prev->detail.location), detail.duration, time};
           // check hard activity constraint
-          auto status = constraint.hard(ctx, actCtx);
+          auto status = constraint.hard(rCtx, actCtx);
           if (status.has_value()) return EvaluationContext::fail(status.value(), in2);
 
-          auto totalCosts = routeCosts + constraint.soft(ctx, actCtx);
+          auto totalCosts = routeCosts + constraint.soft(rCtx, actCtx);
           return totalCosts < in2.cost
             ? EvaluationContext::success(actCtx.index, totalCosts, {activity->detail.location, detail.duration, time})
             : EvaluationContext::skip(in2);
@@ -156,8 +159,8 @@ private:
   /// Evaluates sequence insertion.
   InsertionResult evaluateSequence(const models::problem::Job& job,
                                    const models::problem::Sequence& sequence,
-                                   const InsertionRouteContext& routeCtx,
-                                   const InsertionConstraint& constraint,
+                                   const InsertionContext& iCtx,
+                                   const InsertionRouteContext& rCtx,
                                    const InsertionProgress& progress) const {
     using namespace ranges;
     using namespace vrp::models;
@@ -168,19 +171,17 @@ private:
     // 1. try different starting insertion points
     auto result = accumulate_while(  //
       view::ints(0),
-      std::tuple<int, size_t, InsertionSuccess>{0, 0, InsertionSuccess{{}, job, {}, routeCtx}},
-      [](const auto& r) {
-        return std::get<0>(r) == 0;
-        },
+      std::tuple<int, size_t, InsertionSuccess>{0, 0, InsertionSuccess{{}, job, {}, rCtx}},
+      [](const auto& r) { return std::get<0>(r) == 0; },
       [&](auto& ctx, auto) {
-        auto success = InsertionSuccess{{}, job, {}, routeCtx};
+        auto success = InsertionSuccess{{}, job, {}, rCtx};
         // 2. try to insert all services from sequence in tour starting from specific index
         auto result = accumulate_while(  //
           sequence.jobs,
           EvaluationContext::emptyWithIndex(std::get<1>(ctx)),
           [](const EvaluationContext& ec) { return !ec.isSuccess(); },
           [&](const auto& evalCtx, const auto& service) {
-            auto [sResult, activity] = evaluateService(job, service, routeCtx, constraint, progress, evalCtx.index);
+            auto [sResult, activity] = evaluateService(job, service, iCtx, rCtx, progress, evalCtx.index);
 
             if (sResult.isSuccess()) {
               success.cost += sResult.cost;
@@ -192,7 +193,7 @@ private:
 
         // TODO should be used
         bool hasMore = result.isSuccess() && !success.activities.empty() &&  //
-          success.activities.front().second < routeCtx.route->tour.sizes().second;
+          success.activities.front().second < rCtx.route->tour.sizes().second;
 
         return result.isSuccess() && success.cost < std::get<2>(ctx).cost
           ? Context{result.code, success.activities.front().second, success}

@@ -4,6 +4,7 @@
 #include "algorithms/construction/InsertionProgress.hpp"
 #include "algorithms/construction/InsertionRouteState.hpp"
 #include "algorithms/construction/extensions/Comparators.hpp"
+#include "models/Problem.hpp"
 #include "models/extensions/problem/Comparators.hpp"
 #include "models/problem/Job.hpp"
 #include "models/solution/Registry.hpp"
@@ -25,8 +26,8 @@ struct InsertionContext final {
   /// Keeps track of used resources.
   std::shared_ptr<models::solution::Registry> registry;
 
-  /// Used constraint.
-  std::shared_ptr<const InsertionConstraint> constraint;
+  /// Original problem.
+  std::shared_ptr<const models::Problem> problem;
 
   /// List of jobs which require assignment.
   std::vector<models::problem::Job> jobs;

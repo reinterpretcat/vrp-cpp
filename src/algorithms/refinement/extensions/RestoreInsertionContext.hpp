@@ -38,7 +38,7 @@ struct restore_insertion_context final {
                   .total(static_cast<int>(ctx.problem->jobs->size()))
                   .owned())
       .registry(registry)
-      .constraint(ctx.problem->constraint)
+      .problem(ctx.problem)
       .jobs(std::move(jobs))
       .routes(std::move(routes))
       .random(ctx.random)

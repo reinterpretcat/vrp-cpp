@@ -65,7 +65,7 @@ SCENARIO("registry can provide unique actors", "[models][solution][registry]") {
   GIVEN("c101 problem with 25 customers") {
     auto stream = create_c101_25_problem_stream{}();
     auto problem = read_solomon_type<cartesian_distance>{}.operator()(stream);
-    auto registry = Registry(*problem.fleet);
+    auto registry = Registry(*problem->fleet);
 
     WHEN("unique actors requested") {
       THEN("then returns one actor") { REQUIRE(ranges::distance(registry.next()) == 1); }

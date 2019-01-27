@@ -72,7 +72,7 @@ class Solver final {
   };
 
 public:
-  models::EstimatedSolution operator()(const models::Problem& problem) const {
+  models::EstimatedSolution operator()(const std::shared_ptr<const models::Problem>& problem) const {
     auto logger = Logging{};
 
     // create solution space within initial solution
