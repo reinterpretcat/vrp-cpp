@@ -19,46 +19,38 @@ namespace vrp::algorithms::construction {
 struct InsertionEvaluator final {
 private:
   /// Defines evaluation context.
-  struct EvalContext final {
+  struct EvaluationContext final {
     bool isStopped;                                      /// True, if processing has to be stopped.
     int code = 0;                                        /// Violation code.
     size_t index = 0;                                    /// Insertion index.
-    models::common::Timestamp departure = 0;             /// Departure time.
     models::common::Cost cost = models::common::NoCost;  /// Best cost.
     models::solution::Activity::Detail detail;           /// Activity detail.
 
     /// Creates a new context with index specified.
-    static EvalContext emptyWithCost(const models::common::Timestamp departure, const models::common::Cost cost) {
-      return {false, 0, 0, departure, cost, {}};
-    }
+    static EvaluationContext emptyWithCost(const models::common::Cost& cost) { return {false, 0, 0, cost, {}}; }
 
     /// Creates a new context with index specified.
-    static EvalContext emptyWithIndex(const models::common::Timestamp departure, size_t index) {
-      return {false, 0, index, departure, models::common::NoCost, {}};
-    }
+    static EvaluationContext emptyWithIndex(size_t index) { return {false, 0, index, models::common::NoCost, {}}; }
 
     /// Creates a new context from old one when insertion failed.
-    static EvalContext fail(std::tuple<bool, int> error,
-                            const models::common::Timestamp departure,
-                            const EvalContext& other) {
-      return {std::get<0>(error), std::get<1>(error), other.index, departure, other.cost, other.detail};
+    static EvaluationContext fail(std::tuple<bool, int> error, const EvaluationContext& other) {
+      return {std::get<0>(error), std::get<1>(error), other.index, other.cost, other.detail};
     }
 
     /// Creates a new context from old one when insertion worse.
-    static EvalContext skip(const models::common::Timestamp departure, const EvalContext& other) {
-      return {other.isStopped, other.code, other.index, departure, other.cost, other.detail};
+    static EvaluationContext skip(const EvaluationContext& other) {
+      return {other.isStopped, other.code, other.index, other.cost, other.detail};
     }
 
     /// Creates a new context.
-    static EvalContext success(size_t index,
-                               const models::common::Timestamp departure,
-                               const models::common::Cost cost,
-                               const models::solution::Activity::Detail& detail) {
-      return {false, 0, index, departure, cost, detail};
+    static EvaluationContext success(size_t index,
+                                     const models::common::Cost& cost,
+                                     const models::solution::Activity::Detail& detail) {
+      return {false, 0, index, cost, detail};
     }
 
     /// Checks whether insertion is found.
-    bool isSuccess() const { return cost < models::common::NoCost; }
+    bool isSuccess() const { return cost < std::numeric_limits<models::common::Cost>::max(); }
   };
 
 public:
@@ -77,11 +69,12 @@ public:
       make_result_failure(),
       [&](const auto& acc, const auto& routeCtx) {
         // TODO we need just to change cost, simplify as this is performance expensive place
-        auto progress = build_insertion_progress{}
-                          .cost(acc.index() == 0 ? ranges::get<0>(acc).cost : models::common::NoCost)
-                          .total(ctx.progress.total)
-                          .completeness(ctx.progress.completeness)
-                          .owned();
+        auto progress =
+          build_insertion_progress{}
+            .cost(acc.index() == 0 ? ranges::get<0>(acc).cost : std::numeric_limits<models::common::Cost>::max())
+            .total(ctx.progress.total)
+            .completeness(ctx.progress.completeness)
+            .owned();
 
         // check hard constraints on route level.
         auto error = ctx.problem->constraint->hard(routeCtx, job);
@@ -110,13 +103,12 @@ private:
   using Activity = models::solution::Tour::Activity;
 
   /// Evaluates service insertion.
-  std::pair<EvalContext, Activity> evaluateService(const models::problem::Job& job,
-                                                   const models::problem::Service& service,
-                                                   const InsertionContext& iCtx,
-                                                   const InsertionRouteContext& rCtx,
-                                                   const InsertionProgress& progress,
-                                                   size_t startIndex = 0,
-                                                   models::common::Timestamp departure = 0) const {
+  std::pair<EvaluationContext, Activity> evaluateService(const models::problem::Job& job,
+                                                         const models::problem::Service& service,
+                                                         const InsertionContext& iCtx,
+                                                         const InsertionRouteContext& rCtx,
+                                                         const InsertionProgress& progress,
+                                                         size_t startIndex = 0) const {
     using namespace ranges;
     using namespace vrp::models;
     using ActivityType = solution::Activity::Type;
@@ -132,14 +124,14 @@ private:
     // form route legs from a new route view.
     auto tour = view::concat(view::single(route.start), route.tour.activities(), view::single(route.end));
     auto legs = view::zip(tour | view::drop(startIndex) | view::sliding(2), view::iota(static_cast<size_t>(0)));
-    auto evalCtx = EvalContext::emptyWithCost(departure, progress.bestCost);
-    auto pred = [](const EvalContext& ctx) { return !ctx.isStopped; };
+    auto evalCtx = EvaluationContext::emptyWithCost(progress.bestCost);
+    auto pred = [](const EvaluationContext& ctx) { return !ctx.isStopped; };
 
     // 1. analyze route legs
     auto result = utils::accumulate_while(legs, evalCtx, pred, [&](const auto& out, const auto& view) {
       auto [items, index] = view;
       auto [prev, next] = std::tie(*std::begin(items), *(std::begin(items) + 1));
-      auto actCtx = InsertionActivityContext{index, out.departure, prev, activity, next};
+      auto actCtx = InsertionActivityContext{index, prev, activity, next};
 
       // 2. analyze service details
       return utils::accumulate_while(view::all(service.details), out, pred, [&](const auto& in1, const auto& detail) {
@@ -147,20 +139,14 @@ private:
         // 3. analyze detail time windows
         return utils::accumulate_while(view::all(detail.times), in1, pred, [&](const auto& in2, const auto& time) {
           activity->detail = {detail.location.value_or(actCtx.prev->detail.location), detail.duration, time};
-
-          // calculate end time (departure) for the next leg only if start index is different (perf. opt.).
-          auto endTime = startIndex > 0
-            ? in2.departure + getDeparture(*iCtx.problem, *route.actor, *actCtx.prev, *actCtx.next, evalCtx.departure)
-            : actCtx.next->schedule.departure;
-
           // check hard activity constraint
           auto status = constraint.hard(rCtx, actCtx);
-          if (status.has_value()) return EvalContext::fail(status.value(), endTime, in2);
+          if (status.has_value()) return EvaluationContext::fail(status.value(), in2);
 
-          auto costs = routeCosts + constraint.soft(rCtx, actCtx);
-          return costs < in2.cost
-            ? EvalContext::success(actCtx.index, endTime, costs, {activity->detail.location, detail.duration, time})
-            : EvalContext::skip(endTime, in2);
+          auto totalCosts = routeCosts + constraint.soft(rCtx, actCtx);
+          return totalCosts < in2.cost
+            ? EvaluationContext::success(actCtx.index, totalCosts, {activity->detail.location, detail.duration, time})
+            : EvaluationContext::skip(in2);
         });
       });
     });
@@ -192,8 +178,8 @@ private:
         // 2. try to insert all services from sequence in tour starting from specific index
         auto result = accumulate_while(  //
           sequence.jobs,
-          EvalContext::emptyWithIndex(rCtx.route->start->schedule.departure, std::get<1>(ctx)),
-          [](const EvalContext& ec) { return !ec.isSuccess(); },
+          EvaluationContext::emptyWithIndex(std::get<1>(ctx)),
+          [](const EvaluationContext& ec) { return !ec.isSuccess(); },
           [&](const auto& evalCtx, const auto& service) {
             auto [sResult, activity] = evaluateService(job, service, iCtx, rCtx, progress, evalCtx.index);
 
@@ -239,18 +225,6 @@ private:
                  .shared();
 
     return {start, end};
-  }
-
-  /// Returns departure time from end activity taking into account time: departure time from start activity.
-  models::common::Duration getDeparture(const models::Problem& problem,
-                                        const models::solution::Actor& actor,
-                                        const models::solution::Activity& start,
-                                        const models::solution::Activity& end,
-                                        const models::common::Timestamp& depTime) const {
-    auto arrival = depTime +
-      problem.transport->duration(actor.vehicle->profile, start.detail.location, end.detail.location, depTime);
-    auto workStart = std::max(arrival, end.detail.time.start);
-    return workStart + problem.activity->duration(actor, end, workStart);
   }
 };
 
