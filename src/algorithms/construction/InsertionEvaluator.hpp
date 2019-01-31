@@ -8,7 +8,9 @@
 #include "models/extensions/solution/Factories.hpp"
 #include "models/problem/Fleet.hpp"
 #include "models/solution/Registry.hpp"
+#include "utils/Collections.hpp"
 
+#include <iostream>
 #include <numeric>
 #include <utility>
 #include <vector>
@@ -19,7 +21,7 @@ namespace vrp::algorithms::construction {
 struct InsertionEvaluator final {
 private:
   /// Defines evaluation context.
-  struct EvaluationContext final {
+  struct SrvContext final {
     bool isStopped;                                      /// True, if processing has to be stopped.
     int code = 0;                                        /// Violation code.
     size_t index = 0;                                    /// Insertion index.
@@ -27,30 +29,30 @@ private:
     models::solution::Activity::Detail detail;           /// Activity detail.
 
     /// Creates a new context with index specified.
-    static EvaluationContext emptyWithCost(const models::common::Cost& cost) { return {false, 0, 0, cost, {}}; }
+    static SrvContext empty(const models::common::Cost& cost) { return {false, 0, 0, cost, {}}; }
 
-    /// Creates a new context with index specified.
-    static EvaluationContext emptyWithIndex(size_t index) { return {false, 0, index, models::common::NoCost, {}}; }
+    //    /// Creates a new context with index specified.
+    //    static SrvContext emptyWithIndex(size_t index) { return {false, 0, index, models::common::NoCost, {}}; }
 
     /// Creates a new context from old one when insertion failed.
-    static EvaluationContext fail(std::tuple<bool, int> error, const EvaluationContext& other) {
+    static SrvContext fail(std::tuple<bool, int> error, const SrvContext& other) {
       return {std::get<0>(error), std::get<1>(error), other.index, other.cost, other.detail};
     }
 
     /// Creates a new context from old one when insertion worse.
-    static EvaluationContext skip(const EvaluationContext& other) {
+    static SrvContext skip(const SrvContext& other) {
       return {other.isStopped, other.code, other.index, other.cost, other.detail};
     }
 
     /// Creates a new context.
-    static EvaluationContext success(size_t index,
-                                     const models::common::Cost& cost,
-                                     const models::solution::Activity::Detail& detail) {
+    static SrvContext success(size_t index,
+                              const models::common::Cost& cost,
+                              const models::solution::Activity::Detail& detail) {
       return {false, 0, index, cost, detail};
     }
 
     /// Checks whether insertion is found.
-    bool isSuccess() const { return cost < std::numeric_limits<models::common::Cost>::max(); }
+    bool isSuccess() const { return cost < models::common::NoCost; }
   };
 
 public:
@@ -62,7 +64,17 @@ public:
     // iterate through list of routes plus a new one
     return ranges::accumulate(
       view::concat(ctx.routes, ctx.registry->next() | view::transform([&](const auto& a) {
-                                 auto [start, end] = waypoints(*a);
+                                 const auto& dtl = a->detail;
+                                 auto start = build_activity{}
+                                                .type(Activity::Type::Start)
+                                                .detail({dtl.start, 0, {dtl.time.start, models::common::MaxTime}})
+                                                .schedule({dtl.time.start, dtl.time.start})
+                                                .shared();
+                                 auto end = build_activity{}
+                                              .type(Activity::Type::End)
+                                              .detail({dtl.end.value_or(dtl.start), 0, {0, dtl.time.end}})
+                                              .schedule({dtl.time.end, dtl.time.end})
+                                              .shared();
                                  return InsertionRouteContext{std::make_shared<Route>(Route{a, start, end, {}}),
                                                               std::make_shared<InsertionRouteState>()};
                                })),
@@ -85,10 +97,7 @@ public:
         auto result = models::problem::analyze_job<InsertionResult>(
           job,
           [&](const std::shared_ptr<const models::problem::Service>& service) {
-            auto [result, activity] = evaluateService(job, *service, ctx, routeCtx, progress);
-            return result.isSuccess()
-              ? make_result_success({result.cost, activity->job.value(), {{activity, result.index}}, routeCtx})
-              : make_result_failure(result.code);
+            return evaluateService(job, *service, ctx, routeCtx, progress);
           },
           [&](const std::shared_ptr<const models::problem::Sequence>& sequence) {
             return evaluateSequence(job, *sequence, ctx, routeCtx, progress);
@@ -100,15 +109,12 @@ public:
   }
 
 private:
-  using Activity = models::solution::Tour::Activity;
-
   /// Evaluates service insertion.
-  std::pair<EvaluationContext, Activity> evaluateService(const models::problem::Job& job,
-                                                         const models::problem::Service& service,
-                                                         const InsertionContext& iCtx,
-                                                         const InsertionRouteContext& rCtx,
-                                                         const InsertionProgress& progress,
-                                                         size_t startIndex = 0) const {
+  InsertionResult evaluateService(const models::problem::Job& job,
+                                  const models::problem::Service& service,
+                                  const InsertionContext& iCtx,
+                                  const InsertionRouteContext& rCtx,
+                                  const InsertionProgress& progress) const {
     using namespace ranges;
     using namespace vrp::models;
     using ActivityType = solution::Activity::Type;
@@ -123,9 +129,9 @@ private:
 
     // form route legs from a new route view.
     auto tour = view::concat(view::single(route.start), route.tour.activities(), view::single(route.end));
-    auto legs = view::zip(tour | view::drop(startIndex) | view::sliding(2), view::iota(static_cast<size_t>(0)));
-    auto evalCtx = EvaluationContext::emptyWithCost(progress.bestCost);
-    auto pred = [](const EvaluationContext& ctx) { return !ctx.isStopped; };
+    auto legs = view::zip(tour | view::sliding(2), view::iota(static_cast<size_t>(0)));
+    auto evalCtx = SrvContext::empty(progress.bestCost);
+    auto pred = [](const SrvContext& ctx) { return !ctx.isStopped; };
 
     // 1. analyze route legs
     auto result = utils::accumulate_while(legs, evalCtx, pred, [&](const auto& out, const auto& view) {
@@ -141,20 +147,45 @@ private:
           activity->detail = {detail.location.value_or(actCtx.prev->detail.location), detail.duration, time};
           // check hard activity constraint
           auto status = constraint.hard(rCtx, actCtx);
-          if (status.has_value()) return EvaluationContext::fail(status.value(), in2);
+          if (status.has_value()) return SrvContext::fail(status.value(), in2);
 
           auto totalCosts = routeCosts + constraint.soft(rCtx, actCtx);
           return totalCosts < in2.cost
-            ? EvaluationContext::success(actCtx.index, totalCosts, {activity->detail.location, detail.duration, time})
-            : EvaluationContext::skip(in2);
+            ? SrvContext::success(actCtx.index, totalCosts, {activity->detail.location, detail.duration, time})
+            : SrvContext::skip(in2);
         });
       });
     });
 
     activity->detail = result.detail;
 
-    return {result, activity};
+    return result.isSuccess()
+      ? make_result_success({result.cost, activity->job.value(), {{activity, result.index}}, rCtx})
+      : make_result_failure(result.code);
   }
+
+  // TODO move to SrvContext
+  struct SeqContext final {
+    bool isStopped = false;                              /// True, if processing has to be stopped.
+    int code = 0;                                        /// Violation code.
+    size_t index = 0;                                    /// Start index.
+    models::common::Cost cost = models::common::NoCost;  /// Best cost.
+    std::vector<std::pair<models::solution::Tour::Activity, size_t>> activities = {};
+
+    bool isSuccess() const { return cost < models::common::NoCost; }
+
+    static SeqContext empty() { return {}; }
+
+    static SeqContext start(size_t index) { return {false, 0, index, 0, {}}; }
+
+    static SeqContext fail(int code) { return {true, code, 0, models::common::NoCost, {}}; }
+
+    static SeqContext success(size_t index,
+                              models::common::Cost cost,
+                              std::vector<std::pair<models::solution::Tour::Activity, size_t>>&& activities) {
+      return {false, 0, index, cost, std::move(activities)};
+    }
+  };
 
   /// Evaluates sequence insertion.
   InsertionResult evaluateSequence(const models::problem::Job& job,
@@ -165,66 +196,68 @@ private:
     using namespace ranges;
     using namespace vrp::models;
     using namespace vrp::utils;
-    // <error code, next start index, best insertion cost>
-    using Context = std::tuple<int, size_t, InsertionSuccess>;
 
-    // 1. try different starting insertion points
-    auto result = accumulate_while(  //
-      view::ints(0),
-      std::tuple<int, size_t, InsertionSuccess>{0, 0, InsertionSuccess{{}, job, {}, rCtx}},
-      [](const auto& r) { return std::get<0>(r) == 0; },
-      [&](auto& ctx, auto) {
-        auto success = InsertionSuccess{{}, job, {}, rCtx};
-        // 2. try to insert all services from sequence in tour starting from specific index
-        auto result = accumulate_while(  //
+    // iterate through all possible insertion points
+    auto result = accumulate_while(
+      view::iota(0),
+      SeqContext::empty(),
+      [](const auto& r) { return !r.isStopped; },
+      [&](auto& out, auto) {
+        // create a copy of route context
+        auto newCtx = rCtx;
+        auto sqRes = accumulate_while(
           sequence.jobs,
-          EvaluationContext::emptyWithIndex(std::get<1>(ctx)),
-          [](const EvaluationContext& ec) { return !ec.isSuccess(); },
-          [&](const auto& evalCtx, const auto& service) {
-            auto [sResult, activity] = evaluateService(job, service, iCtx, rCtx, progress, evalCtx.index);
+          SeqContext::start(out.index),
+          [](const auto& r) { return !r.isStopped; },
+          [&](auto& in1, const auto& service) {
+            using ActivityType = solution::Activity::Type;
 
-            if (sResult.isSuccess()) {
-              success.cost += sResult.cost;
-              success.activities.push_back({activity, sResult.index});
+            const auto& route = *newCtx.route;
+            auto tour = view::concat(view::single(route.start), route.tour.activities(), view::single(route.end));
+            auto legs = view::zip(tour | view::sliding(2) | view::drop(in1.index), view::iota(static_cast<size_t>(0)));
+            auto activity = std::make_shared<solution::Activity>(solution::Activity{ActivityType::Job, {}, {}, job});
+            // analyze legs and stop at first success or failure
+            auto srvRes = accumulate_while(
+              legs,
+              SrvContext::empty(models::common::NoCost),
+              [](const SrvContext& ctx) { return !ctx.isSuccess() && !ctx.isStopped; },
+              [&](const auto& in2, const auto& leg) {
+                static const auto pred = [](const SrvContext& acc) { return !acc.isStopped; };
+
+                auto [items, index] = leg;
+                auto [prev, next] = std::tie(*std::begin(items), *(std::begin(items) + 1));
+                auto aCtx = InsertionActivityContext{index, prev, activity, next};
+                // service details
+                return accumulate_while(view::all(service.details), in2, pred, [&](const auto& in3, const auto& dtl) {
+                  // service time windows
+                  return accumulate_while(view::all(dtl.times), in3, pred, [&](const auto& in4, const auto& time) {
+                    aCtx.target->detail = {dtl.location.value_or(aCtx.prev->detail.location), dtl.duration, time};
+                    auto status = iCtx.problem->constraint->hard(newCtx, aCtx);
+                    return status.has_value() ? SrvContext::fail(status.value(), in4)
+                                              : SrvContext::success(aCtx.index,
+                                                                    iCtx.problem->constraint->soft(newCtx, aCtx),
+                                                                    {aCtx.target->detail.location, dtl.duration, time});
+                  });
+                });
+              });
+
+            if (srvRes.isSuccess()) {
+              activity->detail = srvRes.detail;
+              newCtx.route->tour.insert(activity, srvRes.index);
+              iCtx.problem->constraint->accept(newCtx);
+              /// TODO what is correct index for old tour?
+              return SeqContext::success(
+                srvRes.index + 1, in1.cost + srvRes.cost, concat(in1.activities, {activity, srvRes.index}));
             }
 
-            return sResult;
+            return SeqContext::fail(srvRes.code);
           });
 
-        // TODO should be used
-        bool hasMore = result.isSuccess() && !success.activities.empty() &&  //
-          success.activities.front().second < rCtx.route->tour.sizes().second;
-
-        return result.isSuccess() && success.cost < std::get<2>(ctx).cost
-          ? Context{result.code, success.activities.front().second, success}
-          : Context{result.code, std::get<2>(ctx).cost, std::move(std::get<2>(ctx))};
+        return sqRes.cost < out.cost ? sqRes : std::move(out);
       });
 
-    return std::get<0>(result) > 0 ? InsertionResult{ranges::emplaced_index<1>, InsertionFailure{std::get<0>(result)}}
-                                   : InsertionResult{ranges::emplaced_index<0>, std::move(std::get<2>(result))};
-  }
-
-
-  /// Creates start and end waypoints for given actor.
-  std::pair<Activity, Activity> waypoints(const models::solution::Actor& actor) const {
-    using namespace vrp::utils;
-    using namespace vrp::models;
-
-    const auto& detail = actor.detail;
-
-    // create start/end for new vehicle
-    auto start = solution::build_activity{}
-                   .type(solution::Activity::Type::Start)
-                   .detail({detail.start, 0, {detail.time.start, std::numeric_limits<common::Timestamp>::max()}})
-                   .schedule({detail.time.start, detail.time.start})  //
-                   .shared();
-    auto end = solution::build_activity{}
-                 .type(solution::Activity::Type::End)
-                 .detail({detail.end.value_or(detail.start), 0, {0, detail.time.end}})
-                 .schedule({detail.time.end, detail.time.end})  //
-                 .shared();
-
-    return {start, end};
+    return result.isSuccess() ? make_result_success({result.cost, job, std::move(result.activities), rCtx})
+                              : make_result_failure(result.code);
   }
 };
 

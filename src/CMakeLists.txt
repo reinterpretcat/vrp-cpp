@@ -96,6 +96,7 @@ set(SOURCE_FILES
         streams/in/Solomon.hpp
         streams/out/DumpSolutionAsText.hpp
 
+        utils/Collections.hpp
         utils/Random.hpp
         utils/Measure.hpp
         utils/extensions/Hash.hpp
