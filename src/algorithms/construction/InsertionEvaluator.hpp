@@ -31,9 +31,6 @@ private:
     /// Creates a new context with index specified.
     static SrvContext empty(const models::common::Cost& cost) { return {false, 0, 0, cost, {}}; }
 
-    //    /// Creates a new context with index specified.
-    //    static SrvContext emptyWithIndex(size_t index) { return {false, 0, index, models::common::NoCost, {}}; }
-
     /// Creates a new context from old one when insertion failed.
     static SrvContext fail(std::tuple<bool, int> error, const SrvContext& other) {
       return {std::get<0>(error), std::get<1>(error), other.index, other.cost, other.detail};
@@ -80,6 +77,11 @@ public:
                                })),
       make_result_failure(),
       [&](const auto& acc, const auto& routeCtx) {
+        // check hard constraints on route level.
+        auto error = ctx.problem->constraint->hard(routeCtx, job);
+        if (error.has_value())
+          return get_best_result(acc, {ranges::emplaced_index<1>, InsertionFailure{error.value()}});
+
         // TODO we need just to change cost, simplify as this is performance expensive place
         auto progress =
           build_insertion_progress{}
@@ -87,11 +89,6 @@ public:
             .total(ctx.progress.total)
             .completeness(ctx.progress.completeness)
             .owned();
-
-        // check hard constraints on route level.
-        auto error = ctx.problem->constraint->hard(routeCtx, job);
-        if (error.has_value())
-          return get_best_result(acc, {ranges::emplaced_index<1>, InsertionFailure{error.value()}});
 
         // evaluate its insertion cost
         auto result = models::problem::analyze_job<InsertionResult>(
@@ -201,20 +198,23 @@ private:
     auto result = accumulate_while(
       view::iota(0),
       SeqContext::empty(),
-      [](const auto& r) { return !r.isStopped; },
+      [&](const auto& r) {
+        return !r.isStopped && r.index < (rCtx.route->tour.sizes().second + sequence.jobs.size());
+        },
       [&](auto& out, auto) {
-        // create a copy of route context
-        auto newCtx = rCtx;
+        auto newCtx = deep_copy_insertion_route_context{}(rCtx);
         auto sqRes = accumulate_while(
           sequence.jobs,
           SeqContext::start(out.index),
-          [](const auto& r) { return !r.isStopped; },
+          [](const auto& r) {
+            return !r.isStopped;
+            },
           [&](auto& in1, const auto& service) {
             using ActivityType = solution::Activity::Type;
 
             const auto& route = *newCtx.route;
             auto tour = view::concat(view::single(route.start), route.tour.activities(), view::single(route.end));
-            auto legs = view::zip(tour | view::sliding(2) | view::drop(in1.index), view::iota(static_cast<size_t>(0)));
+            auto legs = view::zip(tour | view::sliding(2), view::iota(static_cast<size_t>(0))) | view::drop(in1.index);
             auto activity = std::make_shared<solution::Activity>(solution::Activity{ActivityType::Job, {}, {}, job});
             // analyze legs and stop at first success or failure
             auto srvRes = accumulate_while(

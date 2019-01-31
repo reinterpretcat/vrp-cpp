@@ -5,6 +5,7 @@
 #include "algorithms/construction/InsertionProgress.hpp"
 #include "algorithms/construction/InsertionRouteContext.hpp"
 #include "models/extensions/problem/Comparators.hpp"
+#include "models/extensions/solution/DeepCopies.hpp"
 
 #include <cmath>
 #include <limits>
@@ -141,5 +142,15 @@ public:
 
 private:
   InsertionActivityContext context_;
+};
+
+/// Creates a deep copy of insertion route context.
+struct deep_copy_insertion_route_context final {
+  InsertionRouteContext operator()(const InsertionRouteContext& rs) const {
+    return {
+      models::solution::deep_copy_route{}(rs.route),
+      std::make_shared<InsertionRouteState>(InsertionRouteState{*rs.state})
+    };
+  }
 };
 }
