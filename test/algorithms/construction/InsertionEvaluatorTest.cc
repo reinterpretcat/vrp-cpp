@@ -32,6 +32,16 @@ createActivity(const std::string& id, int size) {
 }
 
 std::shared_ptr<Problem>
+createProblem(const std::shared_ptr<Fleet>& fleet) {
+  auto activity = std::make_shared<ActivityCosts>();
+  auto transport = std::make_shared<TestTransportCosts>();
+  auto constraint = std::make_shared<InsertionConstraint>();
+
+  constraint->add<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(fleet, transport, activity));
+  return std::make_shared<Problem>(Problem{{}, {}, constraint, {}, activity, transport});
+}
+
+std::shared_ptr<Problem>
 createProblem(std::shared_ptr<InsertionConstraint> constraint) {
   return std::make_shared<Problem>(
     Problem{{}, {}, constraint, {}, std::make_shared<ActivityCosts>(), std::make_shared<TestTransportCosts>()});
@@ -235,31 +245,67 @@ SCENARIO("insertion evaluator can handle service insertion with violation", "[al
   }
 }
 
-// SCENARIO("insertion evaluator can insert sequence without constraints", "[algorithms][construction][insertion]") {
-//  GIVEN("empty tour") {
-//    auto route = test_build_route{}.owned();
-//
-//    auto context = test_build_insertion_context{}
-//                     .problem(createProblem(std::make_shared<InsertionConstraint>()))
-//                     .progress(test_build_insertion_progress{}.owned())
-//                     .routes({test_build_insertion_route_context{}.owned()})
-//                     .registry(std::make_shared<Registry>(*createFleet()))
-//                     .owned();
-//
-//    WHEN("sequence is ok") {
-//      THEN("returns insertion success with two activities") {
-//        auto result = InsertionEvaluator{}.evaluate(as_job(test_build_sequence{}
-//                                                             .id("sequence")
-//                                                             .service(test_build_service{}.id("s1").owned())
-//                                                             .service(test_build_service{}.id("s2").owned())
-//                                                             .shared()),
-//                                                    context);
-//        REQUIRE(result.index() == 0);
-//        REQUIRE(ranges::get<0>(result).activities.size() == 2);
-//        REQUIRE(ranges::get<0>(result).activities[0].second == 0);
-//        REQUIRE(ranges::get<0>(result).activities[1].second == 1);
-//      }
-//    }
-//  }
-//}
+SCENARIO("insertion evaluator can insert sequence with timing constraint", "[algorithms][construction][insertion]") {
+  GIVEN("empty tour") {
+    auto fleet = createFleet();
+    auto route = test_build_route{}.owned();
+    auto context = test_build_insertion_context{}
+                     .problem(createProblem(fleet))
+                     .progress(test_build_insertion_progress{}.owned())
+                     .routes({test_build_insertion_route_context{}.owned()})
+                     .registry(std::make_shared<Registry>(*fleet))
+                     .owned();
+
+    WHEN("sequence is inserted with activities with relaxed tw") {
+      THEN("returns insertion success with two activities and proper cost") {
+        auto result = InsertionEvaluator{}.evaluate(as_job(test_build_sequence{}
+                                                             .id("sequence")
+                                                             .service(test_build_service{}.id("s1").location(3).owned())
+                                                             .service(test_build_service{}.id("s2").location(7).owned())
+                                                             .shared()),
+                                                    context);
+        REQUIRE(result.index() == 0);
+        REQUIRE(ranges::get<0>(result).cost == 28);
+        REQUIRE(ranges::get<0>(result).activities.size() == 2);
+        REQUIRE(ranges::get<0>(result).activities[0].second == 0);
+        REQUIRE(ranges::get<0>(result).activities[1].second == 1);
+        REQUIRE(ranges::get<0>(result).activities[0].first->detail.location == 3);
+        REQUIRE(ranges::get<0>(result).activities[1].first->detail.location == 7);
+      }
+    }
+  }
+
+  GIVEN("tour with one activity") {
+    auto fleet = createFleet();
+    auto route = test_build_route{}.owned();
+    auto context = test_build_insertion_context{}
+                     .problem(createProblem(fleet))
+                     .progress(test_build_insertion_progress{}.owned())
+                     .routes({test_build_insertion_route_context{}
+                                .add(test_build_activity{}.location(5).schedule({5, 5}).shared())
+                                .owned()})
+                     .registry(std::make_shared<Registry>(*fleet))
+                     .owned();
+    auto rs = *context.routes.begin();
+    context.problem->constraint->accept(rs);
+
+    WHEN("sequence is inserted with activities with relaxed tw") {
+      THEN("returns insertion success with two activities and proper cost") {
+        auto result = InsertionEvaluator{}.evaluate(as_job(test_build_sequence{}
+                                                             .id("sequence")
+                                                             .service(test_build_service{}.id("s1").location(3).owned())
+                                                             .service(test_build_service{}.id("s2").location(7).owned())
+                                                             .shared()),
+                                                    context);
+        REQUIRE(result.index() == 0);
+        REQUIRE(ranges::get<0>(result).cost == 8);
+        REQUIRE(ranges::get<0>(result).activities.size() == 2);
+        REQUIRE(ranges::get<0>(result).activities[0].second == 0);
+        REQUIRE(ranges::get<0>(result).activities[1].second == 1);
+        REQUIRE(ranges::get<0>(result).activities[0].first->detail.location == 3);
+        REQUIRE(ranges::get<0>(result).activities[1].first->detail.location == 7);
+      }
+    }
+  }
+}
 }

@@ -10,7 +10,6 @@
 #include "models/solution/Registry.hpp"
 #include "utils/Collections.hpp"
 
-#include <iostream>
 #include <numeric>
 #include <utility>
 #include <vector>
@@ -29,7 +28,9 @@ private:
     models::solution::Activity::Detail detail;           /// Activity detail.
 
     /// Creates a new context with index specified.
-    static SrvContext empty(const models::common::Cost& cost) { return {false, 0, 0, cost, {}}; }
+    static SrvContext empty(const models::common::Cost& cost = models::common::NoCost) {
+      return {false, 0, 0, cost, {}};
+    }
 
     /// Creates a new context from old one when insertion failed.
     static SrvContext fail(std::tuple<bool, int> error, const SrvContext& other) {
@@ -163,24 +164,32 @@ private:
 
   // TODO move to SrvContext
   struct SeqContext final {
-    bool isStopped = false;                              /// True, if processing has to be stopped.
     int code = 0;                                        /// Violation code.
     size_t index = 0;                                    /// Start index.
-    models::common::Cost cost = models::common::NoCost;  /// Best cost.
+    models::common::Cost cost = models::common::NoCost;  /// Cost accumulator.
     std::vector<std::pair<models::solution::Tour::Activity, size_t>> activities = {};
 
     bool isSuccess() const { return cost < models::common::NoCost; }
 
+    SeqContext next() const {
+      return code > 0 ? fail(code) : SeqContext{0, activities.empty() ? 0 : activities.front().second + 1, 0, {}};
+    }
+
+    static SeqContext&& forward(SeqContext& left, SeqContext& right) {
+      auto index = std::max(left.index, right.index);
+      left.index = index;
+      right.index = index;
+      return std::move(left.cost < right.cost ? left : right);
+    }
+
     static SeqContext empty() { return {}; }
 
-    static SeqContext start(size_t index) { return {false, 0, index, 0, {}}; }
+    static SeqContext fail(int code) { return {code, 0, models::common::NoCost, {}}; }
 
-    static SeqContext fail(int code) { return {true, code, 0, models::common::NoCost, {}}; }
-
-    static SeqContext success(size_t index,
-                              models::common::Cost cost,
+    static SeqContext success(models::common::Cost cost,
                               std::vector<std::pair<models::solution::Tour::Activity, size_t>>&& activities) {
-      return {false, 0, index, cost, std::move(activities)};
+      auto index = activities.front().second + 1;
+      return {0, index, cost, std::move(activities)};
     }
   };
 
@@ -193,68 +202,58 @@ private:
     using namespace ranges;
     using namespace vrp::models;
     using namespace vrp::utils;
+    using ActivityType = solution::Activity::Type;
+
+    static const auto srvPred = [](const SrvContext& acc) { return !acc.isStopped; };
+    static const auto inSeqPred = [&](const SeqContext& acc) { return acc.code == 0; };
+    static const auto outSeqPred = [&](const SeqContext& acc) {
+      return acc.code == 0 && acc.index <= rCtx.route->tour.sizes().second;
+    };
 
     // iterate through all possible insertion points
-    auto result = accumulate_while(
-      view::iota(0),
-      SeqContext::empty(),
-      [&](const auto& r) {
-        return !r.isStopped && r.index < (rCtx.route->tour.sizes().second + sequence.jobs.size());
-        },
-      [&](auto& out, auto) {
-        auto newCtx = deep_copy_insertion_route_context{}(rCtx);
-        auto sqRes = accumulate_while(
-          sequence.jobs,
-          SeqContext::start(out.index),
-          [](const auto& r) {
-            return !r.isStopped;
-            },
-          [&](auto& in1, const auto& service) {
-            using ActivityType = solution::Activity::Type;
+    auto result = accumulate_while(view::iota(0), SeqContext::empty(), outSeqPred, [&](auto& out, auto) {
+      auto newCtx = deep_copy_insertion_route_context{}(rCtx);
+      auto sqRes = accumulate_while(sequence.jobs, out.next(), inSeqPred, [&](auto& in1, const auto& service) {
+        const auto& route = *newCtx.route;
+        auto tour = view::concat(view::single(route.start), route.tour.activities(), view::single(route.end));
+        auto legs = view::zip(tour | view::sliding(2), view::iota(static_cast<size_t>(0))) | view::drop(in1.index);
+        auto activity = std::make_shared<solution::Activity>(solution::Activity{ActivityType::Job, {}, {}, job});
 
-            const auto& route = *newCtx.route;
-            auto tour = view::concat(view::single(route.start), route.tour.activities(), view::single(route.end));
-            auto legs = view::zip(tour | view::sliding(2), view::iota(static_cast<size_t>(0))) | view::drop(in1.index);
-            auto activity = std::make_shared<solution::Activity>(solution::Activity{ActivityType::Job, {}, {}, job});
-            // analyze legs and stop at first success or failure
-            auto srvRes = accumulate_while(
-              legs,
-              SrvContext::empty(models::common::NoCost),
-              [](const SrvContext& ctx) { return !ctx.isSuccess() && !ctx.isStopped; },
-              [&](const auto& in2, const auto& leg) {
-                static const auto pred = [](const SrvContext& acc) { return !acc.isStopped; };
+        // region analyze legs and stop at best success or first failure
+        auto srvRes = accumulate_while(legs, SrvContext::empty(), srvPred, [&](const auto& in2, const auto& leg) {
+          auto [items, index] = leg;
+          auto [prev, next] = std::tie(*std::begin(items), *(std::begin(items) + 1));
+          auto aCtx = InsertionActivityContext{index, prev, activity, next};
 
-                auto [items, index] = leg;
-                auto [prev, next] = std::tie(*std::begin(items), *(std::begin(items) + 1));
-                auto aCtx = InsertionActivityContext{index, prev, activity, next};
-                // service details
-                return accumulate_while(view::all(service.details), in2, pred, [&](const auto& in3, const auto& dtl) {
-                  // service time windows
-                  return accumulate_while(view::all(dtl.times), in3, pred, [&](const auto& in4, const auto& time) {
-                    aCtx.target->detail = {dtl.location.value_or(aCtx.prev->detail.location), dtl.duration, time};
-                    auto status = iCtx.problem->constraint->hard(newCtx, aCtx);
-                    return status.has_value() ? SrvContext::fail(status.value(), in4)
-                                              : SrvContext::success(aCtx.index,
-                                                                    iCtx.problem->constraint->soft(newCtx, aCtx),
-                                                                    {aCtx.target->detail.location, dtl.duration, time});
-                  });
-                });
-              });
+          // service details
+          return accumulate_while(view::all(service.details), in2, srvPred, [&](const auto& in3, const auto& dtl) {
+            // service time windows
+            return accumulate_while(view::all(dtl.times), in3, srvPred, [&](const auto& in4, const auto& time) {
+              aCtx.target->detail = {dtl.location.value_or(aCtx.prev->detail.location), dtl.duration, time};
+              auto status = iCtx.problem->constraint->hard(newCtx, aCtx);
+              if (status.has_value()) return SrvContext::fail(status.value(), in4);
 
-            if (srvRes.isSuccess()) {
-              activity->detail = srvRes.detail;
-              newCtx.route->tour.insert(activity, srvRes.index);
-              iCtx.problem->constraint->accept(newCtx);
-              /// TODO what is correct index for old tour?
-              return SeqContext::success(
-                srvRes.index + 1, in1.cost + srvRes.cost, concat(in1.activities, {activity, srvRes.index}));
-            }
-
-            return SeqContext::fail(srvRes.code);
+              auto costs = iCtx.problem->constraint->soft(newCtx, aCtx);
+              return costs < in4.cost
+                ? SrvContext::success(aCtx.index, costs, {aCtx.target->detail.location, dtl.duration, time})
+                : SrvContext::skip(in4);
+            });
           });
+        });
+        // endregion
 
-        return sqRes.cost < out.cost ? sqRes : std::move(out);
+        if (srvRes.isSuccess()) {
+          activity->detail = srvRes.detail;
+          newCtx.route->tour.insert(activity, srvRes.index);
+          iCtx.problem->constraint->accept(newCtx);
+          return SeqContext::success(in1.cost + srvRes.cost, concat(in1.activities, {activity, srvRes.index}));
+        }
+
+        return SeqContext::fail(srvRes.code);
       });
+
+      return SeqContext::forward(sqRes, out);
+    });
 
     return result.isSuccess() ? make_result_success({result.cost, job, std::move(result.activities), rCtx})
                               : make_result_failure(result.code);
