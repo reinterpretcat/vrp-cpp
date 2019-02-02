@@ -22,14 +22,15 @@ jobDetail(const std::optional<Location>& location) {
 
 namespace vrp::test {
 
-SCENARIO("distance between jobs", "[models][extensions][problem]") {
-  GIVEN("service jobs") {
-    auto [d1, d2, expected] = GENERATE(table<JobDetails, JobDetails, Distance>(
-      {{{jobDetail({0})}, {jobDetail({10})}, 10},
-       {{jobDetail({0})}, {jobDetail({})}, 0},
-       {{jobDetail({3})}, {jobDetail({5}), jobDetail({2})}, 1},
-       {{jobDetail({2}), jobDetail({1})}, {jobDetail({10}), jobDetail({9})}, 7}}));
+SCENARIO("distance between service jobs", "[models][extensions][problem]") {
+  auto [d1, d2, expected] = GENERATE(table<JobDetails, JobDetails, Distance>(
+    {{{jobDetail({0})}, {jobDetail({10})}, 10},
+     {{jobDetail({0})}, {jobDetail({})}, 0},
+     {{jobDetail({})}, {jobDetail({})}, 0},
+     {{jobDetail({3})}, {jobDetail({5}), jobDetail({2})}, 1},
+     {{jobDetail({2}), jobDetail({1})}, {jobDetail({10}), jobDetail({9})}, 7}}));
 
+  GIVEN("service jobs") {
     auto s1 = as_job(test_build_service{}.details(std::move(d1)).shared());
     auto s2 = as_job(test_build_service{}.details(std::move(d2)).shared());
 

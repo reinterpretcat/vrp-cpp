@@ -19,9 +19,13 @@ struct job_distance final {
     auto left = getLocations(lhs) | to_vector;
     auto right = getLocations(rhs) | to_vector;
 
-    return ranges::min(view::cartesian_product(left, right) | view::transform([&](const auto& tuple) {
-                         return transport.distance(profile, std::get<0>(tuple), std::get<1>(tuple), departure);
-                       }));
+    auto distance =
+      ranges::min(view::concat(view::cartesian_product(left, right) | view::transform([&](const auto& tuple) {
+                                 return transport.distance(profile, std::get<0>(tuple), std::get<1>(tuple), departure);
+                               }),
+                               view::single(common::NoDistance)));
+
+    return distance < common::NoDistance ? distance : 0;
   }
 
 private:
@@ -30,7 +34,7 @@ private:
       job,
       [](const std::shared_ptr<const Service>& service) -> ranges::any_view<common::Location> {
         return ranges::view::for_each(service->details, [](const auto& d) {
-          return ranges::yield(d.location.has_value() ? d.location.value() : 0);
+          return ranges::yield_if(d.location.has_value(), d.location.has_value() ? d.location.value() : 0);
         });
       },
       [](const std::shared_ptr<const Sequence>& sequence) -> ranges::any_view<common::Location> {
