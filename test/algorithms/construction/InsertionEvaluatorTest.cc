@@ -255,9 +255,10 @@ SCENARIO("insertion evaluator can handle service insertion with violation", "[al
 }
 
 SCENARIO("insertion evaluator can insert sequence in empty tour", "[algorithms][construction][insertion]") {
-  auto [s1, s2] = GENERATE(table<Location, Location>({
-    {3, 7},
-  }));
+  auto [s1, s2, cost, r1, r2] =
+    GENERATE(table<Location, Location, Cost, std::pair<size_t, Location>, std::pair<size_t, Location>>({
+      {3, 7, 28, {0, 3}, {1, 7}},
+    }));
 
   GIVEN("empty tour and timing constraint") {
     auto fleet = createFleet();
@@ -279,17 +280,19 @@ SCENARIO("insertion evaluator can insert sequence in empty tour", "[algorithms][
                                                  .shared()),
                                         context);
         REQUIRE(result.index() == 0);
-        REQUIRE(ranges::get<0>(result).cost == 28);
-        assertActivities(ranges::get<0>(result), {{0, 3}, {1, 7}});
+        REQUIRE(ranges::get<0>(result).cost == cost);
+        assertActivities(ranges::get<0>(result), {r1, r2});
       }
     }
   }
 }
 
 SCENARIO("insertion evaluator can insert sequence in non empty tour", "[algorithms][construction][insertion]") {
-  auto [exst, schedule, s1, s2] = GENERATE(table<Location, Timestamp, Location, Location>({
-    {5, 5, 3, 7},
-  }));
+  auto [exst, schedule, s1, s2, cost, r1, r2] = GENERATE(
+    table<Location, Timestamp, Location, Location, Cost, std::pair<size_t, Location>, std::pair<size_t, Location>>({
+      {5, 5, 3, 7, 8, {0, 3}, {1, 7}},
+      // TODO insert other cases
+    }));
 
 
   GIVEN("tour with one activity and timing constraint") {
@@ -316,8 +319,8 @@ SCENARIO("insertion evaluator can insert sequence in non empty tour", "[algorith
                                                  .shared()),
                                         context);
         REQUIRE(result.index() == 0);
-        REQUIRE(ranges::get<0>(result).cost == 8);
-        assertActivities(ranges::get<0>(result), {{0, 3}, {1, 7}});
+        REQUIRE(ranges::get<0>(result).cost == cost);
+        assertActivities(ranges::get<0>(result), {r1, r2});
       }
     }
   }
