@@ -58,7 +58,7 @@ private:
     int code;                                                                     /// Violation code.
     size_t index;                                                                 /// Start index.
     std::optional<models::common::Cost> cost;                                     /// Cost accumulator.
-    std::vector<std::pair<models::solution::Tour::Activity, size_t>> activities;  /// Activities with ther indicies
+    std::vector<std::pair<models::solution::Tour::Activity, size_t>> activities;  /// Activities with their indices
 
     static SeqContext&& forward(SeqContext& left, SeqContext& right) {
       auto index = std::max(left.index, right.index) + 1;
