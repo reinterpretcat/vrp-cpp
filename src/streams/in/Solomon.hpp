@@ -3,30 +3,18 @@
 #include "algorithms/construction/constraints/VehicleActivitySize.hpp"
 #include "algorithms/construction/constraints/VehicleActivityTiming.hpp"
 #include "algorithms/objectives/PenalizeUnassignedJobs.hpp"
-#include "models/Problem.hpp"
-#include "models/costs/ActivityCosts.hpp"
-#include "models/costs/TransportCosts.hpp"
 #include "models/extensions/problem/Factories.hpp"
+#include "streams/in/extensions/Costs.hpp"
+#include "streams/in/extensions/Distances.hpp"
 
 #include <algorithm>
-#include <cmath>
 #include <functional>
 #include <istream>
 #include <range/v3/all.hpp>
 #include <sstream>
 #include <tuple>
-#include <vector>
 
 namespace vrp::streams::in {
-
-/// Calculates cartesian distance between two points on plane in 2D.
-struct cartesian_distance final {
-  models::common::Distance operator()(const std::pair<int, int>& left, const std::pair<int, int>& right) {
-    models::common::Distance x = left.first - right.first;
-    models::common::Distance y = left.second - right.second;
-    return std::sqrt(x * x + y * y);
-  }
-};
 
 /// Reads problem represented by classical solomon definition from stream.
 template<typename Distance = cartesian_distance>
@@ -34,65 +22,10 @@ struct read_solomon_type final {
   constexpr static auto IdDimKey = "id";
   constexpr static auto SizeDimKey = "size";
 
-  struct ServiceCosts : models::costs::ActivityCosts {
-    models::common::Cost cost(const models::solution::Actor& actor,
-                              const models::solution::Activity& activity,
-                              const models::common::Timestamp arrival) const override {
-      return 0;
-    }
-  };
-
-  struct RoutingMatrix : models::costs::TransportCosts {
-    friend read_solomon_type;
-
-    models::common::Duration duration(const std::string& profile,
-                                      const models::common::Location& from,
-                                      const models::common::Location& to,
-                                      const models::common::Timestamp& departure) const override {
-      return distance(profile, from, to, departure);
-    }
-
-    models::common::Distance distance(const std::string&,
-                                      const models::common::Location& from,
-                                      const models::common::Location& to,
-                                      const models::common::Timestamp&) const override {
-      return matrix_[from * locations_.size() + to];
-    }
-
-
-    auto matrix() const { return ranges::view::all(matrix_); }
-
-  private:
-    models::common::Location location(int x, int y) {
-      // TODO use more performant data structure to have O(1)
-      auto location = std::find_if(
-        locations_.begin(), locations_.end(), [&](const auto& l) { return l.first == x && l.second == y; });
-
-      if (location != locations_.end())
-        return static_cast<models::common::Location>(std::distance(locations_.begin(), location));
-
-      locations_.push_back(std::pair(x, y));
-      return locations_.size() - 1;
-    }
-
-    void generate() {
-      matrix_.reserve(locations_.size() * locations_.size());
-
-      auto distance = Distance{};
-      for (size_t i = 0; i < locations_.size(); ++i)
-        for (size_t j = 0; j < locations_.size(); ++j) {
-          matrix_.push_back(i != j ? distance(locations_[i], locations_[j]) : static_cast<models::common::Distance>(0));
-        }
-    }
-
-    std::vector<models::common::Distance> matrix_;
-    std::vector<std::pair<int, int>> locations_;
-  };
-
   std::shared_ptr<models::Problem> operator()(std::istream& input) const {
     using namespace algorithms::construction;
 
-    auto matrix = std::make_shared<RoutingMatrix>();
+    auto matrix = std::make_shared<RoutingMatrix<Distance>>();
     auto fleet = std::make_shared<models::problem::Fleet>();
     auto activity = std::make_shared<ServiceCosts>();
     auto constraint = std::make_shared<InsertionConstraint>();
@@ -124,7 +57,9 @@ private:
                      [&input](auto) { input.ignore(std::numeric_limits<std::streamsize>::max(), input.widen('\n')); });
   }
 
-  std::tuple<int, int> readFleet(std::istream& input, models::problem::Fleet& fleet, RoutingMatrix& matrix) const {
+  std::tuple<int, int> readFleet(std::istream& input,
+                                 models::problem::Fleet& fleet,
+                                 RoutingMatrix<Distance>& matrix) const {
     auto type = std::tuple<int, int>{};
 
     std::string line;
@@ -138,7 +73,7 @@ private:
 
   std::vector<models::problem::Job> readJobs(std::istream& input,
                                              models::problem::Fleet& fleet,
-                                             RoutingMatrix& matrix,
+                                             RoutingMatrix<Distance>& matrix,
                                              const std::tuple<int, int>& vehicle) const {
     /// Customer defined by: id, x, y, demand, start, end, service
     using CustomerData = std::tuple<int, int, int, int, int, int, int>;

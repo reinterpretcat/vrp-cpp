@@ -94,6 +94,9 @@ set(SOURCE_FILES
         models/Solution.hpp
 
         streams/in/Solomon.hpp
+        streams/in/LiLim.hpp
+        streams/in/extensions/Costs.hpp
+        streams/in/extensions/Distances.hpp
         streams/out/DumpSolutionAsText.hpp
 
         utils/Collections.hpp

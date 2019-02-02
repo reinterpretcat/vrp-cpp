@@ -1,6 +1,7 @@
 #include "streams/in/Solomon.hpp"
 
 #include "models/extensions/problem/Helpers.hpp"
+#include "streams/in/extensions/Distances.hpp"
 #include "test_utils/streams/SolomonBuilder.hpp"
 
 #include <catch/catch.hpp>
@@ -75,7 +76,7 @@ SCENARIO("solomon files can be read from input stream", "[streams][in]") {
       }
 
       THEN("transport costs have expected matrix") {
-        CHECK_THAT(dynamic_cast<const decltype(solomon)::RoutingMatrix*>(problem->transport.get())->matrix() |
+        CHECK_THAT(dynamic_cast<const RoutingMatrix<cartesian_distance>*>(problem->transport.get())->matrix() |
                      view::transform([](const auto& d) { return d; }),
                    Equals(std::vector<Distance>{0, 1, 3, 7, 1, 0, 2, 6, 3, 2, 0, 4, 7, 6, 4, 0}));
       }
