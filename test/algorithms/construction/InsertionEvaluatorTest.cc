@@ -77,6 +77,15 @@ std::vector<Service::Detail>
 details(std::initializer_list<Service::Detail> ds) {
   return ds;
 }
+
+void
+assertActivities(const InsertionSuccess& result, const std::vector<std::pair<size_t, Location>>& expected) {
+  REQUIRE(result.activities.size() == expected.size());
+  ranges::for_each(view::iota(0, expected.size()), [&](auto i) {
+    REQUIRE(result.activities[i].second == expected[i].first);
+    REQUIRE(result.activities[i].first->detail.location == expected[i].second);
+  });
+}
 }
 
 namespace vrp::test {
@@ -245,8 +254,12 @@ SCENARIO("insertion evaluator can handle service insertion with violation", "[al
   }
 }
 
-SCENARIO("insertion evaluator can insert sequence with timing constraint", "[algorithms][construction][insertion]") {
-  GIVEN("empty tour") {
+SCENARIO("insertion evaluator can insert sequence in empty tour", "[algorithms][construction][insertion]") {
+  auto [s1, s2] = GENERATE(table<Location, Location>({
+    {3, 7},
+  }));
+
+  GIVEN("empty tour and timing constraint") {
     auto fleet = createFleet();
     auto route = test_build_route{}.owned();
     auto context = test_build_insertion_context{}
@@ -258,31 +271,35 @@ SCENARIO("insertion evaluator can insert sequence with timing constraint", "[alg
 
     WHEN("sequence is inserted with activities with relaxed tw") {
       THEN("returns insertion success with two activities and proper cost") {
-        auto result = InsertionEvaluator{}.evaluate(as_job(test_build_sequence{}
-                                                             .id("sequence")
-                                                             .service(test_build_service{}.id("s1").location(3).owned())
-                                                             .service(test_build_service{}.id("s2").location(7).owned())
-                                                             .shared()),
-                                                    context);
+        auto result =
+          InsertionEvaluator{}.evaluate(as_job(test_build_sequence{}
+                                                 .id("sequence")
+                                                 .service(test_build_service{}.id("s1").location(s1).owned())
+                                                 .service(test_build_service{}.id("s2").location(s2).owned())
+                                                 .shared()),
+                                        context);
         REQUIRE(result.index() == 0);
         REQUIRE(ranges::get<0>(result).cost == 28);
-        REQUIRE(ranges::get<0>(result).activities.size() == 2);
-        REQUIRE(ranges::get<0>(result).activities[0].second == 0);
-        REQUIRE(ranges::get<0>(result).activities[1].second == 1);
-        REQUIRE(ranges::get<0>(result).activities[0].first->detail.location == 3);
-        REQUIRE(ranges::get<0>(result).activities[1].first->detail.location == 7);
+        assertActivities(ranges::get<0>(result), {{0, 3}, {1, 7}});
       }
     }
   }
+}
 
-  GIVEN("tour with one activity") {
+SCENARIO("insertion evaluator can insert sequence in non empty tour", "[algorithms][construction][insertion]") {
+  auto [exst, schedule, s1, s2] = GENERATE(table<Location, Timestamp, Location, Location>({
+    {5, 5, 3, 7},
+  }));
+
+
+  GIVEN("tour with one activity and timing constraint") {
     auto fleet = createFleet();
     auto route = test_build_route{}.owned();
     auto context = test_build_insertion_context{}
                      .problem(createProblem(fleet))
                      .progress(test_build_insertion_progress{}.owned())
                      .routes({test_build_insertion_route_context{}
-                                .add(test_build_activity{}.location(5).schedule({5, 5}).shared())
+                                .add(test_build_activity{}.location(exst).schedule({schedule, schedule}).shared())
                                 .owned()})
                      .registry(std::make_shared<Registry>(*fleet))
                      .owned();
@@ -291,19 +308,16 @@ SCENARIO("insertion evaluator can insert sequence with timing constraint", "[alg
 
     WHEN("sequence is inserted with activities with relaxed tw") {
       THEN("returns insertion success with two activities and proper cost") {
-        auto result = InsertionEvaluator{}.evaluate(as_job(test_build_sequence{}
-                                                             .id("sequence")
-                                                             .service(test_build_service{}.id("s1").location(3).owned())
-                                                             .service(test_build_service{}.id("s2").location(7).owned())
-                                                             .shared()),
-                                                    context);
+        auto result =
+          InsertionEvaluator{}.evaluate(as_job(test_build_sequence{}
+                                                 .id("sequence")
+                                                 .service(test_build_service{}.id("s1").location(s1).owned())
+                                                 .service(test_build_service{}.id("s2").location(s2).owned())
+                                                 .shared()),
+                                        context);
         REQUIRE(result.index() == 0);
         REQUIRE(ranges::get<0>(result).cost == 8);
-        REQUIRE(ranges::get<0>(result).activities.size() == 2);
-        REQUIRE(ranges::get<0>(result).activities[0].second == 0);
-        REQUIRE(ranges::get<0>(result).activities[1].second == 1);
-        REQUIRE(ranges::get<0>(result).activities[0].first->detail.location == 3);
-        REQUIRE(ranges::get<0>(result).activities[1].first->detail.location == 7);
+        assertActivities(ranges::get<0>(result), {{0, 3}, {1, 7}});
       }
     }
   }
