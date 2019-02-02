@@ -1,7 +1,9 @@
 #include "Solver.hpp"
 
+#include "streams/in/LiLim.hpp"
 #include "streams/in/Solomon.hpp"
 #include "test_utils/algorithms/refinement/LogAndValidate.hpp"
+#include "test_utils/streams/LiLimStreams.hpp"
 #include "test_utils/streams/SolomonStreams.hpp"
 
 #include <catch/catch.hpp>
@@ -12,7 +14,7 @@ using namespace vrp::streams::in;
 
 namespace vrp::test {
 
-SCENARIO("Solver can solve c101 problem greedy acceptance and default RaR", "[solver][default]") {
+SCENARIO("Solver can solve C101 problem greedy acceptance and default RaR", "[solver][default]") {
   auto solver = Solver<algorithms::refinement::create_refinement_context<>,
                        algorithms::refinement::select_best_solution,
                        algorithms::refinement::ruin_and_recreate_solution<>,
@@ -30,6 +32,29 @@ SCENARIO("Solver can solve c101 problem greedy acceptance and default RaR", "[so
       THEN("has valid solution") {
         REQUIRE(estimatedSolution.first->unassigned.empty());
         REQUIRE(estimatedSolution.first->routes.size() == 3);
+      }
+    }
+  }
+}
+
+SCENARIO("Solver can solve LC101 problem greedy acceptance and default RaR", "[solver][default]") {
+  auto solver = Solver<algorithms::refinement::create_refinement_context<>,
+                       algorithms::refinement::select_best_solution,
+                       algorithms::refinement::ruin_and_recreate_solution<>,
+                       algorithms::refinement::GreedyAcceptance<>,
+                       algorithms::refinement::MaxIterationCriteria,
+                       vrp::test::log_and_validate>{};
+
+  GIVEN("LC101 problem with 53 sequences") {
+    auto stream = create_lc101_problem_stream{}();
+    auto problem = read_li_lim_type<cartesian_distance>{}.operator()(stream);
+
+    WHEN("run solver") {
+      auto estimatedSolution = solver(problem);
+
+      THEN("has valid solution") {
+        REQUIRE(estimatedSolution.first->unassigned.empty());
+        REQUIRE(!estimatedSolution.first->routes.empty());
       }
     }
   }

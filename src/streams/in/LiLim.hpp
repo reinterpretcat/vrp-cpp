@@ -50,7 +50,7 @@ public:
     auto activity = std::make_shared<ServiceCosts>();
     auto constraint = std::make_shared<InsertionConstraint>();
 
-    auto vehicle = readVehicleType(input, *matrix);
+    auto vehicle = readVehicleType(input, *fleet, *matrix);
     auto jobs = readJobs(input, *fleet, *matrix, vehicle);
 
     matrix->generate();
@@ -69,7 +69,9 @@ public:
   }
 
 private:
-  std::tuple<int, int> readVehicleType(std::istream& input, RoutingMatrix<Distance>& matrix) const {
+  std::tuple<int, int> readVehicleType(std::istream& input,
+                                       models::problem::Fleet& fleet,
+                                       RoutingMatrix<Distance>& matrix) const {
     auto type = std::tuple<int, int, int>{};
 
     std::string line;
@@ -77,6 +79,7 @@ private:
     std::istringstream iss(line);
     iss >> std::get<0>(type) >> std::get<1>(type) >> std::get<2>(type);
 
+    fleet.add(models::problem::build_driver{}.dimens({{"id", std::string("driver")}}).costs({0, 0, 0, 0}).owned());
     return {std::get<0>(type), std::get<1>(type)};
   }
 
@@ -106,7 +109,6 @@ private:
       auto relation = std::string("c") + std::to_string(std::get<8>(cst));
 
       if (id == "c0") {
-        fleet.add(models::problem::build_driver{}.dimens({{"id", std::string("driver")}}).costs({0, 0, 0, 0}).owned());
         ranges::for_each(ranges::view::ints(0, std::get<0>(vehicle)), [&](auto i) {
           fleet.add(models::problem::build_vehicle{}
                       .profile("car")

@@ -47,7 +47,7 @@ private:
         ctx.routes.insert(success.context);
 
         // NOTE assume that activities are sorted by insertion index
-        ranges::for_each(success.activities | ranges::view::reverse,
+        ranges::for_each(success.activities,
                          [&](const auto& act) { success.context.route->tour.insert(act.first, act.second); });
 
         // fast erase job from vector
