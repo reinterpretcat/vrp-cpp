@@ -19,6 +19,8 @@ using namespace ranges;
 
 namespace {
 
+using InsertionData = std::pair<size_t, Location>;
+
 std::shared_ptr<Fleet>
 createFleet() {
   auto fleet = std::make_shared<Fleet>();
@@ -287,13 +289,12 @@ SCENARIO("insertion evaluator can insert sequence in empty tour", "[algorithms][
   }
 }
 
-SCENARIO("insertion evaluator can insert sequence in non empty tour", "[algorithms][construction][insertion]") {
-  auto [exst, schedule, s1, s2, cost, r1, r2] = GENERATE(
-    table<Location, Timestamp, Location, Location, Cost, std::pair<size_t, Location>, std::pair<size_t, Location>>({
-      {5, 5, 3, 7, 8, {0, 3}, {1, 7}},
-      // TODO insert other cases
+SCENARIO("insertion evaluator can insert sequence in tour with one activity", "[algorithms][construction][insertion]") {
+  auto [exst, schedule, s1, s2, cost, r1, r2] =
+    GENERATE(table<Location, Timestamp, Location, Location, Cost, InsertionData, InsertionData>({
+      {5, 5, 3, 7, 8, {0, 3}, {1, 7}},  // s 3 [5] 7 e
+      {5, 5, 7, 3, 8, {0, 7}, {2, 3}},  // s 7 [5] 3 e
     }));
-
 
   GIVEN("tour with one activity and timing constraint") {
     auto fleet = createFleet();
@@ -303,6 +304,47 @@ SCENARIO("insertion evaluator can insert sequence in non empty tour", "[algorith
                      .progress(test_build_insertion_progress{}.owned())
                      .routes({test_build_insertion_route_context{}
                                 .add(test_build_activity{}.location(exst).schedule({schedule, schedule}).shared())
+                                .owned()})
+                     .registry(std::make_shared<Registry>(*fleet))
+                     .owned();
+    auto rs = *context.routes.begin();
+    context.problem->constraint->accept(rs);
+
+    WHEN("sequence is inserted with activities with relaxed tw") {
+      THEN("returns insertion success with two activities and proper cost") {
+        auto result =
+          InsertionEvaluator{}.evaluate(as_job(test_build_sequence{}
+                                                 .id("sequence")
+                                                 .service(test_build_service{}.id("s1").location(s1).owned())
+                                                 .service(test_build_service{}.id("s2").location(s2).owned())
+                                                 .shared()),
+                                        context);
+        REQUIRE(result.index() == 0);
+        REQUIRE(ranges::get<0>(result).cost == cost);
+        assertActivities(ranges::get<0>(result), {r1, r2});
+      }
+    }
+  }
+}
+
+SCENARIO("insertion evaluator can insert sequence in tour with two activities",
+         "[algorithms][construction][insertion]") {
+  auto [exst1, sched1, exst2, sched2, s1, s2, cost, r1, r2] =
+    GENERATE(table<Location, Timestamp, Location, Timestamp, Location, Location, Cost, InsertionData, InsertionData>({
+      {3, 3, 7, 7, 1, 9, 8, {0, 1}, {2, 9}},  // s  1 [3]  9 [7] e
+      {7, 7, 3, 3, 9, 1, 8, {0, 9}, {3, 1}},  // s  9 [7] [3] 1  e
+      {7, 7, 3, 3, 9, 5, 8, {0, 9}, {2, 5}},  // s  9 [7]  5 [3] e
+    }));
+
+  GIVEN("tour with one activity and timing constraint") {
+    auto fleet = createFleet();
+    auto route = test_build_route{}.owned();
+    auto context = test_build_insertion_context{}
+                     .problem(createProblem(fleet))
+                     .progress(test_build_insertion_progress{}.owned())
+                     .routes({test_build_insertion_route_context{}
+                                .add(test_build_activity{}.location(exst1).schedule({sched1, sched1}).shared())
+                                .add(test_build_activity{}.location(exst2).schedule({sched2, sched2}).shared())
                                 .owned()})
                      .registry(std::make_shared<Registry>(*fleet))
                      .owned();

@@ -176,7 +176,7 @@ private:
     }
 
     static SeqContext&& forward(SeqContext& left, SeqContext& right) {
-      auto index = std::max(left.index, right.index);
+      auto index = std::max(left.index, right.index) + 1;
       left.index = index;
       right.index = index;
       return std::move(left.cost < right.cost ? left : right);
