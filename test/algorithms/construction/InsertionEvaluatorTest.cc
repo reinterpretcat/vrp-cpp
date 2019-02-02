@@ -376,8 +376,7 @@ SCENARIO("insertion evaluator can insert sequence in tour with two activities",
 
 SCENARIO("insertion evaluator can handle sequence insertion in empty tour with violation",
          "[algorithms][construction][insertion]") {
-  GIVEN("failed constraint") {
-    auto fleet = createFleet();
+  GIVEN("failed route constraint") {
     auto constraint = std::make_shared<InsertionConstraint>();
     constraint->addHardRoute([](const auto&, const auto&) { return HardRouteConstraint::Result{42}; });
 
@@ -385,7 +384,25 @@ SCENARIO("insertion evaluator can handle sequence insertion in empty tour with v
       auto result = InsertionEvaluator{}.evaluate(DefaultSequence,
                                                   test_build_insertion_context{}
                                                     .problem(createProblem(constraint))
-                                                    .registry(std::make_shared<Registry>(*fleet))
+                                                    .registry(std::make_shared<Registry>(*createFleet()))
+                                                    .owned());
+
+      THEN("returns insertion failure with proper code") {
+        REQUIRE(result.index() == 1);
+        REQUIRE(ranges::get<1>(result).constraint == 42);
+      }
+    }
+  }
+
+  GIVEN("failed activity constraint") {
+    auto constraint = std::make_shared<InsertionConstraint>();
+    constraint->addHardActivity([](const auto&, const auto&) { return HardActivityConstraint::Result{{true, 42}}; });
+
+    WHEN("sequence is evaluated") {
+      auto result = InsertionEvaluator{}.evaluate(DefaultSequence,
+                                                  test_build_insertion_context{}
+                                                    .problem(createProblem(constraint))
+                                                    .registry(std::make_shared<Registry>(*createFleet()))
                                                     .owned());
 
       THEN("returns insertion failure with proper code") {

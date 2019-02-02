@@ -53,22 +53,23 @@ private:
     bool isSuccess() const { return cost < models::common::NoCost; }
   };
 
-  /// Stores insformation needed for sequence insertion.
+  /// Stores information needed for sequence insertion.
   struct SeqContext final {
-    int code = 0;                                        /// Violation code.
-    size_t index = 0;                                    /// Start index.
-    models::common::Cost cost = models::common::NoCost;  /// Cost accumulator.
-    std::vector<std::pair<models::solution::Tour::Activity, size_t>> activities = {};
+    int code;                                                                     /// Violation code.
+    size_t index;                                                                 /// Start index.
+    std::optional<models::common::Cost> cost;                                     /// Cost accumulator.
+    std::vector<std::pair<models::solution::Tour::Activity, size_t>> activities;  /// Activities with ther indicies
 
     static SeqContext&& forward(SeqContext& left, SeqContext& right) {
       auto index = std::max(left.index, right.index) + 1;
       left.index = index;
       right.index = index;
-      return std::move(left.cost < right.cost ? left : right);
+      return left.cost.has_value() && right.cost.has_value() ? std::move(left.cost < right.cost ? left : right)
+                                                             : std::move(left.cost.has_value() ? left : right);
     }
 
     /// Creates empty context.
-    static SeqContext empty() { return {}; }
+    static SeqContext empty() { return {0, 0, {}, {}}; }
 
     /// Creates failed insertion within reason code.
     static SeqContext fail(int code) { return {code, 0, models::common::NoCost, {}}; }
@@ -86,7 +87,7 @@ private:
     }
 
     /// Checks whether insertion is found.
-    bool isSuccess() const { return cost < models::common::NoCost; }
+    bool isSuccess() const { return code == 0 && cost.has_value(); }
   };
 
 public:
@@ -251,7 +252,7 @@ private:
           activity->detail = srvRes.detail;
           newCtx.route->tour.insert(activity, srvRes.index);
           iCtx.problem->constraint->accept(newCtx);
-          return SeqContext::success(in1.cost + srvRes.cost, concat(in1.activities, {activity, srvRes.index}));
+          return SeqContext::success(in1.cost.value() + srvRes.cost, concat(in1.activities, {activity, srvRes.index}));
         }
 
         return SeqContext::fail(srvRes.code);
@@ -260,7 +261,7 @@ private:
       return SeqContext::forward(sqRes, out);
     });
 
-    return result.isSuccess() ? make_result_success({result.cost, job, std::move(result.activities), rCtx})
+    return result.isSuccess() ? make_result_success({result.cost.value(), job, std::move(result.activities), rCtx})
                               : make_result_failure(result.code);
   }
 };
