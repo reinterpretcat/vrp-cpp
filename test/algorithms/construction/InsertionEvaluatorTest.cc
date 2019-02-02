@@ -376,59 +376,58 @@ SCENARIO("insertion evaluator can insert sequence in tour with two activities",
 
 SCENARIO("insertion evaluator can handle sequence insertion in empty tour with violation",
          "[algorithms][construction][insertion]") {
-  GIVEN("failed route constraint") {
-    auto constraint = std::make_shared<InsertionConstraint>();
-    constraint->addHardRoute([](const auto&, const auto&) { return HardRouteConstraint::Result{42}; });
+  for (auto hasActivityInTour : std::vector<bool>{true, false}) {
+    auto builder = test_build_insertion_context{}.registry(std::make_shared<Registry>(*createFleet()));
+    if (hasActivityInTour)
+      builder.routes({test_build_insertion_route_context{}
+                        .add(test_build_activity{}.location(5).schedule({5, 5}).shared())
+                        .owned()});
 
-    WHEN("sequence is evaluated") {
-      auto result = InsertionEvaluator{}.evaluate(DefaultSequence,
-                                                  test_build_insertion_context{}
-                                                    .problem(createProblem(constraint))
-                                                    .registry(std::make_shared<Registry>(*createFleet()))
-                                                    .owned());
+    GIVEN("failed route constraint") {
+      auto constraint = std::make_shared<InsertionConstraint>();
+      constraint->addHardRoute([](const auto&, const auto&) { return HardRouteConstraint::Result{42}; });
 
-      THEN("returns insertion failure with proper code") {
-        REQUIRE(result.index() == 1);
-        REQUIRE(ranges::get<1>(result).constraint == 42);
+      WHEN("sequence is evaluated") {
+        auto result =
+          InsertionEvaluator{}.evaluate(DefaultSequence, builder.problem(createProblem(constraint)).owned());
+
+        THEN("returns insertion failure with proper code") {
+          REQUIRE(result.index() == 1);
+          REQUIRE(ranges::get<1>(result).constraint == 42);
+        }
       }
     }
-  }
 
-  GIVEN("failed activity constraint for any service") {
-    auto constraint = std::make_shared<InsertionConstraint>();
-    constraint->addHardActivity([](const auto&, const auto&) { return HardActivityConstraint::Result{{true, 42}}; });
+    GIVEN("failed activity constraint for any service") {
+      auto constraint = std::make_shared<InsertionConstraint>();
+      constraint->addHardActivity([](const auto&, const auto&) { return HardActivityConstraint::Result{{true, 42}}; });
 
-    WHEN("sequence is evaluated") {
-      auto result = InsertionEvaluator{}.evaluate(DefaultSequence,
-                                                  test_build_insertion_context{}
-                                                    .problem(createProblem(constraint))
-                                                    .registry(std::make_shared<Registry>(*createFleet()))
-                                                    .owned());
+      WHEN("sequence is evaluated") {
+        auto result =
+          InsertionEvaluator{}.evaluate(DefaultSequence, builder.problem(createProblem(constraint)).owned());
 
-      THEN("returns insertion failure with proper code") {
-        REQUIRE(result.index() == 1);
-        REQUIRE(ranges::get<1>(result).constraint == 42);
+        THEN("returns insertion failure with proper code") {
+          REQUIRE(result.index() == 1);
+          REQUIRE(ranges::get<1>(result).constraint == 42);
+        }
       }
     }
-  }
 
-  GIVEN("failed activity constraint for second service only") {
-    auto constraint = std::make_shared<InsertionConstraint>();
-    constraint->addHardActivity([](const auto&, const auto& aCtx) {
-      return aCtx.prev->detail.location == 0 ? HardActivityConstraint::Result{}
-                                             : HardActivityConstraint::Result{{true, 42}};
-    });
+    GIVEN("failed activity constraint for second service only") {
+      auto constraint = std::make_shared<InsertionConstraint>();
+      constraint->addHardActivity([](const auto&, const auto& aCtx) {
+        return aCtx.prev->detail.location == 0 ? HardActivityConstraint::Result{}
+                                               : HardActivityConstraint::Result{{true, 42}};
+      });
 
-    WHEN("sequence is evaluated") {
-      auto result = InsertionEvaluator{}.evaluate(DefaultSequence,
-                                                  test_build_insertion_context{}
-                                                    .problem(createProblem(constraint))
-                                                    .registry(std::make_shared<Registry>(*createFleet()))
-                                                    .owned());
+      WHEN("sequence is evaluated") {
+        auto result =
+          InsertionEvaluator{}.evaluate(DefaultSequence, builder.problem(createProblem(constraint)).owned());
 
-      THEN("returns insertion failure with proper code") {
-        REQUIRE(result.index() == 1);
-        REQUIRE(ranges::get<1>(result).constraint == 42);
+        THEN("returns insertion failure with proper code") {
+          REQUIRE(result.index() == 1);
+          REQUIRE(ranges::get<1>(result).constraint == 42);
+        }
       }
     }
   }
