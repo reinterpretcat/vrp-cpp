@@ -394,9 +394,30 @@ SCENARIO("insertion evaluator can handle sequence insertion in empty tour with v
     }
   }
 
-  GIVEN("failed activity constraint") {
+  GIVEN("failed activity constraint for any service") {
     auto constraint = std::make_shared<InsertionConstraint>();
     constraint->addHardActivity([](const auto&, const auto&) { return HardActivityConstraint::Result{{true, 42}}; });
+
+    WHEN("sequence is evaluated") {
+      auto result = InsertionEvaluator{}.evaluate(DefaultSequence,
+                                                  test_build_insertion_context{}
+                                                    .problem(createProblem(constraint))
+                                                    .registry(std::make_shared<Registry>(*createFleet()))
+                                                    .owned());
+
+      THEN("returns insertion failure with proper code") {
+        REQUIRE(result.index() == 1);
+        REQUIRE(ranges::get<1>(result).constraint == 42);
+      }
+    }
+  }
+
+  GIVEN("failed activity constraint for second service only") {
+    auto constraint = std::make_shared<InsertionConstraint>();
+    constraint->addHardActivity([](const auto&, const auto& aCtx) {
+      return aCtx.prev->detail.location == 0 ? HardActivityConstraint::Result{}
+                                             : HardActivityConstraint::Result{{true, 42}};
+    });
 
     WHEN("sequence is evaluated") {
       auto result = InsertionEvaluator{}.evaluate(DefaultSequence,
