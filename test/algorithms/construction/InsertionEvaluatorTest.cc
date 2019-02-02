@@ -92,6 +92,8 @@ assertActivities(const InsertionSuccess& result, const std::vector<std::pair<siz
 
 namespace vrp::test {
 
+// region Service
+
 SCENARIO("insertion evaluator can insert service", "[algorithms][construction][insertion]") {
   GIVEN("empty tour") {
     auto route = test_build_route{}.owned();
@@ -256,6 +258,10 @@ SCENARIO("insertion evaluator can handle service insertion with violation", "[al
   }
 }
 
+// endregion
+
+// region Sequence
+
 SCENARIO("insertion evaluator can insert sequence in empty tour", "[algorithms][construction][insertion]") {
   auto [s1, s2, cost, r1, r2] =
     GENERATE(table<Location, Location, Cost, std::pair<size_t, Location>, std::pair<size_t, Location>>({
@@ -367,4 +373,28 @@ SCENARIO("insertion evaluator can insert sequence in tour with two activities",
     }
   }
 }
+
+SCENARIO("insertion evaluator can handle sequence insertion in empty tour with violation",
+         "[algorithms][construction][insertion]") {
+  GIVEN("failed constraint") {
+    auto fleet = createFleet();
+    auto constraint = std::make_shared<InsertionConstraint>();
+    constraint->addHardRoute([](const auto&, const auto&) { return HardRouteConstraint::Result{42}; });
+
+    WHEN("sequence is evaluated") {
+      auto result = InsertionEvaluator{}.evaluate(DefaultSequence,
+                                                  test_build_insertion_context{}
+                                                    .problem(createProblem(constraint))
+                                                    .registry(std::make_shared<Registry>(*fleet))
+                                                    .owned());
+
+      THEN("returns insertion failure with proper code") {
+        REQUIRE(result.index() == 1);
+        REQUIRE(ranges::get<1>(result).constraint == 42);
+      }
+    }
+  }
+}
+
+// endregion
 }

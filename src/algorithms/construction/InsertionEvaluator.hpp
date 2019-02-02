@@ -19,7 +19,7 @@ namespace vrp::algorithms::construction {
 /// Provides the way to evaluate insertion cost.
 struct InsertionEvaluator final {
 private:
-  /// Defines evaluation context.
+  /// Stores information needed for service insertion.
   struct SrvContext final {
     bool isStopped;                                      /// True, if processing has to be stopped.
     int code = 0;                                        /// Violation code.
@@ -47,6 +47,42 @@ private:
                               const models::common::Cost& cost,
                               const models::solution::Activity::Detail& detail) {
       return {false, 0, index, cost, detail};
+    }
+
+    /// Checks whether insertion is found.
+    bool isSuccess() const { return cost < models::common::NoCost; }
+  };
+
+  /// Stores insformation needed for sequence insertion.
+  struct SeqContext final {
+    int code = 0;                                        /// Violation code.
+    size_t index = 0;                                    /// Start index.
+    models::common::Cost cost = models::common::NoCost;  /// Cost accumulator.
+    std::vector<std::pair<models::solution::Tour::Activity, size_t>> activities = {};
+
+    static SeqContext&& forward(SeqContext& left, SeqContext& right) {
+      auto index = std::max(left.index, right.index) + 1;
+      left.index = index;
+      right.index = index;
+      return std::move(left.cost < right.cost ? left : right);
+    }
+
+    /// Creates empty context.
+    static SeqContext empty() { return {}; }
+
+    /// Creates failed insertion within reason code.
+    static SeqContext fail(int code) { return {code, 0, models::common::NoCost, {}}; }
+
+    /// Creates successful insertion context.
+    static SeqContext success(models::common::Cost cost,
+                              std::vector<std::pair<models::solution::Tour::Activity, size_t>>&& activities) {
+      auto index = activities.front().second + 1;
+      return {0, index, cost, std::move(activities)};
+    }
+
+    /// Creates next insertion from existing one.
+    SeqContext next() const {
+      return code > 0 ? fail(code) : SeqContext{0, activities.empty() ? 0 : activities.front().second + 1, 0, {}};
     }
 
     /// Checks whether insertion is found.
@@ -161,37 +197,6 @@ private:
       ? make_result_success({result.cost, activity->job.value(), {{activity, result.index}}, rCtx})
       : make_result_failure(result.code);
   }
-
-  // TODO move to SrvContext
-  struct SeqContext final {
-    int code = 0;                                        /// Violation code.
-    size_t index = 0;                                    /// Start index.
-    models::common::Cost cost = models::common::NoCost;  /// Cost accumulator.
-    std::vector<std::pair<models::solution::Tour::Activity, size_t>> activities = {};
-
-    bool isSuccess() const { return cost < models::common::NoCost; }
-
-    SeqContext next() const {
-      return code > 0 ? fail(code) : SeqContext{0, activities.empty() ? 0 : activities.front().second + 1, 0, {}};
-    }
-
-    static SeqContext&& forward(SeqContext& left, SeqContext& right) {
-      auto index = std::max(left.index, right.index) + 1;
-      left.index = index;
-      right.index = index;
-      return std::move(left.cost < right.cost ? left : right);
-    }
-
-    static SeqContext empty() { return {}; }
-
-    static SeqContext fail(int code) { return {code, 0, models::common::NoCost, {}}; }
-
-    static SeqContext success(models::common::Cost cost,
-                              std::vector<std::pair<models::solution::Tour::Activity, size_t>>&& activities) {
-      auto index = activities.front().second + 1;
-      return {0, index, cost, std::move(activities)};
-    }
-  };
 
   /// Evaluates sequence insertion.
   InsertionResult evaluateSequence(const models::problem::Job& job,
