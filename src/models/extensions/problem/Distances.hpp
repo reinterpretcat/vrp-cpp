@@ -40,7 +40,7 @@ private:
       },
       [](const std::shared_ptr<const Sequence>& sequence) -> LocationView {
         return ranges::view::for_each(sequence->jobs, [](const auto& service) {
-          return ranges::view::for_each(service.details, [](const auto& d) { return ranges::yield(d.location); });
+          return ranges::view::for_each(service->details, [](const auto& d) { return ranges::yield(d.location); });
         });
       });
   }

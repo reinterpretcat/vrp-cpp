@@ -55,13 +55,13 @@ SCENARIO("distance between sequence jobs", "[models][extensions][problem]") {
   GIVEN("service jobs") {
     auto s1 = as_job(test_build_sequence{}
                        .id("seq1")
-                       .service(test_build_service{}.id("s1").details(std::move(d11)).owned())
-                       .service(test_build_service{}.id("s2").details(std::move(d12)).owned())
+                       .service(test_build_service{}.id("s1").details(std::move(d11)).shared())
+                       .service(test_build_service{}.id("s2").details(std::move(d12)).shared())
                        .shared());
     auto s2 = as_job(test_build_sequence{}
                        .id("seq2")
-                       .service(test_build_service{}.id("s1").details(std::move(d21)).owned())
-                       .service(test_build_service{}.id("s2").details(std::move(d22)).owned())
+                       .service(test_build_service{}.id("s1").details(std::move(d21)).shared())
+                       .service(test_build_service{}.id("s2").details(std::move(d22)).shared())
                        .shared());
 
     WHEN("distance calculated") {

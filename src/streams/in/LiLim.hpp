@@ -40,6 +40,7 @@ private:
 
 public:
   constexpr static auto IdDimKey = "id";
+  constexpr static auto SeqIdDimKey = "seqId";
   constexpr static auto SizeDimKey = "size";
 
   std::shared_ptr<models::Problem> operator()(std::istream& input) const {
@@ -130,17 +131,19 @@ private:
       auto [relation, index] = view;
       auto pickup = customers[relation.pickup];
       auto delivery = customers[relation.delivery];
-      auto sequence = build_sequence{}
-                        .dimens({{"id", std::string("seq") + std::to_string(index)}})
-                        .service(build_service{}
-                                   .dimens({{SizeDimKey, pickup.size}, {IdDimKey, relation.pickup}})
-                                   .details({{pickup.location, pickup.duration, {pickup.tw}}})
-                                   .owned())
-                        .service(build_service{}
-                                   .dimens({{SizeDimKey, delivery.size}, {IdDimKey, relation.delivery}})
-                                   .details({{delivery.location, delivery.duration, {delivery.tw}}})
-                                   .owned())
-                        .shared();
+      auto seqId = std::string("seq") + std::to_string(index);
+      auto sequence =
+        build_sequence{}
+          .dimens({{IdDimKey, seqId}})
+          .service(build_service{}
+                     .dimens({{SizeDimKey, pickup.size}, {IdDimKey, relation.pickup}, {SeqIdDimKey, seqId}})
+                     .details({{pickup.location, pickup.duration, {pickup.tw}}})
+                     .shared())
+          .service(build_service{}
+                     .dimens({{SizeDimKey, delivery.size}, {IdDimKey, relation.delivery}, {SeqIdDimKey, seqId}})
+                     .details({{delivery.location, delivery.duration, {delivery.tw}}})
+                     .shared())
+          .shared();
       jobs.push_back(as_job(sequence));
     });
 

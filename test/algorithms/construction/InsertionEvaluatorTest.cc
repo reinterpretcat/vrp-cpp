@@ -283,8 +283,8 @@ SCENARIO("insertion evaluator can insert sequence in empty tour", "[algorithms][
         auto result =
           InsertionEvaluator{}.evaluate(as_job(test_build_sequence{}
                                                  .id("sequence")
-                                                 .service(test_build_service{}.id("s1").location(s1).owned())
-                                                 .service(test_build_service{}.id("s2").location(s2).owned())
+                                                 .service(test_build_service{}.id("s1").location(s1).shared())
+                                                 .service(test_build_service{}.id("s2").location(s2).shared())
                                                  .shared()),
                                         context);
         REQUIRE(result.index() == 0);
@@ -321,8 +321,8 @@ SCENARIO("insertion evaluator can insert sequence in tour with one activity", "[
         auto result =
           InsertionEvaluator{}.evaluate(as_job(test_build_sequence{}
                                                  .id("sequence")
-                                                 .service(test_build_service{}.id("s1").location(s1).owned())
-                                                 .service(test_build_service{}.id("s2").location(s2).owned())
+                                                 .service(test_build_service{}.id("s1").location(s1).shared())
+                                                 .service(test_build_service{}.id("s2").location(s2).shared())
                                                  .shared()),
                                         context);
         REQUIRE(result.index() == 0);
@@ -362,8 +362,8 @@ SCENARIO("insertion evaluator can insert sequence in tour with two activities",
         auto result =
           InsertionEvaluator{}.evaluate(as_job(test_build_sequence{}
                                                  .id("sequence")
-                                                 .service(test_build_service{}.id("s1").location(s1).owned())
-                                                 .service(test_build_service{}.id("s2").location(s2).owned())
+                                                 .service(test_build_service{}.id("s1").location(s1).shared())
+                                                 .service(test_build_service{}.id("s2").location(s2).shared())
                                                  .shared()),
                                         context);
         REQUIRE(result.index() == 0);

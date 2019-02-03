@@ -2,6 +2,7 @@
 
 #include "models/problem/Service.hpp"
 
+#include <memory>
 #include <vector>
 
 namespace vrp::models::problem {
@@ -10,7 +11,7 @@ namespace vrp::models::problem {
 /// All of these jobs must be performed in the order specified or none of them.
 struct Sequence final {
   /// A list of sub jobs which must be performed in order specified.
-  std::vector<Service> jobs;
+  std::vector<std::shared_ptr<Service>> jobs;
 
   /// Common sequence dimensions which simulates work requirements.
   vrp::models::common::Dimensions dimens;

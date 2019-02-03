@@ -40,7 +40,7 @@ public:
     return *this;
   }
 
-  build_sequence& service(const Service& value) {
+  build_sequence& service(const std::shared_ptr<Service>& value) {
     sequence_.jobs.push_back(value);
     return *this;
   }

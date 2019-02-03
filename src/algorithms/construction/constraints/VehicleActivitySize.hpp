@@ -66,10 +66,7 @@ struct VehicleActivitySize final
              [&](const std::shared_ptr<const models::problem::Service>& service) {
                return canHandleSize(routeCtx, getSize(service), routeCtx.route->start);
              },
-             [&](const std::shared_ptr<const models::problem::Sequence>& sequence) {
-               // TODO handle sequence similar to service
-               return getSize(routeCtx.route->actor->vehicle) <= getSize(sequence);
-             })
+             [&](const std::shared_ptr<const models::problem::Sequence>& sequence) { return true; })
       ? HardRouteConstraint::Result{}
       : HardRouteConstraint::Result{code_};
   }
@@ -92,7 +89,10 @@ struct VehicleActivitySize final
       ? models::problem::analyze_job<Size>(
           activity->job.value(),
           [&](const std::shared_ptr<const models::problem::Service>& service) { return getSize(service); },
-          [&](const std::shared_ptr<const models::problem::Sequence>& sequence) { return getSize(sequence); })
+          [&](const std::shared_ptr<const models::problem::Sequence>& sequence) {
+            // TODO how to get size of activity?
+            return getSize(sequence);
+          })
       : Size{};
   }
 

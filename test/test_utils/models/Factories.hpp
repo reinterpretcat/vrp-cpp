@@ -67,8 +67,8 @@ public:
 inline vrp::models::problem::Job DefaultSequence =
   vrp::models::problem::as_job(test_build_sequence{}
                                  .id("sequence")
-                                 .service(test_build_service{}.id("s1").location(3).owned())
-                                 .service(test_build_service{}.id("s2").location(7).owned())
+                                 .service(test_build_service{}.id("s1").location(3).shared())
+                                 .service(test_build_service{}.id("s2").location(7).shared())
                                  .shared());
 
 class test_build_activity : public models::solution::build_activity {

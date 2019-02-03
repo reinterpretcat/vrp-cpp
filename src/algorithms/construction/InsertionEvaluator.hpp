@@ -232,7 +232,7 @@ private:
           auto aCtx = InsertionActivityContext{index, prev, activity, next};
 
           // service details
-          return accumulate_while(view::all(service.details), in2, srvPred, [&](const auto& in3, const auto& dtl) {
+          return accumulate_while(view::all(service->details), in2, srvPred, [&](const auto& in3, const auto& dtl) {
             // service time windows
             return accumulate_while(view::all(dtl.times), in3, srvPred, [&](const auto& in4, const auto& time) {
               aCtx.target->detail = {dtl.location.value_or(aCtx.prev->detail.location), dtl.duration, time};
