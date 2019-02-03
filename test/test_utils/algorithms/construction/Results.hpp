@@ -22,6 +22,19 @@ struct get_job_ids_from_all_routes {
   }
 };
 
+/// Returns vector of service ides from all routes.
+struct get_service_ids_from_all_routes {
+  std::vector<std::string> operator()(const algorithms::construction::InsertionContext& ctx) const {
+    using namespace ranges;
+
+    return ctx.routes | view::for_each([](const auto& r) {
+             return r.route->tour.activities() |
+               view::transform([](const auto& a) { return models::problem::getId(a->service.value()->dimens); });
+           }) |
+      to_vector;
+  }
+};
+
 /// Returns vectors of job ids from each route separately.
 struct get_job_ids_from_routes final {
   std::vector<std::vector<std::string>> operator()(const algorithms::construction::InsertionContext& ctx) const {

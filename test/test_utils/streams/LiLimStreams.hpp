@@ -4,6 +4,19 @@
 
 namespace vrp::test {
 
+struct create_two_sequences_stream {
+  std::stringstream operator()(int vehicles = 1, int capacity = 10) {
+    return LiLimBuilder()
+      .setVehicle(vehicles, capacity)
+      .addCustomer({0, 0, 0, 0, 0, 1000, 0, 0, 0})
+      .addCustomer({1, 7, 0, 1, 0, 1000, 0, 0, 2})
+      .addCustomer({2, 5, 0, -1, 0, 1000, 0, 1, 0})
+      .addCustomer({3, 9, 0, 1, 0, 1000, 0, 0, 4})
+      .addCustomer({4, 3, 0, -1, 0, 1000, 0, 3, 0})
+      .build();
+  }
+};
+
 /// Specifies the problem from li&lim set.
 struct create_lc101_problem_stream {
   std::stringstream operator()(int vehicles = 25, int capacity = 200) {

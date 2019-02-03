@@ -2,11 +2,13 @@
 
 #include "algorithms/construction/constraints/VehicleActivitySize.hpp"
 #include "algorithms/construction/constraints/VehicleActivityTiming.hpp"
+#include "streams/in/LiLim.hpp"
 #include "streams/in/Solomon.hpp"
 #include "test_utils/algorithms/construction/Insertions.hpp"
 #include "test_utils/algorithms/construction/Results.hpp"
 #include "test_utils/fakes/TestTransportCosts.hpp"
 #include "test_utils/models/Factories.hpp"
+#include "test_utils/streams/LiLimStreams.hpp"
 #include "test_utils/streams/SolomonStreams.hpp"
 
 #include <catch/catch.hpp>
@@ -22,9 +24,10 @@ using namespace ranges;
 
 namespace {
 
+template<typename ReaderType = read_solomon_type<cartesian_distance>>
 std::tuple<InsertionEvaluator, InsertionContext>
 createInsertion(std::stringstream stream) {
-  auto problem = read_solomon_type<cartesian_distance>{}.operator()(stream);
+  auto problem = ReaderType{}.operator()(stream);
   auto ctx = vrp::test::test_build_insertion_context{}
                .progress(vrp::test::test_build_insertion_progress{}.total(problem->jobs->size()).owned())
                .jobs(problem->jobs->all())
@@ -35,20 +38,22 @@ createInsertion(std::stringstream stream) {
   return {{}, ctx};
 }
 
-template<typename ProblemStream>
+template<typename ProblemStream, typename ReaderType = read_solomon_type<cartesian_distance>>
 std::tuple<InsertionEvaluator, InsertionContext>
 createInsertion(int vehicles, int capacities) {
-  return createInsertion(ProblemStream{}(vehicles, capacities));
+  return createInsertion<ReaderType>(ProblemStream{}(vehicles, capacities));
 }
 
-template<typename ProblemStream>
+template<typename ProblemStream, typename ReaderType = read_solomon_type<cartesian_distance>>
 std::tuple<InsertionEvaluator, InsertionContext>
 createInsertion() {
-  return createInsertion(ProblemStream{}());
+  return createInsertion<ReaderType>(ProblemStream{}());
 }
 }
 
 namespace vrp::test {
+
+// region Service
 
 SCENARIO("cheapest insertion inserts service", "[algorithms][construction][insertion]") {
   using EndLoc = std::optional<Location>;
@@ -226,4 +231,28 @@ SCENARIO("cheapest insertion handles solomon set problems", "[algorithms][constr
     }
   }
 }
+
+// endregion
+
+// region Sequence
+
+SCENARIO("cheapest insertion handles sequence insertion", "[algorithms][construction][insertion]") {
+  GIVEN("simple problem with two sequences") {
+    auto [evaluator, ctx] = createInsertion<create_two_sequences_stream, read_li_lim_type<cartesian_distance>>();
+
+    WHEN("calculates solution") {
+      auto solution = CheapestInsertion{evaluator}.operator()(ctx);
+
+      THEN("has expected solution") {
+        REQUIRE(solution.jobs.empty());
+        REQUIRE(solution.unassigned.empty());
+        REQUIRE(solution.routes.size() == 1);
+        CHECK_THAT(get_service_ids_from_all_routes{}.operator()(solution),
+                   Equals(std::vector<std::string>{"c3", "c1", "c2", "c4"}));
+      }
+    }
+  }
+}
+
+/// endregion
 }
