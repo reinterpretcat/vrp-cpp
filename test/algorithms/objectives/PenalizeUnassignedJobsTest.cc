@@ -19,10 +19,12 @@ inline auto
 createRoute(const vrp::models::solution::Route::Actor& actor, const vrp::models::common::Schedule& endSchedule) {
   using namespace vrp::test;
 
+  auto detail = Activity::Detail{DefaultJobLocation, DefaultDuration, DefaultTimeWindow};
+
   return test_build_route{}
     .actor(actor)
-    .start(test_build_activity{}.schedule({0, 0}).type(Activity::Type::Start).shared())
-    .end(test_build_activity{}.schedule(endSchedule).type(Activity::Type::End).shared())
+    .start(build_activity{}.detail(detail).schedule({0, 0}).shared())
+    .end(build_activity{}.detail(detail).schedule(endSchedule).shared())
     .shared();
 }
 }

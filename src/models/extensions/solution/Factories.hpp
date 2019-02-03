@@ -14,11 +14,6 @@ namespace vrp::models::solution {
 /// A helper class to build activity.
 class build_activity {
 public:
-  build_activity& type(const Activity::Type& value) {
-    activity_.type = value;
-    return *this;
-  }
-
   build_activity& detail(const Activity::Detail& value) {
     activity_.detail = value;
     return *this;
@@ -31,7 +26,6 @@ public:
 
   build_activity& service(const std::shared_ptr<const problem::Service>& value) {
     activity_.service = value;
-    activity_.type = Activity::Type::Job;
     return *this;
   }
 
@@ -78,13 +72,13 @@ public:
   }
 
   build_route& start(Tour::Activity value) {
-    assert(value->type == Activity::Type::Start);
+    assert(!value->service.has_value());
     route_.start = std::move(value);
     return *this;
   }
 
   build_route& end(Tour::Activity value) {
-    assert(value->type == Activity::Type::End);
+    assert(!value->service.has_value());
     route_.end = std::move(value);
     return *this;
   }

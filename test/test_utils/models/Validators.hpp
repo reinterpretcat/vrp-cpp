@@ -113,9 +113,9 @@ private:
   }
 
   std::string getId(const models::solution::Tour::Activity& activity) const {
-    if (activity->type == models::solution::Activity::Type::Start) return "start";
-    if (activity->type == models::solution::Activity::Type::End) return "end";
-    return models::problem::get_job_id{}(models::solution::retrieve_job{}(*activity).value());
+    return activity->service.has_value()
+      ? models::problem::get_job_id{}(models::solution::retrieve_job{}(*activity).value())
+      : "|";
   }
 
   void fail(const std::string& msg) const {

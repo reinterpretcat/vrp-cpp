@@ -99,11 +99,11 @@ struct VehicleActivityTiming final
     const auto& profile = actor.vehicle->profile;
 
     auto latestArrival = actor.detail.time.end;
-    auto nextActLocation = next.type == solution::Activity::Type::End ? actor.detail.end.value_or(next.detail.location)
-                                                                      : next.detail.location;
-    auto latestArrTimeAtNextAct = next.type == solution::Activity::Type::End
-      ? actor.detail.time.end
-      : routeCtx.state->get<Timestamp>(LatestArrivalKey, actCtx.next).value_or(next.detail.time.end);
+    auto nextActLocation =
+      next.service.has_value() ? next.detail.location : actor.detail.end.value_or(next.detail.location);
+    auto latestArrTimeAtNextAct = next.service.has_value()
+      ? routeCtx.state->get<Timestamp>(LatestArrivalKey, actCtx.next).value_or(next.detail.time.end)
+      : actor.detail.time.end;
 
     if (latestArrival < prev.detail.time.start || latestArrival < target.detail.time.start ||
         latestArrival < next.detail.time.start)
@@ -130,7 +130,7 @@ struct VehicleActivityTiming final
 
     if (arrTimeAtTargetAct > latestArrTimeAtNewAct) return stop(code_);
 
-    if (next.type == solution::Activity::Type::End && !actor.detail.end.has_value()) return success();
+    if (!next.service.has_value() && !actor.detail.end.has_value()) return success();
 
     auto arrTimeAtNextAct =
       endTimeAtNewAct + transport_->duration(profile, target.detail.location, nextActLocation, endTimeAtNewAct);
@@ -168,9 +168,9 @@ struct VehicleActivityTiming final
 
     auto [tpCostOld, actCostOld, depTimeOld] =
       analyze(actor,
-              prev.type == Activity::Type::Start ? *route.start : prev,
-              next.type == Activity::Type::End ? *route.end : next,
-              prev.type == Activity::Type::Start ? route.start->schedule.departure : prev.schedule.departure);
+              prev.service.has_value() ? prev : *route.start,
+              next.service.has_value() ? next : *route.end,
+              prev.service.has_value() ? prev.schedule.departure : route.start->schedule.departure);
 
     auto waitingTime = routeCtx.state->get<Timestamp>(WaitingKey, actCtx.next).value_or(Timestamp{0});
 

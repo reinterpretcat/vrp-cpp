@@ -69,8 +69,7 @@ inline vrp::models::problem::Job DefaultSequence =
 class test_build_activity : public models::solution::build_activity {
 public:
   explicit test_build_activity() : models::solution::build_activity() {
-    type(models::solution::Activity::Type::Job)
-      .detail({DefaultJobLocation, DefaultDuration, DefaultTimeWindow})
+    detail({DefaultJobLocation, DefaultDuration, DefaultTimeWindow})
       .schedule({0, 0})
       .service(ranges::get<0>(DefaultService));
   }
@@ -137,16 +136,8 @@ public:
   explicit test_build_route() : vrp::models::solution::build_route() {
     using namespace vrp::models::solution;
     actor(test_build_actor{}.shared())
-      .start(build_activity{}
-               .detail({DefaultActorLocation, 0, DefaultTimeWindow})
-               .schedule({0, 0})
-               .type(Activity::Type::Start)
-               .shared())
-      .end(build_activity{}
-             .detail({DefaultActorLocation, 0, DefaultTimeWindow})
-             .schedule({0, 1000})
-             .type(Activity::Type::End)
-             .shared());
+      .start(build_activity{}.detail({DefaultActorLocation, 0, DefaultTimeWindow}).schedule({0, 0}).shared())
+      .end(build_activity{}.detail({DefaultActorLocation, 0, DefaultTimeWindow}).schedule({0, 1000}).shared());
   }
 };
 

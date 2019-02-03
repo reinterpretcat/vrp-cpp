@@ -101,12 +101,10 @@ public:
       view::concat(ctx.routes, ctx.registry->next() | view::transform([&](const auto& a) {
                                  const auto& dtl = a->detail;
                                  auto start = build_activity{}
-                                                .type(Activity::Type::Start)
                                                 .detail({dtl.start, 0, {dtl.time.start, models::common::MaxTime}})
                                                 .schedule({dtl.time.start, dtl.time.start})
                                                 .shared();
                                  auto end = build_activity{}
-                                              .type(Activity::Type::End)
                                               .detail({dtl.end.value_or(dtl.start), 0, {0, dtl.time.end}})
                                               .schedule({dtl.time.end, dtl.time.end})
                                               .shared();
@@ -152,9 +150,8 @@ private:
                                   const InsertionProgress& progress) const {
     using namespace ranges;
     using namespace vrp::models;
-    using ActivityType = solution::Activity::Type;
 
-    auto activity = std::make_shared<solution::Activity>(solution::Activity{ActivityType::Job, {}, {}, service});
+    auto activity = std::make_shared<solution::Activity>(solution::Activity{{}, {}, service});
 
     const auto& constraint = *iCtx.problem->constraint;
     const auto& route = *rCtx.route;
@@ -223,7 +220,7 @@ private:
         const auto& route = *newCtx.route;
         auto tour = view::concat(view::single(route.start), route.tour.activities(), view::single(route.end));
         auto legs = view::zip(tour | view::sliding(2), view::iota(static_cast<size_t>(0))) | view::drop(in1.index);
-        auto activity = std::make_shared<Activity>(Activity{Activity::Type::Job, {}, {}, service});
+        auto activity = std::make_shared<Activity>(Activity{{}, {}, service});
 
         // region analyze legs and stop at best success or first failure
         auto srvRes = accumulate_while(legs, SrvContext::empty(), srvPred, [&](const auto& in2, const auto& leg) {
