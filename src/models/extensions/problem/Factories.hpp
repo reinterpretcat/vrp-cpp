@@ -1,5 +1,6 @@
 #pragma once
 
+#include "models/extensions/problem/Helpers.hpp"
 #include "models/problem/Driver.hpp"
 #include "models/problem/Job.hpp"
 #include "models/problem/Sequence.hpp"
@@ -36,21 +37,20 @@ protected:
 class build_sequence {
 public:
   build_sequence& dimens(common::Dimensions&& value) {
-    sequence_.dimens = std::move(value);
+    sequence_->dimens = std::move(value);
     return *this;
   }
 
   build_sequence& service(const std::shared_ptr<Service>& value) {
-    sequence_.jobs.push_back(value);
+    value->dimens[Sequence::SeqRefDimKey] = as_job(sequence_);
+    sequence_->services.push_back(value);
     return *this;
   }
 
-  Sequence&& owned() { return std::move(sequence_); }
-
-  std::shared_ptr<Sequence> shared() { return std::make_shared<Sequence>(std::move(sequence_)); }
+  std::shared_ptr<Sequence> shared() { return sequence_; }
 
 protected:
-  Sequence sequence_;
+  std::shared_ptr<Sequence> sequence_ = std::make_shared<Sequence>();
 };
 
 /// A helper class to build vehicle;

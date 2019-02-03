@@ -32,7 +32,7 @@ Tour::Activity
 activity(const std::string& id, Timestamp departure, int size) {
   return test_build_activity{}
     .schedule({0, departure})
-    .job(as_job(test_build_service{}.dimens({{"size", size}, {"id", id}}).shared()))
+    .service(test_build_service{}.dimens({{"size", size}, {"id", id}}).shared())
     .shared();
 }
 }
@@ -106,7 +106,7 @@ SCENARIO("vehicle activity size", "[algorithms][construction][constraints]") {
         test_build_insertion_activity_context{}
           .prev(getActivity(routeCtx, 0))
           .target(test_build_activity{}
-                    .job(as_job(test_build_service{}.dimens({{"id", std::string("service")}, {"size", s2}}).shared()))
+                    .service(test_build_service{}.dimens({{"id", std::string("service")}, {"size", s2}}).shared())
                     .shared())
           .next(getActivity(routeCtx, 1))
           .owned();
@@ -131,7 +131,7 @@ SCENARIO("vehicle activity size", "[algorithms][construction][constraints]") {
         test_build_insertion_activity_context{}
           .prev(getActivity(routeCtx, prev))
           .target(test_build_activity{}
-                    .job(as_job(test_build_service{}.dimens({{"id", std::string("service")}, {"size", -1}}).shared()))
+                    .service(test_build_service{}.dimens({{"id", std::string("service")}, {"size", -1}}).shared())
                     .shared())
           .next(getActivity(routeCtx, next))
           .owned();

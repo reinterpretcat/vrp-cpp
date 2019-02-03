@@ -12,6 +12,7 @@ namespace vrp::models::solution {
 
 /// Represents activity which is needed to be performed.
 struct Activity final {
+  // TODO remove type: use optional as start-end marker?
   /// Specifies type of activity.
   enum class Type { Start, Job, End };
 
@@ -36,8 +37,9 @@ struct Activity final {
   /// Specifies activity's schedule: actual arrival and departure time.
   common::Schedule schedule;
 
-  /// Specifies job relation. Empty if it has no relation to job.
-  std::optional<problem::Job> job;
+  /// Specifies service relation. Empty if it has no relation to service.
+  /// If service is part of sequence, then original sequence can be received via its dimens.
+  std::optional<std::shared_ptr<const problem::Service>> service;
 };
 
 }  // namespace vrp::models::solution

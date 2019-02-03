@@ -30,7 +30,7 @@ createFleet() {
 
 Tour::Activity
 createActivity(const std::string& id, int size) {
-  return test_build_activity{}.job(as_job(test_build_service{}.id(id).dimens({{"size", size}}).shared())).shared();
+  return test_build_activity{}.service(test_build_service{}.id(id).dimens({{"size", size}}).shared()).shared();
 }
 
 std::shared_ptr<Problem>
@@ -270,14 +270,6 @@ SCENARIO("insertion evaluator can insert sequence in empty tour", "[algorithms][
 
   GIVEN("empty tour and timing constraint") {
     auto fleet = createFleet();
-    auto route = test_build_route{}.owned();
-    auto context = test_build_insertion_context{}
-                     .problem(createProblem(fleet))
-                     .progress(test_build_insertion_progress{}.owned())
-                     .routes({test_build_insertion_route_context{}.owned()})
-                     .registry(std::make_shared<Registry>(*fleet))
-                     .owned();
-
     WHEN("sequence is inserted with activities with relaxed tw") {
       THEN("returns insertion success with two activities and proper cost") {
         auto result =
@@ -286,7 +278,12 @@ SCENARIO("insertion evaluator can insert sequence in empty tour", "[algorithms][
                                                  .service(test_build_service{}.id("s1").location(s1).shared())
                                                  .service(test_build_service{}.id("s2").location(s2).shared())
                                                  .shared()),
-                                        context);
+                                        test_build_insertion_context{}
+                                          .problem(createProblem(fleet))
+                                          .progress(test_build_insertion_progress{}.owned())
+                                          .routes({test_build_insertion_route_context{}.owned()})
+                                          .registry(std::make_shared<Registry>(*fleet))
+                                          .owned());
         REQUIRE(result.index() == 0);
         REQUIRE(ranges::get<0>(result).cost == cost);
         assertActivities(ranges::get<0>(result), {r1, r2});

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "models/Solution.hpp"
+#include "models/extensions/solution/Helpers.hpp"
 #include "utils/Random.hpp"
 
 #include <optional>
@@ -44,7 +45,7 @@ private:
 
     auto ai = static_cast<size_t>(activityIndex);
     do {
-      auto job = route->tour.get(static_cast<std::size_t>(activityIndex))->job;
+      auto job = models::solution::retrieve_job{}(*route->tour.get(static_cast<std::size_t>(activityIndex)));
 
       if (job) return job;
 

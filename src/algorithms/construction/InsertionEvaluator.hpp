@@ -132,10 +132,10 @@ public:
         auto result = models::problem::analyze_job<InsertionResult>(
           job,
           [&](const std::shared_ptr<const models::problem::Service>& service) {
-            return evaluateService(job, *service, ctx, routeCtx, progress);
+            return evaluateService(job, service, ctx, routeCtx, progress);
           },
           [&](const std::shared_ptr<const models::problem::Sequence>& sequence) {
-            return evaluateSequence(job, *sequence, ctx, routeCtx, progress);
+            return evaluateSequence(job, sequence, ctx, routeCtx, progress);
           });
 
         // propagate best result or failure
@@ -146,7 +146,7 @@ public:
 private:
   /// Evaluates service insertion.
   InsertionResult evaluateService(const models::problem::Job& job,
-                                  const models::problem::Service& service,
+                                  const std::shared_ptr<const models::problem::Service>& service,
                                   const InsertionContext& iCtx,
                                   const InsertionRouteContext& rCtx,
                                   const InsertionProgress& progress) const {
@@ -154,7 +154,7 @@ private:
     using namespace vrp::models;
     using ActivityType = solution::Activity::Type;
 
-    auto activity = std::make_shared<solution::Activity>(solution::Activity{ActivityType::Job, {}, {}, job});
+    auto activity = std::make_shared<solution::Activity>(solution::Activity{ActivityType::Job, {}, {}, service});
 
     const auto& constraint = *iCtx.problem->constraint;
     const auto& route = *rCtx.route;
@@ -175,7 +175,7 @@ private:
       auto actCtx = InsertionActivityContext{index, prev, activity, next};
 
       // 2. analyze service details
-      return utils::accumulate_while(view::all(service.details), out, pred, [&](const auto& in1, const auto& detail) {
+      return utils::accumulate_while(view::all(service->details), out, pred, [&](const auto& in1, const auto& detail) {
         // TODO check whether tw is empty
         // 3. analyze detail time windows
         return utils::accumulate_while(view::all(detail.times), in1, pred, [&](const auto& in2, const auto& time) {
@@ -195,35 +195,35 @@ private:
     activity->detail = result.detail;
 
     return result.isSuccess()
-      ? make_result_success({result.cost, activity->job.value(), {{activity, result.index}}, rCtx})
+      ? make_result_success({result.cost, as_job(activity->service.value()), {{activity, result.index}}, rCtx})
       : make_result_failure(result.code);
   }
 
   /// Evaluates sequence insertion.
   InsertionResult evaluateSequence(const models::problem::Job& job,
-                                   const models::problem::Sequence& sequence,
+                                   const std::shared_ptr<const models::problem::Sequence>& sequence,
                                    const InsertionContext& iCtx,
                                    const InsertionRouteContext& rCtx,
                                    const InsertionProgress& progress) const {
     using namespace ranges;
     using namespace vrp::models;
     using namespace vrp::utils;
-    using ActivityType = solution::Activity::Type;
+    using Activity = solution::Activity;
 
     static const auto srvPred = [](const SrvContext& acc) { return !acc.isStopped; };
-    static const auto inSeqPred = [&](const SeqContext& acc) { return acc.code == 0; };
-    static const auto outSeqPred = [&](const SeqContext& acc) {
+    static const auto inSeqPred = [](const SeqContext& acc) { return acc.code == 0; };
+    static const auto outSeqPred = [=](const SeqContext& acc) {
       return acc.code == 0 && acc.index <= rCtx.route->tour.sizes().second;
     };
 
     // iterate through all possible insertion points
     auto result = accumulate_while(view::iota(0), SeqContext::empty(), outSeqPred, [&](auto& out, auto) {
       auto newCtx = deep_copy_insertion_route_context{}(rCtx);
-      auto sqRes = accumulate_while(sequence.jobs, out.next(), inSeqPred, [&](auto& in1, const auto& service) {
+      auto sqRes = accumulate_while(sequence->services, out.next(), inSeqPred, [&](auto& in1, const auto& service) {
         const auto& route = *newCtx.route;
         auto tour = view::concat(view::single(route.start), route.tour.activities(), view::single(route.end));
         auto legs = view::zip(tour | view::sliding(2), view::iota(static_cast<size_t>(0))) | view::drop(in1.index);
-        auto activity = std::make_shared<solution::Activity>(solution::Activity{ActivityType::Job, {}, {}, job});
+        auto activity = std::make_shared<Activity>(Activity{Activity::Type::Job, {}, {}, service});
 
         // region analyze legs and stop at best success or first failure
         auto srvRes = accumulate_while(legs, SrvContext::empty(), srvPred, [&](const auto& in2, const auto& leg) {

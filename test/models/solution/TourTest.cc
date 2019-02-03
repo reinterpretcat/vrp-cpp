@@ -1,5 +1,6 @@
 #include "models/solution/Tour.hpp"
 
+#include "models/extensions/solution/Helpers.hpp"
 #include "models/problem/Service.hpp"
 #include "test_utils/models/Factories.hpp"
 #include "test_utils/models/Matchers.hpp"
@@ -43,7 +44,7 @@ SCENARIO("tour can handle activities with job relations", "[models][tour]") {
       }
 
       THEN("remove activity removes both activity and its job") {
-        tour.remove(DefaultActivity->job.value());
+        tour.remove(retrieve_job{}(*DefaultActivity).value());
 
         REQUIRE(0 == size(tour.jobs()));
         REQUIRE(0 == size(tour.activities()));

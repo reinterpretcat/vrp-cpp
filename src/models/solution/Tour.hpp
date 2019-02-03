@@ -1,6 +1,7 @@
 #pragma once
 
 #include "models/extensions/problem/Comparators.hpp"
+#include "models/extensions/solution/Helpers.hpp"
 #include "models/problem/Job.hpp"
 #include "models/solution/Activity.hpp"
 
@@ -26,7 +27,9 @@ public:
   Tour& insert(const Tour::Activity& activity, size_t index) {
     activities_.insert(activities_.begin() + index, activity);
 
-    if (activity->job.has_value()) { jobs_.insert(activity->job.value()); }
+    // TODO activity inserted in tour should have always job?
+    auto job = retrieve_job{}(*activity);
+    if (job.has_value()) { jobs_.insert(job.value()); }
 
     return *this;
   }
@@ -36,7 +39,7 @@ public:
     size_t removed = jobs_.erase(job);
     assert(removed == 1);
 
-    ranges::action::remove_if(activities_, [&](const auto& a) { return a->job == job; });
+    ranges::action::remove_if(activities_, [&](const auto& a) { return retrieve_job{}(*a) == job; });
 
     return *this;
   }
@@ -56,14 +59,12 @@ public:
   /// Returns last activity in tour.
   Activity last() const { return activities_.back(); }
 
-  /// Returns index of first job occurrance in the tour.
+  /// Returns index of first job occurrence in the tour.
   /// Throws exception if job is not present.
   /// Complexity: O(n)
   std::size_t index(const problem::Job& job) const {
-    auto i = std::find_if(activities_.begin(), activities_.end(), [&](const auto& a) {
-      return a->job == job;
-      ;
-    });
+    auto i =
+      std::find_if(activities_.begin(), activities_.end(), [&](const auto& a) { return retrieve_job{}(*a) == job; });
 
     if (i == activities_.end()) throw std::invalid_argument("Cannot find job");
 

@@ -71,6 +71,7 @@ set(SOURCE_FILES
         models/extensions/solution/Comparators.hpp
         models/extensions/solution/DeepCopies.hpp
         models/extensions/solution/Factories.hpp
+        models/extensions/solution/Helpers.hpp
         models/extensions/solution/Selectors.hpp
 
         models/problem/Costs.hpp

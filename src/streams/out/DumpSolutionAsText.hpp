@@ -2,6 +2,7 @@
 
 #include "models/Solution.hpp"
 #include "models/extensions/problem/Helpers.hpp"
+#include "models/extensions/solution/Helpers.hpp"
 
 #include <ostream>
 #include <range/v3/all.hpp>
@@ -17,8 +18,8 @@ struct dump_solution_as_text final {
       out << "\n\t\tvehicle " << models::problem::get_vehicle_id{}(*route->actor->vehicle) << ", customers:";
       ranges::for_each(route->tour.activities(), [&](const auto& a) {
         // TODO print activities without job
-        assert(a->job.has_value());
-        out << " " << models::problem::get_job_id{}(a->job.value());
+        assert(a->service.has_value());
+        out << " " << models::problem::get_job_id{}(models::solution::retrieve_job{}(*a).value());
       });
     });
     out << std::endl;

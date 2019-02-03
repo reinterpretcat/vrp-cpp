@@ -53,13 +53,8 @@ class test_build_sequence : public vrp::models::problem::build_sequence {
 public:
   explicit test_build_sequence() : vrp::models::problem::build_sequence() { dimens({{"id", "service"}}); }
 
-  test_build_sequence& dimens(models::common::Dimensions&& value) {
-    sequence_.dimens = std::move(value);
-    return *this;
-  }
-
   test_build_sequence& id(const std::string& value) {
-    sequence_.dimens["id"] = value;
+    sequence_->dimens["id"] = value;
     return *this;
   }
 };
@@ -77,7 +72,7 @@ public:
     type(models::solution::Activity::Type::Job)
       .detail({DefaultJobLocation, DefaultDuration, DefaultTimeWindow})
       .schedule({0, 0})
-      .job(DefaultService);
+      .service(ranges::get<0>(DefaultService));
   }
 
   test_build_activity& location(const models::common::Location& value) {
@@ -142,12 +137,12 @@ public:
   explicit test_build_route() : vrp::models::solution::build_route() {
     using namespace vrp::models::solution;
     actor(test_build_actor{}.shared())
-      .start(test_build_activity{}
+      .start(build_activity{}
                .detail({DefaultActorLocation, 0, DefaultTimeWindow})
                .schedule({0, 0})
                .type(Activity::Type::Start)
                .shared())
-      .end(test_build_activity{}
+      .end(build_activity{}
              .detail({DefaultActorLocation, 0, DefaultTimeWindow})
              .schedule({0, 1000})
              .type(Activity::Type::End)

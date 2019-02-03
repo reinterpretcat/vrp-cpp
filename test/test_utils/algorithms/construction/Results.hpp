@@ -2,6 +2,7 @@
 
 #include "algorithms/construction/InsertionContext.hpp"
 #include "models/extensions/problem/Helpers.hpp"
+#include "models/extensions/solution/Helpers.hpp"
 
 #include <range/v3/all.hpp>
 
@@ -13,8 +14,9 @@ struct get_job_ids_from_all_routes {
     using namespace ranges;
 
     return ctx.routes | view::for_each([](const auto& r) {
-             return r.route->tour.activities() |
-               view::transform([](const auto& a) { return vrp::models::problem::get_job_id{}(*a->job); });
+             return r.route->tour.activities() | view::transform([](const auto& a) {
+                      return vrp::models::problem::get_job_id{}(models::solution::retrieve_job{}(*a).value());
+                    });
            }) |
       to_vector;
   }
@@ -26,8 +28,10 @@ struct get_job_ids_from_routes final {
     using namespace ranges;
 
     return ctx.routes | view::transform([](const auto& r) {
-             return r.route->tour.activities() |
-               view::transform([](const auto& a) { return vrp::models::problem::get_job_id{}(*a->job); }) | to_vector;
+             return r.route->tour.activities() | view::transform([](const auto& a) {
+                      return vrp::models::problem::get_job_id{}(models::solution::retrieve_job{}(*a).value());
+                    }) |
+               to_vector;
            }) |
       to_vector;
   }

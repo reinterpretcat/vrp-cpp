@@ -29,8 +29,8 @@ public:
     return *this;
   }
 
-  build_activity& job(const problem::Job& value) {
-    activity_.job = std::make_optional<problem::Job>(value);
+  build_activity& service(const std::shared_ptr<const problem::Service>& value) {
+    activity_.service = value;
     activity_.type = Activity::Type::Job;
     return *this;
   }

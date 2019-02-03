@@ -35,7 +35,7 @@ struct VehicleActivitySize final
     // calculate what must to be loaded at start
     auto start = ranges::accumulate(tour, Size{}, [&](const auto& acc, const auto& a) {
       auto size = getSize(a);
-      return a->job.has_value() && a->job.value().index() == 0 ? acc - (size < 0 ? size : Size{}) : acc;
+      return a->service.has_value() ? acc - (size < 0 ? size : Size{}) : acc;
     });
 
     // determine actual load at each activity and max load in past
@@ -85,15 +85,7 @@ struct VehicleActivitySize final
 
   /// Returns size of activity.
   static Size getSize(const models::solution::Tour::Activity& activity) {
-    return activity->type == models::solution::Activity::Type::Job && activity->job.has_value()
-      ? models::problem::analyze_job<Size>(
-          activity->job.value(),
-          [&](const std::shared_ptr<const models::problem::Service>& service) { return getSize(service); },
-          [&](const std::shared_ptr<const models::problem::Sequence>& sequence) {
-            // TODO how to get size of activity?
-            return getSize(sequence);
-          })
-      : Size{};
+    return activity->service.has_value() ? getSize(activity->service.value()) : Size{};
   }
 
 private:

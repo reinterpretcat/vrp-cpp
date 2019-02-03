@@ -46,13 +46,13 @@ struct generate_matrix_routes final {
 
       ranges::for_each(ranges::view::ints(0, rows), [&](int j) {
         int index = i * rows + j;
-        auto job = as_job(test_build_service{}
-                            .location(static_cast<Location>(index))
-                            .id(std::string("c" + std::to_string(index)))
-                            .shared());
+        auto service = test_build_service{}
+                         .location(static_cast<Location>(index))
+                         .id(std::string("c" + std::to_string(index)))
+                         .shared();
 
-        jobs.insert(job);
-        const_cast<Route*>(routes[i].get())->tour.add(test_build_activity{}.job(job).shared());
+        jobs.insert(as_job(service));
+        const_cast<Route*>(routes[i].get())->tour.add(test_build_activity{}.service(service).shared());
       });
     });
 

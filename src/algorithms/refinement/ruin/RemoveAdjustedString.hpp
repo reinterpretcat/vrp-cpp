@@ -4,6 +4,7 @@
 #include "algorithms/refinement/extensions/RemoveEmptyTours.hpp"
 #include "algorithms/refinement/extensions/RestoreInsertionContext.hpp"
 #include "models/Solution.hpp"
+#include "models/extensions/solution/Helpers.hpp"
 #include "models/extensions/solution/Selectors.hpp"
 #include "models/problem/Job.hpp"
 
@@ -136,7 +137,7 @@ private:
     auto start = bounds.at(ctx.random->uniform<int>(0, bounds.size() - 1));
 
     return view::for_each(view::ints(start, start + cardinality) | view::reverse, [&tour](int i) {
-      auto j = tour.get(static_cast<size_t>(i))->job;
+      auto j = models::solution::retrieve_job{}(*tour.get(static_cast<size_t>(i)));
       return ranges::yield_if(j.has_value(), j.value());
     });
   }
@@ -162,7 +163,7 @@ private:
     total -= (index >= splitStart && index < splitEnd ? 1 : 0);
 
     return view::for_each(view::ints(startTotal, startTotal + total) | view::reverse, [=, &tour](int i) {
-      auto j = tour.get(static_cast<size_t>(i))->job;
+      auto j = models::solution::retrieve_job{}(*tour.get(static_cast<size_t>(i)));
       auto isSplit = i >= splitStart && i < splitEnd && i != index;
       return ranges::yield_if(!isSplit && j.has_value(), j.value());
     });
