@@ -83,7 +83,7 @@ private:
     std::istringstream iss(line);
     iss >> std::get<0>(type) >> std::get<1>(type) >> std::get<2>(type);
 
-    fleet.add(models::problem::build_driver{}.dimens({{"id", std::string("driver")}}).costs({0, 0, 0, 0}).owned());
+    fleet.add(models::problem::build_driver{}.dimens({{IdDimKey, std::string("driver")}}).costs({0, 0, 0, 0}).owned());
     return {std::get<0>(type), std::get<1>(type)};
   }
 
@@ -121,7 +121,7 @@ private:
           fleet.add(models::problem::build_vehicle{}
                       .profile("car")
                       .costs({0, 1, 0, 0, 0})
-                      .dimens({{"id", std::string("v") + std::to_string(i + 1)}, {CapacityDimKey, capacity}})
+                      .dimens({{IdDimKey, std::string("v") + std::to_string(i + 1)}, {CapacityDimKey, capacity}})
                       .details({{0, 0, {tw}}})
                       .owned());
         });
@@ -129,7 +129,7 @@ private:
         relations.push_back(Relation{id, relation});
       }
 
-      customers[id] = Customer{location, duration, size, tw};
+      customers[id] = Customer{location, duration, std::abs(size), tw};
     }
 
     // create sequence jobs
