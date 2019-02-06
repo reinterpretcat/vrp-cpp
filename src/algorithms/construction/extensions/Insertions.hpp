@@ -147,8 +147,42 @@ private:
 /// Creates a deep copy of insertion route context.
 struct deep_copy_insertion_route_context final {
   InsertionRouteContext operator()(const InsertionRouteContext& rs) const {
-    return {models::solution::deep_copy_route{}(rs.route),
-            std::make_shared<InsertionRouteState>(InsertionRouteState{*rs.state})};
+    using namespace ranges;
+    using namespace vrp::models::solution;
+
+    auto state = std::make_shared<InsertionRouteState>(rs.state->sizes());
+    auto route = std::make_shared<Route>();
+
+    // copy tour and activity level states
+    auto tour = view::concat(view::single(rs.route->start), rs.route->tour.activities(), view::single(rs.route->end));
+    ranges::for_each(tour, [&](const auto& a) {
+      auto clone = std::make_shared<Activity>(Activity{*a});
+
+      ranges::for_each(rs.state->keys(), [&](const auto& key) {
+        auto aValue = rs.state->get(key, a);
+        if (aValue) state->put(key, clone, aValue.value());
+      });
+
+      if (a->service.has_value()) {
+        route->tour.add(clone);
+      } else {
+        if (route->start)
+          route->end = clone;
+        else
+          route->start = clone;
+      }
+    });
+
+    // copy tour level states
+    ranges::for_each(rs.state->keys(), [&](const auto& key) {
+      auto rValue = rs.state->get(key);
+      if (rValue) state->put(key, rValue.value());
+    });
+
+    // copy actor
+    route->actor = rs.route->actor;
+
+    return {route, state};
   }
 };
 }
