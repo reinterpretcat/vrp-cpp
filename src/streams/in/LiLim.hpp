@@ -24,6 +24,13 @@ namespace vrp::streams::in {
 template<typename Distance = cartesian_distance>
 struct read_li_lim_type final {
 private:
+  constexpr static auto IdDimKey = "id";
+  inline static auto CapacityDimKey = algorithms::construction::VehicleActivitySize<int>::StateKeyCapacity;
+  inline static auto DemandDimKey = algorithms::construction::VehicleActivitySize<int>::StateKeyDemand;
+
+  using Capacity = algorithms::construction::VehicleActivitySize<int>::Capacity;
+  using Demand = algorithms::construction::VehicleActivitySize<int>::Demand;
+
   /// Represents customer.
   struct Customer final {
     models::common::Location location;
@@ -39,9 +46,6 @@ private:
   };
 
 public:
-  constexpr static auto IdDimKey = "id";
-  constexpr static auto SizeDimKey = "size";
-
   std::shared_ptr<models::Problem> operator()(std::istream& input) const {
     using namespace algorithms::construction;
 
@@ -108,12 +112,16 @@ private:
       auto duration = static_cast<Duration>(std::get<6>(cst));
       auto relation = std::string("c") + std::to_string(std::get<8>(cst));
 
+      // TODO find better way to stop
+      if (tw.end == 0) break;
+
       if (id == "c0") {
+        Capacity capacity = std::get<1>(vehicle);
         ranges::for_each(ranges::view::ints(0, std::get<0>(vehicle)), [&](auto i) {
           fleet.add(models::problem::build_vehicle{}
                       .profile("car")
                       .costs({0, 1, 0, 0, 0})
-                      .dimens({{"id", std::string("v") + std::to_string(i + 1)}, {SizeDimKey, std::get<1>(vehicle)}})
+                      .dimens({{"id", std::string("v") + std::to_string(i + 1)}, {CapacityDimKey, capacity}})
                       .details({{0, 0, {tw}}})
                       .owned());
         });
@@ -131,17 +139,18 @@ private:
       auto pickup = customers[relation.pickup];
       auto delivery = customers[relation.delivery];
       auto seqId = std::string("seq") + std::to_string(index);
-      auto sequence = build_sequence{}
-                        .dimens({{IdDimKey, seqId}})
-                        .service(build_service{}
-                                   .dimens({{SizeDimKey, pickup.size}, {IdDimKey, relation.pickup}})
-                                   .details({{pickup.location, pickup.duration, {pickup.tw}}})
-                                   .shared())
-                        .service(build_service{}
-                                   .dimens({{SizeDimKey, delivery.size}, {IdDimKey, relation.delivery}})
-                                   .details({{delivery.location, delivery.duration, {delivery.tw}}})
-                                   .shared())
-                        .shared();
+      auto sequence =
+        build_sequence{}
+          .dimens({{IdDimKey, seqId}})
+          .service(build_service{}
+                     .dimens({{DemandDimKey, Demand{{pickup.size, 0}, {0, 0}}}, {IdDimKey, relation.pickup}})
+                     .details({{pickup.location, pickup.duration, {pickup.tw}}})
+                     .shared())
+          .service(build_service{}
+                     .dimens({{DemandDimKey, Demand{{0, 0}, {delivery.size, 0}}}, {IdDimKey, relation.delivery}})
+                     .details({{delivery.location, delivery.duration, {delivery.tw}}})
+                     .shared())
+          .shared();
       jobs.push_back(as_job(sequence));
     });
 

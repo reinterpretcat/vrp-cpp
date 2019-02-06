@@ -20,7 +20,11 @@ namespace vrp::streams::in {
 template<typename Distance = cartesian_distance>
 struct read_solomon_type final {
   constexpr static auto IdDimKey = "id";
-  constexpr static auto SizeDimKey = "size";
+  inline static auto CapacityDimKey = algorithms::construction::VehicleActivitySize<int>::StateKeyCapacity;
+  inline static auto DemandDimKey = algorithms::construction::VehicleActivitySize<int>::StateKeyDemand;
+
+  using Capacity = algorithms::construction::VehicleActivitySize<int>::Capacity;
+  using Demand = algorithms::construction::VehicleActivitySize<int>::Demand;
 
   std::shared_ptr<models::Problem> operator()(std::istream& input) const {
     using namespace algorithms::construction;
@@ -96,22 +100,24 @@ private:
 
       if (id == 0) {
         ranges::for_each(ranges::view::ints(0, std::get<0>(vehicle)), [&](auto i) {
-          fleet.add(models::problem::build_vehicle{}
-                      .profile("car")
-                      .costs({0, 1, 0, 0, 0})
-                      .dimens({{"id", std::string("v") + std::to_string(i + 1)}, {SizeDimKey, std::get<1>(vehicle)}})
-                      .details({{0,
-                                 0,
-                                 {static_cast<Timestamp>(std::get<4>(customer)),
-                                  static_cast<Timestamp>(std::get<5>(customer))}}})
-                      .owned());
+          fleet.add(
+            models::problem::build_vehicle{}
+              .profile("car")
+              .costs({0, 1, 0, 0, 0})
+              .dimens({{"id", std::string("v") + std::to_string(i + 1)}, {CapacityDimKey, std::get<1>(vehicle)}})
+              .details(
+                {{0,
+                  0,
+                  {static_cast<Timestamp>(std::get<4>(customer)), static_cast<Timestamp>(std::get<5>(customer))}}})
+              .owned());
         });
         continue;
       }
 
       jobs.push_back(as_job(
         build_service{}
-          .dimens({{SizeDimKey, -std::get<3>(customer)}, {IdDimKey, std::string("c") + std::to_string(id)}})
+          .dimens({{DemandDimKey, Demand{{0, 0}, {std::get<3>(customer), 0}}},
+                   {IdDimKey, std::string("c") + std::to_string(id)}})
           .details({{location,
                      static_cast<Duration>(std::get<6>(customer)),
                      {{static_cast<Timestamp>(std::get<4>(customer)), static_cast<Timestamp>(std::get<5>(customer))}}}})

@@ -5,22 +5,37 @@
 #include "models/extensions/problem/Helpers.hpp"
 
 #include <cmath>
+#include <optional>
 #include <string>
 #include <utility>
 
 namespace vrp::algorithms::construction {
 
-/// Checks whether vehicle can handle activity of given size.
+/// Checks whether vehicle can handle activity's demand.
 /// Size can be interpreted as vehicle capacity change after visiting specific activity.
-/// So, "negative" size is delivery (unloaded from vehicle), positive is pickup (loaded to vehicle).
 template<typename Size>
 struct VehicleActivitySize final
   : public HardRouteConstraint
   , public HardActivityConstraint {
-  inline static const std::string StateKey = "size";
-  inline static const std::string StateKeyCurrent = StateKey + "_current";
-  inline static const std::string StateKeyMaxFuture = StateKey + "_max_future";
-  inline static const std::string StateKeyMaxPast = StateKey + "_max_past";
+  /// Represents capacity type.
+  using Capacity = Size;
+
+  /// Represents job demand, both static and dynamic.
+  struct Demand final {
+    /// Keeps static and dynamic pickup amount.
+    std::pair<Size, Size> pickup;
+    /// Keeps static and dynamic delivery amount.
+    std::pair<Size, Size> delivery;
+
+    /// Returns size change as difference between pickup and delivery.
+    Size change() const { return pickup.first + pickup.second - delivery.first - delivery.second; }
+  };
+
+  inline static const std::string StateKeyDemand = "demand";
+  inline static const std::string StateKeyCapacity = "capacity";
+  inline static const std::string StateKeyCurrent = "size_current";
+  inline static const std::string StateKeyMaxFuture = "size_max_future";
+  inline static const std::string StateKeyMaxPast = "size_max_past";
 
   explicit VehicleActivitySize(int code = 2) : code_(code) {}
 
@@ -29,19 +44,16 @@ struct VehicleActivitySize final
     using namespace ranges;
 
     const auto& route = *context.route;
-
     auto tour = view::concat(view::single(route.start), route.tour.activities(), view::single(route.end));
 
     // calculate what must to be loaded at start
     auto start = ranges::accumulate(tour, Size{}, [&](const auto& acc, const auto& a) {
-      auto size = getSize(a);
-      return a->service.has_value() ? acc - (size < 0 ? size : Size{}) : acc;
+      return a->service.has_value() ? acc + getDemand(a).delivery.first : acc;
     });
 
     // determine actual load at each activity and max load in past
     auto end = ranges::accumulate(tour, std::pair<Size, Size>{start, start}, [&](const auto& acc, const auto& a) {
-      auto size = getSize(a);
-      auto current = acc.first + size;
+      auto current = acc.first + getDemand(a).change();
       auto max = std::max(acc.second, current);
 
       context.state->put<Size>(StateKeyCurrent, a, current);
@@ -64,9 +76,12 @@ struct VehicleActivitySize final
     return models::problem::analyze_job<bool>(  //
              job,
              [&](const std::shared_ptr<const models::problem::Service>& service) {
-               return canHandleSize(routeCtx, getSize(service), routeCtx.route->start);
+               return canHandleSize(routeCtx, routeCtx.route->start, getDemand(service));
              },
-             [&](const std::shared_ptr<const models::problem::Sequence>& sequence) { return true; })
+             [&](const std::shared_ptr<const models::problem::Sequence>& sequence) {
+               // TODO we can check at least static pickups/deliveries
+               return true;
+             })
       ? HardRouteConstraint::Result{}
       : HardRouteConstraint::Result{code_};
   }
@@ -74,30 +89,46 @@ struct VehicleActivitySize final
   /// Checks whether proposed activity insertion doesn't violate size constraints.
   HardActivityConstraint::Result hard(const InsertionRouteContext& rCtx,
                                       const InsertionActivityContext& aCtx) const override {
-    return canHandleSize(rCtx, getSize(aCtx.target), aCtx.prev) ? success() : stop(code_);
+    return canHandleSize(rCtx, aCtx.prev, getDemand(aCtx.target)) ? success() : stop(code_);
   }
 
-  /// Returns size of an entity (vehicle or job).
-  template<typename T>
-  static Size getSize(const std::shared_ptr<const T>& holder) {
-    return std::any_cast<Size>(holder->dimens.find(StateKey)->second);
+  /// Returns a capacity size associated within vehicle.
+  static Capacity getCapacity(const std::shared_ptr<const models::problem::Vehicle>& vehicle) {
+    auto capacity = vehicle->dimens.find(StateKeyCapacity);
+    return capacity != vehicle->dimens.end() ? std::any_cast<Size>(capacity->second) : Size{};
   }
 
-  /// Returns size of activity.
-  static Size getSize(const models::solution::Tour::Activity& activity) {
-    return activity->service.has_value() ? getSize(activity->service.value()) : Size{};
+  /// Returns demand associated service or empty if it does not exist.
+  static Demand getDemand(const std::shared_ptr<const models::problem::Service>& service) {
+    auto demand = service->dimens.find(StateKeyDemand);
+    return demand != service->dimens.end() ? std::any_cast<Demand>(demand->second) : Demand{};
+  }
+
+  /// Returns demand associated within activity or empty if it does not exist.
+  static Demand getDemand(const models::solution::Tour::Activity& activity) {
+    return activity->service.has_value() ? getDemand(activity->service.value()) : Demand{};
   }
 
 private:
   int code_;
 
-  /// Estimates whether given size can be loaded into vehicle after activity in tour.
+  /// Estimates whether given size can be loaded into vehicle after pivot activity in tour.
   bool canHandleSize(const InsertionRouteContext& routeCtx,
-                     const Size& size,
-                     const models::solution::Tour::Activity& pivot) const {
-    auto base = routeCtx.state->get<Size>(size < 0 ? StateKeyMaxPast : StateKeyMaxFuture, pivot).value_or(Size{});
-    auto value = size < 0 ? base - size : base + size;
-    return value <= getSize(routeCtx.route->actor->vehicle);
+                     const models::solution::Tour::Activity& pivot,
+                     const Demand& demand) const {
+    auto capacity = getCapacity(routeCtx.route->actor->vehicle);
+
+    // cannot handle more static deliveries
+    auto past = routeCtx.state->get<Size>(StateKeyMaxPast, pivot).value_or(Size{});
+    if (past + demand.delivery.first > capacity) return false;
+
+    // cannot handle more static pickups
+    auto future = routeCtx.state->get<Size>(StateKeyMaxFuture, pivot).value_or(Size{});
+    if (future + demand.pickup.first > capacity) return false;
+
+    // can load more at current
+    auto current = routeCtx.state->get<Size>(StateKeyCurrent, pivot).value_or(Size{});
+    return current + demand.change() < capacity;
   }
 };
 }
