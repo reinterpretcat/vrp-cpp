@@ -236,7 +236,7 @@ SCENARIO("cheapest insertion handles solomon set problems", "[algorithms][constr
 
 // region Sequence
 
-SCENARIO("cheapest insertion handles sequence insertion", "[algorithms][construction][insertion]") {
+SCENARIO("cheapest insertion handles two sequence insertion", "[algorithms][construction][insertion]") {
   GIVEN("simple problem with two sequences") {
     auto [evaluator, ctx] = createInsertion<create_two_sequences_stream, read_li_lim_type<cartesian_distance>>();
 
@@ -249,6 +249,24 @@ SCENARIO("cheapest insertion handles sequence insertion", "[algorithms][construc
         REQUIRE(solution.routes.size() == 1);
         CHECK_THAT(get_service_ids_from_all_routes{}.operator()(solution),
                    Equals(std::vector<std::string>{"c3", "c1", "c2", "c4"}));
+      }
+    }
+  }
+}
+
+SCENARIO("cheapest insertion handles five sequence insertion", "[algorithms][construction][insertion]") {
+  GIVEN("simple problem with two sequences") {
+    auto [evaluator, ctx] = createInsertion<create_five_sequences_stream, read_li_lim_type<cartesian_distance>>();
+
+    WHEN("calculates solution") {
+      auto solution = CheapestInsertion{evaluator}.operator()(ctx);
+
+      THEN("has expected solution") {
+        REQUIRE(solution.jobs.empty());
+        REQUIRE(solution.unassigned.empty());
+        REQUIRE(solution.routes.size() == 1);
+        CHECK_THAT(get_service_ids_from_all_routes{}.operator()(solution),
+                   Equals(std::vector<std::string>{"c2", "c1", "c7", "c4", "c9", "c5", "c3", "c10", "c8", "c6"}));
       }
     }
   }

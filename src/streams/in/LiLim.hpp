@@ -143,11 +143,11 @@ private:
         build_sequence{}
           .dimens({{IdDimKey, seqId}})
           .service(build_service{}
-                     .dimens({{DemandDimKey, Demand{{pickup.size, 0}, {0, 0}}}, {IdDimKey, relation.pickup}})
+                     .dimens({{DemandDimKey, Demand{{0, pickup.size}, {0, 0}}}, {IdDimKey, relation.pickup}})
                      .details({{pickup.location, pickup.duration, {pickup.tw}}})
                      .shared())
           .service(build_service{}
-                     .dimens({{DemandDimKey, Demand{{0, 0}, {delivery.size, 0}}}, {IdDimKey, relation.delivery}})
+                     .dimens({{DemandDimKey, Demand{{0, 0}, {0, delivery.size}}}, {IdDimKey, relation.delivery}})
                      .details({{delivery.location, delivery.duration, {delivery.tw}}})
                      .shared())
           .shared();

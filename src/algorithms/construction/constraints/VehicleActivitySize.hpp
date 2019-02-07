@@ -123,12 +123,14 @@ private:
     if (past + demand.delivery.first > capacity) return false;
 
     // cannot handle more static pickups
+    // NOTE this minus delivery demand works for symmetric dynamic pickup/delivery,
+    // will it work for arbitrary cases?
     auto future = routeCtx.state->get<Size>(StateKeyMaxFuture, pivot).value_or(Size{});
-    if (future + demand.pickup.first > capacity) return false;
+    if (future + demand.pickup.first - demand.delivery.second > capacity) return false;
 
     // can load more at current
     auto current = routeCtx.state->get<Size>(StateKeyCurrent, pivot).value_or(Size{});
-    return current + demand.change() < capacity;
+    return current + demand.change() <= capacity;
   }
 };
 }
