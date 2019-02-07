@@ -60,7 +60,7 @@ private:
     std::optional<models::common::Cost> cost;                                     /// Cost accumulator.
     std::vector<std::pair<models::solution::Tour::Activity, size_t>> activities;  /// Activities with their indices
 
-    static SeqContext&& forward(SeqContext& left, SeqContext& right) {
+    static SeqContext&& forward(SeqContext&& left, SeqContext&& right) {
       auto index = std::max(left.index, right.index) + 1;
       left.index = index;
       right.index = index;
@@ -255,7 +255,7 @@ private:
         return SeqContext::fail(srvRes.code);
       });
 
-      return SeqContext::forward(sqRes, out);
+      return SeqContext::forward(std::move(sqRes), std::move(out));
     });
 
     return result.isSuccess() ? make_result_success({result.cost.value(), job, std::move(result.activities), rCtx})
