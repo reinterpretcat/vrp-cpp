@@ -10,6 +10,7 @@
 #include "models/solution/Registry.hpp"
 #include "utils/Collections.hpp"
 
+#include <iostream>
 #include <numeric>
 #include <utility>
 #include <vector>
@@ -209,7 +210,7 @@ private:
 
     static const auto srvPred = [](const SrvContext& acc) { return !acc.isStopped; };
     static const auto inSeqPred = [](const SeqContext& acc) { return acc.code == 0; };
-    static const auto outSeqPred = [=](const SeqContext& acc) {
+    const auto outSeqPred = [=](const SeqContext& acc) {
       return acc.code == 0 && acc.index <= rCtx.route->tour.sizes().second;
     };
 
