@@ -20,19 +20,19 @@ struct create_two_sequences_stream {
 struct create_five_sequences_stream {
   std::stringstream operator()(int vehicles = 25, int capacity = 50) {
     return LiLimBuilder()
-        .setVehicle(vehicles, capacity)
-        .addCustomer({0, 40, 50, 0, 0, 1236, 0, 0, 0})
-        .addCustomer({1, 42, 66, 10, 65, 146, 90, 0, 6})
-        .addCustomer({2, 42, 65, 10, 15, 67, 90, 0, 7})
-        .addCustomer({3, 40, 69, 20, 621, 702, 90, 0, 8})
-        .addCustomer({4, 38, 68, 20, 255, 324, 90, 0, 9})
-        .addCustomer({5, 38, 70, 10, 534, 605, 90, 0, 10})
-        .addCustomer({6, 45, 65, -10, 997, 1068, 90, 1, 0})
-        .addCustomer({7, 40, 66, -10, 170, 225, 90, 2, 0})
-        .addCustomer({8, 45, 70, -20, 825, 870, 90, 3, 0})
-        .addCustomer({9, 35, 66, -20, 357, 410, 90, 4, 0})
-        .addCustomer({10, 42, 68, -10, 727, 782, 90, 5, 0})
-        .build();
+      .setVehicle(vehicles, capacity)
+      .addCustomer({0, 40, 50, 0, 0, 1236, 0, 0, 0})
+      .addCustomer({1, 42, 66, 10, 65, 146, 90, 0, 6})
+      .addCustomer({2, 42, 65, 10, 15, 67, 90, 0, 7})
+      .addCustomer({3, 40, 69, 20, 621, 702, 90, 0, 8})
+      .addCustomer({4, 38, 68, 20, 255, 324, 90, 0, 9})
+      .addCustomer({5, 38, 70, 10, 534, 605, 90, 0, 10})
+      .addCustomer({6, 45, 65, -10, 997, 1068, 90, 1, 0})
+      .addCustomer({7, 40, 66, -10, 170, 225, 90, 2, 0})
+      .addCustomer({8, 45, 70, -20, 825, 870, 90, 3, 0})
+      .addCustomer({9, 35, 66, -20, 357, 410, 90, 4, 0})
+      .addCustomer({10, 42, 68, -10, 727, 782, 90, 5, 0})
+      .build();
   }
 };
 

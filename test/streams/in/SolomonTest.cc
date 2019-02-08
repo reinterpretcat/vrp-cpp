@@ -1,11 +1,13 @@
 #include "streams/in/Solomon.hpp"
 
+#include "algorithms/construction/constraints/VehicleActivitySize.hpp"
 #include "models/extensions/problem/Helpers.hpp"
 #include "streams/in/extensions/Distances.hpp"
 #include "test_utils/streams/SolomonBuilder.hpp"
 
 #include <catch/catch.hpp>
 
+using namespace vrp::algorithms::construction;
 using namespace vrp::models::common;
 using namespace vrp::models::problem;
 using namespace vrp::streams::in;
@@ -14,6 +16,11 @@ using namespace Catch::Matchers;
 using namespace ranges;
 
 namespace {
+
+using Demand = VehicleActivitySize<int>::Demand;
+const auto CapacityKey = VehicleActivitySize<int>::StateKeyCapacity;
+const auto DemandKey = VehicleActivitySize<int>::StateKeyDemand;
+
 struct WithSimplifiedCoordinates {
   std::stringstream operator()() {
     return SolomonBuilder()
@@ -46,12 +53,13 @@ SCENARIO("solomon files can be read from input stream", "[streams][in]") {
       }
 
       THEN("jobs have proper demand") {
-        auto demands = problem->jobs->all() | view::transform([](const auto& job) {
-                         return std::any_cast<int>(ranges::get<0>(job)->dimens.find("size")->second);
-                       }) |
+        auto demands =
+          problem->jobs->all() | view::transform([](const auto& job) {
+            return std::any_cast<Demand>(ranges::get<0>(job)->dimens.find(DemandKey)->second).delivery.first;
+          }) |
           to_vector;
 
-        CHECK_THAT(demands, Equals(std::vector<int>{-1, -2, -1}));
+        CHECK_THAT(demands, Equals(std::vector<int>{1, 2, 1}));
       }
 
       THEN("jobs have proper service time") {
@@ -70,7 +78,7 @@ SCENARIO("solomon files can be read from input stream", "[streams][in]") {
 
       THEN("vehicles have proper capacity") {
         std::vector<int> capacities = problem->fleet->vehicles() |
-          view::transform([](const auto& v) { return std::any_cast<int>(v->dimens.find("size")->second); });
+          view::transform([](const auto& v) { return std::any_cast<int>(v->dimens.find(CapacityKey)->second); });
 
         CHECK_THAT(capacities, Equals(std::vector<int>{10, 10}));
       }
