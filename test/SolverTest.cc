@@ -54,7 +54,8 @@ SCENARIO("Solver can solve LC101 problem greedy acceptance and default RaR", "[s
 
       THEN("has valid solution") {
         REQUIRE(estimatedSolution.first->unassigned.empty());
-        REQUIRE(!estimatedSolution.first->routes.empty());
+        REQUIRE(estimatedSolution.first->routes.size() == 10);
+        REQUIRE(std::abs(estimatedSolution.second.total() - 828.937) < 0.001);
       }
     }
   }
