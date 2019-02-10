@@ -69,9 +69,7 @@ struct InsertionRouteState final {
 
   /// Removes all states for given activity.
   void remove(const models::solution::Tour::Activity& activity) {
-    ranges::for_each(keys_, [&](const auto& key) {
-      activityStates_.erase({std::pair{activity, key}});
-    });
+    ranges::for_each(keys_, [&](const auto& key) { activityStates_.erase({std::pair{activity, key}}); });
   }
 
   // endregion
