@@ -56,6 +56,7 @@ private:
 
   /// Stores information needed for sequence insertion.
   struct SeqContext final {
+    bool isStopped;                                                               /// True if processing stopped.
     int code;                                                                     /// Violation code.
     size_t startIndex;                                                            /// Insertion index for first service.
     size_t index;                                                                 /// Insertion index for next service.
@@ -73,11 +74,12 @@ private:
     }
 
     /// Creates empty context.
-    static SeqContext empty() { return {0, 0, {}, {}}; }
+    static SeqContext empty() { return {false, 0, 0, 0, {}, {}}; }
 
     /// Creates failed insertion within reason code.
-    static SeqContext fail(int code, size_t startIndex) {
-      return {code, startIndex, startIndex, models::common::NoCost, {}};
+    static SeqContext fail(const SrvContext& errCtx, const SeqContext& other) {
+      auto isStopped = errCtx.isStopped && other.activities.empty();
+      return {isStopped, errCtx.code, other.startIndex, other.startIndex, models::common::NoCost, {}};
     }
 
     /// Creates successful insertion context.
@@ -85,17 +87,17 @@ private:
                               std::vector<std::pair<models::solution::Tour::Activity, size_t>>&& activities) {
       auto startIndex = activities.front().second;
       auto nextIndex = activities.back().second + 1;
-      return {0, startIndex, nextIndex, cost, std::move(activities)};
+      return {false, 0, startIndex, nextIndex, cost, std::move(activities)};
     }
 
     /// Creates next insertion from existing one.
-    SeqContext next() const { return SeqContext{0, startIndex, startIndex, 0, {}}; }
+    SeqContext next() const { return SeqContext{false, 0, startIndex, startIndex, 0, {}}; }
 
     /// Checks whether insertion is found.
     bool isSuccess() const { return code == 0 && cost.has_value(); }
   };
 
-  /// Provides the way to use copy on write strategy within routet state context.
+  /// Provides the way to use copy on write strategy within route state context.
   struct ShadowContext final {
     bool mutated;
     bool dirty;
@@ -114,10 +116,8 @@ private:
     }
 
     void restore(const models::problem::Job& job) {
-      if (dirty)  {
-        ranges::for_each(ctx.route->tour.activities(job), [&](const auto& a) {
-          ctx.state->remove(a);
-        });
+      if (dirty) {
+        ranges::for_each(ctx.route->tour.activities(job), [&](const auto& a) { ctx.state->remove(a); });
         ctx.route->tour.remove(job);
         problem->constraint->accept(ctx);
       }
@@ -244,7 +244,9 @@ private:
 
     static const auto srvPred = [](const SrvContext& acc) { return !acc.isStopped; };
     static const auto inSeqPred = [](const SeqContext& acc) { return acc.code == 0; };
-    const auto outSeqPred = [=](const SeqContext& acc) { return acc.startIndex <= rCtx.route->tour.sizes().second; };
+    const auto outSeqPred = [=](const SeqContext& acc) {
+      return !acc.isStopped && acc.startIndex <= rCtx.route->tour.sizes().second;
+    };
 
     auto shadow = ShadowContext{false, false, iCtx.problem, rCtx};
     auto result = accumulate_while(view::iota(0), SeqContext::empty(), outSeqPred, [&](auto& out, auto) {
@@ -291,7 +293,7 @@ private:
           return SeqContext::success(in1.cost.value() + srvRes.cost, concat(in1.activities, {activity, srvRes.index}));
         }
 
-        return SeqContext::fail(srvRes.code, in1.startIndex);
+        return SeqContext::fail(srvRes, in1);
       });
 
       return SeqContext::forward(std::move(sqRes), std::move(out));
