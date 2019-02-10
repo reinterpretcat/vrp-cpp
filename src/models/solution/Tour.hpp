@@ -47,6 +47,13 @@ public:
   /// Returns range view of all activities.
   auto activities() const { return ranges::view::all(activities_); }
 
+  /// Returns range view of all activities for specific view.
+  auto activities(const problem::Job& job) const {
+    return ranges::view::all(activities_) | ranges::view::remove_if([&](const auto& a) {
+      return retrieve_job{}(*a) != job;
+    });
+  }
+
   /// Returns range view of all jobs.
   auto jobs() const { return ranges::view::all(jobs_); }
 

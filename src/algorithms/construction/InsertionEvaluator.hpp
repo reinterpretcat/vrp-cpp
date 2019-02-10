@@ -95,6 +95,36 @@ private:
     bool isSuccess() const { return code == 0 && cost.has_value(); }
   };
 
+  /// Provides the way to use copy on write strategy within routet state context.
+  struct ShadowContext final {
+    bool mutated;
+    bool dirty;
+    std::shared_ptr<const models::Problem> problem;
+    InsertionRouteContext ctx;
+
+    void insert(models::solution::Tour::Activity& activity, size_t index) {
+      if (!mutated) {
+        ctx = deep_copy_insertion_route_context{}(ctx);
+        mutated = true;
+      }
+
+      ctx.route->tour.insert(activity, index);
+      problem->constraint->accept(ctx);
+      dirty = true;
+    }
+
+    void restore(const models::problem::Job& job) {
+      if (dirty)  {
+        ranges::for_each(ctx.route->tour.activities(job), [&](const auto& a) {
+          ctx.state->remove(a);
+        });
+        ctx.route->tour.remove(job);
+        problem->constraint->accept(ctx);
+      }
+      dirty = false;
+    }
+  };
+
 public:
   /// Evaluates possibility to preform insertion from given insertion context.
   InsertionResult evaluate(const models::problem::Job& job, const InsertionContext& ctx) const {
@@ -216,11 +246,11 @@ private:
     static const auto inSeqPred = [](const SeqContext& acc) { return acc.code == 0; };
     const auto outSeqPred = [=](const SeqContext& acc) { return acc.startIndex <= rCtx.route->tour.sizes().second; };
 
-    // iterate through all possible insertion points
+    auto shadow = ShadowContext{false, false, iCtx.problem, rCtx};
     auto result = accumulate_while(view::iota(0), SeqContext::empty(), outSeqPred, [&](auto& out, auto) {
-      auto newCtx = rCtx;
+      shadow.restore(job);
       auto sqRes = accumulate_while(sequence->services, out.next(), inSeqPred, [&](auto& in1, const auto& service) {
-        const auto& route = *newCtx.route;
+        const auto& route = *shadow.ctx.route;
         auto tour = view::concat(view::single(route.start), route.tour.activities(), view::single(route.end));
         auto legs = view::zip(tour | view::sliding(2), view::iota(static_cast<size_t>(0))) | view::drop(in1.index);
         auto activity = std::make_shared<Activity>(Activity{{}, {}, service});
@@ -243,10 +273,10 @@ private:
             // service time windows
             return accumulate_while(view::all(dtl.times), in3, srvPred, [&](const auto& in4, const auto& time) {
               aCtx.target->detail = {dtl.location.value_or(aCtx.prev->detail.location), dtl.duration, time};
-              auto status = iCtx.problem->constraint->hard(newCtx, aCtx);
+              auto status = iCtx.problem->constraint->hard(shadow.ctx, aCtx);
               if (status.has_value()) return SrvContext::fail(status.value(), in4);
 
-              auto costs = iCtx.problem->constraint->soft(newCtx, aCtx);
+              auto costs = iCtx.problem->constraint->soft(shadow.ctx, aCtx);
               return costs < in4.cost
                 ? SrvContext::success(aCtx.index, costs, {aCtx.target->detail.location, dtl.duration, time})
                 : SrvContext::skip(in4);
@@ -256,12 +286,8 @@ private:
         // endregion
 
         if (srvRes.isSuccess()) {
-          // NOTE copy on first write
-          if (in1.activities.empty()) newCtx = deep_copy_insertion_route_context{}(rCtx);
-
           activity->detail = srvRes.detail;
-          newCtx.route->tour.insert(activity, srvRes.index);
-          iCtx.problem->constraint->accept(newCtx);
+          shadow.insert(activity, srvRes.index);
           return SeqContext::success(in1.cost.value() + srvRes.cost, concat(in1.activities, {activity, srvRes.index}));
         }
 
