@@ -236,7 +236,7 @@ SCENARIO("cheapest insertion handles solomon set problems", "[algorithms][constr
 
 // region Sequence
 
-SCENARIO("cheapest insertion handles two sequence insertion", "[algorithms][construction][insertion]") {
+SCENARIO("cheapest insertion handles two sequence insertion", "[algorithms][construction][insertion][sequence]") {
   GIVEN("simple problem with two sequences") {
     auto [evaluator, ctx] = createInsertion<create_two_sequences_stream, read_li_lim_type<cartesian_distance>>();
 
@@ -254,8 +254,27 @@ SCENARIO("cheapest insertion handles two sequence insertion", "[algorithms][cons
   }
 }
 
-SCENARIO("cheapest insertion handles five sequence insertion", "[algorithms][construction][insertion]") {
-  GIVEN("simple problem with two sequences") {
+SCENARIO("cheapest insertion handles five sequence insertion", "[algorithms][construction][insertion][sequence]") {
+  GIVEN("simple problem with five sequences") {
+    struct create_five_sequences_stream {
+      std::stringstream operator()(int vehicles = 25, int capacity = 50) {
+        return LiLimBuilder()
+          .setVehicle(vehicles, capacity)
+          .addCustomer({0, 40, 50, 0, 0, 1236, 0, 0, 0})
+          .addCustomer({1, 42, 66, 10, 65, 146, 90, 0, 6})
+          .addCustomer({2, 42, 65, 10, 15, 67, 90, 0, 7})
+          .addCustomer({3, 40, 69, 20, 621, 702, 90, 0, 8})
+          .addCustomer({4, 38, 68, 20, 255, 324, 90, 0, 9})
+          .addCustomer({5, 38, 70, 10, 534, 605, 90, 0, 10})
+          .addCustomer({6, 45, 65, -10, 997, 1068, 90, 1, 0})
+          .addCustomer({7, 40, 66, -10, 170, 225, 90, 2, 0})
+          .addCustomer({8, 45, 70, -20, 825, 870, 90, 3, 0})
+          .addCustomer({9, 35, 66, -20, 357, 410, 90, 4, 0})
+          .addCustomer({10, 42, 68, -10, 727, 782, 90, 5, 0})
+          .build();
+      }
+    };
+
     auto [evaluator, ctx] = createInsertion<create_five_sequences_stream, read_li_lim_type<cartesian_distance>>();
 
     WHEN("calculates solution") {
@@ -267,6 +286,120 @@ SCENARIO("cheapest insertion handles five sequence insertion", "[algorithms][con
         REQUIRE(solution.routes.size() == 1);
         CHECK_THAT(get_service_ids_from_all_routes{}.operator()(solution),
                    Equals(std::vector<std::string>{"c2", "c1", "c7", "c4", "c9", "c5", "c3", "c10", "c8", "c6"}));
+      }
+    }
+  }
+}
+
+SCENARIO("cheapest insertion analyzes all insertion places", "[algorithms][construction][insertion][sequence]") {
+  GIVEN("reference problem with two sequences") {
+    struct create_reference_problem_stream {
+      std::stringstream operator()(int vehicles = 250, int capacity = 200) {
+        return LiLimBuilder()
+          .setVehicle(vehicles, capacity)
+          .addCustomer({0, 250, 250, 0, 0, 1821, 0, 0, 0})
+          .addCustomer({65, 200, 261, 10, 166, 196, 10, 0, 610})
+          .addCustomer({126, 201, 270, 10, 52, 82, 10, 0, 374})
+          .addCustomer({349, 200, 270, -30, 59, 89, 10, 838, 0})
+          .addCustomer({374, 200, 265, -10, 152, 182, 10, 126, 0})
+          .addCustomer({464, 199, 268, 20, 71, 101, 10, 0, 967})
+          .addCustomer({610, 206, 261, -10, 182, 212, 10, 65, 0})
+          .addCustomer({838, 204, 269, 30, 49, 79, 10, 0, 349})
+          .addCustomer({868, 198, 264, -20, 140, 170, 10, 976, 0})
+          .addCustomer({967, 197, 270, -20, 96, 126, 10, 464, 0})
+          .addCustomer({976, 198, 271, 20, 84, 114, 10, 0, 868})
+          .build();
+      }
+    };
+
+    auto [evaluator, ctx] = createInsertion<create_reference_problem_stream, read_li_lim_type<cartesian_distance>>();
+
+    WHEN("calculates solution") {
+      auto solution = CheapestInsertion{evaluator}.operator()(ctx);
+
+      THEN("has expected solution") {
+        REQUIRE(solution.jobs.empty());
+        REQUIRE(solution.unassigned.empty());
+        REQUIRE(solution.routes.size() == 1);
+        CHECK_THAT(get_job_ids_from_all_routes{}.operator()(solution),
+                   Equals(std::vector<std::string>{
+                     "seq3", "seq1", "seq3", "seq2", "seq4", "seq2", "seq1", "seq4", "seq0", "seq0"}));
+      }
+    }
+  }
+}
+
+SCENARIO("cheapest insertion handles edge case with first best but worst in total",
+         "[algorithms][construction][insertion][sequence]") {
+  GIVEN("reference problem with five sequences") {
+    /// Reproduces the problem when later best first service insertion leads to worse total insertion, e.g.:
+    /// seq3 seq1 seq3 seq4 seq2 seq2 seq1 seq4 seq0 seq0 (worse)
+    /// seq3 seq1 seq3 seq2 seq4 seq2 seq1 seq4 seq0 seq0 (best)
+    struct create_reference_problem_stream {
+      std::stringstream operator()(int vehicles = 250, int capacity = 200) {
+        return LiLimBuilder()
+          .setVehicle(vehicles, capacity)
+          .addCustomer({0, 250, 250, 0, 0, 1821, 0, 0, 0})
+          .addCustomer({65, 200, 261, 10, 166, 196, 10, 0, 610})
+          .addCustomer({126, 201, 270, 10, 52, 82, 10, 0, 374})
+          .addCustomer({349, 200, 270, -30, 59, 89, 10, 838, 0})
+          .addCustomer({374, 200, 265, -10, 152, 182, 10, 126, 0})
+          .addCustomer({464, 199, 268, 20, 71, 101, 10, 0, 967})
+          .addCustomer({610, 206, 261, -10, 182, 212, 10, 65, 0})
+          .addCustomer({838, 204, 269, 30, 49, 79, 10, 0, 349})
+          .addCustomer({868, 198, 264, -20, 140, 170, 10, 976, 0})
+          .addCustomer({967, 197, 270, -20, 96, 126, 10, 464, 0})
+          .addCustomer({976, 198, 271, 20, 84, 114, 10, 0, 868})
+          .build();
+      }
+    };
+
+    auto [evaluator, ctx] = createInsertion<create_reference_problem_stream, read_li_lim_type<cartesian_distance>>();
+
+    WHEN("calculates solution") {
+      auto solution = CheapestInsertion{evaluator}.operator()(ctx);
+
+      THEN("has expected solution") {
+        REQUIRE(solution.jobs.empty());
+        REQUIRE(solution.unassigned.empty());
+        REQUIRE(solution.routes.size() == 1);
+        CHECK_THAT(get_job_ids_from_all_routes{}.operator()(solution),
+                   Equals(std::vector<std::string>{
+                     "seq3", "seq1", "seq3", "seq2", "seq4", "seq2", "seq1", "seq4", "seq0", "seq0"}));
+      }
+    }
+  }
+}
+
+SCENARIO("cheapest insertion handles edge case with failed insertion at the beginning",
+         "[algorithms][construction][insertion][sequence]") {
+  GIVEN("reference problem with three sequences") {
+    struct create_reference_problem_stream {
+      std::stringstream operator()(int vehicles = 250, int capacity = 200) {
+        return LiLimBuilder()
+          .setVehicle(vehicles, capacity)
+          .addCustomer({0, 250, 250, 0, 0, 1821, 0, 0, 0})
+          .addCustomer({63, 388, 331, -30, 160, 190, 10, 792, 0})
+          .addCustomer({315, 394, 333, 20, 194, 224, 10, 0, 722})
+          .addCustomer({518, 388, 334, 20, 161, 191, 10, 0, 685})
+          .addCustomer({685, 389, 334, -20, 169, 199, 10, 518, 0})
+          .addCustomer({722, 371, 315, -20, 1166, 1196, 10, 315, 0})
+          .addCustomer({792, 321, 280, 30, 77, 107, 10, 0, 63})
+          .build();
+      }
+    };
+
+    auto [evaluator, ctx] = createInsertion<create_reference_problem_stream, read_li_lim_type<cartesian_distance>>();
+
+    WHEN("calculates solution") {
+      auto solution = CheapestInsertion{evaluator}.operator()(ctx);
+
+      THEN("has expected solution") {
+        REQUIRE(solution.jobs.empty());
+        REQUIRE(solution.unassigned.empty());
+        REQUIRE(solution.routes.size() == 1);
+        CHECK_THAT(get_job_ids_from_all_routes{}.operator()(solution),
+                   Equals(std::vector<std::string>{"seq2", "seq2", "seq1", "seq1", "seq0", "seq0"}));
       }
     }
   }
