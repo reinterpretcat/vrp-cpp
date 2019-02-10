@@ -263,7 +263,7 @@ private:
           return !(sequence->services.front() == service && acc.isSuccess()) && !acc.isStopped;
         };
 
-        // region analyze legs and stop at best success or first failure
+        // region analyze legs
         auto srvRes = accumulate_while(legs, SrvContext::empty(), pred, [&](const auto& in2, const auto& leg) {
           auto [items, index] = leg;
           auto [prev, next] = std::tie(*std::begin(items), *(std::begin(items) + 1));
