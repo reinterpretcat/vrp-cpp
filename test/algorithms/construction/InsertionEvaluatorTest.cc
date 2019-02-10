@@ -293,7 +293,8 @@ SCENARIO("insertion evaluator can insert sequence in empty tour", "[algorithms][
   }
 }
 
-SCENARIO("insertion evaluator can insert sequence in tour with one activity", "[algorithms][construction][insertion]") {
+SCENARIO("insertion evaluator can insert sequence in tour with one activity",
+         "[algorithms][construction][insertion][sequence]") {
   auto [exst, schedule, s1, s2, cost, r1, r2] =
     GENERATE(table<Location, Timestamp, Location, Location, Cost, InsertionData, InsertionData>({
       {5, 5, 3, 7, 8, {0, 3}, {1, 7}},  // s 3 [5] 7 e
@@ -326,6 +327,55 @@ SCENARIO("insertion evaluator can insert sequence in tour with one activity", "[
         REQUIRE(result.index() == 0);
         REQUIRE(ranges::get<0>(result).cost == cost);
         assertActivities(ranges::get<0>(result), {r1, r2});
+      }
+    }
+  }
+}
+
+SCENARIO("insertion evaluator can insert sequence with three activities in tour with two activities",
+         "[algorithms][construction][insertion][sequence]") {
+  auto [loc1, loc2, sh1, sh2, s1, s2, s3, cost, r1, r2, r3] = GENERATE(table<Location,
+                                                                             Location,
+                                                                             Timestamp,
+                                                                             Timestamp,
+                                                                             Location,
+                                                                             Location,
+                                                                             Location,
+                                                                             Cost,
+                                                                             InsertionData,
+                                                                             InsertionData,
+                                                                             InsertionData>({
+    {5, 9, 5, 9, 3, 7, 11, 8, {0, 3}, {2, 7}, {3, 11}},  // s 3 [5] 7 11 [9] e
+  }));
+
+  GIVEN("tour with one activity and timing constraint") {
+    auto fleet = createFleet();
+    auto route = test_build_route{}.owned();
+    auto context = test_build_insertion_context{}
+                     .problem(createProblem(fleet))
+                     .progress(test_build_insertion_progress{}.owned())
+                     .routes({test_build_insertion_route_context{}
+                                .add(test_build_activity{}.location(loc1).schedule({sh1, sh1}).shared())
+                                .add(test_build_activity{}.location(loc2).schedule({sh2, sh2}).shared())
+                                .owned()})
+                     .registry(std::make_shared<Registry>(*fleet))
+                     .owned();
+    auto rs = *context.routes.begin();
+    context.problem->constraint->accept(rs);
+
+    WHEN("sequence is inserted with activities with relaxed tw") {
+      THEN("returns insertion success with two activities and proper cost") {
+        auto result =
+          InsertionEvaluator{}.evaluate(as_job(test_build_sequence{}
+                                                 .id("sequence")
+                                                 .service(test_build_service{}.id("s1").location(s1).shared())
+                                                 .service(test_build_service{}.id("s2").location(s2).shared())
+                                                 .service(test_build_service{}.id("s3").location(s3).shared())
+                                                 .shared()),
+                                        context);
+        REQUIRE(result.index() == 0);
+        REQUIRE(ranges::get<0>(result).cost == cost);
+        assertActivities(ranges::get<0>(result), {r1, r2, r3});
       }
     }
   }
