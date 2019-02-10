@@ -94,7 +94,7 @@ namespace vrp::test {
 
 // region Service
 
-SCENARIO("insertion evaluator can insert service", "[algorithms][construction][insertion]") {
+SCENARIO("insertion evaluator can insert service", "[algorithms][construction][insertion][service]") {
   GIVEN("empty tour") {
     auto route = test_build_route{}.owned();
 
@@ -198,7 +198,7 @@ SCENARIO("insertion evaluator can insert service", "[algorithms][construction][i
 }
 
 SCENARIO("insertion evaluator can handle service insertion with time constraints",
-         "[algorithms][construction][insertion]") {
+         "[algorithms][construction][insertion][service]") {
   using EndLoc = std::optional<Location>;
 
   auto [s1, v1, v2, used, cost] = GENERATE(table<Location, EndLoc, EndLoc, std::string, Cost>({
@@ -237,7 +237,8 @@ SCENARIO("insertion evaluator can handle service insertion with time constraints
   }
 }
 
-SCENARIO("insertion evaluator can handle service insertion with violation", "[algorithms][construction][insertion]") {
+SCENARIO("insertion evaluator can handle service insertion with violation",
+         "[algorithms][construction][insertion][service]") {
   GIVEN("failed constraint") {
     auto fleet = createFleet();
     auto constraint = std::make_shared<InsertionConstraint>();
@@ -262,7 +263,7 @@ SCENARIO("insertion evaluator can handle service insertion with violation", "[al
 
 // region Sequence
 
-SCENARIO("insertion evaluator can insert sequence in empty tour", "[algorithms][construction][insertion]") {
+SCENARIO("insertion evaluator can insert sequence in empty tour", "[algorithms][construction][insertion][sequence]") {
   auto [s1, s2, cost, r1, r2] =
     GENERATE(table<Location, Location, Cost, std::pair<size_t, Location>, std::pair<size_t, Location>>({
       {3, 7, 28, {0, 3}, {1, 7}},
@@ -331,7 +332,7 @@ SCENARIO("insertion evaluator can insert sequence in tour with one activity", "[
 }
 
 SCENARIO("insertion evaluator can insert sequence in tour with two activities",
-         "[algorithms][construction][insertion]") {
+         "[algorithms][construction][insertion][sequence]") {
   auto [exst1, sched1, exst2, sched2, s1, s2, cost, r1, r2] =
     GENERATE(table<Location, Timestamp, Location, Timestamp, Location, Location, Cost, InsertionData, InsertionData>({
       {3, 3, 7, 7, 1, 9, 8, {0, 1}, {2, 9}},  // s  1 [3]  9 [7] e
@@ -372,7 +373,7 @@ SCENARIO("insertion evaluator can insert sequence in tour with two activities",
 }
 
 SCENARIO("insertion evaluator can handle sequence insertion in empty tour with violation",
-         "[algorithms][construction][insertion]") {
+         "[algorithms][construction][insertion][sequence]") {
   for (auto hasActivityInTour : std::vector<bool>{true, false}) {
     auto builder = test_build_insertion_context{}.registry(std::make_shared<Registry>(*createFleet()));
     if (hasActivityInTour)

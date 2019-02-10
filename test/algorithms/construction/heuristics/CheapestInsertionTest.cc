@@ -55,7 +55,7 @@ namespace vrp::test {
 
 // region Service
 
-SCENARIO("cheapest insertion inserts service", "[algorithms][construction][insertion]") {
+SCENARIO("cheapest insertion inserts service", "[algorithms][construction][insertion][service]") {
   using EndLoc = std::optional<Location>;
 
   auto [s1, v1, v2, used] = GENERATE(table<Location, EndLoc, EndLoc, std::string>({
@@ -95,7 +95,8 @@ SCENARIO("cheapest insertion inserts service", "[algorithms][construction][inser
   }
 }
 
-SCENARIO("cheapest insertion handles artificial problems with demand", "[algorithms][construction][insertion]") {
+SCENARIO("cheapest insertion handles artificial problems with demand",
+         "[algorithms][construction][insertion][service]") {
   //  auto [vehicles, capacity, unassigned, routes] =
   //    GENERATE(table<int, int, int, int>({{1, 10, 0, 1}, {2, 4, 0, 2}, {1, 4, 1, 1}, {1, 3, 2, 1}}));
   // TODO what is wrong with generator here?
@@ -116,7 +117,8 @@ SCENARIO("cheapest insertion handles artificial problems with demand", "[algorit
   }
 }
 
-SCENARIO("cheapest insertion handles artificial problems with times", "[algorithms][construction][insertion]") {
+SCENARIO("cheapest insertion handles artificial problems with times",
+         "[algorithms][construction][insertion][service]") {
   GIVEN("time problem") {
     auto [evaluator, ctx] = createInsertion<create_time_problem_stream>(1, 10);
 
@@ -133,7 +135,8 @@ SCENARIO("cheapest insertion handles artificial problems with times", "[algorith
   }
 }
 
-SCENARIO("cheapest insertion handles artificial problems with waiting", "[algorithms][construction][insertion]") {
+SCENARIO("cheapest insertion handles artificial problems with waiting",
+         "[algorithms][construction][insertion][service]") {
   GIVEN("time problem") {
     struct create_waiting_problem_stream {
       std::stringstream operator()() {
@@ -160,7 +163,7 @@ SCENARIO("cheapest insertion handles artificial problems with waiting", "[algori
   }
 }
 
-SCENARIO("cheapest insertion handles two customers with one route", "[algorithms][construction][insertion]") {
+SCENARIO("cheapest insertion handles two customers with one route", "[algorithms][construction][insertion][service]") {
   GIVEN("two customers with strict tw") {
     struct create_timing_problem_stream {
       std::stringstream operator()() {
@@ -188,7 +191,7 @@ SCENARIO("cheapest insertion handles two customers with one route", "[algorithms
 }
 
 SCENARIO("cheapest insertion handles cannot handle two customers with one route",
-         "[algorithms][construction][insertion]") {
+         "[algorithms][construction][insertion][service]") {
   GIVEN("two customers with strict tw") {
     struct create_timing_problem_stream {
       std::stringstream operator()() {
@@ -213,7 +216,7 @@ SCENARIO("cheapest insertion handles cannot handle two customers with one route"
   }
 }
 
-SCENARIO("cheapest insertion handles solomon set problems", "[algorithms][construction][insertion]") {
+SCENARIO("cheapest insertion handles solomon set problems", "[algorithms][construction][insertion][service]") {
   GIVEN("c101_25 problem") {
     auto [evaluator, ctx] = createInsertion<create_c101_25_problem_stream>();
 
