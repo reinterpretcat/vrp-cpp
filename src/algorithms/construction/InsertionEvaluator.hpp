@@ -57,12 +57,15 @@ private:
   /// Stores information needed for sequence insertion.
   struct SeqContext final {
     int code;                                                                     /// Violation code.
-    size_t index;                                                                 /// Start index.
+    size_t startIndex;                                                            /// Insertion index for first service.
+    size_t index;                                                                 /// Insertion index for next service.
     std::optional<models::common::Cost> cost;                                     /// Cost accumulator.
     std::vector<std::pair<models::solution::Tour::Activity, size_t>> activities;  /// Activities with their indices
 
     static SeqContext&& forward(SeqContext&& left, SeqContext&& right) {
-      auto index = std::max(left.index, right.index) + 1;
+      auto index = std::max(left.startIndex, right.startIndex) + 1;
+      left.startIndex = index;
+      right.startIndex = index;
       left.index = index;
       right.index = index;
       return left.cost.has_value() && right.cost.has_value() ? std::move(left.cost < right.cost ? left : right)
@@ -73,19 +76,20 @@ private:
     static SeqContext empty() { return {0, 0, {}, {}}; }
 
     /// Creates failed insertion within reason code.
-    static SeqContext fail(int code) { return {code, 0, models::common::NoCost, {}}; }
+    static SeqContext fail(int code, size_t startIndex) {
+      return {code, startIndex, startIndex, models::common::NoCost, {}};
+    }
 
     /// Creates successful insertion context.
     static SeqContext success(models::common::Cost cost,
                               std::vector<std::pair<models::solution::Tour::Activity, size_t>>&& activities) {
-      auto index = activities.front().second + 1;
-      return {0, index, cost, std::move(activities)};
+      auto startIndex = activities.front().second;
+      auto nextIndex = activities.back().second + 1;
+      return {0, startIndex, nextIndex, cost, std::move(activities)};
     }
 
     /// Creates next insertion from existing one.
-    SeqContext next() const {
-      return code > 0 ? fail(code) : SeqContext{0, activities.empty() ? 0 : activities.front().second + 1, 0, {}};
-    }
+    SeqContext next() const { return SeqContext{0, startIndex, startIndex, 0, {}}; }
 
     /// Checks whether insertion is found.
     bool isSuccess() const { return code == 0 && cost.has_value(); }
@@ -210,9 +214,7 @@ private:
 
     static const auto srvPred = [](const SrvContext& acc) { return !acc.isStopped; };
     static const auto inSeqPred = [](const SeqContext& acc) { return acc.code == 0; };
-    const auto outSeqPred = [=](const SeqContext& acc) {
-      return acc.code == 0 && acc.index <= rCtx.route->tour.sizes().second;
-    };
+    const auto outSeqPred = [=](const SeqContext& acc) { return acc.startIndex <= rCtx.route->tour.sizes().second; };
 
     // iterate through all possible insertion points
     auto result = accumulate_while(view::iota(0), SeqContext::empty(), outSeqPred, [&](auto& out, auto) {
@@ -223,8 +225,15 @@ private:
         auto legs = view::zip(tour | view::sliding(2), view::iota(static_cast<size_t>(0))) | view::drop(in1.index);
         auto activity = std::make_shared<Activity>(Activity{{}, {}, service});
 
+        // NOTE condition below allows to stop at first success for first service to avoid situation
+        // when later insertion of first service is cheaper, but the whole sequence is more expensive.
+        // Due to complexity, we do this only for first service which is suboptimal.
+        auto pred = [&](const SrvContext& acc) {
+          return !(sequence->services.front() == service && acc.isSuccess()) && !acc.isStopped;
+        };
+
         // region analyze legs and stop at best success or first failure
-        auto srvRes = accumulate_while(legs, SrvContext::empty(), srvPred, [&](const auto& in2, const auto& leg) {
+        auto srvRes = accumulate_while(legs, SrvContext::empty(), pred, [&](const auto& in2, const auto& leg) {
           auto [items, index] = leg;
           auto [prev, next] = std::tie(*std::begin(items), *(std::begin(items) + 1));
           auto aCtx = InsertionActivityContext{index, prev, activity, next};
@@ -253,7 +262,7 @@ private:
           return SeqContext::success(in1.cost.value() + srvRes.cost, concat(in1.activities, {activity, srvRes.index}));
         }
 
-        return SeqContext::fail(srvRes.code);
+        return SeqContext::fail(srvRes.code, in1.startIndex);
       });
 
       return SeqContext::forward(std::move(sqRes), std::move(out));
