@@ -61,7 +61,6 @@ private:
         ctx.problem->constraint->accept(success.context);
       },
       [&](InsertionFailure& failure) {
-        // TODO handle properly
         ranges::for_each(ctx.jobs, [&](const auto& job) { ctx.unassigned[job] = failure.constraint; });
         ctx.jobs.clear();
       }));

@@ -409,4 +409,38 @@ SCENARIO("cheapest insertion handles edge case with failed insertion at the begi
 }
 
 /// endregion
+
+// region Unassigned
+
+SCENARIO("cheapest insertion handles unassigned job with capacity reason",
+         "[algorithms][construction][insertion][unassigned]") {
+  GIVEN("two customers with strict tw") {
+    struct create_timing_problem_stream {
+      std::stringstream operator()() {
+        return SolomonBuilder()
+          .setVehicle(1, 10)
+          .addCustomer({0, 0, 0, 0, 0, 1236, 0})
+          .addCustomer({1, 1, 0, 5, 0, 100, 0})
+          .addCustomer({2, 2, 0, 1, 0, 100, 0})
+          .addCustomer({3, 3, 0, 5, 0, 100, 0})
+          .addCustomer({4, 4, 0, 1, 0, 100, 0})
+          .build();
+      }
+    };
+    auto [evaluator, ctx] = createInsertion<create_timing_problem_stream>();
+
+    WHEN("calculates solution") {
+      auto solution = CheapestInsertion{evaluator}.operator()(ctx);
+
+      THEN("has solution with one unassigned") {
+        REQUIRE(solution.jobs.empty());
+        REQUIRE(solution.unassigned.size() == 1);
+        REQUIRE(solution.unassigned.begin()->second == 2);
+        REQUIRE(solution.routes.size() == 1);
+      }
+    }
+  }
+}
+
+// endregion
 }

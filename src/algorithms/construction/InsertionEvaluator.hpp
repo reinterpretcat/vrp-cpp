@@ -256,7 +256,6 @@ private:
         auto tour = view::concat(view::single(route.start), route.tour.activities(), view::single(route.end));
         auto legs = view::zip(tour | view::sliding(2), view::iota(static_cast<size_t>(0))) | view::drop(in1.index);
         auto activity = std::make_shared<Activity>(Activity{{}, {}, service});
-
         // NOTE condition below allows to stop at first success for first service to avoid situation
         // when later insertion of first service is cheaper, but the whole sequence is more expensive.
         // Due to complexity, we do this only for first service which is suboptimal for more than two services.
