@@ -218,7 +218,7 @@ private:
 
     // iterate through all possible insertion points
     auto result = accumulate_while(view::iota(0), SeqContext::empty(), outSeqPred, [&](auto& out, auto) {
-      auto newCtx = deep_copy_insertion_route_context{}(rCtx);
+      auto newCtx = rCtx;
       auto sqRes = accumulate_while(sequence->services, out.next(), inSeqPred, [&](auto& in1, const auto& service) {
         const auto& route = *newCtx.route;
         auto tour = view::concat(view::single(route.start), route.tour.activities(), view::single(route.end));
@@ -227,7 +227,7 @@ private:
 
         // NOTE condition below allows to stop at first success for first service to avoid situation
         // when later insertion of first service is cheaper, but the whole sequence is more expensive.
-        // Due to complexity, we do this only for first service which is suboptimal.
+        // Due to complexity, we do this only for first service which is suboptimal for more than two services.
         auto pred = [&](const SrvContext& acc) {
           return !(sequence->services.front() == service && acc.isSuccess()) && !acc.isStopped;
         };
@@ -256,6 +256,9 @@ private:
         // endregion
 
         if (srvRes.isSuccess()) {
+          // NOTE copy on first write
+          if (in1.activities.empty()) newCtx = deep_copy_insertion_route_context{}(rCtx);
+
           activity->detail = srvRes.detail;
           newCtx.route->tour.insert(activity, srvRes.index);
           iCtx.problem->constraint->accept(newCtx);
