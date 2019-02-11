@@ -34,7 +34,7 @@ private:
     }
 
     /// Creates a new context from old one when insertion failed.
-    static SrvContext fail(std::tuple<bool, int> error, const SrvContext& other) {
+    static SrvContext fail(const std::tuple<bool, int>& error, const SrvContext& other) {
       return {std::get<0>(error), std::get<1>(error), other.index, other.cost, other.detail};
     }
 
@@ -185,6 +185,7 @@ private:
                                   const InsertionProgress& progress) const {
     using namespace ranges;
     using namespace vrp::models;
+    using namespace vrp::utils;
 
     auto activity = std::make_shared<solution::Activity>(solution::Activity{{}, {}, service});
 
@@ -201,16 +202,16 @@ private:
     auto pred = [](const SrvContext& ctx) { return !ctx.isStopped; };
 
     // 1. analyze route legs
-    auto result = utils::accumulate_while(legs, evalCtx, pred, [&](const auto& out, const auto& view) {
+    auto result = accumulate_while(legs, std::move(evalCtx), pred, [&](auto& out, const auto& view) {
       auto [items, index] = view;
       auto [prev, next] = std::tie(*std::begin(items), *(std::begin(items) + 1));
       auto actCtx = InsertionActivityContext{index, prev, activity, next};
 
       // 2. analyze service details
-      return utils::accumulate_while(view::all(service->details), out, pred, [&](const auto& in1, const auto& detail) {
+      return accumulate_while(view::all(service->details), std::move(out), pred, [&](auto& in1, const auto& detail) {
         // TODO check whether tw is empty
         // 3. analyze detail time windows
-        return utils::accumulate_while(view::all(detail.times), in1, pred, [&](const auto& in2, const auto& time) {
+        return accumulate_while(view::all(detail.times), std::move(in1), pred, [&](auto& in2, const auto& time) {
           activity->detail = {detail.location.value_or(actCtx.prev->detail.location), detail.duration, time};
           // check hard activity constraint
           auto status = constraint.hard(rCtx, actCtx);
@@ -264,15 +265,15 @@ private:
         };
 
         // region analyze legs
-        auto srvRes = accumulate_while(legs, SrvContext::empty(), pred, [&](const auto& in2, const auto& leg) {
+        auto srvRes = accumulate_while(legs, SrvContext::empty(), pred, [&](auto& in2, const auto& leg) {
           auto [items, index] = leg;
           auto [prev, next] = std::tie(*std::begin(items), *(std::begin(items) + 1));
           auto aCtx = InsertionActivityContext{index, prev, activity, next};
 
           // service details
-          return accumulate_while(view::all(service->details), in2, srvPred, [&](const auto& in3, const auto& dtl) {
+          return accumulate_while(service->details, std::move(in2), srvPred, [&](auto& in3, const auto& dtl) {
             // service time windows
-            return accumulate_while(view::all(dtl.times), in3, srvPred, [&](const auto& in4, const auto& time) {
+            return accumulate_while(dtl.times, std::move(in3), srvPred, [&](auto& in4, const auto& time) {
               aCtx.target->detail = {dtl.location.value_or(aCtx.prev->detail.location), dtl.duration, time};
               auto status = iCtx.problem->constraint->hard(shadow.ctx, aCtx);
               if (status.has_value()) return SrvContext::fail(status.value(), in4);
