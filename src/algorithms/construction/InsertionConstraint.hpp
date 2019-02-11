@@ -22,6 +22,9 @@ struct Constraint {
   /// Called in thread-safe context, so it is a chance to apply some changes.
   virtual void accept(InsertionRouteContext& context) const = 0;
 
+  /// Returns unique constraint state keys.
+  virtual ranges::any_view<int> stateKeys() const = 0;
+
   virtual ~Constraint() = default;
 };
 
@@ -66,24 +69,8 @@ struct SoftActivityConstraint : virtual public Constraint {
   virtual models::common::Cost soft(const InsertionRouteContext&, const InsertionActivityContext&) const = 0;
 };
 
-/// An insertion constraint which encapsulates behaviour of all possible constraint types.
+///// An insertion constraint which encapsulates behaviour of all possible constraint types.
 class InsertionConstraint final {
-  template<typename Base, typename Return, typename Arg1, typename Arg2>
-  struct SoftFunctionWrapper : Base {
-    explicit SoftFunctionWrapper(typename Base::CheckFunc func) : func_(std::move(func)) {}
-    void accept(InsertionRouteContext& context) const override {}
-    Return soft(const Arg1& arg1, const Arg2& arg2) const override { return func_(arg1, arg2); }
-    typename Base::CheckFunc func_;
-  };
-
-  template<typename Base, typename Return, typename Arg1, typename Arg2>
-  struct HardFunctionWrapper : Base {
-    explicit HardFunctionWrapper(typename Base::CheckFunc func) : func_(std::move(func)) {}
-    void accept(InsertionRouteContext& context) const override {}
-    Return hard(const Arg1& arg1, const Arg2& arg2) const override { return func_(arg1, arg2); }
-    typename Base::CheckFunc func_;
-  };
-
 public:
   // region Acceptance
 
@@ -98,39 +85,17 @@ public:
 
   /// Adds hard route constraints
   InsertionConstraint& addHardRoute(std::shared_ptr<HardRouteConstraint> constraint) {
+    addStateKeys(constraint->stateKeys());
     constraints_.insert(constraint);
     hardRouteConstraints_.push_back(std::move(constraint));
     return *this;
   }
 
-  /// Adds hard route constraints
-  InsertionConstraint& addHardRoute(HardRouteConstraint::CheckFunc constraint) {
-    using Wrapper = HardFunctionWrapper<HardRouteConstraint,
-                                        HardRouteConstraint::Result,
-                                        InsertionRouteContext,
-                                        HardRouteConstraint::Job>;
-
-    auto c = std::make_shared<Wrapper>(std::move(constraint));
-    constraints_.insert(c);
-    hardRouteConstraints_.push_back(c);
-    return *this;
-  }
-
   /// Adds soft route constraint.
   InsertionConstraint& addSoftRoute(std::shared_ptr<SoftRouteConstraint> constraint) {
+    addStateKeys(constraint->stateKeys());
     constraints_.insert(constraint);
     softRouteConstraints_.push_back(std::move(constraint));
-    return *this;
-  }
-
-  /// Adds soft route constraint.
-  InsertionConstraint& addSoftRoute(SoftRouteConstraint::CheckFunc constraint) {
-    using Wrapper =
-      SoftFunctionWrapper<SoftRouteConstraint, models::common::Cost, InsertionRouteContext, HardRouteConstraint::Job>;
-
-    auto c = std::make_shared<Wrapper>(std::move(constraint));
-    constraints_.insert(c);
-    softRouteConstraints_.push_back(c);
     return *this;
   }
 
@@ -140,41 +105,17 @@ public:
 
   /// Adds hard activity constraint.
   InsertionConstraint& addHardActivity(std::shared_ptr<HardActivityConstraint> constraint) {
+    addStateKeys(constraint->stateKeys());
     constraints_.insert(constraint);
     hardActivityConstraints_.push_back(std::move(constraint));
     return *this;
   }
 
-  /// Adds hard activity constraint.
-  InsertionConstraint& addHardActivity(HardActivityConstraint::CheckFunc constraint) {
-    using Wrapper = HardFunctionWrapper<HardActivityConstraint,
-                                        HardActivityConstraint::Result,
-                                        InsertionRouteContext,
-                                        InsertionActivityContext>;
-
-    auto c = std::make_shared<Wrapper>(std::move(constraint));
-    constraints_.insert(c);
-    hardActivityConstraints_.push_back(c);
-    return *this;
-  }
-
   /// Adds soft activity constraint.
   InsertionConstraint& addSoftActivity(std::shared_ptr<SoftActivityConstraint> constraint) {
+    addStateKeys(constraint->stateKeys());
     constraints_.insert(constraint);
     softActivityConstraints_.push_back(std::move(constraint));
-    return *this;
-  }
-
-  /// Adds soft activity constraint.
-  InsertionConstraint& addSoftActivity(SoftActivityConstraint::CheckFunc constraint) {
-    using Wrapper = SoftFunctionWrapper<SoftActivityConstraint,
-                                        models::common::Cost,
-                                        InsertionRouteContext,
-                                        InsertionActivityContext>;
-
-    auto c = std::make_shared<Wrapper>(std::move(constraint));
-    constraints_.insert(c);
-    softActivityConstraints_.push_back(c);
     return *this;
   }
 
@@ -188,6 +129,7 @@ public:
     std::shared_ptr<typename std::enable_if<std::is_base_of<HardRouteConstraint, T>::value &&
                                               std::is_base_of<HardActivityConstraint, T>::value,
                                             T>::type> v) {
+    addStateKeys(v->stateKeys());
     constraints_.insert(v);
     hardRouteConstraints_.push_back(v);
     hardActivityConstraints_.push_back(v);
@@ -199,6 +141,7 @@ public:
     std::shared_ptr<typename std::enable_if<std::is_base_of<SoftRouteConstraint, T>::value &&
                                               std::is_base_of<SoftActivityConstraint, T>::value,
                                             T>::type> v) {
+    addStateKeys(v->stateKeys());
     constraints_.insert(v);
     softRouteConstraints_.push_back(v);
     softActivityConstraints_.push_back(v);
@@ -215,6 +158,7 @@ public:
       std::is_base_of<HardRouteConstraint, T>::value && std::is_base_of<HardActivityConstraint, T>::value &&
         std::is_base_of<SoftRouteConstraint, T>::value && std::is_base_of<SoftActivityConstraint, T>::value,
       T>::type> v) {
+    addStateKeys(v->stateKeys());
     constraints_.insert(v);
     hardRouteConstraints_.push_back(v);
     hardActivityConstraints_.push_back(v);
@@ -267,11 +211,21 @@ public:
   // endregion
 
 private:
+  void addStateKeys(ranges::any_view<int> keys) {
+    ranges::for_each(keys, [&](int key) {
+      if (stateKeys_.find(key) != stateKeys_.end()) {
+        throw std::invalid_argument("Constraint state key clash: " + std::to_string(key));
+      }
+      stateKeys_.insert(key);
+    });
+  }
+
   std::vector<std::shared_ptr<HardRouteConstraint>> hardRouteConstraints_;
   std::vector<std::shared_ptr<SoftRouteConstraint>> softRouteConstraints_;
   std::vector<std::shared_ptr<HardActivityConstraint>> hardActivityConstraints_;
   std::vector<std::shared_ptr<SoftActivityConstraint>> softActivityConstraints_;
   std::set<std::shared_ptr<Constraint>> constraints_;
+  std::set<int> stateKeys_;
 };
 
 }  // namespace vrp::algorithms::construction

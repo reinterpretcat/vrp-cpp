@@ -13,9 +13,9 @@ namespace vrp::models::solution {
 
 /// Creates a hash from activity and key.
 struct hash_activities_with_key final {
-  std::size_t operator()(const std::pair<Tour::Activity, std::string>& item) const {
+  std::size_t operator()(const std::pair<Tour::Activity, int>& item) const {
     auto hash1 = std::hash<Tour::Activity>{}(item.first);
-    auto hash2 = std::hash<std::string>{}(item.second);
+    auto hash2 = std::hash<int>{}(item.second);
     return hash1 | utils::hash_combine<size_t>{hash2};
   }
 };

@@ -25,8 +25,8 @@ template<typename Distance = cartesian_distance>
 struct read_li_lim_type final {
 private:
   constexpr static auto IdDimKey = "id";
-  inline static auto CapacityDimKey = algorithms::construction::VehicleActivitySize<int>::StateKeyCapacity;
-  inline static auto DemandDimKey = algorithms::construction::VehicleActivitySize<int>::StateKeyDemand;
+  inline static auto DimKeyCapacity = algorithms::construction::VehicleActivitySize<int>::DimKeyCapacity;
+  inline static auto DimKeyDemand = algorithms::construction::VehicleActivitySize<int>::DimKeyDemand;
 
   using Capacity = algorithms::construction::VehicleActivitySize<int>::Capacity;
   using Demand = algorithms::construction::VehicleActivitySize<int>::Demand;
@@ -121,7 +121,7 @@ private:
           fleet.add(models::problem::build_vehicle{}
                       .profile("car")
                       .costs({0, 1, 0, 0, 0})
-                      .dimens({{IdDimKey, std::string("v") + std::to_string(i + 1)}, {CapacityDimKey, capacity}})
+                      .dimens({{IdDimKey, std::string("v") + std::to_string(i + 1)}, {DimKeyCapacity, capacity}})
                       .details({{0, 0, {tw}}})
                       .owned());
         });
@@ -143,11 +143,11 @@ private:
         build_sequence{}
           .dimens({{IdDimKey, seqId}})
           .service(build_service{}
-                     .dimens({{DemandDimKey, Demand{{0, pickup.size}, {0, 0}}}, {IdDimKey, relation.pickup}})
+                     .dimens({{DimKeyDemand, Demand{{0, pickup.size}, {0, 0}}}, {IdDimKey, relation.pickup}})
                      .details({{pickup.location, pickup.duration, {pickup.tw}}})
                      .shared())
           .service(build_service{}
-                     .dimens({{DemandDimKey, Demand{{0, 0}, {0, delivery.size}}}, {IdDimKey, relation.delivery}})
+                     .dimens({{DimKeyDemand, Demand{{0, 0}, {0, delivery.size}}}, {IdDimKey, relation.delivery}})
                      .details({{delivery.location, delivery.duration, {delivery.tw}}})
                      .shared())
           .shared();

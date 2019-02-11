@@ -24,8 +24,9 @@ struct VehicleActivityTiming final
   , public HardActivityConstraint
   , public SoftRouteConstraint
   , public SoftActivityConstraint {
-  inline static const std::string LatestArrivalKey = "la_time";
-  inline static const std::string WaitingKey = "fw_time";
+  constexpr static int BaseKey = 0;
+  constexpr static int LatestArrivalKey = BaseKey + 0;
+  constexpr static int WaitingKey = BaseKey + 1;
 
   VehicleActivityTiming(const std::shared_ptr<const models::problem::Fleet>& fleet,
                         const std::shared_ptr<const models::costs::TransportCosts>& transport,
@@ -34,6 +35,12 @@ struct VehicleActivityTiming final
     code_(code),
     transport_(transport),
     activity_(activity) {}
+
+  /// Returns used state keys.
+  ranges::any_view<int> stateKeys() const override {
+    using namespace ranges;
+    return view::concat(view::single(LatestArrivalKey), view::single(WaitingKey));
+  }
 
   /// Accept route and updates its insertion state.
   void accept(InsertionRouteContext& context) const override {

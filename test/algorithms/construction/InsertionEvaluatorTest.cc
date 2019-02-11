@@ -3,6 +3,7 @@
 #include "algorithms/construction/constraints/VehicleActivitySize.hpp"
 #include "algorithms/construction/constraints/VehicleActivityTiming.hpp"
 #include "test_utils/algorithms/construction/Insertions.hpp"
+#include "test_utils/algorithms/construction/constraints/Helpers.hpp"
 #include "test_utils/fakes/TestTransportCosts.hpp"
 #include "test_utils/models/Factories.hpp"
 
@@ -242,7 +243,8 @@ SCENARIO("insertion evaluator can handle service insertion with violation",
   GIVEN("failed constraint") {
     auto fleet = createFleet();
     auto constraint = std::make_shared<InsertionConstraint>();
-    constraint->addHardRoute([](const auto&, const auto&) { return HardRouteConstraint::Result{42}; });
+    constraint->addHardRoute(
+      std::make_shared<HardRouteWrapper>([](const auto&, const auto&) { return HardRouteConstraint::Result{42}; }));
 
     WHEN("service is evaluated") {
       auto result = InsertionEvaluator{}.evaluate(DefaultService,
@@ -433,7 +435,8 @@ SCENARIO("insertion evaluator can handle sequence insertion in empty tour with v
 
     GIVEN("failed route constraint") {
       auto constraint = std::make_shared<InsertionConstraint>();
-      constraint->addHardRoute([](const auto&, const auto&) { return HardRouteConstraint::Result{42}; });
+      constraint->addHardRoute(
+        std::make_shared<HardRouteWrapper>([](const auto&, const auto&) { return HardRouteConstraint::Result{42}; }));
 
       WHEN("sequence is evaluated") {
         auto result =
@@ -448,7 +451,9 @@ SCENARIO("insertion evaluator can handle sequence insertion in empty tour with v
 
     GIVEN("failed activity constraint for any service") {
       auto constraint = std::make_shared<InsertionConstraint>();
-      constraint->addHardActivity([](const auto&, const auto&) { return HardActivityConstraint::Result{{true, 42}}; });
+      constraint->addHardActivity(std::make_shared<HardActivityWrapper>([](const auto&, const auto&) {
+        return HardActivityConstraint::Result{{true, 42}};
+      }));
 
       WHEN("sequence is evaluated") {
         auto result =
@@ -463,10 +468,10 @@ SCENARIO("insertion evaluator can handle sequence insertion in empty tour with v
 
     GIVEN("failed activity constraint for second service only") {
       auto constraint = std::make_shared<InsertionConstraint>();
-      constraint->addHardActivity([](const auto&, const auto& aCtx) {
+      constraint->addHardActivity(std::make_shared<HardActivityWrapper>([](const auto&, const auto& aCtx) {
         return aCtx.prev->detail.location == 0 ? HardActivityConstraint::Result{}
                                                : HardActivityConstraint::Result{{true, 42}};
-      });
+      }));
 
       WHEN("sequence is evaluated") {
         auto result =

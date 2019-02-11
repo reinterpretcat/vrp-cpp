@@ -26,25 +26,25 @@ struct InsertionRouteState final {
 
   /// Gets value associated with key.
   template<typename T>
-  std::optional<T> get(const std::string& key) const {
+  std::optional<T> get(int key) const {
     auto value = routeStates_.find(key);
     return value == routeStates_.end() ? std::optional<T>{} : std::make_optional(std::any_cast<T>(value->second));
   }
 
-  std::optional<std::any> get(const std::string& key) const {
+  std::optional<std::any> get(int key) const {
     auto value = routeStates_.find(key);
     return value == routeStates_.end() ? std::optional<std::any>{} : std::make_optional(value->second);
   }
 
   /// Gets typed value associated with key and specific activity.
   template<typename T>
-  std::optional<T> get(const std::string& key, const models::solution::Tour::Activity& activity) const {
+  std::optional<T> get(int key, const models::solution::Tour::Activity& activity) const {
     auto value = activityStates_.find(std::pair{activity, key});
     return value == activityStates_.end() ? std::optional<T>{} : std::make_optional(std::any_cast<T>(value->second));
   }
 
   /// Gets untyped value associated with key and specific activity
-  std::optional<std::any> get(const std::string& key, const models::solution::Tour::Activity& activity) const {
+  std::optional<std::any> get(int key, const models::solution::Tour::Activity& activity) const {
     auto value = activityStates_.find(std::pair{activity, key});
     return value == activityStates_.end() ? std::optional<std::any>{} : std::optional<std::any>{value->second};
   }
@@ -55,14 +55,14 @@ struct InsertionRouteState final {
 
   /// Puts value associated with key.
   template<typename T>
-  void put(const std::string& key, const T& value) {
+  void put(int key, const T& value) {
     routeStates_[key] = value;
     keys_.insert(key);
   }
 
   /// Puts value associated with key and specific activity.
   template<typename T>
-  void put(const std::string& key, const models::solution::Tour::Activity& activity, const T& value) {
+  void put(int key, const models::solution::Tour::Activity& activity, const T& value) {
     activityStates_[std::pair{activity, key}] = value;
     keys_.insert(key);
   }
@@ -77,7 +77,7 @@ struct InsertionRouteState final {
   // region Discovery
 
   /// Returns all registered keys.
-  ranges::any_view<std::string> keys() const { return keys_; }
+  ranges::any_view<int> keys() const { return keys_; }
 
   /// Returns size of internal storages.
   std::pair<size_t, size_t> sizes() const { return {routeStates_.size(), activityStates_.size()}; }
@@ -86,10 +86,10 @@ struct InsertionRouteState final {
 
 private:
   using ActivityHasher = models::solution::hash_activities_with_key;
-  using ActivityWithKey = std::pair<models::solution::Tour::Activity, std::string>;
+  using ActivityWithKey = std::pair<models::solution::Tour::Activity, int>;
 
-  std::set<std::string> keys_;
-  std::unordered_map<std::string, std::any> routeStates_;
+  std::set<int> keys_;
+  std::unordered_map<int, std::any> routeStates_;
   std::unordered_map<ActivityWithKey, std::any, ActivityHasher> activityStates_;
 };
 }

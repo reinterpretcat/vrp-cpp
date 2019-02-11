@@ -18,8 +18,8 @@ using namespace ranges;
 namespace {
 
 using Demand = VehicleActivitySize<int>::Demand;
-const auto CapacityKey = VehicleActivitySize<int>::StateKeyCapacity;
-const auto DemandKey = VehicleActivitySize<int>::StateKeyDemand;
+const auto CapacityKey = VehicleActivitySize<int>::DimKeyCapacity;
+const auto DemandKey = VehicleActivitySize<int>::DimKeyDemand;
 
 struct WithSimplifiedCoordinates {
   std::stringstream operator()() {

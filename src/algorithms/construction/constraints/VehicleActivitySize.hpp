@@ -31,13 +31,21 @@ struct VehicleActivitySize final
     Size change() const { return pickup.first + pickup.second - delivery.first - delivery.second; }
   };
 
-  inline static const std::string StateKeyDemand = "demand";
-  inline static const std::string StateKeyCapacity = "capacity";
-  inline static const std::string StateKeyCurrent = "size_current";
-  inline static const std::string StateKeyMaxFuture = "size_max_future";
-  inline static const std::string StateKeyMaxPast = "size_max_past";
+  constexpr static int BaseKey = 10;
+  constexpr static int StateKeyCurrent = BaseKey + 2;
+  constexpr static int StateKeyMaxFuture = BaseKey + 3;
+  constexpr static int StateKeyMaxPast = BaseKey + 4;
+
+  inline static const std::string DimKeyDemand = "demand";
+  inline static const std::string DimKeyCapacity = "capacity";
 
   explicit VehicleActivitySize(int code = 2) : code_(code) {}
+
+  /// Returns used state keys.
+  ranges::any_view<int> stateKeys() const override {
+    using namespace ranges;
+    return view::concat(view::single(StateKeyCurrent), view::single(StateKeyMaxFuture), view::single(StateKeyMaxPast));
+  }
 
   /// Accept route and updates its insertion state.
   void accept(InsertionRouteContext& context) const override {
@@ -94,13 +102,13 @@ struct VehicleActivitySize final
 
   /// Returns a capacity size associated within vehicle.
   static Capacity getCapacity(const std::shared_ptr<const models::problem::Vehicle>& vehicle) {
-    auto capacity = vehicle->dimens.find(StateKeyCapacity);
+    auto capacity = vehicle->dimens.find(DimKeyCapacity);
     return capacity != vehicle->dimens.end() ? std::any_cast<Size>(capacity->second) : Size{};
   }
 
   /// Returns demand associated service or empty if it does not exist.
   static Demand getDemand(const std::shared_ptr<const models::problem::Service>& service) {
-    auto demand = service->dimens.find(StateKeyDemand);
+    auto demand = service->dimens.find(DimKeyDemand);
     return demand != service->dimens.end() ? std::any_cast<Demand>(demand->second) : Demand{};
   }
 

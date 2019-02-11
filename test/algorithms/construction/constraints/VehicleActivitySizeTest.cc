@@ -21,8 +21,8 @@ namespace {
 
 using Demand = VehicleActivitySize<int>::Demand;
 const auto CurrentKey = VehicleActivitySize<int>::StateKeyCurrent;
-const auto DemandKey = VehicleActivitySize<int>::StateKeyDemand;
-const auto CapacityKey = VehicleActivitySize<int>::StateKeyCapacity;
+const auto DemandKey = VehicleActivitySize<int>::DimKeyDemand;
+const auto CapacityKey = VehicleActivitySize<int>::DimKeyCapacity;
 
 Demand
 createDemand(int size) {

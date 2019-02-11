@@ -1,5 +1,6 @@
 #pragma once
 
+#include "algorithms/construction/InsertionConstraint.hpp"
 #include "algorithms/construction/InsertionRouteContext.hpp"
 #include "models/extensions/problem/Helpers.hpp"
 #include "models/problem/Fleet.hpp"
@@ -41,4 +42,51 @@ asDetails(const models::common::Location start,
           const models::common::TimeWindow time) {
   return {models::problem::Vehicle::Detail{start, end, time}};
 }
+
+
+template<typename Base, typename Return, typename Arg1, typename Arg2>
+struct SoftFunctionWrapper : Base {
+  explicit SoftFunctionWrapper(typename Base::CheckFunc func) : func_(std::move(func)) {}
+
+  ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>(); }
+
+  void accept(vrp::algorithms::construction::InsertionRouteContext& context) const override {}
+
+  Return soft(const Arg1& arg1, const Arg2& arg2) const override { return func_(arg1, arg2); }
+
+  typename Base::CheckFunc func_;
+};
+
+template<typename Base, typename Return, typename Arg1, typename Arg2>
+struct HardFunctionWrapper : Base {
+  explicit HardFunctionWrapper(typename Base::CheckFunc func) : func_(std::move(func)) {}
+
+  ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>(); }
+
+  void accept(vrp::algorithms::construction::InsertionRouteContext& context) const override {}
+
+  Return hard(const Arg1& arg1, const Arg2& arg2) const override { return func_(arg1, arg2); }
+
+  typename Base::CheckFunc func_;
+};
+
+using HardRouteWrapper = HardFunctionWrapper<vrp::algorithms::construction::HardRouteConstraint,
+                                             vrp::algorithms::construction::HardRouteConstraint::Result,
+                                             vrp::algorithms::construction::InsertionRouteContext,
+                                             vrp::algorithms::construction::HardRouteConstraint::Job>;
+
+using SoftRouteWrapper = SoftFunctionWrapper<vrp::algorithms::construction::SoftRouteConstraint,
+                                             vrp::models::common::Cost,
+                                             vrp::algorithms::construction::InsertionRouteContext,
+                                             vrp::algorithms::construction::HardRouteConstraint::Job>;
+
+using HardActivityWrapper = HardFunctionWrapper<vrp::algorithms::construction::HardActivityConstraint,
+                                                vrp::algorithms::construction::HardActivityConstraint::Result,
+                                                vrp::algorithms::construction::InsertionRouteContext,
+                                                vrp::algorithms::construction::InsertionActivityContext>;
+
+using SoftActivityWrapper = SoftFunctionWrapper<vrp::algorithms::construction::SoftActivityConstraint,
+                                                vrp::models::common::Cost,
+                                                vrp::algorithms::construction::InsertionRouteContext,
+                                                vrp::algorithms::construction::InsertionActivityContext>;
 }
