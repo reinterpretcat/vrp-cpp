@@ -106,16 +106,15 @@ struct VehicleActivityTiming final
     const auto& profile = actor.vehicle->profile;
 
     auto latestArrival = actor.detail.time.end;
-    auto nextActLocation = next.service.has_value()  //
-      ? next.detail.location
-      : actor.detail.end.value_or(next.detail.location);
-
     if (latestArrival < prev.detail.time.start || latestArrival < target.detail.time.start ||
         latestArrival < next.detail.time.start)
       return fail(code_);
 
     if (target.detail.time.end < prev.detail.time.start) return fail(code_);
 
+    auto nextActLocation = next.service.has_value()  //
+                           ? next.detail.location
+                           : actor.detail.end.value_or(next.detail.location);
     auto latestArrTimeAtNextAct = next.service.has_value()
       ? routeCtx.state->get<Timestamp>(LatestArrivalKey, actCtx.next).value_or(next.detail.time.end)
       : actor.detail.time.end;

@@ -126,15 +126,19 @@ private:
                      const Demand& demand) const {
     auto capacity = getCapacity(routeCtx.route->actor->vehicle);
 
-    // cannot handle more static deliveries
-    auto past = routeCtx.state->get<Size>(StateKeyMaxPast, pivot).value_or(Size{});
-    if (past + demand.delivery.first > capacity) return false;
+    if (demand.delivery.first > 0) {
+      // cannot handle more static deliveries
+      auto past = routeCtx.state->get<Size>(StateKeyMaxPast, pivot).value_or(Size{});
+      if (past + demand.delivery.first > capacity) return false;
+    }
 
     // cannot handle more static pickups
-    // NOTE this minus delivery demand works for symmetric dynamic pickup/delivery,
-    // will it work for arbitrary cases?
-    auto future = routeCtx.state->get<Size>(StateKeyMaxFuture, pivot).value_or(Size{});
-    if (future + demand.pickup.first - demand.delivery.second > capacity) return false;
+    if (demand.pickup.first > 0) {
+      // NOTE this minus delivery demand works for symmetric dynamic pickup/delivery,
+      // will it work for arbitrary cases?
+      auto future = routeCtx.state->get<Size>(StateKeyMaxFuture, pivot).value_or(Size{});
+      if (future + demand.pickup.first - demand.delivery.second > capacity) return false;
+    }
 
     // can load more at current
     auto current = routeCtx.state->get<Size>(StateKeyCurrent, pivot).value_or(Size{});
