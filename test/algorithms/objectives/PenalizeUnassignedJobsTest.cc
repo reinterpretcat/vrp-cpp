@@ -21,7 +21,7 @@ createRoute(const vrp::models::solution::Route::Actor& actor, const vrp::models:
 
   auto detail = Activity::Detail{DefaultJobLocation, DefaultDuration, DefaultTimeWindow};
 
-  return test_build_route{}
+  return build_route{}
     .actor(actor)
     .start(build_activity{}.detail(detail).schedule({0, 0}).shared())
     .end(build_activity{}.detail(detail).schedule(endSchedule).shared())
@@ -47,11 +47,11 @@ SCENARIO("penalize unassigned jobs calculates cost properly", "[algorithms][obje
     auto route1 = createRoute(actor1, {40, 40});
     route1
       ->tour  //
-      .add(test_build_activity{}.detail({10, 5, DefaultTimeWindow}).shared())
-      .add(test_build_activity{}.detail({15, 5, DefaultTimeWindow}).shared());
+      .insert(test_build_activity{}.detail({10, 5, DefaultTimeWindow}).shared(), 1)
+      .insert(test_build_activity{}.detail({15, 5, DefaultTimeWindow}).shared(), 2);
 
     auto route2 = createRoute(actor1, {11, 11});
-    route2->tour.add(test_build_activity{}.detail({5, 1, DefaultTimeWindow}).shared());
+    route2->tour.insert(test_build_activity{}.detail({5, 1, DefaultTimeWindow}).shared(), 1);
 
     auto solution = Solution{registry, {route1, route2}, {{DefaultService, 0}}};
 

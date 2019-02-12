@@ -18,14 +18,14 @@ struct penalize_unassigned_jobs final : public ObjectiveFunction {
     using namespace ranges;
 
     auto actual = ranges::accumulate(sln.routes, Cost{0}, [&](auto acc, const auto& r) {
-      return ranges::accumulate(
-        view::concat(view::single(r->start), r->tour.activities(), view::single(r->end)) | view::sliding(2),
-        acc + r->actor->vehicle->costs.fixed + activity.cost(*r->actor, *r->start, r->start->schedule.arrival),
-        [&](auto inner, const auto& view) {
-          auto [from, to] = std::tie(*std::begin(view), *(std::begin(view) + 1));
-          return inner + activity.cost(*r->actor, *to, to->schedule.arrival) +
-            transport.cost(*r->actor, from->detail.location, to->detail.location, from->schedule.departure);
-        });
+      auto cost = acc + r->actor->vehicle->costs.fixed +
+        activity.cost(*r->actor, *r->tour.start(), r->tour.start()->schedule.arrival);
+
+      return ranges::accumulate(r->tour.activities() | view::sliding(2), cost, [&](auto inner, const auto& view) {
+        auto [from, to] = std::tie(*std::begin(view), *(std::begin(view) + 1));
+        return inner + activity.cost(*r->actor, *to, to->schedule.arrival) +
+          transport.cost(*r->actor, from->detail.location, to->detail.location, from->schedule.departure);
+      });
     });
 
     auto penalty = static_cast<Cost>(sln.unassigned.size() * Penalty);

@@ -67,38 +67,27 @@ private:
 class build_route {
 public:
   build_route& actor(Route::Actor value) {
-    route_.actor = std::move(value);
+    route_->actor = std::move(value);
     return *this;
   }
 
   build_route& start(Tour::Activity value) {
-    assert(!value->service.has_value());
-    route_.start = std::move(value);
+    route_->tour.start(value);
     return *this;
   }
 
   build_route& end(Tour::Activity value) {
-    assert(!value->service.has_value());
-    route_.end = std::move(value);
+    route_->tour.end(value);
     return *this;
   }
 
-  build_route& tour(Tour&& value) {
-    route_.tour = value;
-    return *this;
+  std::shared_ptr<Route> shared() {
+    assert(!route_->tour.empty());
+    return route_;
   }
-
-  Route&& owned() { return build(); }
-
-  std::shared_ptr<Route> shared() { return std::make_shared<Route>(build()); }
 
 private:
-  Route&& build() {
-    assert(route_.start != nullptr && route_.end != nullptr);
-    return std::move(route_);
-  }
-
-  Route route_;
+  std::shared_ptr<Route> route_ = std::make_shared<Route>();
 };
 
 }  // namespace vrp::models::solution

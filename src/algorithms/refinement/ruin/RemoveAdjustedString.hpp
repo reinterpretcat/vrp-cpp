@@ -49,7 +49,7 @@ struct RemoveAdjustedString {
           iCtx.routes | view::remove_if([&](const auto& r) { return in(*routes, r.route) || !r.route->tour.has(job); }),
           [=, &ctx](const auto& routeState) {
             /// Equations 8, 9: calculate cardinality of the string removed from the tour
-            auto ltmax = std::min(static_cast<double>(routeState.route->tour.sizes().second), lsmax);
+            auto ltmax = std::min(static_cast<double>(routeState.route->tour.count()), lsmax);
             auto lt = static_cast<int>(std::floor(ctx.random->uniform<double>(1, ltmax + 1)));
 
             routes->insert(routeState.route);
@@ -71,6 +71,8 @@ struct RemoveAdjustedString {
   }
 
 private:
+  constexpr static int JobActivityStartIndex = 1;
+  constexpr static int JobActivityStartOffset = 1;
   template<typename T, typename C>
   bool in(const std::set<T, C>& set, const T& item) const {
     return set.find(item) != set.end();
@@ -97,9 +99,9 @@ private:
 
   /// Calculates average tour cardinality.
   double avgTourCardinality(const models::Solution& sln) const {
-    return std::round(ranges::accumulate(
-                        sln.routes, 0.0, [](const double acc, const auto& r) { return acc + r->tour.sizes().second; }) /
-                      sln.routes.size());
+    return std::round(
+      ranges::accumulate(sln.routes, 0.0, [](const double acc, const auto& r) { return acc + r->tour.count(); }) /
+      sln.routes.size());
   }
 
   /// Returns randomly selected job and all its neighbours.
@@ -133,8 +135,10 @@ private:
                                                           int cardinality) const {
     using namespace ranges;
 
-    auto bounds = lowerBounds(cardinality, static_cast<int>(tour.sizes().second), index) | ranges::to_vector;
-    auto start = bounds.at(ctx.random->uniform<int>(0, bounds.size() - 1));
+    int size = static_cast<int>(tour.count());
+
+    auto [begin, end] = lowerBounds(cardinality, size, index);
+    auto start = ctx.random->uniform<int>(begin, end);
 
     return view::for_each(view::ints(start, start + cardinality) | view::reverse, [&tour](int i) {
       auto j = models::solution::retrieve_job{}(*tour.get(static_cast<size_t>(i)));
@@ -149,12 +153,14 @@ private:
                                                          int cardinality) const {
     using namespace ranges;
 
-    int size = static_cast<int>(tour.sizes().second);
+    int size = static_cast<int>(tour.count());
+
     int split = preservedCardinality(cardinality, size, *ctx.random);
     int total = cardinality + split;
-    auto bounds = lowerBounds(total, size, index) | ranges::to_vector;
 
-    auto startTotal = bounds.at(ctx.random->uniform<int>(0, bounds.size() - 1));
+    auto [begin, end] = lowerBounds(total, size, index);
+    auto startTotal = ctx.random->uniform<int>(begin, end);
+
     auto splitStart = ctx.random->uniform<int>(startTotal, startTotal + cardinality - 1);
     auto splitEnd = splitStart + split;
 
@@ -173,13 +179,12 @@ private:
 
   // region String utils
 
-  /// Returns all possible lower bounds of the string.
-  ranges::any_view<int> lowerBounds(int stringCardinality, int tourCardinality, int index) const {
-    return ranges::view::for_each(ranges::view::closed_indices(1, stringCardinality), [=](const auto i) {
-      int lower = index - (stringCardinality - i);
-      int upper = index + (i - 1);
-      return ranges::yield_if(lower >= 0 && upper < tourCardinality, lower);
-    });
+  /// Returns range of possible lower bounds.
+  std::pair<int, int> lowerBounds(int stringCardinality, int tourCardinality, int index) const {
+    auto start = std::max(JobActivityStartIndex, index - stringCardinality + 1);
+    auto end = std::min(tourCardinality - stringCardinality + 1, start + stringCardinality);
+
+    return {start, end};
   }
 
   /// Calculates preserved substring cardinality.

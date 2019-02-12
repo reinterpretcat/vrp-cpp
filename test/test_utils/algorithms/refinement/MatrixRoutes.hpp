@@ -52,7 +52,8 @@ struct generate_matrix_routes final {
                          .shared();
 
         jobs.insert(as_job(service));
-        const_cast<Route*>(routes[i].get())->tour.add(test_build_activity{}.service(service).shared());
+        auto route = const_cast<Route*>(routes[i].get());
+        route->tour.insert(test_build_activity{}.service(service).shared());
       });
     });
 

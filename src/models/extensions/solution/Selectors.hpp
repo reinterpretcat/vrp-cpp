@@ -23,7 +23,7 @@ struct select_job final {
     do {
       auto route = routes[routeIndex];
 
-      if (!route->tour.empty()) {
+      if (route->tour.hasJobs()) {
         auto job = random_job(route, random);
         if (job) return ReturnType{std::make_pair(route, job.value())};
       }
@@ -38,10 +38,10 @@ private:
   /// Selects random job from route.
   std::optional<problem::Job> random_job(const std::shared_ptr<const solution::Route>& route,
                                          utils::Random& random) const {
-    auto size = route->tour.sizes().second;
+    auto size = route->tour.count();
     if (size == 0) return {};
 
-    auto activityIndex = random.uniform<int>(0, static_cast<int>(size) - 1);
+    auto activityIndex = random.uniform<int>(1, static_cast<int>(size));
 
     auto ai = static_cast<size_t>(activityIndex);
     do {
@@ -49,7 +49,7 @@ private:
 
       if (job) return job;
 
-      ai = (ai + 1) % size;
+      ai = (ai + 1) % (size + 1);
 
     } while (ai != activityIndex);
 

@@ -48,7 +48,7 @@ private:
 
         // NOTE assume that activities are sorted by insertion index
         ranges::for_each(success.activities,
-                         [&](const auto& act) { success.context.route->tour.insert(act.first, act.second); });
+                         [&](const auto& act) { success.context.route->tour.insert(act.first, act.second + 1); });
 
         // fast erase job from vector
         std::iter_swap(

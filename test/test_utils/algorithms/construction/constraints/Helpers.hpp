@@ -15,8 +15,8 @@ constexpr int EndActivityIndex = -2;
 
 inline models::solution::Tour::Activity
 getActivity(const algorithms::construction::InsertionRouteContext& ctx, int index) {
-  if (index == StartActivityIndex) return ctx.route->start;
-  if (index == EndActivityIndex) return ctx.route->end;
+  if (index == StartActivityIndex) return ctx.route->tour.start();
+  if (index == EndActivityIndex) return ctx.route->tour.end();
 
   return ctx.route->tour.get(static_cast<size_t>(index));
 }

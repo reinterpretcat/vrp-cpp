@@ -154,8 +154,7 @@ struct deep_copy_insertion_route_context final {
     auto route = std::make_shared<Route>();
 
     // copy tour and activity level states
-    auto tour = view::concat(view::single(rs.route->start), rs.route->tour.activities(), view::single(rs.route->end));
-    ranges::for_each(tour, [&](const auto& a) {
+    ranges::for_each(rs.route->tour.activities(), [&](const auto& a) {
       auto clone = std::make_shared<Activity>(Activity{*a});
 
       ranges::for_each(rs.state->keys(), [&](const auto& key) {
@@ -163,13 +162,14 @@ struct deep_copy_insertion_route_context final {
         if (aValue) state->put(key, clone, aValue.value());
       });
 
-      if (a->service.has_value()) {
-        route->tour.add(clone);
+      if (clone->service.has_value()) {
+        route->tour.insert(clone);
       } else {
-        if (route->start)
-          route->end = clone;
-        else
-          route->start = clone;
+        if (route->tour.empty()) {
+          route->tour.start(clone);
+        } else {
+          route->tour.end(clone);
+        }
       }
     });
 

@@ -31,7 +31,7 @@ SCENARIO("restore insertion context skips empty routes", "[algorithms][refinemen
 
     auto route1 = test_build_route{}.actor(actor1).shared();
     auto route2 = test_build_route{}.actor(actor2).shared();
-    route2->tour.add(test_build_activity{}.location(10).shared());
+    route2->tour.insert(test_build_activity{}.location(10).shared(), 1);
 
     auto refinementCtx = RefinementContext{generate_matrix_routes{}(1, 1).first,
                                            std::make_shared<Random>(),

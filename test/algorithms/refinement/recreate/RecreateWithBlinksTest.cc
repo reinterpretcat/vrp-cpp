@@ -48,7 +48,7 @@ SCENARIO("recreate with blinks handles simple problem", "[algorithms][refinement
         REQUIRE(result.unassigned.empty());
         REQUIRE(result.routes.size() == 1);
         REQUIRE(get_vehicle_id{}(*result.routes.front()->actor->vehicle) == "v1");
-        REQUIRE(result.routes.front()->tour.get(0)->detail.location == 3);
+        REQUIRE(result.routes.front()->tour.get(1)->detail.location == 3);
       }
     }
   }

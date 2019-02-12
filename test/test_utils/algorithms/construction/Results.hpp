@@ -15,20 +15,22 @@ struct get_job_ids_from_all_routes {
 
     return ctx.routes | view::for_each([](const auto& r) {
              return r.route->tour.activities() | view::transform([](const auto& a) {
-                      return vrp::models::problem::get_job_id{}(models::solution::retrieve_job{}(*a).value());
+                      auto job = models::solution::retrieve_job{}(*a);
+                      return job.has_value() ? models::problem::get_job_id{}(job.value()) : "";
                     });
            }) |
-      to_vector;
+      ranges::view::remove_if([](const auto& id) { return id == ""; }) | to_vector;
   }
 };
 
-/// Returns vector of service ides from all routes.
+/// Returns vector of service ids from all routes.
 struct get_service_ids_from_all_routes {
   std::vector<std::string> operator()(const algorithms::construction::InsertionContext& ctx) const {
     using namespace ranges;
 
     return ctx.routes | view::for_each([](const auto& r) {
              return r.route->tour.activities() |
+               view::remove_if([](const auto& a) { return !a->service.has_value(); }) |
                view::transform([](const auto& a) { return models::problem::getId(a->service.value()->dimens); });
            }) |
       to_vector;

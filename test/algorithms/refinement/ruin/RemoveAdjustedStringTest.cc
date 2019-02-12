@@ -43,11 +43,11 @@ namespace vrp::test {
 SCENARIO("adjusted string removal can ruin solution with single route", "[algorithms][refinement][ruin]") {
   auto [ints, doubles, ids] = GENERATE(table<std::vector<int>, std::vector<double>, std::vector<std::string>>({
     // sequential
-    {{0, 3, 1, 1}, {1, 5}, {"c1", "c2", "c3", "c4", "c5"}},
+    {{0, 3, 1, 2}, {1, 5}, {"c1", "c2", "c3", "c4", "c5"}},
     // preserved
-    {{0, 2, 2, 0, 3}, {1, 5, 0.5, 0.005}, {"c0", "c1", "c2", "c5", "c6"}},
-    {{0, 2, 2, 0, 3}, {1, 5, 0.5, 0.5, 0.005}, {"c0", "c1", "c2", "c6", "c7"}},
-    {{0, 2, 2, 2, 3}, {1, 5, 0.5, 0.5, 0.005}, {"c2", "c6", "c7", "c8", "c9"}},
+    {{0, 2, 2, 1, 4}, {1, 5, 0.5, 0.005}, {"c0", "c1", "c2", "c5", "c6"}},
+    {{0, 2, 2, 1, 4}, {1, 5, 0.5, 0.5, 0.005}, {"c0", "c1", "c2", "c6", "c7"}},
+    {{0, 2, 2, 3, 4}, {1, 5, 0.5, 0.5, 0.005}, {"c2", "c6", "c7", "c8", "c9"}},
   }));
 
   GIVEN("solution with single route and 10 service jobs") {
@@ -71,12 +71,12 @@ SCENARIO("adjusted string removal can ruin solution with single route", "[algori
 SCENARIO("adjusted string removal can ruin solution with multiple routes", "[algorithms][refinement][ruin]") {
   auto [ints, doubles, ids] = GENERATE(table<std::vector<int>, std::vector<double>, std::vector<std::string>>({
     // sequential
-    {{1, 2, 1, 1}, {1, 3}, {"c6", "c7", "c8"}},
-    {{0, 2, 1, 1, 1, 1, 2}, {2, 3, 2}, {"c1", "c2", "c3", "c7", "c8"}},
-    {{1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, {3, 3, 3, 3}, {"c1", "c11", "c12", "c13", "c2", "c3", "c6", "c7", "c8"}},
+    {{1, 2, 1, 2}, {1, 3}, {"c6", "c7", "c8"}},
+    {{0, 2, 1, 2, 1, 3, 2}, {2, 3, 2}, {"c1", "c2", "c3", "c7", "c8"}},
+    {{1, 1, 1, 2, 1, 2, 1, 2, 1, 2}, {3, 3, 3, 3}, {"c1", "c11", "c12", "c13", "c2", "c3", "c6", "c7", "c8"}},
     // preserved
-    {{1, 0, 2, 0, 2}, {1, 3, 0.5}, {"c5", "c6", "c9"}},
-    {{1, 2, 2, 0, 2}, {1, 3, 0.5}, {"c5", "c6", "c7"}},
+    {{1, 1, 2, 1, 3}, {1, 3, 0.5}, {"c5", "c6", "c9"}},
+    {{1, 3, 2, 1, 3}, {1, 3, 0.5}, {"c5", "c6", "c7"}},
   }));
 
   GIVEN("solution with 3 routes within 5 service jobs in each") {
@@ -116,9 +116,13 @@ SCENARIO("adjusted string removal can ruin solution using data generators", "[al
       THEN("should ruin some jobs and remove empty tours") {
         REQUIRE(!result.jobs.empty());
         REQUIRE(ranges::accumulate(
-          result.routes, true, [](bool acc, const auto& pair) { return acc && !pair.route->tour.empty(); }));
+          result.routes, true, [](bool acc, const auto& pair) { return acc && pair.route->tour.hasJobs(); }));
       }
     }
   }
+}
+
+SCENARIO("adjusted string removal can ruin solution with sequence", "[algorithms][refinement][ruin][sequence]") {
+  // TODO
 }
 }

@@ -16,8 +16,11 @@ SCENARIO("tour can handle activities with job relations", "[models][tour]") {
   GIVEN("A tour model") {
     auto tour = Tour();
 
+    tour.start(
+      build_activity{}.detail({DefaultJobLocation, DefaultDuration, DefaultTimeWindow}).schedule({0, 0}).shared());
+
     WHEN("activity with service job is added") {
-      tour.add(DefaultActivity);
+      tour.insert(DefaultActivity);
 
       THEN("jobs has only one job") {
         auto actual = size(tour.jobs());
@@ -25,10 +28,10 @@ SCENARIO("tour can handle activities with job relations", "[models][tour]") {
         REQUIRE(1 == actual);
       }
 
-      THEN("activities has only one activity") {
+      THEN("activities has only two activities") {
         auto actual = size(tour.activities());
 
-        REQUIRE(1 == actual);
+        REQUIRE(2 == actual);
       }
 
       THEN("jobs returns range with original job") {
@@ -37,17 +40,11 @@ SCENARIO("tour can handle activities with job relations", "[models][tour]") {
         REQUIRE(DefaultService == actual[0]);
       }
 
-      THEN("activities returns range with original activity") {
-        std::vector<Tour::Activity> actual = tour.activities() | ranges::view::take(1);
-
-        CHECK_THAT(*actual[0], ActivityMatcher(*DefaultActivity));
-      }
-
       THEN("remove activity removes both activity and its job") {
         tour.remove(retrieve_job{}(*DefaultActivity).value());
 
         REQUIRE(0 == size(tour.jobs()));
-        REQUIRE(0 == size(tour.activities()));
+        REQUIRE(1 == size(tour.activities()));
       }
     }
   }

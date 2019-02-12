@@ -17,17 +17,36 @@ class Tour final {
 public:
   using Activity = std::shared_ptr<solution::Activity>;
 
-  /// Adds activity within its job to end of tour.
-  Tour& add(const Tour::Activity& activity) {
-    insert(activity, activities_.size());
+  /// Sets tour start.
+  Tour& start(const Tour::Activity& activity) {
+    assert(activities_.empty());
+    assert(!activity->service.has_value());
+    activities_.push_back(activity);
+    return *this;
+  }
+
+  /// Sets tour end.
+  Tour& end(const Tour::Activity& activity) {
+    assert(!activities_.empty());
+    assert(!activity->service.has_value());
+    isClosed_ = true;
+    activities_.push_back(activity);
+    return *this;
+  }
+
+  /// Inserts activity within its job to the end of tour.
+  Tour& insert(const Tour::Activity& activity) {
+    insert(activity, count() + 1);
     return *this;
   }
 
   /// Inserts activity within its job at specified index.
   Tour& insert(const Tour::Activity& activity, size_t index) {
+    assert(activity->service.has_value());
+    assert(!activities_.empty());
+
     activities_.insert(activities_.begin() + index, activity);
 
-    // TODO activity inserted in tour should have always job?
     auto job = retrieve_job{}(*activity);
     if (job.has_value()) { jobs_.insert(job.value()); }
 
@@ -59,11 +78,11 @@ public:
   /// Returns activity by its index in tour.
   Activity get(size_t index) const { return activities_[index]; }
 
-  /// Returns first activity in tour.
-  Activity first() const { return activities_.front(); }
+  /// Returns start activity in tour.
+  Activity start() const { return activities_.front(); }
 
-  /// Returns last activity in tour.
-  Activity last() const { return activities_.back(); }
+  /// Returns end activity in tour.
+  Activity end() const { return activities_.back(); }
 
   /// Returns index of first job occurrence in the tour.
   /// Throws exception if job is not present.
@@ -83,8 +102,25 @@ public:
   /// Checks whether job is present in tour.
   bool has(const problem::Job& job) const { return jobs_.find(job) != jobs_.end(); }
 
-  /// Returns separately amount of jobs and activities in tour.
-  std::pair<std::size_t, std::size_t> sizes() const { return std::make_pair(jobs_.size(), activities_.size()); }
+  /// Checks whether tour has jobs.
+  bool hasJobs() const { return !jobs_.empty(); }
+
+  /// Returns amount of job activities.
+  std::size_t count() const { return empty() ? 0 : activities_.size() - (isClosed_ ? 2 : 1); }
+
+  /// Creates a deep copy of existing tour.
+  Tour copy() const {
+    auto newTour = Tour{};
+    newTour.activities_.reserve(activities_.size());
+    newTour.isClosed_ = isClosed_;
+    newTour.jobs_ = jobs_;
+
+    ranges::for_each(activities_, [&](const auto& activity) {
+      newTour.activities_.push_back(std::make_shared<solution::Activity>(solution::Activity{*activity}));
+    });
+
+    return std::move(newTour);
+  }
 
 private:
   /// Stores activities in the order the performed.
@@ -92,6 +128,9 @@ private:
 
   /// Stores jobs in the order of their activities added.
   std::set<problem::Job, problem::compare_jobs> jobs_;
+
+  /// Keeps track whether tour is set as closed.
+  bool isClosed_ = false;
 };
 
 }  // namespace vrp::models::solution

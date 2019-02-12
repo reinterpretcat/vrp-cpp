@@ -31,7 +31,7 @@ SCENARIO("remove empty tours works", "[algorithms][refinement][extensions]") {
 
     auto route1 = test_build_route{}.actor(actor1).shared();
     auto route2 = test_build_route{}.actor(actor2).shared();
-    route2->tour.add(test_build_activity{}.location(10).shared());
+    route2->tour.insert(test_build_activity{}.location(10).shared(), 1);
 
     auto ctx = InsertionContext{{}, registry, {}, {}, {}, {{route1, {}}, {route2, {}}}, {}};
 

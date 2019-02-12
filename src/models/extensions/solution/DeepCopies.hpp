@@ -12,21 +12,7 @@ namespace vrp::models::solution {
 /// Creates a deep copy of shared route.
 struct deep_copy_route final {
   std::shared_ptr<Route> operator()(const std::shared_ptr<const Route>& route) const {
-    return std::make_shared<Route>(Route{
-      route->actor,
-      copy(*route->start),
-      copy(*route->end),
-      copy(route->tour),
-    });
-  }
-
-private:
-  Tour::Activity copy(const Activity& activity) const { return std::make_shared<Activity>(Activity{activity}); }
-
-  Tour copy(const Tour& tour) const {
-    auto newTour = Tour{};
-    ranges::for_each(tour.activities(), [&](const auto& activity) { newTour.add(copy(*activity)); });
-    return std::move(newTour);
+    return std::make_shared<Route>(Route{route->actor, route->tour.copy()});
   }
 };
 

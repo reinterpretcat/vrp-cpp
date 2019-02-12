@@ -14,14 +14,14 @@ struct dump_solution_as_text final {
   void operator()(std::ostream& out, const models::EstimatedSolution& es) const {
     out << "\t\tactual cost:" << es.second.actual << " + penalties: " << es.second.penalty
         << "\n\t\ttotal routes:" << es.first->routes.size();
-    ranges::for_each(es.first->routes, [&](const auto& route) {
-      out << "\n\t\tvehicle " << models::problem::get_vehicle_id{}(*route->actor->vehicle) << ", customers:";
-      ranges::for_each(route->tour.activities(), [&](const auto& a) {
-        // TODO print activities without job
-        assert(a->service.has_value());
-        out << " " << models::problem::get_job_id{}(models::solution::retrieve_job{}(*a).value());
-      });
-    });
+    //    ranges::for_each(es.first->routes, [&](const auto& route) {
+    //      out << "\n\t\tvehicle " << models::problem::get_vehicle_id{}(*route->actor->vehicle) << ", customers:";
+    //      ranges::for_each(route->tour.activities(), [&](const auto& a) {
+    //        // TODO print activities without job
+    //        assert(a->service.has_value());
+    //        out << " " << models::problem::get_job_id{}(models::solution::retrieve_job{}(*a).value());
+    //      });
+    //    });
     out << std::endl;
   }
 };

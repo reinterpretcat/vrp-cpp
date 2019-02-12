@@ -23,8 +23,8 @@ struct test_build_insertion_route_context : public vrp::algorithms::construction
       .state(std::make_shared<algorithms::construction::InsertionRouteState>());
   }
 
-  test_build_insertion_route_context& add(const models::solution::Tour::Activity& activity) {
-    context_.route->tour.add(activity);
+  test_build_insertion_route_context& insert(const models::solution::Tour::Activity& activity, size_t index) {
+    context_.route->tour.insert(activity, index);
     return *this;
   }
 };

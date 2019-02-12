@@ -89,7 +89,7 @@ SCENARIO("cheapest insertion inserts service", "[algorithms][construction][inser
         REQUIRE(result.unassigned.empty());
         REQUIRE(result.routes.size() == 1);
         REQUIRE(get_vehicle_id{}(*result.routes.begin()->route->actor->vehicle) == used);
-        REQUIRE(result.routes.begin()->route->tour.get(0)->detail.location == s1);
+        REQUIRE(result.routes.begin()->route->tour.get(1)->detail.location == s1);
       }
     }
   }

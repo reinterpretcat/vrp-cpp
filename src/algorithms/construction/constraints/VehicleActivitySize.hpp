@@ -52,26 +52,26 @@ struct VehicleActivitySize final
     using namespace ranges;
 
     const auto& route = *context.route;
-    auto tour = view::concat(view::single(route.start), route.tour.activities(), view::single(route.end));
 
     // calculate what must to be loaded at start
-    auto start = ranges::accumulate(tour, Size{}, [&](const auto& acc, const auto& a) {
+    auto start = ranges::accumulate(route.tour.activities(), Size{}, [&](const auto& acc, const auto& a) {
       return a->service.has_value() ? acc + getDemand(a).delivery.first : acc;
     });
 
     // determine actual load at each activity and max load in past
-    auto end = ranges::accumulate(tour, std::pair<Size, Size>{start, start}, [&](const auto& acc, const auto& a) {
-      auto current = acc.first + getDemand(a).change();
-      auto max = std::max(acc.second, current);
+    auto end = ranges::accumulate(
+      route.tour.activities(), std::pair<Size, Size>{start, start}, [&](const auto& acc, const auto& a) {
+        auto current = acc.first + getDemand(a).change();
+        auto max = std::max(acc.second, current);
 
-      context.state->put<Size>(StateKeyCurrent, a, current);
-      context.state->put<Size>(StateKeyMaxPast, a, max);
+        context.state->put<Size>(StateKeyCurrent, a, current);
+        context.state->put<Size>(StateKeyMaxPast, a, max);
 
-      return std::pair<Size, Size>{current, max};
-    });
+        return std::pair<Size, Size>{current, max};
+      });
 
     // determine max load in future
-    ranges::accumulate(tour | view::reverse, end.first, [&](const auto& acc, const auto& a) {
+    ranges::accumulate(route.tour.activities() | view::reverse, end.first, [&](const auto& acc, const auto& a) {
       auto max = std::max(acc, context.state->get<Size>(StateKeyCurrent, a).value());
       context.state->put<Size>(StateKeyMaxFuture, a, max);
       return max;
@@ -84,7 +84,7 @@ struct VehicleActivitySize final
     return models::problem::analyze_job<bool>(  //
              job,
              [&](const std::shared_ptr<const models::problem::Service>& service) {
-               return canHandleSize(routeCtx, routeCtx.route->start, getDemand(service));
+               return canHandleSize(routeCtx, routeCtx.route->tour.start(), getDemand(service));
              },
              [&](const std::shared_ptr<const models::problem::Sequence>& sequence) {
                // TODO we can check at least static pickups/deliveries

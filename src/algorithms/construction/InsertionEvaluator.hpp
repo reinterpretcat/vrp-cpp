@@ -110,7 +110,7 @@ private:
         mutated = true;
       }
 
-      ctx.route->tour.insert(activity, index);
+      ctx.route->tour.insert(activity, index + 1);
       problem->constraint->accept(ctx);
       dirty = true;
     }
@@ -135,16 +135,19 @@ public:
     return ranges::accumulate(
       view::concat(ctx.routes, ctx.registry->next() | view::transform([&](const auto& a) {
                                  const auto& dtl = a->detail;
-                                 auto start = build_activity{}
-                                                .detail({dtl.start, 0, {dtl.time.start, models::common::MaxTime}})
-                                                .schedule({dtl.time.start, dtl.time.start})
-                                                .shared();
-                                 auto end = build_activity{}
-                                              .detail({dtl.end.value_or(dtl.start), 0, {0, dtl.time.end}})
-                                              .schedule({dtl.time.end, dtl.time.end})
-                                              .shared();
-                                 return InsertionRouteContext{std::make_shared<Route>(Route{a, start, end, {}}),
-                                                              std::make_shared<InsertionRouteState>()};
+                                 return InsertionRouteContext{
+                                   build_route{}
+                                     .actor(a)
+                                     .start(build_activity{}
+                                              .detail({dtl.start, 0, {dtl.time.start, models::common::MaxTime}})
+                                              .schedule({dtl.time.start, dtl.time.start})
+                                              .shared())
+                                     .end(build_activity{}
+                                            .detail({dtl.end.value_or(dtl.start), 0, {0, dtl.time.end}})
+                                            .schedule({dtl.time.end, dtl.time.end})
+                                            .shared())
+                                     .shared(),
+                                   std::make_shared<InsertionRouteState>()};
                                })),
       make_result_failure(),
       [&](const auto& acc, const auto& routeCtx) {
@@ -196,8 +199,7 @@ private:
     auto routeCosts = constraint.soft(rCtx, job);
 
     // form route legs from a new route view.
-    auto tour = view::concat(view::single(route.start), route.tour.activities(), view::single(route.end));
-    auto legs = view::zip(tour | view::sliding(2), view::iota(static_cast<size_t>(0)));
+    auto legs = view::zip(route.tour.activities() | view::sliding(2), view::iota(static_cast<size_t>(0)));
     auto evalCtx = SrvContext::empty(progress.bestCost);
     auto pred = [](const SrvContext& ctx) { return !ctx.isStopped; };
 
@@ -246,7 +248,7 @@ private:
     static const auto srvPred = [](const SrvContext& acc) { return !acc.isStopped; };
     static const auto inSeqPred = [](const SeqContext& acc) { return acc.code == 0; };
     const auto outSeqPred = [=](const SeqContext& acc) {
-      return !acc.isStopped && acc.startIndex <= rCtx.route->tour.sizes().second;
+      return !acc.isStopped && acc.startIndex <= rCtx.route->tour.count();
     };
 
     auto shadow = ShadowContext{false, false, iCtx.problem, rCtx};
@@ -254,8 +256,8 @@ private:
       shadow.restore(job);
       auto sqRes = accumulate_while(sequence->services, out.next(), inSeqPred, [&](auto& in1, const auto& service) {
         const auto& route = *shadow.ctx.route;
-        auto tour = view::concat(view::single(route.start), route.tour.activities(), view::single(route.end));
-        auto legs = view::zip(tour | view::sliding(2), view::iota(static_cast<size_t>(0))) | view::drop(in1.index);
+        auto legs = view::zip(route.tour.activities() | view::sliding(2), view::iota(static_cast<size_t>(0))) |
+          view::drop(in1.index);
         auto activity = std::make_shared<Activity>(Activity{{}, {}, service});
         // NOTE condition below allows to stop at first success for first service to avoid situation
         // when later insertion of first service is cheaper, but the whole sequence is more expensive.

@@ -53,21 +53,24 @@ struct VehicleActivityTiming final
 
     // update each activity schedule
     ranges::accumulate(  //
-      view::concat(view::single(route.start), route.tour.activities(), view::single(route.end)),
-      std::pair{route.start->detail.location, route.start->schedule.departure},
+      route.tour.activities(),
+      std::pair{route.tour.start()->detail.location, route.tour.start()->schedule.departure},
       [&](const auto& acc, auto& a) {
         const auto& [loc, dep] = acc;
 
         a->schedule.arrival = dep + transport_->duration(actor.vehicle->profile, loc, a->detail.location, dep);
+
         a->schedule.departure =
           std::max(a->schedule.arrival, a->detail.time.start) + activity_->duration(actor, *a, a->schedule.arrival);
 
         return std::pair{a->detail.location, a->schedule.departure};
       });
 
-    // update latest arrival and waiting states
+    // update latest arrival and waiting states of non-terminate (jobs) activities
     auto init = std::tuple{actor.detail.time.end, actor.detail.end.value_or(actor.detail.start), Timestamp{0}};
     ranges::accumulate(view::reverse(context.route->tour.activities()), init, [&](const auto& acc, const auto& act) {
+      if (!act->service.has_value()) return acc;
+
       const auto& [endTime, prevLoc, waiting] = acc;
 
       auto potentialLatest = endTime -
@@ -113,8 +116,8 @@ struct VehicleActivityTiming final
     if (target.detail.time.end < prev.detail.time.start) return fail(code_);
 
     auto nextActLocation = next.service.has_value()  //
-                           ? next.detail.location
-                           : actor.detail.end.value_or(next.detail.location);
+      ? next.detail.location
+      : actor.detail.end.value_or(next.detail.location);
     auto latestArrTimeAtNextAct = next.service.has_value()
       ? routeCtx.state->get<Timestamp>(LatestArrivalKey, actCtx.next).value_or(next.detail.time.end)
       : actor.detail.time.end;
@@ -172,13 +175,13 @@ struct VehicleActivityTiming final
 
     auto newCosts = tpCostLeft + tpCostRight + /* progress.completeness * */ (actCostLeft + actCostRight);
 
-    if (route.tour.empty()) return newCosts;
+    if (!route.tour.hasJobs()) return newCosts;
 
     auto [tpCostOld, actCostOld, depTimeOld] =
       analyze(actor,
-              prev.service.has_value() ? prev : *route.start,
-              next.service.has_value() ? next : *route.end,
-              prev.service.has_value() ? prev.schedule.departure : route.start->schedule.departure);
+              prev.service.has_value() ? prev : *route.tour.start(),
+              next.service.has_value() ? next : *route.tour.end(),
+              prev.service.has_value() ? prev.schedule.departure : route.tour.start()->schedule.departure);
 
     auto waitingTime = routeCtx.state->get<Timestamp>(WaitingKey, actCtx.next).value_or(Timestamp{0});
 
