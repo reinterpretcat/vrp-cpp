@@ -38,7 +38,7 @@ set(SOURCE_FILES
         models/solution/RegistryTest.cc
 
         test_utils/algorithms/acceptance/Factories.hpp
-        test_utils/algorithms/construction/Insertions.hpp
+        test_utils/algorithms/construction/Factories.hpp
         test_utils/algorithms/construction/Contexts.hpp
         test_utils/algorithms/construction/Results.hpp
         test_utils/algorithms/construction/constraints/Helpers.hpp

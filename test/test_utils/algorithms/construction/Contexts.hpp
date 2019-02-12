@@ -2,7 +2,7 @@
 
 #include "algorithms/construction/InsertionActivityContext.hpp"
 #include "algorithms/construction/InsertionRouteContext.hpp"
-#include "test_utils/algorithms/construction/Insertions.hpp"
+#include "test_utils/algorithms/construction/Factories.hpp"
 
 #include <memory>
 #include <utility>

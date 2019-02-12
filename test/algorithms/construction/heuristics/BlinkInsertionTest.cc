@@ -1,7 +1,7 @@
 #include "algorithms/construction/heuristics/BlinkInsertion.hpp"
 
 #include "streams/in/Solomon.hpp"
-#include "test_utils/algorithms/construction/Insertions.hpp"
+#include "test_utils/algorithms/construction/Factories.hpp"
 #include "test_utils/fakes/TestTransportCosts.hpp"
 #include "test_utils/models/Factories.hpp"
 #include "test_utils/streams/SolomonStreams.hpp"

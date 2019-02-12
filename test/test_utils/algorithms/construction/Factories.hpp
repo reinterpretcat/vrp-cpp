@@ -1,6 +1,6 @@
 #pragma once
 
-#include "algorithms/construction/extensions/Insertions.hpp"
+#include "algorithms/construction/extensions/Factories.hpp"
 #include "test_utils/models/Factories.hpp"
 
 namespace vrp::test {

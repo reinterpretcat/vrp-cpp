@@ -2,7 +2,7 @@
 
 #include "algorithms/construction/constraints/VehicleActivitySize.hpp"
 #include "algorithms/construction/constraints/VehicleActivityTiming.hpp"
-#include "test_utils/algorithms/construction/Insertions.hpp"
+#include "test_utils/algorithms/construction/Factories.hpp"
 #include "test_utils/algorithms/construction/constraints/Helpers.hpp"
 #include "test_utils/fakes/TestTransportCosts.hpp"
 #include "test_utils/models/Factories.hpp"

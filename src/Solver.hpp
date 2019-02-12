@@ -1,6 +1,6 @@
 #pragma once
 
-#include "algorithms/construction/extensions/Insertions.hpp"
+#include "algorithms/construction/extensions/Factories.hpp"
 #include "algorithms/refinement/acceptance/GreedyAcceptance.hpp"
 #include "algorithms/refinement/extensions/CreateRefinementContext.hpp"
 #include "algorithms/refinement/extensions/RuinAndRecreateSolution.hpp"

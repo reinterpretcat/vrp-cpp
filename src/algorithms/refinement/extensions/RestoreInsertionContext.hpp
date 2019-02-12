@@ -1,6 +1,6 @@
 #pragma once
 
-#include "algorithms/construction/extensions/Insertions.hpp"
+#include "algorithms/construction/extensions/Factories.hpp"
 #include "algorithms/refinement/RefinementContext.hpp"
 #include "models/Solution.hpp"
 #include "models/extensions/solution/DeepCopies.hpp"

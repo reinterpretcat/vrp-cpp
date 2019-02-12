@@ -2,7 +2,6 @@
 
 #include "algorithms/construction/InsertionConstraint.hpp"
 #include "algorithms/construction/extensions/Constraints.hpp"
-#include "algorithms/construction/extensions/Fleets.hpp"
 #include "models/Problem.hpp"
 #include "models/common/Location.hpp"
 #include "models/common/Timestamp.hpp"

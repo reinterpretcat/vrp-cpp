@@ -9,8 +9,7 @@ set(SOURCE_FILES
 
         algorithms/construction/extensions/Comparators.hpp
         algorithms/construction/extensions/Constraints.hpp
-        algorithms/construction/extensions/Fleets.hpp
-        algorithms/construction/extensions/Insertions.hpp
+        algorithms/construction/extensions/Factories.hpp
 
         algorithms/construction/heuristics/BlinkInsertion.hpp
         algorithms/construction/heuristics/CheapestInsertion.hpp
