@@ -18,7 +18,9 @@ constexpr vrp::models::problem::Costs DefaultCosts = {100, 1, 1, 1, 1};
 const vrp::models::problem::Service::Detail DefaultJobDetail = {{DefaultJobLocation},
                                                                 DefaultDuration,
                                                                 {DefaultTimeWindow}};
-const vrp::models::problem::Vehicle::Detail DefaultVehicleDetail = {DefaultActorLocation, {}, DefaultTimeWindow};
+const vrp::models::problem::Vehicle::Detail DefaultVehicleDetail = {DefaultActorLocation,
+                                                                    {DefaultActorLocation},
+                                                                    DefaultTimeWindow};
 
 class test_build_service : public vrp::models::problem::build_service {
 public:

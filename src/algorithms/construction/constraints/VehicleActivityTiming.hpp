@@ -102,29 +102,34 @@ struct VehicleActivityTiming final
     const auto& actor = *routeCtx.route->actor;
     const auto& prev = *actCtx.prev;
     const auto& target = *actCtx.target;
-    const auto& next = *actCtx.next;
+    const auto& next = actCtx.next;
 
     const auto departure = prev.schedule.departure;
     const auto& profile = actor.vehicle->profile;
 
-    auto latestArrival = actor.detail.time.end;
-    if (latestArrival < prev.detail.time.start || latestArrival < target.detail.time.start ||
-        latestArrival < next.detail.time.start)
+    if (target.detail.time.end < prev.detail.time.start || actor.detail.time.end < prev.detail.time.start ||
+        actor.detail.time.end < target.detail.time.start)
       return fail(code_);
 
-    if (target.detail.time.end < prev.detail.time.start) return fail(code_);
+    Location nextActLocation;
+    Timestamp latestArrTimeAtNextAct;
+    if (next) {
+      // closed vrp
+      if (actor.detail.time.end < next.value()->detail.time.start) return fail(code_);
 
-    auto nextActLocation = next.service.has_value()  //
-      ? next.detail.location
-      : actor.detail.end.value_or(next.detail.location);
-    auto latestArrTimeAtNextAct = next.service.has_value()
-      ? routeCtx.state->get<Timestamp>(LatestArrivalKey, actCtx.next).value_or(next.detail.time.end)
-      : actor.detail.time.end;
+      nextActLocation = next.value()->detail.location;
+      latestArrTimeAtNextAct =
+        routeCtx.state->get<Timestamp>(LatestArrivalKey, actCtx.next.value()).value_or(next.value()->detail.time.end);
+    } else {
+      // open vrp
+      nextActLocation = target.detail.location;
+      latestArrTimeAtNextAct = std::min(target.detail.time.end, actor.detail.time.end);
+    }
 
     auto arrTimeAtNext = departure + transport_->duration(profile, prev.detail.location, nextActLocation, departure);
     if (arrTimeAtNext > latestArrTimeAtNextAct) return fail(code_);
 
-    if (target.detail.time.start > next.detail.time.end) return stop(code_);
+    if (target.detail.time.start > latestArrTimeAtNextAct) return stop(code_);
 
     auto arrTimeAtTargetAct =
       departure + transport_->duration(profile, prev.detail.location, target.detail.location, departure);
@@ -140,7 +145,7 @@ struct VehicleActivityTiming final
 
     if (arrTimeAtTargetAct > latestArrTimeAtNewAct) return stop(code_);
 
-    if (!next.service.has_value() && !actor.detail.end.has_value()) return success();
+    if (!next) return success();
 
     auto arrTimeAtNextAct =
       endTimeAtNewAct + transport_->duration(profile, target.detail.location, nextActLocation, endTimeAtNewAct);
@@ -163,26 +168,25 @@ struct VehicleActivityTiming final
 
     const auto& prev = *actCtx.prev;
     const auto& target = *actCtx.target;
-    const auto& next = *actCtx.next;
 
     const auto& route = *routeCtx.route;
     const auto& actor = *route.actor;
 
     auto [tpCostLeft, actCostLeft, depTimeLeft] = analyze(actor, prev, target, prev.schedule.departure);
 
-    auto [tpCostRight, actCostRight, depTimeRight] = analyze(actor, target, next, depTimeLeft);
+    auto [tpCostRight, actCostRight, depTimeRight] =
+      analyze(actor, target, actCtx.next.has_value() ? *actCtx.next.value() : target, depTimeLeft);
 
     auto newCosts = tpCostLeft + tpCostRight + /* progress.completeness * */ (actCostLeft + actCostRight);
 
-    if (!route.tour.hasJobs()) return newCosts;
+    // no jobs yet or open vrp.
+    if (!route.tour.hasJobs() || !actCtx.next) return newCosts;
 
-    auto [tpCostOld, actCostOld, depTimeOld] =
-      analyze(actor,
-              prev.service.has_value() ? prev : *route.tour.start(),
-              next.service.has_value() ? next : *route.tour.end(),
-              prev.service.has_value() ? prev.schedule.departure : route.tour.start()->schedule.departure);
+    const auto& next = actCtx.next.value();
 
-    auto waitingTime = routeCtx.state->get<Timestamp>(WaitingKey, actCtx.next).value_or(Timestamp{0});
+    auto [tpCostOld, actCostOld, depTimeOld] = analyze(actor, prev, *next, prev.schedule.departure);
+
+    auto waitingTime = routeCtx.state->get<Timestamp>(WaitingKey, next).value_or(Timestamp{0});
 
     double waitingCost =
       std::min(waitingTime, std::max(Timestamp{0}, depTimeRight - depTimeOld)) * actor.vehicle->costs.perWaitingTime;

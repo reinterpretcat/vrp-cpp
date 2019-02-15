@@ -8,10 +8,10 @@ namespace vrp::utils {
 template<typename View, typename T, typename Pred, typename Accumulator>
 inline T&&
 accumulate_while(const View& view, T&& value, const Pred& predicate, const Accumulator& accumulator) {
-  for (auto it = ranges::begin(view); it != ranges::end(view); ++it) {
-    if (!predicate(value)) break;
-    value = std::move(accumulator(value, *it));
-  }
+  ranges::find_if(const_cast<View&>(view), [&value, &predicate, &accumulator](const auto& item) {
+    value = std::move(accumulator(value, item));
+    return !predicate(value);
+  });
   return std::move(value);
 }
 }

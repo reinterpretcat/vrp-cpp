@@ -37,7 +37,17 @@ createFleetWithOneVehicle() {
 
 std::shared_ptr<Route>
 createRoute(const Fleet& fleet, const std::string& vehicle = "v1") {
-  auto route = test_build_route{}.actor(getActor(vehicle, fleet)).shared();
+  auto actor = getActor(vehicle, fleet);
+  const auto& dtl = actor->detail;
+  auto builder = build_route{}.actor(actor).start(build_activity{}
+                                                    .detail({dtl.start, 0, {dtl.time.start, MaxTime}})
+                                                    .schedule({dtl.time.start, dtl.time.start})
+                                                    .shared());
+  if (dtl.end.has_value())
+    builder.end(
+      build_activity{}.detail({dtl.end.value(), 0, {0, dtl.time.end}}).schedule({dtl.time.end, dtl.time.end}).shared());
+
+  auto route = builder.shared();
   route->tour
     .insert(test_build_activity{}.location(10).shared(), 1)  //
     .insert(test_build_activity{}.location(20).shared(), 2)  //
@@ -95,11 +105,11 @@ SCENARIO("vehicle activity timing checks states with 6 vehicles", "[algorithms][
   GIVEN("fleet with 6 vehicles") {
     auto fleet = std::make_shared<Fleet>();
     (*fleet)  //
-      .add(test_build_vehicle{}.id("v1").details(asDetails(0, {}, {0, 100})).owned())
-      .add(test_build_vehicle{}.id("v2").details(asDetails(0, {}, {0, 60})).owned())
-      .add(test_build_vehicle{}.id("v3").details(asDetails(0, {}, {0, 50})).owned())
-      .add(test_build_vehicle{}.id("v4").details(asDetails(0, {}, {0, 10})).owned())
-      .add(test_build_vehicle{}.id("v5").details(asDetails(0, {}, {60, 100})).owned())
+      .add(test_build_vehicle{}.id("v1").details(asDetails(0, {0}, {0, 100})).owned())
+      .add(test_build_vehicle{}.id("v2").details(asDetails(0, {0}, {0, 60})).owned())
+      .add(test_build_vehicle{}.id("v3").details(asDetails(0, {0}, {0, 50})).owned())
+      .add(test_build_vehicle{}.id("v4").details(asDetails(0, {0}, {0, 10})).owned())
+      .add(test_build_vehicle{}.id("v5").details(asDetails(0, {0}, {60, 100})).owned())
       .add(test_build_vehicle{}.id("v6").details(asDetails(0, {40}, {0, 40})).owned());
 
     WHEN("accept and checks route for first vehicle with three activities") {

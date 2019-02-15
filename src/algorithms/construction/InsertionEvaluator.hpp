@@ -133,22 +133,22 @@ public:
 
     // iterate through list of routes plus a new one
     return ranges::accumulate(
-      view::concat(ctx.routes, ctx.registry->next() | view::transform([&](const auto& a) {
-                                 const auto& dtl = a->detail;
-                                 return InsertionRouteContext{
-                                   build_route{}
-                                     .actor(a)
-                                     .start(build_activity{}
-                                              .detail({dtl.start, 0, {dtl.time.start, models::common::MaxTime}})
-                                              .schedule({dtl.time.start, dtl.time.start})
-                                              .shared())
-                                     .end(build_activity{}
-                                            .detail({dtl.end.value_or(dtl.start), 0, {0, dtl.time.end}})
-                                            .schedule({dtl.time.end, dtl.time.end})
-                                            .shared())
-                                     .shared(),
-                                   std::make_shared<InsertionRouteState>()};
-                               })),
+      view::concat(ctx.routes,
+                   ctx.registry->next() | view::transform([&](const auto& a) {
+                     const auto& dtl = a->detail;
+                     auto builder =
+                       build_route{}.actor(a).start(build_activity{}
+                                                      .detail({dtl.start, 0, {dtl.time.start, models::common::MaxTime}})
+                                                      .schedule({dtl.time.start, dtl.time.start})
+                                                      .shared());
+                     if (dtl.end.has_value())
+                       builder.end(build_activity{}
+                                     .detail({dtl.end.value(), 0, {0, dtl.time.end}})
+                                     .schedule({dtl.time.end, dtl.time.end})
+                                     .shared());
+
+                     return InsertionRouteContext{builder.shared(), std::make_shared<InsertionRouteState>()};
+                   })),
       make_result_failure(),
       [&](const auto& acc, const auto& routeCtx) {
         // check hard constraints on route level.
@@ -198,16 +198,16 @@ private:
     // calculate additional costs on route level.
     auto routeCosts = constraint.soft(rCtx, job);
 
-    // form route legs from a new route view.
-    auto legs = view::zip(route.tour.activities() | view::sliding(2), view::iota(static_cast<size_t>(0)));
     auto evalCtx = SrvContext::empty(progress.bestCost);
     auto pred = [](const SrvContext& ctx) { return !ctx.isStopped; };
 
     // 1. analyze route legs
-    auto result = accumulate_while(legs, std::move(evalCtx), pred, [&](auto& out, const auto& view) {
+    auto result = accumulate_while(route.tour.legs(), std::move(evalCtx), pred, [&](auto& out, const auto& view) {
+      using NextAct = std::optional<models::solution::Tour::Activity>;
+
       auto [items, index] = view;
       auto [prev, next] = std::tie(*std::begin(items), *(std::begin(items) + 1));
-      auto actCtx = InsertionActivityContext{index, prev, activity, next};
+      auto actCtx = InsertionActivityContext{index, prev, activity, prev == next ? NextAct{} : NextAct{next}};
 
       // 2. analyze service details
       return accumulate_while(view::all(service->details), std::move(out), pred, [&](auto& in1, const auto& detail) {
@@ -243,7 +243,6 @@ private:
     using namespace ranges;
     using namespace vrp::models;
     using namespace vrp::utils;
-    using Activity = solution::Activity;
 
     static const auto srvPred = [](const SrvContext& acc) { return !acc.isStopped; };
     static const auto inSeqPred = [](const SeqContext& acc) { return acc.code == 0; };
@@ -252,13 +251,12 @@ private:
     };
 
     auto shadow = ShadowContext{false, false, iCtx.problem, rCtx};
-    auto result = accumulate_while(view::iota(0), SeqContext::empty(), outSeqPred, [&](auto& out, auto) {
+    auto result = accumulate_while(view::iota(0), SeqContext::empty(), outSeqPred, [&](auto& out, const auto) {
       shadow.restore(job);
       auto sqRes = accumulate_while(sequence->services, out.next(), inSeqPred, [&](auto& in1, const auto& service) {
         const auto& route = *shadow.ctx.route;
-        auto legs = view::zip(route.tour.activities() | view::sliding(2), view::iota(static_cast<size_t>(0))) |
-          view::drop(in1.index);
-        auto activity = std::make_shared<Activity>(Activity{{}, {}, service});
+        auto activity = std::make_shared<solution::Activity>(solution::Activity{{}, {}, service});
+        auto legs = route.tour.legs() | view::drop(in1.index);
         // NOTE condition below allows to stop at first success for first service to avoid situation
         // when later insertion of first service is cheaper, but the whole sequence is more expensive.
         // Due to complexity, we do this only for first service which is suboptimal for more than two services.
@@ -268,9 +266,11 @@ private:
 
         // region analyze legs
         auto srvRes = accumulate_while(legs, SrvContext::empty(), pred, [&](auto& in2, const auto& leg) {
+          using NextAct = std::optional<models::solution::Tour::Activity>;
+
           auto [items, index] = leg;
           auto [prev, next] = std::tie(*std::begin(items), *(std::begin(items) + 1));
-          auto aCtx = InsertionActivityContext{index, prev, activity, next};
+          auto aCtx = InsertionActivityContext{index, prev, activity, prev == next ? NextAct{} : NextAct{next}};
 
           // service details
           return accumulate_while(service->details, std::move(in2), srvPred, [&](auto& in3, const auto& dtl) {

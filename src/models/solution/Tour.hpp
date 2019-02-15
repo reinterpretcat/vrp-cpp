@@ -72,6 +72,14 @@ public:
       ranges::view::remove_if([&](const auto& a) { return retrieve_job{}(*a) != job; });
   }
 
+  /// Returns counted tour legs.
+  auto legs() const {
+    using namespace ranges;
+    auto size = std::max<int>(2, static_cast<int>(activities_.size())) - 1;
+    return view::zip(activities_ | view::cycle | view::sliding(2) | view::take(size),
+                     view::iota(static_cast<size_t>(0)));
+  }
+
   /// Returns range view of all jobs.
   auto jobs() const { return ranges::view::all(jobs_); }
 

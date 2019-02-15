@@ -25,7 +25,7 @@ using InsertionData = std::pair<size_t, Location>;
 std::shared_ptr<Fleet>
 createFleet() {
   auto fleet = std::make_shared<Fleet>();
-  (*fleet).add(test_build_driver{}.owned()).add(test_build_vehicle{}.id("v1").details({{0, {}, {0, 100}}}).owned());
+  (*fleet).add(test_build_driver{}.owned()).add(test_build_vehicle{}.id("v1").details({{0, {0}, {0, 100}}}).owned());
   return fleet;
 }
 
@@ -202,9 +202,9 @@ SCENARIO("insertion evaluator can handle service insertion with time constraints
   using EndLoc = std::optional<Location>;
 
   auto [s1, v1, v2, used, cost] = GENERATE(table<Location, EndLoc, EndLoc, std::string, Cost>({
-    //{3, {}, {}, "v1", (3 + 3) * 2},
-    //{27, {}, {}, "v2", (7 + 7) * 2},
-    {11, {12}, {}, "v1", (12 + 12)},
+    {3, {0}, {20}, "v1", (3 + 3) * 2},
+    {27, {0}, {20}, "v2", (7 + 7) * 2},
+    {11, {12}, {20}, "v1", (12 + 12)},
   }));
 
   GIVEN("two different vehicles") {
@@ -420,7 +420,7 @@ SCENARIO("insertion evaluator can insert sequence in tour with two activities",
   }
 }
 
-SCENARIO("insertion evaluator can handle sequence insertion in empty tour with violation",
+SCENARIO("insertion evaluator can handle sequence insertion in tour with violation",
          "[algorithms][construction][insertion][sequence]") {
   for (auto hasActivityInTour : std::vector<bool>{true, false}) {
     auto builder = test_build_insertion_context{}.registry(std::make_shared<Registry>(*createFleet()));
