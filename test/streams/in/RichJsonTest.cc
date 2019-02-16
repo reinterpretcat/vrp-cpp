@@ -25,12 +25,17 @@ SCENARIO("rich json can read problem from stream", "[streams][in][json]") {
           {"start": 0, "end": 0, "time" : { "start": 0, "end" : 1000} }
         ],
         "costs": {
+          "fixed" : 0,
           "distance" : 1,
-          "time" : 1,
-          "fixed" : 0
+          "driving" : 1,
+          "waiting": 1,
+          "serving": 1
         },
-        "capacity" : [10],
-        "amount" : 1
+        "capabilities": {
+          "capacity" : [10],
+          "skills": []
+        },
+        "amount" : 2
       }
     ]
   },

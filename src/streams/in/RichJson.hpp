@@ -1,8 +1,13 @@
 #pragma once
 
+#include "algorithms/construction/InsertionConstraint.hpp"
+#include "algorithms/construction/constraints/VehicleActivitySize.hpp"
+#include "algorithms/construction/constraints/VehicleActivityTiming.hpp"
 #include "models/Problem.hpp"
+#include "models/costs/MatrixTransportCosts.hpp"
 
 #include <istream>
+#include <map>
 #include <nlohmann/json.hpp>
 #include <optional>
 #include <range/v3/utility/variant.hpp>
@@ -89,9 +94,11 @@ struct VehicleDetail {
 };
 
 struct VehicleCosts {
-  double distance;
-  double time;
   double fixed;
+  double distance;
+  double driving;
+  double waiting;
+  double serving;
 };
 
 struct VehicleLimits {
@@ -140,9 +147,11 @@ from_json(const nlohmann::json& j, VehicleLimits& v) {
 
 void
 from_json(const nlohmann::json& j, VehicleCosts& v) {
-  j.at("distance").get_to(v.distance);
-  j.at("time").get_to(v.time);
   j.at("fixed").get_to(v.fixed);
+  j.at("distance").get_to(v.distance);
+  j.at("driving").get_to(v.driving);
+  j.at("waiting").get_to(v.waiting);
+  j.at("serving").get_to(v.serving);
 }
 
 void
@@ -359,6 +368,8 @@ from_json(const nlohmann::json& j, Problem& p) {
 /// Parses rich VRP from json.
 struct read_rich_json_type {
   std::shared_ptr<models::Problem> operator()(std::istream& input) const {
+    using namespace vrp::algorithms::construction;
+
     nlohmann::json j;
     input >> j;
 
@@ -366,7 +377,75 @@ struct read_rich_json_type {
 
     // TODO convert detail::problem to models::problem
 
+    auto fleet = readFleet(problem);
+    auto transport = transportCosts(problem);
+    auto activity = std::make_shared<models::costs::ActivityCosts>();
+
+    auto constraint = std::make_shared<InsertionConstraint>();
+    constraint->add<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(fleet, transport, activity))
+      .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>());
+
     return {};
+  }
+
+private:
+  std::shared_ptr<models::problem::Fleet> readFleet(const detail::Problem& problem) const {
+    using namespace vrp::algorithms::construction;
+    using namespace vrp::models::common;
+    using namespace vrp::models::problem;
+
+    assert(problem.fleet.drivers.size() == 1);
+
+    auto fleet = std::make_shared<Fleet>();
+    ranges::for_each(problem.fleet.vehicles, [&](const auto& vehicle) {
+      ranges::for_each(ranges::view::closed_indices(1, vehicle.amount), [&](auto index) {
+        assert(vehicle.capabilities.has_value());
+        assert(vehicle.capabilities.value().capacity.size() == 1);
+
+        fleet->add(
+          Vehicle{vehicle.profile,
+
+                  Costs{vehicle.costs.fixed,
+                        vehicle.costs.distance,
+                        vehicle.costs.driving,
+                        vehicle.costs.waiting,
+                        vehicle.costs.serving},
+
+                  Dimensions{{"id", vehicle.id + "_" + std::to_string(index)},
+                             {VehicleActivitySize<int>::DimKeyCapacity, vehicle.capabilities.value().capacity.front()}},
+
+                  ranges::accumulate(vehicle.details, std::vector<Vehicle::Detail>{}, [](auto& acc, const auto detail) {
+                    acc.push_back(Vehicle::Detail{detail.start, detail.end, {detail.time.start, detail.time.end}});
+                    return std::move(acc);
+                  })});
+      });
+    });
+
+    ranges::for_each(problem.fleet.drivers, [&](const auto& driver) {
+      ranges::for_each(ranges::view::closed_indices(1, driver.amount), [&](auto index) {
+        using namespace vrp::models::common;
+        using namespace vrp::models::problem;
+
+        // TODO implement driver costs
+        fleet->add(Driver{Costs{0, 0, 0, 0, 0}, Dimensions{{"id", driver.id + "_" + std::to_string(index)}}});
+      });
+    });
+
+    return fleet;
+  }
+
+  std::shared_ptr<models::costs::MatrixTransportCosts> transportCosts(const detail::Problem& problem) const {
+    using namespace vrp::models::costs;
+
+    auto durations = MatrixTransportCosts::DurationProfiles{};
+    auto distances = MatrixTransportCosts::DistanceProfiles{};
+    ranges::for_each(problem.routing.matrices, [&](const auto& matrix) {
+      // TODO check that each profile is defined only once.
+      durations[matrix.profile] = std::move(matrix.durations);
+      distances[matrix.profile] = std::move(matrix.distances);
+    });
+
+    return std::make_shared<MatrixTransportCosts>(MatrixTransportCosts{std::move(durations), std::move(distances)});
   }
 };
 }
