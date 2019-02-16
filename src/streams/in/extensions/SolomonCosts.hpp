@@ -12,6 +12,15 @@
 
 namespace vrp::streams::in {
 
+/// Calculates cartesian distance between two points on plane in 2D.
+struct cartesian_distance final {
+  models::common::Distance operator()(const std::pair<int, int>& left, const std::pair<int, int>& right) {
+    models::common::Distance x = left.first - right.first;
+    models::common::Distance y = left.second - right.second;
+    return std::sqrt(x * x + y * y);
+  }
+};
+
 /// Calculates service costs for typical problem.
 struct ServiceCosts : models::costs::ActivityCosts {
   models::common::Cost cost(const models::solution::Actor& actor,

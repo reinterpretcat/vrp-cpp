@@ -4,8 +4,7 @@
 #include "algorithms/construction/constraints/VehicleActivityTiming.hpp"
 #include "algorithms/objectives/PenalizeUnassignedJobs.hpp"
 #include "models/extensions/problem/Factories.hpp"
-#include "streams/in/extensions/Costs.hpp"
-#include "streams/in/extensions/Distances.hpp"
+#include "streams/in/extensions/SolomonCosts.hpp"
 
 #include <algorithm>
 #include <functional>

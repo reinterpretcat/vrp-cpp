@@ -96,8 +96,7 @@ set(SOURCE_FILES
         streams/in/Solomon.hpp
         streams/in/RichJson.hpp
         streams/in/LiLim.hpp
-        streams/in/extensions/Costs.hpp
-        streams/in/extensions/Distances.hpp
+        streams/in/extensions/SolomonCosts.hpp
         streams/out/DumpSolutionAsText.hpp
 
         utils/Collections.hpp

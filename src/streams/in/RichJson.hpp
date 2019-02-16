@@ -352,6 +352,8 @@ from_json(const nlohmann::json& j, Problem& p) {
   j.at("plan").get_to(p.plan);
   j.at("routing").get_to(p.routing);
 }
+
+// endregion
 }
 
 /// Parses rich VRP from json.

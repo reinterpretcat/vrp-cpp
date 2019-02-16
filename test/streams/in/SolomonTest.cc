@@ -2,7 +2,7 @@
 
 #include "algorithms/construction/constraints/VehicleActivitySize.hpp"
 #include "models/extensions/problem/Helpers.hpp"
-#include "streams/in/extensions/Distances.hpp"
+#include "streams/in/extensions/SolomonCosts.hpp"
 #include "test_utils/streams/SolomonBuilder.hpp"
 
 #include <catch/catch.hpp>
