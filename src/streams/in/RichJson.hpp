@@ -3,6 +3,7 @@
 #include "algorithms/construction/InsertionConstraint.hpp"
 #include "algorithms/construction/constraints/VehicleActivitySize.hpp"
 #include "algorithms/construction/constraints/VehicleActivityTiming.hpp"
+#include "algorithms/objectives/PenalizeUnassignedJobs.hpp"
 #include "models/Problem.hpp"
 #include "models/costs/MatrixTransportCosts.hpp"
 
@@ -375,8 +376,6 @@ struct read_rich_json_type {
 
     auto problem = j.get<detail::Problem>();
 
-    // TODO convert detail::problem to models::problem
-
     auto transport = transportCosts(problem);
     auto activity = std::make_shared<models::costs::ActivityCosts>();
 
@@ -387,7 +386,13 @@ struct read_rich_json_type {
     constraint->add<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(fleet, transport, activity))
       .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>());
 
-    return {};
+    return std::make_shared<models::Problem>(
+      models::Problem{fleet,
+                      jobs,
+                      constraint,
+                      std::make_shared<algorithms::objectives::penalize_unassigned_jobs<10000>>(),
+                      activity,
+                      transport});
   }
 
 private:
