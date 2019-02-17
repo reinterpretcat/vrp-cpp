@@ -205,7 +205,7 @@ struct Sequence {
 
 struct Job {
   std::string id;
-  ranges::variant<Service, Sequence> job;
+  ranges::variant<Service, Sequence> variant;
 };
 
 void
@@ -252,11 +252,11 @@ from_json(const nlohmann::json& j, Job& job) {
   if (type == "service") {
     auto service = Service{};
     j.get_to(service);
-    job.job = ranges::variant<Service, Sequence>{ranges::emplaced_index<0>, service};
+    job.variant = ranges::variant<Service, Sequence>{ranges::emplaced_index<0>, service};
   } else if (type == "sequence") {
     auto sequence = Sequence{};
     j.get_to(sequence);
-    job.job = ranges::variant<Service, Sequence>{ranges::emplaced_index<1>, sequence};
+    job.variant = ranges::variant<Service, Sequence>{ranges::emplaced_index<1>, sequence};
   } else {
     throw std::invalid_argument("Unknown job type: '" + type + "'");
   }
@@ -377,9 +377,11 @@ struct read_rich_json_type {
 
     // TODO convert detail::problem to models::problem
 
-    auto fleet = readFleet(problem);
     auto transport = transportCosts(problem);
     auto activity = std::make_shared<models::costs::ActivityCosts>();
+
+    auto jobs = readJobs(problem, *transport);
+    auto fleet = readFleet(problem);
 
     auto constraint = std::make_shared<InsertionConstraint>();
     constraint->add<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(fleet, transport, activity))
@@ -389,6 +391,83 @@ struct read_rich_json_type {
   }
 
 private:
+  std::shared_ptr<models::problem::Jobs> readJobs(const detail::Problem& problem,
+                                                  const models::costs::TransportCosts& transport) const {
+    using namespace ranges;
+    using namespace algorithms::construction;
+    using namespace models::common;
+    using namespace models::problem;
+
+    auto profiles =
+      problem.routing.matrices | view::transform([](const auto& m) { return m.profile; }) | to_vector | action::unique;
+
+    auto jobs = view::for_each(problem.plan.jobs, [](const auto& job) {
+      static auto ensureDemand = [](const auto& demand) {
+        auto newDemand = demand.value_or(detail::Demand{{{0}}, {{0}}});
+
+        newDemand.pickup = newDemand.pickup.value_or(std::vector<int>{0});
+        newDemand.delivery = newDemand.delivery.value_or(std::vector<int>{0});
+
+        if (newDemand.pickup.value().empty()) newDemand.pickup.value().push_back(0);
+        if (newDemand.delivery.value().empty()) newDemand.delivery.value().push_back(0);
+
+        assert(newDemand.pickup.value().size() == 1 && newDemand.delivery.value().size() == 1);
+
+        return std::move(newDemand);
+      };
+
+      static auto createService = [](const auto& s, const std::string& id) {
+        assert(s.requirements.has_value());
+        auto fixed = ensureDemand(s.requirements.value().demands.fixed);
+        auto dynamic = ensureDemand(s.requirements.value().demands.dynamic);
+
+        return std::make_shared<Service>(Service{
+          // details
+          ranges::accumulate(s.details,
+                             std::vector<Service::Detail>{},
+                             [](auto& acc, const auto detail) {
+                               auto times = ranges::accumulate(
+                                 detail.times, std::vector<TimeWindow>{}, [](auto& acc, const auto& time) {
+                                   acc.push_back({time.start, time.end});
+                                   return std::move(acc);
+                                 });
+
+                               acc.push_back(Service::Detail{detail.location, detail.duration, std::move(times)});
+                               return std::move(acc);
+                             }),
+          // demand
+          Dimensions{
+            {"id", id},
+            {VehicleActivitySize<int>::DimKeyDemand,
+             VehicleActivitySize<int>::Demand{{fixed.pickup.value().front(), dynamic.pickup.value().front()},
+                                              {fixed.delivery.value().front(), dynamic.delivery.value().front()}}}}});
+      };
+
+      auto result = job.variant.visit(ranges::overload(  //
+        [&](const detail::Service& s) -> models::problem::Job {
+          return Job{ranges::emplaced_index<0>, createService(s, job.id)};
+        },
+        [&](const detail::Sequence& s) -> models::problem::Job {
+          return models::problem::Job{
+            ranges::emplaced_index<1>,
+            std::make_shared<Sequence>(  //
+              Sequence{ranges::accumulate(view::zip(s.services, view::iota(1)),
+                                          std::vector<std::shared_ptr<const Service>>{},
+                                          [&](auto& acc, const auto& pair) {
+                                            const auto& [srv, index] = pair;
+
+                                            acc.push_back(createService(srv, job.id + "_" + std::to_string(index)));
+                                            return std::move(acc);
+                                          }),
+                       Dimensions{{"id", job.id}}})};
+        }));
+      return yield(result.index() == 0 ? ranges::get<0>(result) : ranges::get<1>(result));
+    });
+
+
+    return std::make_shared<models::problem::Jobs>(models::problem::Jobs{transport, jobs, profiles});
+  }
+
   std::shared_ptr<models::problem::Fleet> readFleet(const detail::Problem& problem) const {
     using namespace vrp::algorithms::construction;
     using namespace vrp::models::common;
