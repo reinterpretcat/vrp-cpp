@@ -100,7 +100,10 @@ SCENARIO("rich json can read problem from stream", "[streams][in][json]") {
     WHEN("read from stream") {
       auto problem = streams::in::read_rich_json_type{}(ss);
       THEN("creates problem") {
-        // TODO
+        REQUIRE(ranges::distance(problem->fleet->drivers()) == 1);
+        REQUIRE(ranges::distance(problem->fleet->vehicles()) == 2);
+        REQUIRE(ranges::distance(problem->fleet->profiles()) == 1);
+        REQUIRE(problem->jobs->size() == 2);
       }
     }
   }
