@@ -443,4 +443,43 @@ SCENARIO("cheapest insertion handles unassigned job with capacity reason",
 }
 
 // endregion
+
+SCENARIO("Can solve simple open VRP problem", "[scenarios][openvrp]") {
+  auto [jobs, size] = GENERATE(std::make_tuple(
+                                 std::vector<Job>{
+                                   as_job(test_build_service{}.location(5).shared()),
+                                   as_job(test_build_service{}.location(10).shared()),
+                                 },
+                                 3),
+                               std::make_tuple(std::vector<Job>{as_job(test_build_service{}.location(5).shared())}, 2));
+
+  GIVEN("An open VRP problem with one or more jobs") {
+    auto fleet = std::make_shared<Fleet>();
+    (*fleet).add(test_build_driver{}.owned()).add(test_build_vehicle{}.id("v1").details({{0, {}, {0, 100}}}).owned());
+
+    auto activity = std::make_shared<ActivityCosts>();
+    auto transport = std::make_shared<TestTransportCosts>();
+
+    auto constraint = std::make_shared<InsertionConstraint>();
+    constraint->template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>());
+    constraint->add<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(fleet, transport, activity));
+
+    auto problem = std::make_shared<models::Problem>(models::Problem{{}, {}, constraint, {}, activity, transport});
+
+    WHEN("run solver") {
+      auto solution = CheapestInsertion{InsertionEvaluator{}}.operator()(test_build_insertion_context{}
+                                                                           .registry(std::make_shared<Registry>(*fleet))
+                                                                           .problem(problem)
+                                                                           .jobs(std::move(jobs))
+                                                                           .owned());
+
+      THEN("has proper tour end") {
+        REQUIRE(solution.unassigned.empty());
+        REQUIRE(solution.routes.size() == 1);
+        REQUIRE(ranges::size(solution.routes.begin()->route->tour.activities()) == size);
+        REQUIRE(solution.routes.begin()->route->tour.end()->detail.location != 0);
+      }
+    }
+  }
+}
 }

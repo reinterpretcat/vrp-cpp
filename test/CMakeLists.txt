@@ -56,8 +56,6 @@ set(SOURCE_FILES
         test_utils/streams/SolomonBuilder.hpp
         test_utils/streams/SolomonStreams.hpp
 
-        scenarios/OpenVrpTest.cc
-
         streams/in/LiLimTest.cc
         streams/in/RichJsonTest.cc
         streams/in/SolomonTest.cc
