@@ -1,12 +1,16 @@
 #include "algorithms/refinement/ruin/RemoveAdjustedString.hpp"
 
+#include "streams/in/LiLim.hpp"
+#include "test_utils/StreamSolver.hpp"
 #include "test_utils/algorithms/construction/Results.hpp"
 #include "test_utils/algorithms/refinement/MatrixRoutes.hpp"
+#include "test_utils/streams/LiLimBuilder.hpp"
 
 #include <catch/catch.hpp>
 
 using namespace vrp::algorithms::refinement;
 using namespace vrp::models::problem;
+using namespace vrp::streams::in;
 using namespace vrp::utils;
 using namespace Catch;
 
@@ -40,7 +44,9 @@ struct FakeDistribution {
 
 namespace vrp::test {
 
-SCENARIO("adjusted string removal can ruin solution with single route", "[algorithms][refinement][ruin]") {
+// region Service
+
+SCENARIO("adjusted string removal can ruin solution with single route", "[algorithms][refinement][ruin][service]") {
   auto [ints, doubles, ids] = GENERATE(table<std::vector<int>, std::vector<double>, std::vector<std::string>>({
     // sequential
     {{0, 3, 1, 2}, {1, 5}, {"c1", "c2", "c3", "c4", "c5"}},
@@ -68,7 +74,7 @@ SCENARIO("adjusted string removal can ruin solution with single route", "[algori
   }
 }
 
-SCENARIO("adjusted string removal can ruin solution with multiple routes", "[algorithms][refinement][ruin]") {
+SCENARIO("adjusted string removal can ruin solution with multiple routes", "[algorithms][refinement][ruin][service]") {
   auto [ints, doubles, ids] = GENERATE(table<std::vector<int>, std::vector<double>, std::vector<std::string>>({
     // sequential
     {{1, 2, 1, 2}, {1, 3}, {"c6", "c7", "c8"}},
@@ -97,7 +103,7 @@ SCENARIO("adjusted string removal can ruin solution with multiple routes", "[alg
   }
 }
 
-SCENARIO("adjusted string removal can ruin solution using data generators", "[algorithms][refinement][ruin]") {
+SCENARIO("adjusted string removal can ruin solution using data generators", "[algorithms][refinement][ruin][service]") {
   auto jobs = GENERATE(range(10, 12));
   auto routes = GENERATE(range(1, 3));
   auto cardinality = GENERATE(range(5, 12));
@@ -122,7 +128,53 @@ SCENARIO("adjusted string removal can ruin solution using data generators", "[al
   }
 }
 
+// endregion
+
 SCENARIO("adjusted string removal can ruin solution with sequence", "[algorithms][refinement][ruin][sequence]") {
-  // TODO
+  auto [ints, doubles, removed, kept] =
+    GENERATE(table<std::vector<int>, std::vector<double>, std::vector<std::string>, std::vector<std::string>>({
+      // sequential
+      {{0, 3, 1, 2}, {1, 3}, {"seq2", "seq3"}, {"seq1", "seq1", "seq0", "seq0"}},
+      // preserved
+      {{0, 2, 2, 3, 4}, {1, 2, 1, 0.005}, {"seq1", "seq2"}, {"seq3", "seq3", "seq0", "seq0"}},
+      {{0, 2, 2, 1, 2}, {1, 2, 0.001, 0.001}, {"seq2", "seq3"}, {"seq1", "seq1", "seq0", "seq0"}},
+    }));
+
+  GIVEN("reference problem with four sequences") {
+    struct create_reference_problem_stream {
+      std::stringstream operator()(int vehicles = 1, int capacity = 200) {
+        return LiLimBuilder()
+          .setVehicle(vehicles, capacity)
+          .addCustomer({0, 0, 0, 0, 0, 1000, 0, 0, 0})
+          .addCustomer({1, 1, 0, -1, 0, 1000, 0, 2, 0})
+          .addCustomer({2, 2, 0, 1, 0, 1000, 0, 0, 1})
+          .addCustomer({3, 3, 0, -1, 0, 1000, 0, 4, 0})
+          .addCustomer({4, 4, 0, 1, 0, 1000, 0, 0, 3})
+          .addCustomer({5, 5, 0, -1, 0, 1000, 0, 6, 0})
+          .addCustomer({6, 6, 0, 1, 0, 1000, 0, 0, 5})
+          .addCustomer({7, 7, 0, -1, 0, 1000, 0, 8, 0})
+          .addCustomer({8, 8, 0, 1, 0, 1000, 0, 0, 7})
+          .build();
+      }
+    };
+
+    auto [problem, solution] = solve_stream<create_reference_problem_stream, read_li_lim_type<cartesian_distance>>{}();
+
+    WHEN("ruin without locked jobs") {
+      auto ctx = RemoveAdjustedString{}.operator()(
+        RefinementContext{
+          problem,
+          std::make_shared<Random>(FakeDistribution<int>{ints, 0}, FakeDistribution<double>{doubles, 0}),
+          std::make_shared<std::set<Job, compare_jobs>>(),
+          {},
+          0},
+        *solution);
+
+      THEN("should ruin expected jobs") {
+        CHECK_THAT(get_job_ids_from_jobs{}.operator()(ctx.jobs), Equals(removed));
+        CHECK_THAT(get_job_ids_from_all_routes{}.operator()(ctx), Equals(kept));
+      }
+    }
+  }
 }
 }

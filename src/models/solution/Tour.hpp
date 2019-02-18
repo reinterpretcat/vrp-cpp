@@ -54,13 +54,9 @@ public:
   }
 
   /// Removes job within its activities from the tour.
-  Tour& remove(const problem::Job& job) {
-    size_t removed = jobs_.erase(job);
-    assert(removed == 1);
-
+  bool remove(const problem::Job& job) {
     ranges::action::remove_if(activities_, [&](const auto& a) { return retrieve_job{}(*a) == job; });
-
-    return *this;
+    return jobs_.erase(job) > 0;
   }
 
   /// Returns range view of all activities.
