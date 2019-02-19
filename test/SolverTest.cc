@@ -43,7 +43,7 @@ SCENARIO("Solver can solve LC101 problem greedy acceptance and default RaR", "[s
                        algorithms::refinement::ruin_and_recreate_solution<>,
                        algorithms::refinement::GreedyAcceptance<>,
                        algorithms::refinement::MaxIterationCriteria,
-                       algorithms::refinement::log_to_console>{};
+                       vrp::test::log_and_validate>{};
 
   GIVEN("LC101 problem with 53 sequences") {
     auto stream = create_lc101_problem_stream{}();
