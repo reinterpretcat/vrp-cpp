@@ -80,7 +80,7 @@ SCENARIO("rich json can read problem from stream", "[streams][in][json]") {
     "routes": [
       {
         "vehicleId": "vehicle1_1",
-        "type": "sequence",
+        "order": "sequence",
         "jobs": ["service1"]
       }
     ]

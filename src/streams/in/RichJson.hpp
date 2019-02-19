@@ -293,20 +293,20 @@ from_json(const nlohmann::json& j, Routing& r) {
 
 // region Route
 
-enum class RouteType { Random, Sequence, Strict };
+enum class ActivityOrder { Any, Sequence, Strict };
 
 struct Route final {
   std::string vehicleId;
-  RouteType type;
+  ActivityOrder order;
   std::vector<std::string> jobs;
 };
 
 void
-from_json(const nlohmann::json& j, RouteType& r) {
-  static const std::map<std::string, RouteType> types = {
-    {"random", RouteType::Random},
-    {"sequence", RouteType::Sequence},
-    {"strict", RouteType::Strict},
+from_json(const nlohmann::json& j, ActivityOrder& r) {
+  static const std::map<std::string, ActivityOrder> types = {
+    {"any", ActivityOrder::Any},
+    {"sequence", ActivityOrder::Sequence},
+    {"strict", ActivityOrder::Strict},
   };
 
   auto type = j.get<std::string>();
@@ -318,7 +318,7 @@ from_json(const nlohmann::json& j, RouteType& r) {
 void
 from_json(const nlohmann::json& j, Route& r) {
   j.at("vehicleId").get_to(r.vehicleId);
-  j.at("type").get_to(r.type);
+  j.at("order").get_to(r.order);
   j.at("jobs").get_to(r.jobs);
 }
 
