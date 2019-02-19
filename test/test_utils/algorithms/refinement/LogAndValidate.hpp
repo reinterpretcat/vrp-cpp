@@ -12,7 +12,7 @@ struct log_and_validate final {
   /// Called when search is started.
   void operator()(const algorithms::refinement::RefinementContext& ctx, std::chrono::milliseconds time) const {
     logger(ctx, time);
-    // validator(*ctx.problem, *ctx.population->front().first);
+    validator(*ctx.problem, *ctx.population->front().first);
   }
 
   /// Called when new individuum is discovered.
@@ -20,7 +20,7 @@ struct log_and_validate final {
                   const models::EstimatedSolution& individuum,
                   bool accepted) const {
     logger(ctx, individuum, accepted);
-    // validator(*ctx.problem, *individuum.first);
+    validator(*ctx.problem, *individuum.first);
   }
 
   /// Called when search is ended within best solution.
@@ -28,7 +28,7 @@ struct log_and_validate final {
                   const models::EstimatedSolution& best,
                   std::chrono::milliseconds time) {
     logger(ctx, best, time);
-    // validator(*ctx.problem, *best.first);
+    validator(*ctx.problem, *best.first);
   }
 
 private:

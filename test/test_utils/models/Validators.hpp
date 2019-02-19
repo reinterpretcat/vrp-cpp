@@ -29,25 +29,26 @@ struct validate_solution final {
     checkIds(problem, solution);
 
     ranges::for_each(solution.routes, [&](const auto& route) {
-      auto state = State{route, route->start->detail.location, route->start->schedule.departure, Size{}};
-      checkActivity(problem, state, route->start);
-
-      if (route->actor->vehicle->id == "v22") { std::cout << ""; }
+      auto state = State{route, route->tour.start()->detail.location, route->tour.start()->schedule.departure, Size{}};
+      checkActivity(problem, state, route->tour.start());
 
       ranges::for_each(route->tour.activities(),
                        [&](const auto& activity) { checkActivity(problem, state, activity); });
 
-      checkActivity(problem, state, route->end);
+      checkActivity(problem, state, route->tour.end());
     });
   }
 
 private:
   void checkIds(const models::Problem& problem, const models::Solution& solution) const {
-    auto ids = solution.routes | ranges::view::for_each([](const auto& r) {
-                 return r->tour.activities() |
-                   ranges::view::transform([](const auto& a) { return models::problem::get_job_id{}(*a->job); });
+    using namespace models::problem;
+    using namespace ranges;
+    auto ids = solution.routes | view::for_each([](const auto& r) {
+                 return r->tour.activities() |  //
+                   view::remove_if([](const auto& a) { return !a->service.has_value(); }) |
+                   view::transform([](const auto& a) { return get_job_id{}(as_job(a->service.value())); });
                }) |
-      ranges::to_vector | ranges::action::sort;
+      to_vector | action::sort;
 
     if (ids.size() + (AllowUnassigned ? solution.unassigned.size() : 0) != problem.jobs->size())
       fail("unexpected job ids");
@@ -68,9 +69,10 @@ private:
   }
 
   void checkSize(State& state, const models::solution::Tour::Activity& activity) const {
-    auto size = SizeHandler::getSize(activity);
-    state.size += size;
-    if (state.size > SizeHandler::getSize(state.route->actor->vehicle)) fail("size is exceeded");
+    auto size = SizeHandler::getDemand(activity);
+    // TODO support services
+    state.size += size.delivery.first;
+    if (state.size > SizeHandler::getCapacity(state.route->actor->vehicle)) fail("size is exceeded");
   }
 
   void checkTime(const models::Problem& problem, State& state, const models::solution::Tour::Activity& activity) const {
@@ -102,7 +104,7 @@ private:
               << "job:" << getId(activity) << ", schedule: [" << activity->schedule.arrival << ","
               << activity->schedule.departure << "], time: [" << activity->detail.time.start << ","
               << activity->detail.time.end << "], location:" << activity->detail.location
-              << ", duration: " << activity->detail.duration << ", size:" << SizeHandler::getSize(activity)
+              << ", duration: " << activity->detail.duration << ", demand:" << getDemandString(activity)
               << std::endl;
   }
 
@@ -116,6 +118,11 @@ private:
     return activity->service.has_value()
       ? models::problem::get_job_id{}(models::solution::retrieve_job{}(*activity).value())
       : "|";
+  }
+
+  std::string getDemandString(const models::solution::Tour::Activity& activity) const {
+    auto demand = SizeHandler::getDemand(activity);
+    return "{TODO}";
   }
 
   void fail(const std::string& msg) const {
