@@ -67,7 +67,8 @@ SCENARIO("adjusted string removal can ruin solution with single route", "[algori
         {},
         0};
 
-      auto iContext = RemoveAdjustedString{}.operator()(context, *solution);
+      auto iContext =
+        RemoveAdjustedString{}.operator()(context, *solution, restore_insertion_context{}(context, *solution));
 
       THEN("should ruin expected jobs") { CHECK_THAT(get_job_ids_from_jobs{}.operator()(iContext.jobs), Equals(ids)); }
     }
@@ -96,7 +97,8 @@ SCENARIO("adjusted string removal can ruin solution with multiple routes", "[alg
         {},
         0};
 
-      auto iContext = RemoveAdjustedString{}.operator()(context, *solution);
+      auto iContext =
+        RemoveAdjustedString{}.operator()(context, *solution, restore_insertion_context{}(context, *solution));
 
       THEN("should ruin expected jobs") { CHECK_THAT(get_job_ids_from_jobs{}.operator()(iContext.jobs), Equals(ids)); }
     }
@@ -117,7 +119,8 @@ SCENARIO("adjusted string removal can ruin solution using data generators", "[al
       auto context =
         RefinementContext{problem, std::make_shared<Random>(), std::make_shared<std::set<Job, compare_jobs>>(), {}, 0};
 
-      auto result = RemoveAdjustedString{cardinality, average, alpha}.operator()(context, *solution);
+      auto result = RemoveAdjustedString{cardinality, average, alpha}.operator()(
+        context, *solution, restore_insertion_context{}(context, *solution));
 
       THEN("should ruin some jobs and remove empty tours") {
         REQUIRE(!result.jobs.empty());
@@ -159,20 +162,27 @@ SCENARIO("adjusted string removal can ruin solution with sequence", "[algorithms
     };
 
     auto [problem, solution] = solve_stream<create_reference_problem_stream, read_li_lim_type<cartesian_distance>>{}();
+    auto ctx =
+      RefinementContext{problem,
+                        std::make_shared<Random>(FakeDistribution<int>{ints, 0}, FakeDistribution<double>{doubles, 0}),
+                        std::make_shared<std::set<Job, compare_jobs>>(),
+                        {},
+                        0};
 
     WHEN("ruin without locked jobs") {
-      auto ctx = RemoveAdjustedString{}.operator()(
+      auto result = RemoveAdjustedString{}.operator()(
         RefinementContext{
           problem,
           std::make_shared<Random>(FakeDistribution<int>{ints, 0}, FakeDistribution<double>{doubles, 0}),
           std::make_shared<std::set<Job, compare_jobs>>(),
           {},
           0},
-        *solution);
+        *solution,
+        restore_insertion_context{}(ctx, *solution));
 
       THEN("should ruin expected jobs") {
-        CHECK_THAT(get_job_ids_from_jobs{}.operator()(ctx.jobs), Equals(removed));
-        CHECK_THAT(get_job_ids_from_all_routes{}.operator()(ctx), Equals(kept));
+        CHECK_THAT(get_job_ids_from_jobs{}.operator()(result.jobs), Equals(removed));
+        CHECK_THAT(get_job_ids_from_all_routes{}.operator()(result), Equals(kept));
       }
     }
   }

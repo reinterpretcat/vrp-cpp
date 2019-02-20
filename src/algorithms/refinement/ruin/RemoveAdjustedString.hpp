@@ -3,9 +3,9 @@
 #include "algorithms/refinement/RefinementContext.hpp"
 #include "algorithms/refinement/extensions/RemoveEmptyTours.hpp"
 #include "algorithms/refinement/extensions/RestoreInsertionContext.hpp"
+#include "algorithms/refinement/extensions/SelectRandomJob.hpp"
 #include "models/Solution.hpp"
 #include "models/extensions/solution/Helpers.hpp"
-#include "models/extensions/solution/Selectors.hpp"
 #include "models/problem/Job.hpp"
 
 #include <cmath>
@@ -31,36 +31,36 @@ struct RemoveAdjustedString {
   double alpha = 0.01;
 
   /// Ruins jobs from given solution.
-  construction::InsertionContext operator()(const RefinementContext& ctx, const models::Solution& sln) const {
+  construction::InsertionContext operator()(const RefinementContext& rCtx,
+                                            const models::Solution& sln,
+                                            construction::InsertionContext&& iCtx) const {
     using namespace ranges;
-
-    auto iCtx = restore_insertion_context{}(ctx, sln);
 
     auto jobs = std::make_shared<std::set<models::problem::Job, models::problem::compare_jobs>>();
     auto routes = std::make_shared<std::set<std::shared_ptr<models::solution::Route>>>();
-    auto [lsmax, ks] = limits(ctx, sln);
+    auto [lsmax, ks] = limits(rCtx, sln);
 
     ranges::for_each(
       view::take_while(
-        selectJobs(ctx, sln) | view::remove_if([&](const auto& j) { return in(*jobs, j) || in(sln.unassigned, j); }),
+        selectJobs(rCtx, sln) | view::remove_if([&](const auto& j) { return in(*jobs, j) || in(sln.unassigned, j); }),
         [ks = ks, routes](const auto&) { return routes->size() != ks; }),
-      [=, &sln, lsmax = lsmax](const auto& job) {
+      [=, &rCtx, &iCtx, lsmax = lsmax](const auto& job) {
         ranges::for_each(
           iCtx.routes | view::remove_if([&](const auto& r) { return in(*routes, r.route) || !r.route->tour.has(job); }),
-          [=, &ctx](const auto& routeState) {
+          [=, &rCtx](const auto& routeState) {
             /// Equations 8, 9: calculate cardinality of the string removed from the tour
             auto ltmax = std::min(static_cast<double>(routeState.route->tour.count()), lsmax);
-            auto lt = static_cast<int>(std::floor(ctx.random->uniform<double>(1, ltmax + 1)));
+            auto lt = static_cast<int>(std::floor(rCtx.random->uniform<double>(1, ltmax + 1)));
 
-            auto toRemove = selectString(ctx, routeState.route->tour, job, lt) |
-              view::remove_if([&](const auto& j) { return in(*ctx.locked, j); }) | to_vector;
+            auto toRemove = selectString(rCtx, routeState.route->tour, job, lt) |
+              view::remove_if([&](const auto& j) { return in(*rCtx.locked, j); }) | to_vector;
 
             routes->insert(routeState.route);
             ranges::for_each(toRemove, [&](const auto& j) {
               routeState.route->tour.remove(j);
               jobs->insert(j);
             });
-            ctx.problem->constraint->accept(const_cast<construction::InsertionRouteContext&>(routeState));
+            rCtx.problem->constraint->accept(const_cast<construction::InsertionRouteContext&>(routeState));
           });
       });
 
@@ -106,7 +106,7 @@ private:
 
   /// Returns randomly selected job and all its neighbours.
   ranges::any_view<models::problem::Job> selectJobs(const RefinementContext& ctx, const models::Solution& sln) const {
-    auto seed = models::solution::select_job{}(sln.routes, *ctx.random);
+    auto seed = select_random_job{}(sln.routes, *ctx.random);
     if (!seed) return ranges::view::empty<models::problem::Job>();
 
     auto [route, job] = seed.value();

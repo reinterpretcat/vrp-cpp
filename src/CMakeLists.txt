@@ -37,6 +37,7 @@ set(SOURCE_FILES
         algorithms/refinement/extensions/RuinAndRecreateSolution.hpp
         algorithms/refinement/extensions/RestoreInsertionContext.hpp
         algorithms/refinement/extensions/SelectBestSolution.hpp
+        algorithms/refinement/extensions/SelectRandomJob.hpp
 
         algorithms/refinement/logging/LogToConsole.hpp
         algorithms/refinement/logging/LogToNothing.hpp
@@ -45,6 +46,7 @@ set(SOURCE_FILES
         algorithms/refinement/recreate/RecreateWithBlinks.hpp
 
         algorithms/refinement/ruin/RemoveAdjustedString.hpp
+        algorithms/refinement/ruin/RemoveRandomRoutes.hpp
 
         algorithms/refinement/termination/MaxIterationCriteria.hpp
 
@@ -71,7 +73,6 @@ set(SOURCE_FILES
         models/extensions/solution/DeepCopies.hpp
         models/extensions/solution/Factories.hpp
         models/extensions/solution/Helpers.hpp
-        models/extensions/solution/Selectors.hpp
 
         models/problem/Costs.hpp
         models/problem/Driver.hpp

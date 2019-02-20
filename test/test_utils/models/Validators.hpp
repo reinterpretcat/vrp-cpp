@@ -53,18 +53,16 @@ private:
     auto actual = ids.size() + (AllowUnassigned ? solution.unassigned.size() : 0);
 
     auto expected = ranges::accumulate(problem.jobs->all(), 0, [](auto acc, const auto& job) {
-     return acc + models::problem::analyze_job<size_t>(
-          job,
-          [&](const std::shared_ptr<const models::problem::Service>& service) {
-            return 1;
-          },
-          [&](const std::shared_ptr<const models::problem::Sequence>& sequence) {
-            return sequence->services.size();
-          });
+      return acc +
+        models::problem::analyze_job<size_t>(
+               job,
+               [&](const std::shared_ptr<const models::problem::Service>& service) { return 1; },
+               [&](const std::shared_ptr<const models::problem::Sequence>& sequence) {
+                 return sequence->services.size();
+               });
     });
 
-    if (actual != expected)
-      fail("unexpected job ids: " + std::to_string(actual) + " vs " + std::to_string(expected));
+    if (actual != expected) fail("unexpected job ids: " + std::to_string(actual) + " vs " + std::to_string(expected));
   }
 
   void checkActivity(const models::Problem& problem,
@@ -117,8 +115,7 @@ private:
               << "job:" << getId(activity) << ", schedule: [" << activity->schedule.arrival << ","
               << activity->schedule.departure << "], time: [" << activity->detail.time.start << ","
               << activity->detail.time.end << "], location:" << activity->detail.location
-              << ", duration: " << activity->detail.duration << ", demand:" << getDemandString(activity)
-              << std::endl;
+              << ", duration: " << activity->detail.duration << ", demand:" << getDemandString(activity) << std::endl;
   }
 
   void logState(const State& state) const {
