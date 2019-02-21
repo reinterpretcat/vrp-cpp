@@ -47,6 +47,7 @@ set(SOURCE_FILES
         test_utils/algorithms/construction/constraints/Helpers.hpp
         test_utils/algorithms/refinement/MatrixRoutes.hpp
         test_utils/algorithms/refinement/LogAndValidate.hpp
+        test_utils/fakes/FakeDistribution.hpp
         test_utils/fakes/TestTransportCosts.hpp
         test_utils/models/Comparators.hpp
         test_utils/models/Helpers.hpp

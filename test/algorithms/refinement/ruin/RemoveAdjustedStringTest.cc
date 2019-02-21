@@ -1,9 +1,11 @@
 #include "algorithms/refinement/ruin/RemoveAdjustedString.hpp"
 
+#include "algorithms/refinement/extensions/RestoreInsertionContext.hpp"
 #include "streams/in/LiLim.hpp"
 #include "test_utils/StreamSolver.hpp"
 #include "test_utils/algorithms/construction/Results.hpp"
 #include "test_utils/algorithms/refinement/MatrixRoutes.hpp"
+#include "test_utils/fakes/FakeDistribution.hpp"
 #include "test_utils/streams/LiLimBuilder.hpp"
 
 #include <catch/catch.hpp>
@@ -14,35 +16,22 @@ using namespace vrp::streams::in;
 using namespace vrp::utils;
 using namespace Catch;
 
-namespace {
-
-/// Uses predefined values to control algorithm execution.
-/// int distribution values:
-/// 1. route index in solution
-/// 2*. job index in selected route tour
-/// 3*. selected algorithm: 1: sequential algorithm(**)
-/// 4*. string removal index(-ies)
-/// double distribution values:
-/// 1. string count
-/// 2*. string size(-s)
-/// (*) - specific for each route.
-/// (**) - calls more int and double distributions:
-///     int 5. split start
-///     dbl 3. alpha param
-template<typename T>
-struct FakeDistribution {
-  std::vector<T> values = {};
-  std::size_t index = 0;
-  T operator()(T min, T max) {
-    assert(index < values.size());
-    auto value = values[index++];
-    assert(value >= min && value <= max);
-    return value;
-  }
-};
-}
-
 namespace vrp::test {
+
+/* Uses predefined values to control algorithm execution.
+ int distribution values:
+ 1. route index in solution
+ 2*. job index in selected route tour
+ 3*. selected algorithm: 1: sequential algorithm(**)
+ 4*. string removal index(-ies)
+ double distribution values:
+ 1. string count
+ 2*. string size(-s)
+ (*) - specific for each route.
+ (**) - calls more int and double distributions:
+     int 5. split start
+     dbl 3. alpha param
+ */
 
 // region Service
 

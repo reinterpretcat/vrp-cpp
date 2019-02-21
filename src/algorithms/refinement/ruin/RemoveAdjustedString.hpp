@@ -2,7 +2,6 @@
 
 #include "algorithms/refinement/RefinementContext.hpp"
 #include "algorithms/refinement/extensions/RemoveEmptyTours.hpp"
-#include "algorithms/refinement/extensions/RestoreInsertionContext.hpp"
 #include "algorithms/refinement/extensions/SelectRandomJob.hpp"
 #include "models/Solution.hpp"
 #include "models/extensions/solution/Helpers.hpp"
@@ -40,6 +39,8 @@ struct RemoveAdjustedString {
     auto routes = std::make_shared<std::set<std::shared_ptr<models::solution::Route>>>();
     auto [lsmax, ks] = limits(rCtx, sln);
 
+    // TODO we get seed job by looking in original solution, so we assume
+    // implicitly that this ruin strategy is called first.
     ranges::for_each(
       view::take_while(
         selectJobs(rCtx, sln) | view::remove_if([&](const auto& j) { return in(*jobs, j) || in(sln.unassigned, j); }),

@@ -112,6 +112,9 @@ public:
   /// Returns amount of job activities.
   std::size_t count() const { return empty() ? 0 : activities_.size() - (isClosed_ ? 2 : 1); }
 
+  /// Returns amount of jobs.
+  std::size_t jobCount() const { return jobs_.size(); }
+
   /// Creates a deep copy of existing tour.
   Tour copy() const {
     auto newTour = Tour{};
