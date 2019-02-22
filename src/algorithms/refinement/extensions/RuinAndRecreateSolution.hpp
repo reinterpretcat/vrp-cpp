@@ -2,11 +2,15 @@
 
 #include "algorithms/refinement/recreate/RecreateWithBlinks.hpp"
 #include "algorithms/refinement/ruin/RemoveAdjustedString.hpp"
+#include "algorithms/refinement/ruin/RemoveRandomRoutes.hpp"
+#include "algorithms/refinement/ruin/RuinWithProbabilities.hpp"
 
 namespace vrp::algorithms::refinement {
 
 /// Ruins and recreates solution.
-template<typename Ruin = RemoveAdjustedString, typename Recreate = RecreateWithBlinks>
+template<typename Ruin = ruin_with_probabilities<std::tuple<RemoveAdjustedString, Probability<10, 10>>,
+                                                 std::tuple<RemoveRandomRoutes, Probability<1, 10>>>,
+         typename Recreate = RecreateWithBlinks>
 struct ruin_and_recreate_solution final {
   models::EstimatedSolution operator()(const RefinementContext& ctx, const models::EstimatedSolution& sln) const {
     // TODO how to pass settings?
