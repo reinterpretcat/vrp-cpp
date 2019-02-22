@@ -37,7 +37,7 @@ private:
 
   void removeFullRoute(construction::InsertionContext& iCtx, Iterator rs) const {
     ranges::copy(rs->route->tour.jobs(), ranges::inserter(iCtx.jobs, iCtx.jobs.begin()));
-
+    iCtx.registry->free(rs->route->actor);
     iCtx.routes.erase(rs);
   }
 
