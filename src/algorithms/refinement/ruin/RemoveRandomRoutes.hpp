@@ -14,9 +14,9 @@ struct RemoveRandomRoutes final {
   /// Specifies maximum amount of removed routes.
   int rmax = 3;
 
-  construction::InsertionContext operator()(const RefinementContext& rCtx,
-                                            const models::Solution& sln,
-                                            construction::InsertionContext&& iCtx) const {
+  void operator()(const RefinementContext& rCtx,
+                  const models::Solution& sln,
+                  construction::InsertionContext& iCtx) const {
     auto toDelete = std::min(static_cast<size_t>(rCtx.random->uniform<int>(rmin, rmax)), iCtx.routes.size());
     ranges::for_each(ranges::view::iota(0, toDelete), [&](auto) {
       auto routeIndex = rCtx.random->uniform<int>(0, static_cast<int>(iCtx.routes.size()) - 1);
@@ -29,8 +29,6 @@ struct RemoveRandomRoutes final {
       else
         removePartRoute(rCtx, iCtx, rs);
     });
-
-    return std::move(iCtx);
   }
 
 private:

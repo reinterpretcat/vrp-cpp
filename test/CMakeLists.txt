@@ -31,6 +31,7 @@ set(SOURCE_FILES
         algorithms/refinement/recreate/RecreateWithBlinksTest.cc
         algorithms/refinement/ruin/RemoveAdjustedStringTest.cc
         algorithms/refinement/ruin/RemoveRandomRoutesTest.cc
+        algorithms/refinement/ruin/RuinWithProbabilitiesTest.cc
         algorithms/refinement/termination/MaxIterationCriteriaTest.cc
 
         models/extensions/problem/DistancesTest.cc

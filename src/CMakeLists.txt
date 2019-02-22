@@ -47,6 +47,7 @@ set(SOURCE_FILES
 
         algorithms/refinement/ruin/RemoveAdjustedString.hpp
         algorithms/refinement/ruin/RemoveRandomRoutes.hpp
+        algorithms/refinement/ruin/RuinWithProbabilities.hpp
 
         algorithms/refinement/termination/MaxIterationCriteria.hpp
 

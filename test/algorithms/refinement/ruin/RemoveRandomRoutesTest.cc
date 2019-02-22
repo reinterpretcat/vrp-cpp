@@ -29,8 +29,9 @@ SCENARIO("random routes removal can ruin solution with three routes without lock
                           std::make_shared<std::set<Job, compare_jobs>>(),
                           {},
                           0};
+      auto iCtx = restore_insertion_context{}(ctx, *solution);
 
-      auto iCtx = RemoveRandomRoutes{}.operator()(ctx, *solution, restore_insertion_context{}(ctx, *solution));
+      RemoveRandomRoutes{}.operator()(ctx, *solution, iCtx);
 
       THEN("should ruin expected jobs") { REQUIRE(iCtx.jobs.size() == size); }
     }

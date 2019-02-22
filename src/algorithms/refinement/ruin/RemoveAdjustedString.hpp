@@ -30,9 +30,9 @@ struct RemoveAdjustedString {
   double alpha = 0.01;
 
   /// Ruins jobs from given solution.
-  construction::InsertionContext operator()(const RefinementContext& rCtx,
-                                            const models::Solution& sln,
-                                            construction::InsertionContext&& iCtx) const {
+  void operator()(const RefinementContext& rCtx,
+                  const models::Solution& sln,
+                  construction::InsertionContext& iCtx) const {
     using namespace ranges;
 
     auto jobs = std::make_shared<std::set<models::problem::Job, models::problem::compare_jobs>>();
@@ -68,8 +68,6 @@ struct RemoveAdjustedString {
     ranges::copy(*jobs, ranges::inserter(iCtx.jobs, iCtx.jobs.begin()));
 
     remove_empty_tours{}(iCtx);
-
-    return std::move(iCtx);
   }
 
 private:
