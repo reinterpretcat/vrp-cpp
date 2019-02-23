@@ -2,6 +2,7 @@
 #pragma ide diagnostic ignored "cert-err58-cpp"
 #pragma once
 
+#include "algorithms/construction/constraints/VehicleActivitySize.hpp"
 #include "models/extensions/problem/Factories.hpp"
 #include "models/extensions/solution/Factories.hpp"
 #include "models/problem/Fleet.hpp"
@@ -30,6 +31,12 @@ public:
 
   test_build_service& id(const std::string& value) {
     service_.dimens["id"] = value;
+    return *this;
+  }
+
+  template<typename Size>
+  test_build_service& demand(const typename algorithms::construction::VehicleActivitySize<Size>::Demand& value) {
+    service_.dimens[algorithms::construction::VehicleActivitySize<Size>::DimKeyDemand] = value;
     return *this;
   }
 

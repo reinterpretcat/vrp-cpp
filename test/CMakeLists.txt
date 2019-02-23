@@ -16,6 +16,8 @@ set(SOURCE_FILES
         algorithms/construction/constraints/VehicleActivitySizeTest.cc
         algorithms/construction/constraints/VehicleActivityTimingTest.cc
 
+        algorithms/construction/extensions/SortersTest.cc
+
         algorithms/construction/heuristics/BlinkInsertionTest.cc
         algorithms/construction/heuristics/CheapestInsertionTest.cc
         algorithms/construction/InsertionConstraintTest.cc

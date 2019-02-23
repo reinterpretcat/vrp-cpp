@@ -3,7 +3,10 @@
 #include "algorithms/construction/InsertionEvaluator.hpp"
 #include "algorithms/construction/InsertionHeuristic.hpp"
 #include "algorithms/construction/InsertionResult.hpp"
+#include "algorithms/construction/extensions/Sorters.hpp"
 
+#include <array>
+#include <functional>
 #include <mutex>
 
 namespace vrp::algorithms::construction {
@@ -30,22 +33,25 @@ private:
   mutable std::mutex lock_;
 };
 
-/// Sorts jobs according to SISR rules.
-struct blink_sorter final {
-  void operator()(InsertionContext& ctx) const {
-    // TODO sort according to SISR rules
-    // 2: random, 2 : size, 1 : far, 1: close
-    ctx.random->shuffle(ctx.jobs.begin(), ctx.jobs.end());
-  }
-};
-
 /// Selects jobs range based on SISR rules.
+template<typename Size>
 struct select_insertion_range_blinks final {
-  auto operator()(InsertionContext& ctx) const {
-    const int minSize = 8;
-    const int maxSize = 16;
+  using Sorter = std::function<void(InsertionContext&)>;
 
-    blink_sorter{}(ctx);
+  random_jobs_sorter random = {};
+  sized_jobs_sorter<Size> sized = {};
+
+  /// Keeps sorters within their weights.
+  std::array<std::pair<Sorter, int>, 2> sorters = {std::pair(Sorter(std::ref(random)), 2),
+                                                   std::pair(Sorter(std::ref(sized)), 2)};
+
+  auto operator()(InsertionContext& ctx) const {
+    using namespace ranges;
+
+    constexpr int minSize = 8;
+    constexpr int maxSize = 16;
+
+    sorters.at(ctx.random->weighted(sorters | view::transform([](const auto& p) { return p.second; }))).first(ctx);
 
     auto sampleSize = std::min(static_cast<int>(ctx.jobs.size()), ctx.random->uniform<int>(minSize, maxSize));
 
@@ -57,8 +63,8 @@ struct select_insertion_range_blinks final {
 /// NOTE insertion heuristics processes all jobs simultaneously, so
 /// sorting part by different customer property (e.g. demand, far, close) from the
 /// original paper is omitted.
-template<int Nominator = 1, int Denominator = 100>
+template<int Nominator = 1, int Denominator = 100, typename Size = int>
 using BlinkInsertion = InsertionHeuristic<InsertionEvaluator,
-                                          select_insertion_range_blinks,
+                                          select_insertion_range_blinks<Size>,
                                           select_insertion_with_blinks<Nominator, Denominator>>;
 }

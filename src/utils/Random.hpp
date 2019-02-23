@@ -4,6 +4,7 @@
 #include <chrono>
 #include <functional>
 #include <random>
+#include <range/v3/all.hpp>
 #include <type_traits>
 
 namespace vrp::utils {
@@ -49,6 +50,19 @@ public:
   template<typename Iterator>
   void shuffle(Iterator begin, Iterator end) {
     std::shuffle(begin, end, generator_);
+  }
+
+  /// Returns an index from collected with probability weight.
+  /// Use exponential distribution where the weights are the rate of the distribution (lambda)
+  /// and select the smallest sampled value.
+  int weighted(ranges::any_view<int> weights) {
+    using namespace ranges;
+
+    return ranges::min(view::zip(weights, view::iota(0)) | view::transform([&](auto pair) {
+                         return std::pair(-std::log(uniform<double>(0, 1)) / pair.first, pair.second);
+                       }),
+                       [](const auto& lhs, const auto& rhs) { return lhs.first < rhs.first; })
+      .second;
   }
 
 private:
