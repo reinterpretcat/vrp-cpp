@@ -23,6 +23,10 @@ extractJobIds(const InsertionContext& ctx) {
 namespace vrp::test {
 
 SCENARIO("sized jobs sorter can sort by job demand", "[algorithms][construction][sorters]") {
+  auto [isDesc, ids] = GENERATE(table<bool, std::vector<std::string>>({
+    {true, {"srv2", "seq1", "srv1"}},
+    {false, {"srv1", "seq1", "srv2"}},
+  }));
   GIVEN("unsorted two services and one sequence") {
     auto ctx = test_build_insertion_context{}
                  .jobs({as_job(test_build_service{}.id("srv1").demand<int>(Demand{{0, 0}, {3, 0}}).shared()),
@@ -36,11 +40,9 @@ SCENARIO("sized jobs sorter can sort by job demand", "[algorithms][construction]
                  .owned();
 
     WHEN("sort by size") {
-      sized_jobs_sorter<int>{}(ctx);
+      sized_jobs_sorter<int>{isDesc}(ctx);
 
-      THEN("should have jobs sorted in desc order") {
-        CHECK_THAT(extractJobIds(ctx), Equals(std::vector<std::string>{"srv2", "seq1", "srv1"}));
-      }
+      THEN("should have jobs sorted in proper order") { CHECK_THAT(extractJobIds(ctx), Equals(ids)); }
     }
   }
 }
