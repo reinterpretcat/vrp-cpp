@@ -62,13 +62,13 @@ public:
       .add<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(fleet, matrix, activity))
       .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>());
 
-    return std::make_shared<models::Problem>(models::Problem{
-      fleet,
-      std::make_shared<models::problem::Jobs>(*matrix, ranges::view::all(jobs), ranges::view::single("car")),
-      constraint,
-      std::make_shared<algorithms::objectives::penalize_unassigned_jobs<>>(),
-      activity,
-      matrix});
+    return std::make_shared<models::Problem>(
+      models::Problem{fleet,
+                      std::make_shared<models::problem::Jobs>(*matrix, *fleet, ranges::view::all(jobs)),
+                      constraint,
+                      std::make_shared<algorithms::objectives::penalize_unassigned_jobs<>>(),
+                      activity,
+                      matrix});
   }
 
 private:

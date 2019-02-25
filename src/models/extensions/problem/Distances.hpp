@@ -3,6 +3,7 @@
 #include "models/costs/TransportCosts.hpp"
 #include "models/extensions/problem/Helpers.hpp"
 #include "models/problem/Job.hpp"
+#include "models/problem/Vehicle.hpp"
 
 #include <range/v3/all.hpp>
 
@@ -14,6 +15,15 @@ struct job_distance final {
   const std::string& profile;
   const common::Timestamp departure;
 
+  /// Returns min distance between location and job.
+  common::Distance operator()(const Job& job, common::Location location) const {
+    // NOTE ignore direction
+    return ranges::min(getLocations(job) | ranges::view::transform([&](const auto& l) {
+                         return l.has_value() ? transport.distance(profile, location, l.value(), departure) : 0;
+                       }));
+  }
+
+  /// Returns min distance between two jobs.
   common::Distance operator()(const Job& lhs, const Job& rhs) const {
     using namespace ranges;
 
@@ -21,10 +31,10 @@ struct job_distance final {
     auto right = getLocations(rhs) | to_vector;
 
     return ranges::min(view::concat(view::cartesian_product(left, right) | view::transform([&](const auto& tuple) {
-                                      auto lhs = std::get<0>(tuple);
-                                      auto rhs = std::get<1>(tuple);
-                                      return lhs.has_value() && rhs.has_value()
-                                        ? transport.distance(profile, lhs.value(), rhs.value(), departure)
+                                      auto l = std::get<0>(tuple);
+                                      auto r = std::get<1>(tuple);
+                                      return l.has_value() && r.has_value()
+                                        ? transport.distance(profile, l.value(), r.value(), departure)
                                         : 0;
                                     })));
   }

@@ -379,8 +379,8 @@ struct read_rich_json_type {
     auto transport = transportCosts(problem);
     auto activity = std::make_shared<models::costs::ActivityCosts>();
 
-    auto jobs = readJobs(problem, *transport);
     auto fleet = readFleet(problem);
+    auto jobs = readJobs(problem, *transport, *fleet);
 
     auto constraint = std::make_shared<InsertionConstraint>();
     constraint->add<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(fleet, transport, activity))
@@ -396,15 +396,58 @@ struct read_rich_json_type {
   }
 
 private:
+  std::shared_ptr<models::problem::Fleet> readFleet(const detail::Problem& problem) const {
+    using namespace vrp::algorithms::construction;
+    using namespace vrp::models::common;
+    using namespace vrp::models::problem;
+
+    assert(problem.fleet.drivers.size() == 1);
+
+    auto fleet = std::make_shared<Fleet>();
+    ranges::for_each(problem.fleet.vehicles, [&](const auto& vehicle) {
+      ranges::for_each(ranges::view::closed_indices(1, vehicle.amount), [&](auto index) {
+        assert(vehicle.capabilities.has_value());
+        assert(vehicle.capabilities.value().capacity.size() == 1);
+
+        fleet->add(
+          Vehicle{vehicle.profile,
+
+                  Costs{vehicle.costs.fixed,
+                        vehicle.costs.distance,
+                        vehicle.costs.driving,
+                        vehicle.costs.waiting,
+                        vehicle.costs.serving},
+
+                  Dimensions{{"id", vehicle.id + "_" + std::to_string(index)},
+                             {VehicleActivitySize<int>::DimKeyCapacity, vehicle.capabilities.value().capacity.front()}},
+
+                  ranges::accumulate(vehicle.details, std::vector<Vehicle::Detail>{}, [](auto& acc, const auto detail) {
+                    acc.push_back(Vehicle::Detail{detail.start, detail.end, {detail.time.start, detail.time.end}});
+                    return std::move(acc);
+                  })});
+      });
+    });
+
+    ranges::for_each(problem.fleet.drivers, [&](const auto& driver) {
+      ranges::for_each(ranges::view::closed_indices(1, driver.amount), [&](auto index) {
+        using namespace vrp::models::common;
+        using namespace vrp::models::problem;
+
+        // TODO implement driver costs
+        fleet->add(Driver{Costs{0, 0, 0, 0, 0}, Dimensions{{"id", driver.id + "_" + std::to_string(index)}}});
+      });
+    });
+
+    return fleet;
+  }
+
   std::shared_ptr<models::problem::Jobs> readJobs(const detail::Problem& problem,
-                                                  const models::costs::TransportCosts& transport) const {
+                                                  const models::costs::TransportCosts& transport,
+                                                  const models::problem::Fleet& fleet) const {
     using namespace ranges;
     using namespace algorithms::construction;
     using namespace models::common;
     using namespace models::problem;
-
-    auto profiles =
-      problem.routing.matrices | view::transform([](const auto& m) { return m.profile; }) | to_vector | action::unique;
 
     auto jobs = view::for_each(problem.plan.jobs, [](const auto& job) {
       static auto ensureDemand = [](const auto& demand) {
@@ -470,52 +513,7 @@ private:
     });
 
 
-    return std::make_shared<models::problem::Jobs>(models::problem::Jobs{transport, jobs, profiles});
-  }
-
-  std::shared_ptr<models::problem::Fleet> readFleet(const detail::Problem& problem) const {
-    using namespace vrp::algorithms::construction;
-    using namespace vrp::models::common;
-    using namespace vrp::models::problem;
-
-    assert(problem.fleet.drivers.size() == 1);
-
-    auto fleet = std::make_shared<Fleet>();
-    ranges::for_each(problem.fleet.vehicles, [&](const auto& vehicle) {
-      ranges::for_each(ranges::view::closed_indices(1, vehicle.amount), [&](auto index) {
-        assert(vehicle.capabilities.has_value());
-        assert(vehicle.capabilities.value().capacity.size() == 1);
-
-        fleet->add(
-          Vehicle{vehicle.profile,
-
-                  Costs{vehicle.costs.fixed,
-                        vehicle.costs.distance,
-                        vehicle.costs.driving,
-                        vehicle.costs.waiting,
-                        vehicle.costs.serving},
-
-                  Dimensions{{"id", vehicle.id + "_" + std::to_string(index)},
-                             {VehicleActivitySize<int>::DimKeyCapacity, vehicle.capabilities.value().capacity.front()}},
-
-                  ranges::accumulate(vehicle.details, std::vector<Vehicle::Detail>{}, [](auto& acc, const auto detail) {
-                    acc.push_back(Vehicle::Detail{detail.start, detail.end, {detail.time.start, detail.time.end}});
-                    return std::move(acc);
-                  })});
-      });
-    });
-
-    ranges::for_each(problem.fleet.drivers, [&](const auto& driver) {
-      ranges::for_each(ranges::view::closed_indices(1, driver.amount), [&](auto index) {
-        using namespace vrp::models::common;
-        using namespace vrp::models::problem;
-
-        // TODO implement driver costs
-        fleet->add(Driver{Costs{0, 0, 0, 0, 0}, Dimensions{{"id", driver.id + "_" + std::to_string(index)}}});
-      });
-    });
-
-    return fleet;
+    return std::make_shared<models::problem::Jobs>(models::problem::Jobs{transport, fleet, jobs});
   }
 
   std::shared_ptr<models::costs::MatrixTransportCosts> transportCosts(const detail::Problem& problem) const {
