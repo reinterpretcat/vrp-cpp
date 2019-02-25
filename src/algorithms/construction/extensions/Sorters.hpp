@@ -39,4 +39,25 @@ private:
     return demand.pickup.first + demand.pickup.second + demand.delivery.first + demand.delivery.second;
   }
 };
+
+/// Sorts jobs by their distance to vehicle start locations.
+struct ranked_jobs_sorter final {
+  bool isDesc = true;
+
+  void operator()(InsertionContext& ctx) const {
+    ranges::action::sort(ctx.jobs, [&](const auto& lhs, const auto& rhs) {
+      auto left = distanceToStart(ctx, lhs);
+      auto right = distanceToStart(ctx, rhs);
+
+      return isDesc ? left > right : left < right;
+    });
+  }
+
+private:
+  static models::common::Distance distanceToStart(const InsertionContext& ctx, const models::problem::Job& job) {
+    return ranges::min(ranges::view::for_each(ctx.problem->fleet->profiles(), [&](const auto& profile) {
+      return ranges::yield(ctx.problem->jobs->rank(profile, job));
+    }));
+  }
+};
 }
