@@ -19,9 +19,15 @@ struct log_to_console final {
 
   /// Called when new individuum is discovered.
   void operator()(const RefinementContext& ctx, const models::EstimatedSolution& individuum, bool accepted) const {
-    std::cout << (accepted ? "ACCEPTED" : "skipped") << " solution is discovered at generation " << ctx.generation
-              << ":" << std::endl;
-    logIndividuum(individuum);
+    if (ctx.generation % 1000 == 0) std::cout << "Process " << ctx.generation << std::endl;
+
+    if (accepted) {
+      std::cout << "ACCEPTED solution is discovered at generation " << ctx.generation
+                << ":" << std::endl
+                << "\t\tactual cost:" << individuum.second.actual << " + penalties: " << individuum.second.penalty
+                << "\n\t\ttotal routes:" << individuum.first->routes.size() << std::endl;
+      logIndividuum(individuum);
+    }
   }
 
   /// Called when search is ended within best solution.
