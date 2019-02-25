@@ -1,7 +1,7 @@
 #include "algorithms/construction/InsertionEvaluator.hpp"
 
+#include "algorithms/construction/constraints/ActorActivityTiming.hpp"
 #include "algorithms/construction/constraints/VehicleActivitySize.hpp"
-#include "algorithms/construction/constraints/VehicleActivityTiming.hpp"
 #include "test_utils/algorithms/construction/Factories.hpp"
 #include "test_utils/algorithms/construction/constraints/Helpers.hpp"
 #include "test_utils/fakes/TestTransportCosts.hpp"
@@ -40,7 +40,7 @@ createProblem(const std::shared_ptr<Fleet>& fleet) {
   auto transport = std::make_shared<TestTransportCosts>();
   auto constraint = std::make_shared<InsertionConstraint>();
 
-  constraint->add<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(fleet, transport, activity));
+  constraint->add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(fleet, transport, activity));
   return std::make_shared<Problem>(Problem{{}, {}, constraint, {}, activity, transport});
 }
 
@@ -55,7 +55,7 @@ createContext(const Tour::Activity& prev, const Tour::Activity& next) {
   using namespace vrp::test;
 
   auto constraint = std::make_shared<InsertionConstraint>();
-  constraint->add<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(
+  constraint->add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(
     createFleet(), std::make_shared<TestTransportCosts>(), std::make_shared<ActivityCosts>()));
 
   return test_build_insertion_context{}
@@ -214,7 +214,7 @@ SCENARIO("insertion evaluator can handle service insertion with time constraints
       .add(test_build_vehicle{}.id("v1").details({{0, v1, {0, 100}}}).owned())
       .add(test_build_vehicle{}.id("v2").details({{20, v2, {0, 100}}}).owned());
     auto constraint = std::make_shared<InsertionConstraint>();
-    constraint->add<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(
+    constraint->add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(
       fleet, std::make_shared<TestTransportCosts>(), std::make_shared<ActivityCosts>()));
 
     auto evaluator = InsertionEvaluator{};

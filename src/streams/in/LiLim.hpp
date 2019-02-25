@@ -1,7 +1,7 @@
 #pragma once
 
+#include "algorithms/construction/constraints/ActorActivityTiming.hpp"
 #include "algorithms/construction/constraints/VehicleActivitySize.hpp"
-#include "algorithms/construction/constraints/VehicleActivityTiming.hpp"
 #include "algorithms/objectives/PenalizeUnassignedJobs.hpp"
 #include "models/Problem.hpp"
 #include "models/extensions/problem/Factories.hpp"
@@ -59,7 +59,7 @@ public:
     matrix->generate();
 
     (*constraint)
-      .add<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(fleet, matrix, activity))
+      .add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(fleet, matrix, activity))
       .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>());
 
     return std::make_shared<models::Problem>(

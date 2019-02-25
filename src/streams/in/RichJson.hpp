@@ -1,8 +1,8 @@
 #pragma once
 
 #include "algorithms/construction/InsertionConstraint.hpp"
+#include "algorithms/construction/constraints/ActorActivityTiming.hpp"
 #include "algorithms/construction/constraints/VehicleActivitySize.hpp"
-#include "algorithms/construction/constraints/VehicleActivityTiming.hpp"
 #include "algorithms/objectives/PenalizeUnassignedJobs.hpp"
 #include "models/Problem.hpp"
 #include "models/costs/MatrixTransportCosts.hpp"
@@ -383,7 +383,7 @@ struct read_rich_json_type {
     auto jobs = readJobs(problem, *transport, *fleet);
 
     auto constraint = std::make_shared<InsertionConstraint>();
-    constraint->add<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(fleet, transport, activity))
+    constraint->add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(fleet, transport, activity))
       .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>());
 
     return std::make_shared<models::Problem>(

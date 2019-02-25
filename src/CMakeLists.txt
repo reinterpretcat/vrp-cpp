@@ -4,8 +4,8 @@ find_package(ClangTidy)
 
 set(SOURCE_FILES
 
+        algorithms/construction/constraints/ActorActivityTiming.hpp
         algorithms/construction/constraints/VehicleActivitySize.hpp
-        algorithms/construction/constraints/VehicleActivityTiming.hpp
 
         algorithms/construction/extensions/Comparators.hpp
         algorithms/construction/extensions/Constraints.hpp

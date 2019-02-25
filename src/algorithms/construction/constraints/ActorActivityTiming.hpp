@@ -18,7 +18,7 @@
 namespace vrp::algorithms::construction {
 
 /// Checks whether vehicle can serve activity taking into account their time windows.
-struct VehicleActivityTiming final
+struct ActorActivityTiming final
   : public HardRouteConstraint
   , public HardActivityConstraint
   , public SoftRouteConstraint
@@ -27,10 +27,10 @@ struct VehicleActivityTiming final
   constexpr static int LatestArrivalKey = BaseKey + 0;
   constexpr static int WaitingKey = BaseKey + 1;
 
-  VehicleActivityTiming(const std::shared_ptr<const models::problem::Fleet>& fleet,
-                        const std::shared_ptr<const models::costs::TransportCosts>& transport,
-                        const std::shared_ptr<const models::costs::ActivityCosts>& activity,
-                        int code = 1) :
+  ActorActivityTiming(const std::shared_ptr<const models::problem::Fleet>& fleet,
+                      const std::shared_ptr<const models::costs::TransportCosts>& transport,
+                      const std::shared_ptr<const models::costs::ActivityCosts>& activity,
+                      int code = 1) :
     code_(code),
     transport_(transport),
     activity_(activity) {}

@@ -13,8 +13,8 @@ include_directories(${MAIN_SOURCE}
 
 set(SOURCE_FILES
 
+        algorithms/construction/constraints/ActorActivityTimingTest.cc
         algorithms/construction/constraints/VehicleActivitySizeTest.cc
-        algorithms/construction/constraints/VehicleActivityTimingTest.cc
 
         algorithms/construction/extensions/SortersTest.cc
 

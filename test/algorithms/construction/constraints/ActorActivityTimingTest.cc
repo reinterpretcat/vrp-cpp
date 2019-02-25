@@ -1,4 +1,4 @@
-#include "algorithms/construction/constraints/VehicleActivityTiming.hpp"
+#include "algorithms/construction/constraints/ActorActivityTiming.hpp"
 
 #include "models/costs/ActivityCosts.hpp"
 #include "models/problem/Fleet.hpp"
@@ -85,14 +85,14 @@ SCENARIO("vehicle activity timing checks states with 4 vehicles", "[algorithms][
       }));
 
       auto context = InsertionRouteContext{createRoute(*fleet, vehicle), std::make_shared<InsertionRouteState>()};
-      VehicleActivityTiming(fleet,
-                            std::make_shared<TestTransportCosts>(),  //
-                            std::make_shared<ActivityCosts>())
+      ActorActivityTiming(fleet,
+                          std::make_shared<TestTransportCosts>(),  //
+                          std::make_shared<ActivityCosts>())
         .accept(context);
 
       THEN("should update latest operation time") {
         auto result =
-          context.state->get<Timestamp>(VehicleActivityTiming::LatestArrivalKey, context.route->tour.get(activity))
+          context.state->get<Timestamp>(ActorActivityTiming::LatestArrivalKey, context.route->tour.get(activity))
             .value_or(0);
 
         REQUIRE(result == time);
@@ -128,9 +128,9 @@ SCENARIO("vehicle activity timing checks states with 6 vehicles", "[algorithms][
            {"v6", 40, 30, 3, EndActivityIndex, success()}}));
 
       auto context = InsertionRouteContext{createRoute(*fleet, vehicle), std::make_shared<InsertionRouteState>()};
-      auto timing = VehicleActivityTiming(fleet,
-                                          std::make_shared<TestTransportCosts>(),  //
-                                          std::make_shared<ActivityCosts>());
+      auto timing = ActorActivityTiming(fleet,
+                                        std::make_shared<TestTransportCosts>(),  //
+                                        std::make_shared<ActivityCosts>());
       timing.accept(context);
 
       THEN("returns fulfilled for insertion at the end") {
@@ -160,9 +160,9 @@ SCENARIO("vehicle activity timing updates activity schedule", "[algorithms][cons
       .insert(test_build_activity{}.location(20).time({50, 10}).duration(10).shared(), 2);
 
     WHEN("accept route") {
-      VehicleActivityTiming(fleet,
-                            std::make_shared<TestTransportCosts>(),  //
-                            std::make_shared<ActivityCosts>())
+      ActorActivityTiming(fleet,
+                          std::make_shared<TestTransportCosts>(),  //
+                          std::make_shared<ActivityCosts>())
         .accept(context);
 
       THEN("activity schedule are updated") {
@@ -190,9 +190,9 @@ SCENARIO("vehicle activity timing can calculate soft costs for tour with two act
       routeCtx->route->tour.insert(prev, 1).insert(next, 2);
 
       THEN("cost for activity is correct") {
-        auto cost = VehicleActivityTiming(fleet,
-                                          std::make_shared<TestTransportCosts>(),  //
-                                          std::make_shared<ActivityCosts>())
+        auto cost = ActorActivityTiming(fleet,
+                                        std::make_shared<TestTransportCosts>(),  //
+                                        std::make_shared<ActivityCosts>())
                       .soft(*routeCtx, *actCtx);
 
         REQUIRE(cost == 30);
@@ -214,9 +214,9 @@ SCENARIO("vehicle activity timing can calculate soft costs for empty tour", "[al
       auto [routeCtx, actCtx] = sameActor(target.shared());
 
       THEN("cost for activity is correct") {
-        auto cost = VehicleActivityTiming(fleet,
-                                          std::make_shared<TestTransportCosts>(),  //
-                                          std::make_shared<ActivityCosts>())
+        auto cost = ActorActivityTiming(fleet,
+                                        std::make_shared<TestTransportCosts>(),  //
+                                        std::make_shared<ActivityCosts>())
                       .soft(*routeCtx, *actCtx);
 
         REQUIRE(cost == 21);

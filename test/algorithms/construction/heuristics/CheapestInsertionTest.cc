@@ -1,7 +1,7 @@
 #include "algorithms/construction/heuristics/CheapestInsertion.hpp"
 
+#include "algorithms/construction/constraints/ActorActivityTiming.hpp"
 #include "algorithms/construction/constraints/VehicleActivitySize.hpp"
-#include "algorithms/construction/constraints/VehicleActivityTiming.hpp"
 #include "streams/in/LiLim.hpp"
 #include "streams/in/Solomon.hpp"
 #include "test_utils/algorithms/construction/Factories.hpp"
@@ -73,8 +73,8 @@ SCENARIO("cheapest insertion inserts service", "[algorithms][construction][inser
     auto problem = std::make_shared<models::Problem>(models::Problem{
       {}, {}, constraint, {}, std::make_shared<ActivityCosts>(), std::make_shared<TestTransportCosts>()});
 
-    constraint->add<VehicleActivityTiming>(
-      std::make_shared<VehicleActivityTiming>(fleet, problem->transport, problem->activity));
+    constraint->add<ActorActivityTiming>(
+      std::make_shared<ActorActivityTiming>(fleet, problem->transport, problem->activity));
 
     auto insertion = CheapestInsertion{InsertionEvaluator{}};
 
@@ -462,7 +462,7 @@ SCENARIO("Can solve simple open VRP problem", "[scenarios][openvrp]") {
 
     auto constraint = std::make_shared<InsertionConstraint>();
     constraint->template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>());
-    constraint->add<VehicleActivityTiming>(std::make_shared<VehicleActivityTiming>(fleet, transport, activity));
+    constraint->add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(fleet, transport, activity));
 
     auto problem = std::make_shared<models::Problem>(models::Problem{{}, {}, constraint, {}, activity, transport});
 

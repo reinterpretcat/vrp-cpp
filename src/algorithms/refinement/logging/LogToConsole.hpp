@@ -22,8 +22,7 @@ struct log_to_console final {
     if (ctx.generation % 1000 == 0) std::cout << "Process " << ctx.generation << std::endl;
 
     if (accepted) {
-      std::cout << "ACCEPTED solution is discovered at generation " << ctx.generation
-                << ":" << std::endl
+      std::cout << "ACCEPTED solution is discovered at generation " << ctx.generation << ":" << std::endl
                 << "\t\tactual cost:" << individuum.second.actual << " + penalties: " << individuum.second.penalty
                 << "\n\t\ttotal routes:" << individuum.first->routes.size() << std::endl;
       logIndividuum(individuum);
