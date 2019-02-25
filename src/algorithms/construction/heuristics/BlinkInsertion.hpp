@@ -41,11 +41,15 @@ struct select_insertion_range_blinks final {
   random_jobs_sorter random = {};
   sized_jobs_sorter<Size> sizedDesc = {true};
   sized_jobs_sorter<Size> sizedAsc = {false};
+  ranked_jobs_sorter rankedDesc = {true};
+  ranked_jobs_sorter rankedAsc = {false};
 
   /// Keeps sorters within their weights.
-  std::array<std::pair<Sorter, int>, 3> sorters = {std::pair(Sorter(std::ref(random)), 10),
+  std::array<std::pair<Sorter, int>, 5> sorters = {std::pair(Sorter(std::ref(random)), 10),
                                                    std::pair(Sorter(std::ref(sizedDesc)), 10),
-                                                   std::pair(Sorter(std::ref(sizedAsc)), 1)};
+                                                   std::pair(Sorter(std::ref(sizedAsc)), 1),
+                                                   std::pair(Sorter(std::ref(rankedAsc)), 5),
+                                                   std::pair(Sorter(std::ref(rankedDesc)), 1)};
 
   auto operator()(InsertionContext& ctx) const {
     using namespace ranges;
