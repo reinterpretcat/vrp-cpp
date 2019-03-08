@@ -26,4 +26,7 @@ set_target_properties(${LIBRARY_EXAMPLE} PROPERTIES
         LINKER_LANGUAGE CXX
         )
 
-target_link_libraries(${LIBRARY_EXAMPLE} ${TBB_LIBRARIES})
+target_link_libraries(${LIBRARY_EXAMPLE}
+        ${CMAKE_THREAD_LIBS_INIT}
+        ${TBB_LIBRARIES}
+        )
