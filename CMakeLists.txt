@@ -12,7 +12,7 @@ set(EXTERNAL_SOURCE ${PROJECT_SOURCE_DIR}/external)
 set(TBB_ROOT_DIR ${PROJECT_SOURCE_DIR}/external/tbb)
 set(TBB_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/external/tbb/include)
 # TODO find nicer way to include lib path
-set(TBB_LIBRARY ${PROJECT_SOURCE_DIR}/external/tbb/build/linux_intel64_gcc_cc7_libc2.27_kernel4.15.0_debug)
+set(TBB_LIBRARY ${PROJECT_SOURCE_DIR}/external/tbb/build/linux_intel64_gcc_cc7_libc2.27_kernel4.18.0_debug)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${EXTERNAL_SOURCE}/cmake/")
 
