@@ -13,7 +13,16 @@ struct test_build_insertion_progress : public vrp::algorithms::construction::bui
 
 struct test_build_insertion_context : public vrp::algorithms::construction::build_insertion_context {
   explicit test_build_insertion_context() : vrp::algorithms::construction::build_insertion_context() {
-    progress(test_build_insertion_progress{}.owned()).random(std::make_shared<utils::Random>());
+    progress(test_build_insertion_progress{}.owned())
+      .random(std::make_shared<utils::Random>())
+      .solution(vrp::algorithms::construction::build_insertion_solution_context{}.shared());
+  }
+
+  test_build_insertion_context& jobs(std::vector<models::problem::Job>&& value) {
+    context_.solution =
+      vrp::algorithms::construction::build_insertion_solution_context{}.required(std::move(value)).shared();
+
+    return *this;
   }
 };
 

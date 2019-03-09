@@ -11,7 +11,13 @@ struct ActorJobLock final : public HardRouteConstraint {
 
   ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>(); }
 
-  void accept(InsertionRouteContext& context) const override {}
+
+  /// Accept solution.
+  void accept(InsertionSolutionContext&) const override {
+    // TODO
+  }
+
+  void accept(InsertionRouteContext&) const override {}
 
   /// Locks actor within job.
   ActorJobLock& lock(const std::shared_ptr<const models::solution::Actor>& actor, const models::problem::Job& job) {

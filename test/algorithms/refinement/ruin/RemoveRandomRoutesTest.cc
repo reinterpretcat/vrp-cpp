@@ -33,7 +33,7 @@ SCENARIO("random routes removal can ruin solution with three routes without lock
 
       RemoveRandomRoutes{}.operator()(ctx, *solution, iCtx);
 
-      THEN("should ruin expected jobs") { REQUIRE(iCtx.jobs.size() == size); }
+      THEN("should ruin expected jobs") { REQUIRE(iCtx.solution->required.size() == size); }
     }
   }
 }

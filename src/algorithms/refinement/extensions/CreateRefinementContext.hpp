@@ -23,27 +23,27 @@ struct create_refinement_context final {
     auto random = std::make_shared<utils::Random>(0);
 
     // create initial solution represented by insertion context.
-    auto iCtx =
-      Heuristic{InsertionEvaluator{}}(build_insertion_context{}
-                                        .progress(build_insertion_progress{}
-                                                    .cost(models::common::NoCost)
-                                                    .completeness(0)
-                                                    .total(static_cast<int>(problem->jobs->size()))
-                                                    .owned())
-                                        .registry(std::make_shared<models::solution::Registry>(*problem->fleet))
-                                        .problem(problem)
-                                        .random(random)
-                                        .jobs(problem->jobs->all())
-                                        .owned());
+    auto iCtx = Heuristic{InsertionEvaluator{}}(
+      build_insertion_context{}
+        .progress(build_insertion_progress{}
+                    .cost(models::common::NoCost)
+                    .completeness(0)
+                    .total(static_cast<int>(problem->jobs->size()))
+                    .owned())
+        .registry(std::make_shared<models::solution::Registry>(*problem->fleet))
+        .problem(problem)
+        .random(random)
+        .solution(build_insertion_solution_context{}.required(problem->jobs->all()).shared())
+        .owned());
 
     // create solution and calculate its cost
     auto sln = std::make_shared<models::Solution>(
       models::Solution{iCtx.registry,
-                       iCtx.routes | view::transform([](const auto& rs) {
+                       iCtx.solution->routes | view::transform([](const auto& rs) {
                          return static_cast<std::shared_ptr<const models::solution::Route>>(rs.route);
                        }) |
                          to_vector,
-                       std::move(iCtx.unassigned)});
+                       std::move(iCtx.solution->unassigned)});
     auto cost = problem->objective->operator()(*sln, *problem->activity, *problem->transport);
 
     return RefinementContext{problem,

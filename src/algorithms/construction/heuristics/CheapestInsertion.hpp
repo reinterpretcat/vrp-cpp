@@ -19,7 +19,7 @@ struct select_insertion_result_greedy final {
 struct select_insertion_range_sample final {
   auto operator()(InsertionContext& ctx) const {
     // ctx.random->shuffle(ctx.jobs.begin(), ctx.jobs.end());
-    return std::pair(ctx.jobs.begin(), ctx.jobs.end());
+    return std::pair(ctx.solution->required.begin(), ctx.solution->required.end());
   }
 };
 

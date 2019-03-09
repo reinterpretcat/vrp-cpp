@@ -33,14 +33,16 @@ SCENARIO("remove empty tours works", "[algorithms][refinement][extensions]") {
     auto route2 = test_build_route{}.actor(actor2).shared();
     route2->tour.insert(test_build_activity{}.location(10).shared(), 1);
 
-    auto ctx = InsertionContext{{}, registry, {}, {}, {}, {{route1, {}}, {route2, {}}}, {}};
+    auto solution =
+      std::make_shared<InsertionSolutionContext>(InsertionSolutionContext{{}, {}, {}, {{route1, {}}, {route2, {}}}});
+    auto ctx = InsertionContext{{}, {}, solution, registry, {}};
 
     WHEN("remove empty tours") {
       remove_empty_tours{}(ctx);
 
       THEN("only non empty tour is left") {
-        REQUIRE(ctx.routes.size() == 1);
-        REQUIRE(ctx.routes.begin()->route->actor == actor2);
+        REQUIRE(ctx.solution->routes.size() == 1);
+        REQUIRE(ctx.solution->routes.begin()->route->actor == actor2);
       }
 
       THEN("empty route's actor is released in registry") {

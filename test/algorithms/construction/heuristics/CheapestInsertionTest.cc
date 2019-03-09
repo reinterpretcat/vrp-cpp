@@ -30,7 +30,8 @@ createInsertion(std::stringstream stream) {
   auto problem = ReaderType{}.operator()(stream);
   auto ctx = vrp::test::test_build_insertion_context{}
                .progress(vrp::test::test_build_insertion_progress{}.total(problem->jobs->size()).owned())
-               .jobs(problem->jobs->all())
+
+               .solution(build_insertion_solution_context{}.required(problem->jobs->all()).shared())
                .registry(std::make_shared<Registry>(*problem->fleet))
                .problem(problem)
                .owned();
@@ -79,17 +80,19 @@ SCENARIO("cheapest insertion inserts service", "[algorithms][construction][inser
     auto insertion = CheapestInsertion{InsertionEvaluator{}};
 
     WHEN("analyzes insertion context") {
-      auto result = insertion(test_build_insertion_context{}
-                                .registry(std::make_shared<Registry>(*fleet))
-                                .problem(problem)
-                                .jobs({as_job(test_build_service{}.location(s1).shared())})
-                                .owned());
+      auto result = insertion(
+        test_build_insertion_context{}
+          .registry(std::make_shared<Registry>(*fleet))
+          .problem(problem)
+          .solution(
+            build_insertion_solution_context{}.required({as_job(test_build_service{}.location(s1).shared())}).shared())
+          .owned());
 
       THEN("returns new context with job inserted") {
-        REQUIRE(result.unassigned.empty());
-        REQUIRE(result.routes.size() == 1);
-        REQUIRE(get_vehicle_id{}(*result.routes.begin()->route->actor->vehicle) == used);
-        REQUIRE(result.routes.begin()->route->tour.get(1)->detail.location == s1);
+        REQUIRE(result.solution->unassigned.empty());
+        REQUIRE(result.solution->routes.size() == 1);
+        REQUIRE(get_vehicle_id{}(*result.solution->routes.begin()->route->actor->vehicle) == used);
+        REQUIRE(result.solution->routes.begin()->route->tour.get(1)->detail.location == s1);
       }
     }
   }
@@ -106,11 +109,11 @@ SCENARIO("cheapest insertion handles artificial problems with demand",
       auto [evaluator, ctx] = createInsertion<create_sequential_problem_stream>(vehicles, capacity);
 
       WHEN("calculates solution") {
-        auto solution = CheapestInsertion{evaluator}.operator()(ctx);
+        auto result = CheapestInsertion{evaluator}.operator()(ctx);
         THEN("all jobs processed") {
-          REQUIRE(solution.jobs.empty());
-          REQUIRE(solution.unassigned.size() == unassigned);
-          REQUIRE(solution.routes.size() == routes);
+          REQUIRE(result.solution->required.empty());
+          REQUIRE(result.solution->unassigned.size() == unassigned);
+          REQUIRE(result.solution->routes.size() == routes);
         }
       }
     }
@@ -123,13 +126,13 @@ SCENARIO("cheapest insertion handles artificial problems with times",
     auto [evaluator, ctx] = createInsertion<create_time_problem_stream>(1, 10);
 
     WHEN("calculates solution") {
-      auto solution = CheapestInsertion{evaluator}.operator()(ctx);
+      auto result = CheapestInsertion{evaluator}.operator()(ctx);
 
       THEN("all jobs processed") {
-        REQUIRE(solution.jobs.empty());
-        REQUIRE(solution.unassigned.empty());
-        REQUIRE(solution.routes.size() == 1);
-        REQUIRE(get_job_ids_from_all_routes{}.operator()(solution).front() == "c5");
+        REQUIRE(result.solution->required.empty());
+        REQUIRE(result.solution->unassigned.empty());
+        REQUIRE(result.solution->routes.size() == 1);
+        REQUIRE(get_job_ids_from_all_routes{}.operator()(result).front() == "c5");
       }
     }
   }
@@ -151,13 +154,13 @@ SCENARIO("cheapest insertion handles artificial problems with waiting",
     auto [evaluator, ctx] = createInsertion<create_waiting_problem_stream>();
 
     WHEN("calculates solution") {
-      auto solution = CheapestInsertion{evaluator}.operator()(ctx);
+      auto result = CheapestInsertion{evaluator}.operator()(ctx);
 
       THEN("all jobs processed") {
-        REQUIRE(solution.jobs.empty());
-        REQUIRE(solution.unassigned.empty());
-        REQUIRE(solution.routes.size() == 1);
-        CHECK_THAT(get_job_ids_from_all_routes{}.operator()(solution), Equals(std::vector<std::string>{"c1", "c2"}));
+        REQUIRE(result.solution->required.empty());
+        REQUIRE(result.solution->unassigned.empty());
+        REQUIRE(result.solution->routes.size() == 1);
+        CHECK_THAT(get_job_ids_from_all_routes{}.operator()(result), Equals(std::vector<std::string>{"c1", "c2"}));
       }
     }
   }
@@ -178,13 +181,13 @@ SCENARIO("cheapest insertion handles two customers with one route", "[algorithms
     auto [evaluator, ctx] = createInsertion<create_timing_problem_stream>();
 
     WHEN("calculates solution") {
-      auto solution = CheapestInsertion{evaluator}.operator()(ctx);
+      auto result = CheapestInsertion{evaluator}.operator()(ctx);
 
       THEN("has solution with one route") {
-        REQUIRE(solution.jobs.empty());
-        REQUIRE(solution.unassigned.empty());
-        REQUIRE(solution.routes.size() == 1);
-        CHECK_THAT(get_job_ids_from_all_routes{}.operator()(solution), Equals(std::vector<std::string>{"c2", "c1"}));
+        REQUIRE(result.solution->required.empty());
+        REQUIRE(result.solution->unassigned.empty());
+        REQUIRE(result.solution->routes.size() == 1);
+        CHECK_THAT(get_job_ids_from_all_routes{}.operator()(result), Equals(std::vector<std::string>{"c2", "c1"}));
       }
     }
   }
@@ -206,11 +209,11 @@ SCENARIO("cheapest insertion handles cannot handle two customers with one route"
     auto [evaluator, ctx] = createInsertion<create_timing_problem_stream>();
 
     WHEN("calculates solution") {
-      auto solution = CheapestInsertion{evaluator}.operator()(ctx);
+      auto result = CheapestInsertion{evaluator}.operator()(ctx);
 
       THEN("has solution with two routes") {
-        REQUIRE(solution.jobs.empty());
-        REQUIRE(solution.routes.size() == 2);
+        REQUIRE(result.solution->required.empty());
+        REQUIRE(result.solution->routes.size() == 2);
       }
     }
   }
@@ -221,14 +224,14 @@ SCENARIO("cheapest insertion handles solomon set problems", "[algorithms][constr
     auto [evaluator, ctx] = createInsertion<create_c101_25_problem_stream>();
 
     WHEN("calculates solution") {
-      auto solution = CheapestInsertion{evaluator}.operator()(ctx);
-      auto ids = get_job_ids_from_all_routes{}.operator()(solution);
+      auto result = CheapestInsertion{evaluator}.operator()(ctx);
+      auto ids = get_job_ids_from_all_routes{}.operator()(result);
 
       THEN("has expected solution") {
-        REQUIRE(solution.jobs.empty());
-        REQUIRE(solution.unassigned.empty());
-        REQUIRE(!solution.routes.empty());
-        REQUIRE(solution.routes.size() <= 5);
+        REQUIRE(result.solution->required.empty());
+        REQUIRE(result.solution->unassigned.empty());
+        REQUIRE(!result.solution->routes.empty());
+        REQUIRE(result.solution->routes.size() <= 5);
         REQUIRE(ranges::accumulate(ids, 0, [](const auto acc, const auto next) { return acc + 1; }) == 25);
       }
     }
@@ -244,13 +247,13 @@ SCENARIO("cheapest insertion handles two sequence insertion", "[algorithms][cons
     auto [evaluator, ctx] = createInsertion<create_two_sequences_stream, read_li_lim_type<cartesian_distance>>();
 
     WHEN("calculates solution") {
-      auto solution = CheapestInsertion{evaluator}.operator()(ctx);
+      auto result = CheapestInsertion{evaluator}.operator()(ctx);
 
       THEN("has expected solution") {
-        REQUIRE(solution.jobs.empty());
-        REQUIRE(solution.unassigned.empty());
-        REQUIRE(solution.routes.size() == 1);
-        CHECK_THAT(get_service_ids_from_all_routes{}.operator()(solution),
+        REQUIRE(result.solution->required.empty());
+        REQUIRE(result.solution->unassigned.empty());
+        REQUIRE(result.solution->routes.size() == 1);
+        CHECK_THAT(get_service_ids_from_all_routes{}.operator()(result),
                    Equals(std::vector<std::string>{"c3", "c1", "c2", "c4"}));
       }
     }
@@ -281,13 +284,13 @@ SCENARIO("cheapest insertion handles five sequence insertion", "[algorithms][con
     auto [evaluator, ctx] = createInsertion<create_five_sequences_stream, read_li_lim_type<cartesian_distance>>();
 
     WHEN("calculates solution") {
-      auto solution = CheapestInsertion{evaluator}.operator()(ctx);
+      auto result = CheapestInsertion{evaluator}.operator()(ctx);
 
       THEN("has expected solution") {
-        REQUIRE(solution.jobs.empty());
-        REQUIRE(solution.unassigned.empty());
-        REQUIRE(solution.routes.size() == 1);
-        CHECK_THAT(get_service_ids_from_all_routes{}.operator()(solution),
+        REQUIRE(result.solution->required.empty());
+        REQUIRE(result.solution->unassigned.empty());
+        REQUIRE(result.solution->routes.size() == 1);
+        CHECK_THAT(get_service_ids_from_all_routes{}.operator()(result),
                    Equals(std::vector<std::string>{"c2", "c1", "c7", "c4", "c9", "c5", "c3", "c10", "c8", "c6"}));
       }
     }
@@ -318,13 +321,13 @@ SCENARIO("cheapest insertion analyzes all insertion places", "[algorithms][const
     auto [evaluator, ctx] = createInsertion<create_reference_problem_stream, read_li_lim_type<cartesian_distance>>();
 
     WHEN("calculates solution") {
-      auto solution = CheapestInsertion{evaluator}.operator()(ctx);
+      auto result = CheapestInsertion{evaluator}.operator()(ctx);
 
       THEN("has expected solution") {
-        REQUIRE(solution.jobs.empty());
-        REQUIRE(solution.unassigned.empty());
-        REQUIRE(solution.routes.size() == 1);
-        CHECK_THAT(get_job_ids_from_all_routes{}.operator()(solution),
+        REQUIRE(result.solution->required.empty());
+        REQUIRE(result.solution->unassigned.empty());
+        REQUIRE(result.solution->routes.size() == 1);
+        CHECK_THAT(get_job_ids_from_all_routes{}.operator()(result),
                    Equals(std::vector<std::string>{
                      "seq3", "seq1", "seq3", "seq2", "seq4", "seq2", "seq1", "seq4", "seq0", "seq0"}));
       }
@@ -360,13 +363,13 @@ SCENARIO("cheapest insertion handles edge case with first best but worst in tota
     auto [evaluator, ctx] = createInsertion<create_reference_problem_stream, read_li_lim_type<cartesian_distance>>();
 
     WHEN("calculates solution") {
-      auto solution = CheapestInsertion{evaluator}.operator()(ctx);
+      auto result = CheapestInsertion{evaluator}.operator()(ctx);
 
       THEN("has expected solution") {
-        REQUIRE(solution.jobs.empty());
-        REQUIRE(solution.unassigned.empty());
-        REQUIRE(solution.routes.size() == 1);
-        CHECK_THAT(get_job_ids_from_all_routes{}.operator()(solution),
+        REQUIRE(result.solution->required.empty());
+        REQUIRE(result.solution->unassigned.empty());
+        REQUIRE(result.solution->routes.size() == 1);
+        CHECK_THAT(get_job_ids_from_all_routes{}.operator()(result),
                    Equals(std::vector<std::string>{
                      "seq3", "seq1", "seq3", "seq2", "seq4", "seq2", "seq1", "seq4", "seq0", "seq0"}));
       }
@@ -395,13 +398,13 @@ SCENARIO("cheapest insertion handles edge case with failed insertion at the begi
     auto [evaluator, ctx] = createInsertion<create_reference_problem_stream, read_li_lim_type<cartesian_distance>>();
 
     WHEN("calculates solution") {
-      auto solution = CheapestInsertion{evaluator}.operator()(ctx);
+      auto result = CheapestInsertion{evaluator}.operator()(ctx);
 
       THEN("has expected solution") {
-        REQUIRE(solution.jobs.empty());
-        REQUIRE(solution.unassigned.empty());
-        REQUIRE(solution.routes.size() == 1);
-        CHECK_THAT(get_job_ids_from_all_routes{}.operator()(solution),
+        REQUIRE(result.solution->required.empty());
+        REQUIRE(result.solution->unassigned.empty());
+        REQUIRE(result.solution->routes.size() == 1);
+        CHECK_THAT(get_job_ids_from_all_routes{}.operator()(result),
                    Equals(std::vector<std::string>{"seq2", "seq2", "seq1", "seq1", "seq0", "seq0"}));
       }
     }
@@ -430,13 +433,13 @@ SCENARIO("cheapest insertion handles unassigned job with capacity reason",
     auto [evaluator, ctx] = createInsertion<create_timing_problem_stream>();
 
     WHEN("calculates solution") {
-      auto solution = CheapestInsertion{evaluator}.operator()(ctx);
+      auto result = CheapestInsertion{evaluator}.operator()(ctx);
 
       THEN("has solution with one unassigned") {
-        REQUIRE(solution.jobs.empty());
-        REQUIRE(solution.unassigned.size() == 1);
-        REQUIRE(solution.unassigned.begin()->second == 2);
-        REQUIRE(solution.routes.size() == 1);
+        REQUIRE(result.solution->required.empty());
+        REQUIRE(result.solution->unassigned.size() == 1);
+        REQUIRE(result.solution->unassigned.begin()->second == 2);
+        REQUIRE(result.solution->routes.size() == 1);
       }
     }
   }
@@ -467,17 +470,18 @@ SCENARIO("Can solve simple open VRP problem", "[scenarios][openvrp]") {
     auto problem = std::make_shared<models::Problem>(models::Problem{{}, {}, constraint, {}, activity, transport});
 
     WHEN("run solver") {
-      auto solution = CheapestInsertion{InsertionEvaluator{}}.operator()(test_build_insertion_context{}
-                                                                           .registry(std::make_shared<Registry>(*fleet))
-                                                                           .problem(problem)
-                                                                           .jobs(std::move(jobs))
-                                                                           .owned());
+      auto result = CheapestInsertion{InsertionEvaluator{}}.operator()(
+        test_build_insertion_context{}
+          .registry(std::make_shared<Registry>(*fleet))
+          .problem(problem)
+          .solution(build_insertion_solution_context{}.required(std::move(jobs)).shared())
+          .owned());
 
       THEN("has proper tour end") {
-        REQUIRE(solution.unassigned.empty());
-        REQUIRE(solution.routes.size() == 1);
-        REQUIRE(ranges::size(solution.routes.begin()->route->tour.activities()) == size);
-        REQUIRE(solution.routes.begin()->route->tour.end()->detail.location != 0);
+        REQUIRE(result.solution->unassigned.empty());
+        REQUIRE(result.solution->routes.size() == 1);
+        REQUIRE(ranges::size(result.solution->routes.begin()->route->tour.activities()) == size);
+        REQUIRE(result.solution->routes.begin()->route->tour.end()->detail.location != 0);
       }
     }
   }

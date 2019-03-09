@@ -59,9 +59,10 @@ struct select_insertion_range_blinks final {
 
     sorters.at(ctx.random->weighted(sorters | view::transform([](const auto& p) { return p.second; }))).first(ctx);
 
-    auto sampleSize = std::min(static_cast<int>(ctx.jobs.size()), ctx.random->uniform<int>(minSize, maxSize));
+    auto sampleSize =
+      std::min(static_cast<int>(ctx.solution->required.size()), ctx.random->uniform<int>(minSize, maxSize));
 
-    return std::pair(ctx.jobs.begin(), ctx.jobs.begin() + sampleSize);
+    return std::pair(ctx.solution->required.begin(), ctx.solution->required.begin() + sampleSize);
   }
 };
 

@@ -13,7 +13,7 @@ struct get_job_ids_from_all_routes {
   std::vector<std::string> operator()(const algorithms::construction::InsertionContext& ctx) const {
     using namespace ranges;
 
-    return ctx.routes | view::for_each([](const auto& r) {
+    return ctx.solution->routes | view::for_each([](const auto& r) {
              return r.route->tour.activities() | view::transform([](const auto& a) {
                       auto job = models::solution::retrieve_job{}(*a);
                       return job.has_value() ? models::problem::get_job_id{}(job.value()) : "";
@@ -28,7 +28,7 @@ struct get_service_ids_from_all_routes {
   std::vector<std::string> operator()(const algorithms::construction::InsertionContext& ctx) const {
     using namespace ranges;
 
-    return ctx.routes | view::for_each([](const auto& r) {
+    return ctx.solution->routes | view::for_each([](const auto& r) {
              return r.route->tour.activities() |
                view::remove_if([](const auto& a) { return !a->service.has_value(); }) |
                view::transform([](const auto& a) { return models::problem::getId(a->service.value()->dimens); });
@@ -42,7 +42,7 @@ struct get_job_ids_from_routes final {
   std::vector<std::vector<std::string>> operator()(const algorithms::construction::InsertionContext& ctx) const {
     using namespace ranges;
 
-    return ctx.routes | view::transform([](const auto& r) {
+    return ctx.solution->routes | view::transform([](const auto& r) {
              return r.route->tour.activities() | view::transform([](const auto& a) {
                       return vrp::models::problem::get_job_id{}(models::solution::retrieve_job{}(*a).value());
                     }) |

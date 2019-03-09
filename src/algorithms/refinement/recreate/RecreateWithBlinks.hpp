@@ -23,8 +23,8 @@ struct RecreateWithBlinks final {
 
     return models::Solution{
       resultCtx.registry,
-      resultCtx.routes | view::transform([](const auto& p) -> ConstRoute { return p.route; }) | to_vector,
-      std::move(resultCtx.unassigned)};
+      resultCtx.solution->routes | view::transform([](const auto& p) -> ConstRoute { return p.route; }) | to_vector,
+      std::move(resultCtx.solution->unassigned)};
   }
 };
 }

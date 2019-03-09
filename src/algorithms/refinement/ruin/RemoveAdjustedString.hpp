@@ -47,7 +47,8 @@ struct RemoveAdjustedString {
         [ks = ks, routes](const auto&) { return routes->size() != ks; }),
       [=, &rCtx, &iCtx, lsmax = lsmax](const auto& job) {
         ranges::for_each(
-          iCtx.routes | view::remove_if([&](const auto& r) { return in(*routes, r.route) || !r.route->tour.has(job); }),
+          iCtx.solution->routes |
+            view::remove_if([&](const auto& r) { return in(*routes, r.route) || !r.route->tour.has(job); }),
           [=, &rCtx](const auto& routeState) {
             /// Equations 8, 9: calculate cardinality of the string removed from the tour
             auto ltmax = std::min(static_cast<double>(routeState.route->tour.count()), lsmax);
@@ -65,7 +66,7 @@ struct RemoveAdjustedString {
           });
       });
 
-    ranges::copy(*jobs, ranges::inserter(iCtx.jobs, iCtx.jobs.begin()));
+    ranges::copy(*jobs, ranges::inserter(iCtx.solution->required, iCtx.solution->required.begin()));
 
     remove_empty_tours{}(iCtx);
   }

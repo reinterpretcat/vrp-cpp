@@ -17,11 +17,11 @@ struct RemoveRandomRoutes final {
   void operator()(const RefinementContext& rCtx,
                   const models::Solution& sln,
                   construction::InsertionContext& iCtx) const {
-    auto toDelete = std::min(static_cast<size_t>(rCtx.random->uniform<int>(rmin, rmax)), iCtx.routes.size());
+    auto toDelete = std::min(static_cast<size_t>(rCtx.random->uniform<int>(rmin, rmax)), iCtx.solution->routes.size());
     ranges::for_each(ranges::view::iota(0, toDelete), [&](auto) {
-      auto routeIndex = rCtx.random->uniform<int>(0, static_cast<int>(iCtx.routes.size()) - 1);
+      auto routeIndex = rCtx.random->uniform<int>(0, static_cast<int>(iCtx.solution->routes.size()) - 1);
 
-      auto rs = iCtx.routes.begin();
+      auto rs = iCtx.solution->routes.begin();
       std::advance(rs, routeIndex);
 
       if (rCtx.locked->empty())
@@ -36,9 +36,9 @@ private:
     std::set<construction::InsertionRouteContext, construction::compare_insertion_route_contexts>::iterator;
 
   void removeFullRoute(construction::InsertionContext& iCtx, Iterator rs) const {
-    ranges::copy(rs->route->tour.jobs(), ranges::inserter(iCtx.jobs, iCtx.jobs.begin()));
+    ranges::copy(rs->route->tour.jobs(), ranges::inserter(iCtx.solution->required, iCtx.solution->required.begin()));
     iCtx.registry->free(rs->route->actor);
-    iCtx.routes.erase(rs);
+    iCtx.solution->routes.erase(rs);
   }
 
   void removePartRoute(const RefinementContext& rCtx, construction::InsertionContext& iCtx, Iterator rs) const {
@@ -54,7 +54,7 @@ private:
 
     ranges::for_each(toRemove, [&](const auto& j) {
       rs->route->tour.remove(j);
-      iCtx.jobs.push_back(j);
+      iCtx.solution->required.push_back(j);
     });
     rCtx.problem->constraint->accept(const_cast<construction::InsertionRouteContext&>(*rs));
   }

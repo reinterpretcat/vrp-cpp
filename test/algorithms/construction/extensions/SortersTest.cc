@@ -18,8 +18,8 @@ namespace {
 
 std::vector<std::string>
 extractJobIds(const InsertionContext& ctx) {
-  return ctx.jobs | view::transform([](const auto& job) { return vrp::models::problem::get_job_id{}(job); }) |
-    to_vector;
+  return ctx.solution->required |
+    view::transform([](const auto& job) { return vrp::models::problem::get_job_id{}(job); }) | to_vector;
 }
 }
 

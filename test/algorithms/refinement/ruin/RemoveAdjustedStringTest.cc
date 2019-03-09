@@ -59,7 +59,9 @@ SCENARIO("adjusted string removal can ruin solution with single route", "[algori
       auto iContext = restore_insertion_context{}(context, *solution);
       RemoveAdjustedString{}.operator()(context, *solution, iContext);
 
-      THEN("should ruin expected jobs") { CHECK_THAT(get_job_ids_from_jobs{}.operator()(iContext.jobs), Equals(ids)); }
+      THEN("should ruin expected jobs") {
+        CHECK_THAT(get_job_ids_from_jobs{}.operator()(iContext.solution->required), Equals(ids));
+      }
     }
   }
 }
@@ -89,7 +91,9 @@ SCENARIO("adjusted string removal can ruin solution with multiple routes", "[alg
 
       RemoveAdjustedString{}.operator()(context, *solution, iContext);
 
-      THEN("should ruin expected jobs") { CHECK_THAT(get_job_ids_from_jobs{}.operator()(iContext.jobs), Equals(ids)); }
+      THEN("should ruin expected jobs") {
+        CHECK_THAT(get_job_ids_from_jobs{}.operator()(iContext.solution->required), Equals(ids));
+      }
     }
   }
 }
@@ -113,9 +117,9 @@ SCENARIO("adjusted string removal can ruin solution using data generators", "[al
       RemoveAdjustedString{cardinality, average, alpha}.operator()(context, *solution, iCtx);
 
       THEN("should ruin some jobs and remove empty tours") {
-        REQUIRE(!iCtx.jobs.empty());
+        REQUIRE(!iCtx.solution->required.empty());
         REQUIRE(ranges::accumulate(
-          iCtx.routes, true, [](bool acc, const auto& pair) { return acc && pair.route->tour.hasJobs(); }));
+          iCtx.solution->routes, true, [](bool acc, const auto& pair) { return acc && pair.route->tour.hasJobs(); }));
       }
     }
   }
@@ -173,7 +177,7 @@ SCENARIO("adjusted string removal can ruin solution with sequence", "[algorithms
         iCtx);
 
       THEN("should ruin expected jobs") {
-        CHECK_THAT(get_job_ids_from_jobs{}.operator()(iCtx.jobs), Equals(removed));
+        CHECK_THAT(get_job_ids_from_jobs{}.operator()(iCtx.solution->required), Equals(removed));
         CHECK_THAT(get_job_ids_from_all_routes{}.operator()(iCtx), Equals(kept));
       }
     }

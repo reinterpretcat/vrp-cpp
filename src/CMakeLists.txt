@@ -25,6 +25,7 @@ set(SOURCE_FILES
         algorithms/construction/InsertionRouteContext.hpp
         algorithms/construction/InsertionRouteState.hpp
         algorithms/construction/InsertionProgress.hpp
+        algorithms/construction/InsertionSolutionContext.hpp
 
 
         algorithms/objectives/ObjectiveFunction.hpp

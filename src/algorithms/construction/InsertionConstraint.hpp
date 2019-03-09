@@ -3,6 +3,7 @@
 #include "algorithms/construction/InsertionActivityContext.hpp"
 #include "algorithms/construction/InsertionResult.hpp"
 #include "algorithms/construction/InsertionRouteContext.hpp"
+#include "algorithms/construction/InsertionSolutionContext.hpp"
 #include "models/common/Cost.hpp"
 #include "models/solution/Activity.hpp"
 #include "utils/extensions/Ranges.hpp"
@@ -18,9 +19,13 @@ namespace vrp::algorithms::construction {
 
 /// Specifies a base constraint behavior.
 struct Constraint {
+  /// Accepts insertion solution context allowing to update job insertion data.
+  /// Called in thread-safe context.
+  virtual void accept(InsertionSolutionContext&) const = 0;
+
   /// Accept route and updates its state to allow more efficient constraint checks.
   /// Called in thread-safe context, so it is a chance to apply some changes.
-  virtual void accept(InsertionRouteContext& context) const = 0;
+  virtual void accept(InsertionRouteContext&) const = 0;
 
   /// Returns unique constraint state keys.
   virtual ranges::any_view<int> stateKeys() const = 0;
@@ -74,9 +79,14 @@ class InsertionConstraint final {
 public:
   // region Acceptance
 
+  /// Accepts context.
+  void accept(InsertionSolutionContext& ctx) const {
+    ranges::for_each(constraints_, [&](const auto& c) { c->accept(ctx); });
+  }
+
   /// Accepts route and recalculates its states.
-  void accept(InsertionRouteContext& context) const {
-    ranges::for_each(constraints_, [&](const auto& c) { c->accept(context); });
+  void accept(InsertionRouteContext& ctx) const {
+    ranges::for_each(constraints_, [&](const auto& c) { c->accept(ctx); });
   }
 
   // endregion

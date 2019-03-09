@@ -1,5 +1,6 @@
 #include "algorithms/refinement/ruin/RuinWithProbabilities.hpp"
 
+#include "test_utils/algorithms/construction/Factories.hpp"
 #include "test_utils/fakes/FakeDistribution.hpp"
 #include "test_utils/models/Factories.hpp"
 
@@ -15,19 +16,19 @@ namespace {
 
 struct First {
   void operator()(const RefinementContext& rCtx, const Solution& sln, InsertionContext& iCtx) {
-    iCtx.unassigned.insert({as_job(vrp::test::test_build_service{}.shared()), 1});
+    iCtx.solution->unassigned.insert({as_job(vrp::test::test_build_service{}.shared()), 1});
   }
 };
 
 struct Second {
   void operator()(const RefinementContext& rCtx, const Solution& sln, InsertionContext& iCtx) {
-    iCtx.unassigned.insert({as_job(vrp::test::test_build_service{}.shared()), 2});
+    iCtx.solution->unassigned.insert({as_job(vrp::test::test_build_service{}.shared()), 2});
   }
 };
 
 struct Third {
   void operator()(const RefinementContext& rCtx, const Solution& sln, InsertionContext& iCtx) {
-    iCtx.unassigned.insert({as_job(vrp::test::test_build_service{}.shared()), 3});
+    iCtx.solution->unassigned.insert({as_job(vrp::test::test_build_service{}.shared()), 3});
   }
 };
 }
@@ -44,7 +45,7 @@ SCENARIO("ruin with probabilities can ruin the same context", "[algorithms][refi
   GIVEN("three refinement context") {
     auto random = std::make_shared<Random>(FakeDistribution<int>{{}, 0}, FakeDistribution<double>{doubles, 0});
     auto rCtx = RefinementContext{{}, random, {}, {}, 0};
-    auto iCtx = InsertionContext{{}, {}, {}, {}, {}, {}, {}};
+    auto iCtx = test_build_insertion_context{}.owned();
 
     WHEN("ruin with different probabilities") {
       ruin_with_probabilities<std::tuple<First, Probability<5, 10>>,
@@ -54,8 +55,8 @@ SCENARIO("ruin with probabilities can ruin the same context", "[algorithms][refi
         operator()(rCtx, {}, iCtx);
 
       THEN("should run expected ruin strategies") {
-        REQUIRE(iCtx.unassigned.size() == codes.size());
-        CHECK_THAT(iCtx.unassigned | ranges::view::transform([](const auto& pair) { return pair.second; }) |
+        REQUIRE(iCtx.solution->unassigned.size() == codes.size());
+        CHECK_THAT(iCtx.solution->unassigned | ranges::view::transform([](const auto& pair) { return pair.second; }) |
                      ranges::to_vector | ranges::action::sort,
                    Catch::Equals(codes));
       }

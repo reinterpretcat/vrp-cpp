@@ -45,6 +45,29 @@ private:
   InsertionProgress progress_;
 };
 
+
+/// Builds insertion progress.
+class build_insertion_solution_context {
+public:
+  build_insertion_solution_context& required(std::vector<models::problem::Job>&& value) {
+    ctx_.required = std::move(value);
+    return *this;
+  }
+
+  build_insertion_solution_context& routes(std::set<InsertionRouteContext, compare_insertion_route_contexts>&& value) {
+    ctx_.routes = std::move(value);
+    return *this;
+  }
+
+  std::shared_ptr<InsertionSolutionContext> shared() {
+    return std::make_shared<InsertionSolutionContext>(std::move(ctx_));
+  }
+
+private:
+  InsertionSolutionContext ctx_;
+};
+
+
 /// Creates build insertion context.
 class build_insertion_context {
 public:
@@ -65,13 +88,8 @@ public:
     return *this;
   }
 
-  build_insertion_context& jobs(std::vector<models::problem::Job>&& value) {
-    context_.jobs = std::move(value);
-    return *this;
-  }
-
-  build_insertion_context& routes(std::set<InsertionRouteContext, compare_insertion_route_contexts>&& value) {
-    context_.routes = std::move(value);
+  build_insertion_context& solution(const std::shared_ptr<InsertionSolutionContext>& value) {
+    context_.solution = value;
     return *this;
   }
 
@@ -84,7 +102,7 @@ public:
 
   std::shared_ptr<InsertionContext> shared() { return std::make_shared<InsertionContext>(std::move(context_)); }
 
-private:
+protected:
   InsertionContext context_;
 };
 

@@ -25,7 +25,8 @@ struct InsertionHeuristic {
   InsertionContext operator()(const InsertionContext& ctx) const {
     auto newCtx = InsertionContext(ctx);
     auto rSelector = ResultSelector(ctx);
-    while (!newCtx.jobs.empty()) {
+    while (!newCtx.solution->required.empty()) {
+      newCtx.problem->constraint->accept(*newCtx.solution);
       auto [begin, end] = JobSelector{}(newCtx);
       auto result = std::transform_reduce(pstl::execution::seq,
                                           begin,
@@ -44,7 +45,7 @@ private:
     result.visit(ranges::overload(
       [&](InsertionSuccess& success) {
         ctx.registry->use(success.context.route->actor);
-        ctx.routes.insert(success.context);
+        ctx.solution->routes.insert(success.context);
 
         // NOTE assume that activities are sorted by insertion index
         ranges::for_each(success.activities,
@@ -52,20 +53,22 @@ private:
 
         // fast erase job from vector
         std::iter_swap(
-          std::find_if(ctx.jobs.begin(),
-                       ctx.jobs.end(),
+          std::find_if(ctx.solution->required.begin(),
+                       ctx.solution->required.end(),
                        [&](const auto& job) { return models::problem::is_the_same_jobs{}(job, success.job); }),
-          ctx.jobs.end() - 1);
-        ctx.jobs.erase(ctx.jobs.end() - 1);
+          ctx.solution->required.end() - 1);
+        ctx.solution->required.erase(ctx.solution->required.end() - 1);
 
         ctx.problem->constraint->accept(success.context);
       },
       [&](InsertionFailure& failure) {
-        ranges::for_each(ctx.jobs, [&](const auto& job) { ctx.unassigned[job] = failure.constraint; });
-        ctx.jobs.clear();
+        ranges::for_each(ctx.solution->required,
+                         [&](const auto& job) { ctx.solution->unassigned[job] = failure.constraint; });
+        ctx.solution->required.clear();
       }));
 
-    ctx.progress.completeness = std::max(0.5, 1 - static_cast<double>(ctx.jobs.size()) / ctx.progress.total);
+    ctx.progress.completeness =
+      std::max(0.5, 1 - static_cast<double>(ctx.solution->required.size()) / ctx.progress.total);
   }
 
   const Evaluator evaluator_;

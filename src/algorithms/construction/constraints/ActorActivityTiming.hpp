@@ -41,6 +41,9 @@ struct ActorActivityTiming final
     return view::concat(view::single(LatestArrivalKey), view::single(WaitingKey));
   }
 
+  /// Accept solution.
+  void accept(InsertionSolutionContext&) const override {}
+
   /// Accept route and updates its insertion state.
   void accept(InsertionRouteContext& context) const override {
     using namespace ranges;

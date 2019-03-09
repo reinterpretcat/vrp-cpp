@@ -50,7 +50,9 @@ struct SoftFunctionWrapper : Base {
 
   ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>(); }
 
-  void accept(vrp::algorithms::construction::InsertionRouteContext& context) const override {}
+  void accept(vrp::algorithms::construction::InsertionSolutionContext&) const override {}
+
+  void accept(vrp::algorithms::construction::InsertionRouteContext&) const override {}
 
   Return soft(const Arg1& arg1, const Arg2& arg2) const override { return func_(arg1, arg2); }
 
@@ -63,7 +65,9 @@ struct HardFunctionWrapper : Base {
 
   ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>(); }
 
-  void accept(vrp::algorithms::construction::InsertionRouteContext& context) const override {}
+  void accept(vrp::algorithms::construction::InsertionSolutionContext&) const override {}
+
+  void accept(vrp::algorithms::construction::InsertionRouteContext&) const override {}
 
   Return hard(const Arg1& arg1, const Arg2& arg2) const override { return func_(arg1, arg2); }
 

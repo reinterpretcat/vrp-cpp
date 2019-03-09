@@ -27,13 +27,12 @@ SCENARIO("blink insertion handles solomon set problems", "[algorithms][construct
     auto evaluator = InsertionEvaluator{};
 
     WHEN("calculates solution") {
-      auto solution = BlinkInsertion<>{evaluator}.operator()(ctx);
+      auto result = BlinkInsertion<>{evaluator}.operator()(ctx);
 
       THEN("has expected solution") {
-        REQUIRE(solution.jobs.empty());
-        REQUIRE(solution.unassigned.empty());
-        REQUIRE(!solution.routes.empty());
-        REQUIRE(!solution.routes.empty());
+        REQUIRE(result.solution->required.empty());
+        REQUIRE(result.solution->unassigned.empty());
+        REQUIRE(!result.solution->routes.empty());
       }
     }
   }

@@ -39,8 +39,7 @@ struct restore_insertion_context final {
                   .owned())
       .registry(registry)
       .problem(ctx.problem)
-      .jobs(std::move(jobs))
-      .routes(std::move(routes))
+      .solution(build_insertion_solution_context{}.required(std::move(jobs)).routes(std::move(routes)).shared())
       .random(ctx.random)
       .owned();
   }

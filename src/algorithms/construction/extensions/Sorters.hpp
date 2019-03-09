@@ -10,7 +10,9 @@ namespace vrp::algorithms::construction {
 
 /// Sorts jobs in random order.
 struct random_jobs_sorter final {
-  void operator()(InsertionContext& ctx) const { ctx.random->shuffle(ctx.jobs.begin(), ctx.jobs.end()); }
+  void operator()(InsertionContext& ctx) const {
+    ctx.random->shuffle(ctx.solution->required.begin(), ctx.solution->required.end());
+  }
 };
 
 /// Sorts jobs based on their size.
@@ -18,7 +20,7 @@ template<typename Size>
 struct sized_jobs_sorter final {
   bool isDesc = true;
   void operator()(InsertionContext& ctx) const {
-    ranges::action::sort(ctx.jobs, [&](const auto& lhs, const auto& rhs) {
+    ranges::action::sort(ctx.solution->required, [&](const auto& lhs, const auto& rhs) {
       return isDesc ? cumulativeDemand(lhs) > cumulativeDemand(rhs) : cumulativeDemand(lhs) < cumulativeDemand(rhs);
     });
   }
@@ -45,7 +47,7 @@ struct ranked_jobs_sorter final {
   bool isDesc = true;
 
   void operator()(InsertionContext& ctx) const {
-    ranges::action::sort(ctx.jobs, [&](const auto& lhs, const auto& rhs) {
+    ranges::action::sort(ctx.solution->required, [&](const auto& lhs, const auto& rhs) {
       auto left = distanceToStart(ctx, lhs);
       auto right = distanceToStart(ctx, rhs);
 
