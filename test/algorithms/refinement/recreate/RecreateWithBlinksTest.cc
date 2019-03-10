@@ -39,8 +39,10 @@ SCENARIO("recreate with blinks handles simple problem", "[algorithms][refinement
                                                        std::make_shared<TestTransportCosts>()});
       auto result = recreate({problem, {}, {}},
                              test_build_insertion_context{}
-                               .jobs({as_job(test_build_service{}.location(3).shared())})
-                               .registry(std::make_shared<Registry>(fleet))
+                               .solution(build_insertion_solution_context{}
+                                           .required({as_job(test_build_service{}.location(3).shared())})
+                                           .registry(std::make_shared<Registry>(fleet))
+                                           .shared())
                                .problem(problem)
                                .owned());
 

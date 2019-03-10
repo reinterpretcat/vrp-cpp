@@ -4,6 +4,7 @@
 #include "algorithms/construction/extensions/Comparators.hpp"
 #include "models/extensions/problem/Comparators.hpp"
 #include "models/problem/Job.hpp"
+#include "models/solution/Registry.hpp"
 #include "models/solution/Route.hpp"
 
 #include <map>
@@ -26,5 +27,8 @@ struct InsertionSolutionContext final {
 
   /// Set of routes within their state.
   std::set<InsertionRouteContext, compare_insertion_route_contexts> routes;
+
+  /// Keeps track of used resources.
+  std::shared_ptr<models::solution::Registry> registry;
 };
 }

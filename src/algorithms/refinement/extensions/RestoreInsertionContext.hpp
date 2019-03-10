@@ -37,9 +37,12 @@ struct restore_insertion_context final {
                   .completeness(1 - static_cast<double>(sln.unassigned.size()) / ctx.problem->jobs->size())
                   .total(static_cast<int>(ctx.problem->jobs->size()))
                   .owned())
-      .registry(registry)
       .problem(ctx.problem)
-      .solution(build_insertion_solution_context{}.required(std::move(jobs)).routes(std::move(routes)).shared())
+      .solution(build_insertion_solution_context{}
+                  .required(std::move(jobs))
+                  .routes(std::move(routes))
+                  .registry(registry)
+                  .shared())
       .random(ctx.random)
       .owned();
   }

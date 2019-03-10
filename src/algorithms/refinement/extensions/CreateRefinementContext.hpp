@@ -30,15 +30,17 @@ struct create_refinement_context final {
                     .completeness(0)
                     .total(static_cast<int>(problem->jobs->size()))
                     .owned())
-        .registry(std::make_shared<models::solution::Registry>(*problem->fleet))
         .problem(problem)
         .random(random)
-        .solution(build_insertion_solution_context{}.required(problem->jobs->all()).shared())
+        .solution(build_insertion_solution_context{}
+                    .required(problem->jobs->all())
+                    .registry(std::make_shared<models::solution::Registry>(*problem->fleet))
+                    .shared())
         .owned());
 
     // create solution and calculate its cost
     auto sln = std::make_shared<models::Solution>(
-      models::Solution{iCtx.registry,
+      models::Solution{iCtx.solution->registry,
                        iCtx.solution->routes | view::transform([](const auto& rs) {
                          return static_cast<std::shared_ptr<const models::solution::Route>>(rs.route);
                        }) |

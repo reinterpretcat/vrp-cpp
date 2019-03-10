@@ -134,7 +134,7 @@ public:
     // iterate through list of routes plus a new one
     return ranges::accumulate(
       view::concat(ctx.solution->routes,
-                   ctx.registry->next() | view::transform([&](const auto& a) {
+                   ctx.solution->registry->next() | view::transform([&](const auto& a) {
                      const auto& dtl = a->detail;
                      auto builder =
                        build_route{}.actor(a).start(build_activity{}

@@ -48,7 +48,7 @@ SCENARIO("restore insertion context skips empty routes", "[algorithms][refinemen
       }
 
       THEN("empty route's actor is released in registry") {
-        auto available = insertionCtx.registry->available() | ranges::to_vector;
+        auto available = insertionCtx.solution->registry->available() | ranges::to_vector;
         REQUIRE(available.size() == 1);
         REQUIRE(available.front() == actor1);
       }

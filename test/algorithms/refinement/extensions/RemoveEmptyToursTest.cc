@@ -33,9 +33,9 @@ SCENARIO("remove empty tours works", "[algorithms][refinement][extensions]") {
     auto route2 = test_build_route{}.actor(actor2).shared();
     route2->tour.insert(test_build_activity{}.location(10).shared(), 1);
 
-    auto solution =
-      std::make_shared<InsertionSolutionContext>(InsertionSolutionContext{{}, {}, {}, {{route1, {}}, {route2, {}}}});
-    auto ctx = InsertionContext{{}, {}, solution, registry, {}};
+    auto solution = std::make_shared<InsertionSolutionContext>(
+      InsertionSolutionContext{{}, {}, {}, {{route1, {}}, {route2, {}}}, registry});
+    auto ctx = InsertionContext{{}, {}, solution, {}};
 
     WHEN("remove empty tours") {
       remove_empty_tours{}(ctx);
@@ -46,7 +46,7 @@ SCENARIO("remove empty tours works", "[algorithms][refinement][extensions]") {
       }
 
       THEN("empty route's actor is released in registry") {
-        auto available = ctx.registry->available() | ranges::to_vector;
+        auto available = ctx.solution->registry->available() | ranges::to_vector;
         REQUIRE(available.size() == 1);
         REQUIRE(available.front() == actor1);
       }

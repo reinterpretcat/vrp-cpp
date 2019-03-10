@@ -22,7 +22,7 @@ struct RecreateWithBlinks final {
     auto resultCtx = BlinkInsertion<>{evaluator}.operator()(iCtx);
 
     return models::Solution{
-      resultCtx.registry,
+      resultCtx.solution->registry,
       resultCtx.solution->routes | view::transform([](const auto& p) -> ConstRoute { return p.route; }) | to_vector,
       std::move(resultCtx.solution->unassigned)};
   }

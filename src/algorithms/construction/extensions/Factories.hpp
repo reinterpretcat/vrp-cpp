@@ -59,6 +59,11 @@ public:
     return *this;
   }
 
+  build_insertion_solution_context& registry(const std::shared_ptr<models::solution::Registry>& value) {
+    ctx_.registry = value;
+    return *this;
+  }
+
   std::shared_ptr<InsertionSolutionContext> shared() {
     return std::make_shared<InsertionSolutionContext>(std::move(ctx_));
   }
@@ -78,10 +83,6 @@ public:
     return *this;
   }
 
-  build_insertion_context& registry(const std::shared_ptr<models::solution::Registry>& value) {
-    context_.registry = value;
-    return *this;
-  }
 
   build_insertion_context& progress(const InsertionProgress& value) {
     context_.progress = value;

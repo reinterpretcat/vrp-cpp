@@ -11,7 +11,7 @@ struct remove_empty_tours final {
       if (it->route->tour.hasJobs()) {
         ++it;
       } else {
-        ctx.registry->free(it->route->actor);
+        ctx.solution->registry->free(it->route->actor);
         it = ctx.solution->routes.erase(it);
       }
     }

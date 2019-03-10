@@ -44,7 +44,7 @@ private:
   void insert(InsertionResult& result, InsertionContext& ctx) const {
     result.visit(ranges::overload(
       [&](InsertionSuccess& success) {
-        ctx.registry->use(success.context.route->actor);
+        ctx.solution->registry->use(success.context.route->actor);
         ctx.solution->routes.insert(success.context);
 
         // NOTE assume that activities are sorted by insertion index

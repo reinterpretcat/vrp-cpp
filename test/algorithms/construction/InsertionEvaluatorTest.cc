@@ -63,8 +63,8 @@ createContext(const Tour::Activity& prev, const Tour::Activity& next) {
     .progress(test_build_insertion_progress{}.owned())
     .solution(build_insertion_solution_context{}
                 .routes({test_build_insertion_route_context{}.insert(prev, 1).insert(next, 2).owned()})
+                .registry(std::make_shared<Registry>(*createFleet()))
                 .shared())
-    .registry(std::make_shared<Registry>(*createFleet()))
     .owned();
 }
 
@@ -100,13 +100,15 @@ namespace vrp::test {
 SCENARIO("insertion evaluator can insert service", "[algorithms][construction][insertion][service]") {
   // TODO split tests
   GIVEN("empty tour") {
-    auto context =
-      test_build_insertion_context{}
-        .problem(createProblem(std::make_shared<InsertionConstraint>()))
-        .progress(test_build_insertion_progress{}.owned())
-        .solution(build_insertion_solution_context{}.routes({test_build_insertion_route_context{}.owned()}).shared())
-        .registry(std::make_shared<Registry>(*createFleet()))
-        .owned();
+    auto context = test_build_insertion_context{}
+                     .problem(createProblem(std::make_shared<InsertionConstraint>()))
+                     .progress(test_build_insertion_progress{}.owned())
+                     .solution(build_insertion_solution_context{}
+                                 .routes({test_build_insertion_route_context{}.owned()})
+                                 .registry(std::make_shared<Registry>(*createFleet()))
+                                 .shared())
+
+                     .owned();
 
     WHEN("service is ok") {
       auto result = InsertionEvaluator{}.evaluate(DefaultService, context);
@@ -204,11 +206,8 @@ SCENARIO("insertion evaluator can handle service insertion with time constraints
          "[algorithms][construction][insertion][service]") {
   using EndLoc = std::optional<Location>;
 
-  auto [s1, v1, v2, used, cost] = GENERATE(table<Location, EndLoc, EndLoc, std::string, Cost>({
-    {3, {0}, {20}, "v1", (3 + 3) * 2},
-    {27, {0}, {20}, "v2", (7 + 7) * 2},
-    {11, {12}, {20}, "v1", (12 + 12)},
-  }));
+  auto [s1, v1, v2, used, cost] = GENERATE(table<Location, EndLoc, EndLoc, std::string, Cost>(
+    {{3, {0}, {20}, "v1", (3 + 3) * 2}, {27, {0}, {20}, "v2", (7 + 7) * 2}, {11, {12}, {20}, "v1", (12 + 12)}}));
 
   GIVEN("two different vehicles") {
     auto fleet = std::make_shared<Fleet>();
@@ -225,11 +224,12 @@ SCENARIO("insertion evaluator can handle service insertion with time constraints
     WHEN("evaluates service insertion close to best vehicle") {
       auto service = test_build_service{}.location(s1).shared();
 
-      auto result = evaluator.evaluate(as_job(service),
-                                       test_build_insertion_context{}
-                                         .problem(createProblem(constraint))
-                                         .registry(std::make_shared<Registry>(*fleet))
-                                         .owned());
+      auto result = evaluator.evaluate(
+        as_job(service),
+        test_build_insertion_context{}
+          .problem(createProblem(constraint))
+          .solution(build_insertion_solution_context{}.registry(std::make_shared<Registry>(*fleet)).shared())
+          .owned());
 
       THEN("returns correct insertion success") {
         REQUIRE(result.index() == 0);
@@ -252,7 +252,10 @@ SCENARIO("insertion evaluator can handle service insertion with violation",
       auto result = InsertionEvaluator{}.evaluate(DefaultService,
                                                   test_build_insertion_context{}
                                                     .problem(createProblem(constraint))
-                                                    .registry(std::make_shared<Registry>(*fleet))
+                                                    .solution(build_insertion_solution_context{}
+                                                                .routes({test_build_insertion_route_context{}.owned()})
+                                                                .registry(std::make_shared<Registry>(*fleet))
+                                                                .shared())
                                                     .owned());
 
       THEN("returns insertion failure with proper code") {
@@ -277,19 +280,21 @@ SCENARIO("insertion evaluator can insert sequence in empty tour", "[algorithms][
     auto fleet = createFleet();
     WHEN("sequence is inserted with activities with relaxed tw") {
       THEN("returns insertion success with two activities and proper cost") {
-        auto result = InsertionEvaluator{}.evaluate(
-          as_job(test_build_sequence{}
-                   .id("sequence")
-                   .service(test_build_service{}.id("s1").location(s1).shared())
-                   .service(test_build_service{}.id("s2").location(s2).shared())
-                   .shared()),
-          test_build_insertion_context{}
-            .problem(createProblem(fleet))
-            .progress(test_build_insertion_progress{}.owned())
-            .solution(
-              build_insertion_solution_context{}.routes({test_build_insertion_route_context{}.owned()}).shared())
-            .registry(std::make_shared<Registry>(*fleet))
-            .owned());
+        auto result =
+          InsertionEvaluator{}.evaluate(as_job(test_build_sequence{}
+                                                 .id("sequence")
+                                                 .service(test_build_service{}.id("s1").location(s1).shared())
+                                                 .service(test_build_service{}.id("s2").location(s2).shared())
+                                                 .shared()),
+                                        test_build_insertion_context{}
+                                          .problem(createProblem(fleet))
+                                          .progress(test_build_insertion_progress{}.owned())
+                                          .solution(build_insertion_solution_context{}
+                                                      .routes({test_build_insertion_route_context{}.owned()})
+                                                      .registry(std::make_shared<Registry>(*fleet))
+                                                      .shared())
+
+                                          .owned());
         REQUIRE(result.index() == 0);
         REQUIRE(ranges::get<0>(result).cost == cost);
         assertActivities(ranges::get<0>(result), {r1, r2});
@@ -316,8 +321,9 @@ SCENARIO("insertion evaluator can insert sequence in tour with one activity",
                     .routes({test_build_insertion_route_context{}
                                .insert(test_build_activity{}.location(exst).schedule({schedule, schedule}).shared(), 1)
                                .owned()})
+
+                    .registry(std::make_shared<Registry>(*fleet))
                     .shared())
-        .registry(std::make_shared<Registry>(*fleet))
         .owned();
     auto rs = *context.solution->routes.begin();
     context.problem->constraint->accept(rs);
@@ -366,8 +372,9 @@ SCENARIO("insertion evaluator can insert sequence with three activities in tour 
                                .insert(test_build_activity{}.location(loc1).schedule({sh1, sh1}).shared(), 1)
                                .insert(test_build_activity{}.location(loc2).schedule({sh2, sh2}).shared(), 2)
                                .owned()})
+
+                    .registry(std::make_shared<Registry>(*fleet))
                     .shared())
-        .registry(std::make_shared<Registry>(*fleet))
         .owned();
     auto rs = *context.solution->routes.begin();
     context.problem->constraint->accept(rs);
@@ -410,8 +417,9 @@ SCENARIO("insertion evaluator can insert sequence in tour with two activities",
                                .insert(test_build_activity{}.location(exst1).schedule({sched1, sched1}).shared(), 1)
                                .insert(test_build_activity{}.location(exst2).schedule({sched2, sched2}).shared(), 2)
                                .owned()})
+
+                    .registry(std::make_shared<Registry>(*fleet))
                     .shared())
-        .registry(std::make_shared<Registry>(*fleet))
         .owned();
     auto rs = *context.solution->routes.begin();
     context.problem->constraint->accept(rs);
@@ -436,12 +444,13 @@ SCENARIO("insertion evaluator can insert sequence in tour with two activities",
 SCENARIO("insertion evaluator can handle sequence insertion in tour with violation",
          "[algorithms][construction][insertion][sequence]") {
   for (auto hasActivityInTour : std::vector<bool>{true, false}) {
-    auto builder = test_build_insertion_context{}.registry(std::make_shared<Registry>(*createFleet()));
+    auto builder = test_build_insertion_context{};
     if (hasActivityInTour)
       builder.solution(build_insertion_solution_context{}
                          .routes({test_build_insertion_route_context{}
                                     .insert(test_build_activity{}.location(5).schedule({5, 5}).shared(), 1)
                                     .owned()})
+                         .registry(std::make_shared<Registry>(*createFleet()))
                          .shared());
 
     GIVEN("failed route constraint") {

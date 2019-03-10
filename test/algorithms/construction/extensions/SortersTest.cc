@@ -38,7 +38,6 @@ SCENARIO("sized jobs sorter can sort by job demand", "[algorithms][construction]
                                  .id("seq1")
                                  .service(test_build_service{}.demand<int>(Demand{{0, 0}, {5, 0}}).shared())
                                  .shared())})
-                 .registry({})
                  .problem({})
                  .owned();
 
@@ -70,7 +69,6 @@ SCENARIO("ranked jobs sorter can sort by distance rank", "[algorithms][construct
   GIVEN("unsorted tree services and one sequence") {
     auto ctx = test_build_insertion_context{}
                  .jobs(std::move(species))
-                 .registry({})
                  .problem(std::make_shared<Problem>(Problem{fleet, jobs, {}, {}, {}, {}}))
                  .owned();
 

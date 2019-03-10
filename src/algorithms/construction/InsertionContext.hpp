@@ -3,7 +3,6 @@
 #include "algorithms/construction/InsertionProgress.hpp"
 #include "algorithms/construction/InsertionSolutionContext.hpp"
 #include "models/Problem.hpp"
-#include "models/solution/Registry.hpp"
 #include "utils/Random.hpp"
 
 #include <map>
@@ -23,9 +22,6 @@ struct InsertionContext final {
 
   /// Solution context.
   std::shared_ptr<InsertionSolutionContext> solution;
-
-  /// Keeps track of used resources.
-  std::shared_ptr<models::solution::Registry> registry;
 
   /// Random generator.
   std::shared_ptr<utils::Random> random;

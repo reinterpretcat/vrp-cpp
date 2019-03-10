@@ -30,9 +30,10 @@ createInsertion(std::stringstream stream) {
   auto problem = ReaderType{}.operator()(stream);
   auto ctx = vrp::test::test_build_insertion_context{}
                .progress(vrp::test::test_build_insertion_progress{}.total(problem->jobs->size()).owned())
-
-               .solution(build_insertion_solution_context{}.required(problem->jobs->all()).shared())
-               .registry(std::make_shared<Registry>(*problem->fleet))
+               .solution(build_insertion_solution_context{}
+                           .required(problem->jobs->all())
+                           .registry(std::make_shared<Registry>(*problem->fleet))
+                           .shared())
                .problem(problem)
                .owned();
 
@@ -80,13 +81,13 @@ SCENARIO("cheapest insertion inserts service", "[algorithms][construction][inser
     auto insertion = CheapestInsertion{InsertionEvaluator{}};
 
     WHEN("analyzes insertion context") {
-      auto result = insertion(
-        test_build_insertion_context{}
-          .registry(std::make_shared<Registry>(*fleet))
-          .problem(problem)
-          .solution(
-            build_insertion_solution_context{}.required({as_job(test_build_service{}.location(s1).shared())}).shared())
-          .owned());
+      auto result = insertion(test_build_insertion_context{}
+                                .problem(problem)
+                                .solution(build_insertion_solution_context{}
+                                            .required({as_job(test_build_service{}.location(s1).shared())})
+                                            .registry(std::make_shared<Registry>(*fleet))
+                                            .shared())
+                                .owned());
 
       THEN("returns new context with job inserted") {
         REQUIRE(result.solution->unassigned.empty());
@@ -470,12 +471,14 @@ SCENARIO("Can solve simple open VRP problem", "[scenarios][openvrp]") {
     auto problem = std::make_shared<models::Problem>(models::Problem{{}, {}, constraint, {}, activity, transport});
 
     WHEN("run solver") {
-      auto result = CheapestInsertion{InsertionEvaluator{}}.operator()(
-        test_build_insertion_context{}
-          .registry(std::make_shared<Registry>(*fleet))
-          .problem(problem)
-          .solution(build_insertion_solution_context{}.required(std::move(jobs)).shared())
-          .owned());
+      auto result =
+        CheapestInsertion{InsertionEvaluator{}}.operator()(test_build_insertion_context{}
+                                                             .problem(problem)
+                                                             .solution(build_insertion_solution_context{}
+                                                                         .required(std::move(jobs))
+                                                                         .registry(std::make_shared<Registry>(*fleet))
+                                                                         .shared())
+                                                             .owned());
 
       THEN("has proper tour end") {
         REQUIRE(result.solution->unassigned.empty());
