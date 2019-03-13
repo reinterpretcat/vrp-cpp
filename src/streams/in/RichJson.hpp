@@ -6,6 +6,7 @@
 #include "algorithms/objectives/PenalizeUnassignedJobs.hpp"
 #include "models/Problem.hpp"
 #include "models/costs/MatrixTransportCosts.hpp"
+#include "streams/in/extensions/JsonHelpers.hpp"
 
 #include <istream>
 #include <map>
@@ -13,53 +14,9 @@
 #include <optional>
 #include <range/v3/utility/variant.hpp>
 
-namespace nlohmann {
-template<typename T>
-struct adl_serializer<std::optional<T>> {
-  static void to_json(json& j, const std::optional<T>& opt) {
-    if (opt)
-      j = *opt;
-    else
-      j = nullptr;
-  }
-
-  static void from_json(const json& j, std::optional<T>& opt) {
-    if (j.is_null())
-      opt = {};
-    else
-      opt = j.get<T>();
-  }
-};
-}
-
 namespace vrp::streams::in {
 
-namespace detail {
-
-template<typename T>
-void
-readOptional(const nlohmann::json& j, const std::string& key, T& v) {
-  if (j.find(key) != j.end()) j.at(key).get_to(v);
-}
-
-// region Common
-
-using Location = std::uint64_t;
-using Timestamp = double;
-
-struct TimeWindow {
-  Timestamp start;
-  Timestamp end;
-};
-
-void
-from_json(const nlohmann::json& j, TimeWindow& tw) {
-  j.at("start").get_to(tw.start);
-  j.at("end").get_to(tw.end);
-}
-
-// endregion
-
+namespace detail::rich {
 // region Driver
 
 struct DriverType {
@@ -374,7 +331,7 @@ struct read_rich_json_type {
     nlohmann::json j;
     input >> j;
 
-    auto problem = j.get<detail::Problem>();
+    auto problem = j.get<detail::rich::Problem>();
 
     auto transport = transportCosts(problem);
     auto activity = std::make_shared<models::costs::ActivityCosts>();
@@ -396,7 +353,7 @@ struct read_rich_json_type {
   }
 
 private:
-  std::shared_ptr<models::problem::Fleet> readFleet(const detail::Problem& problem) const {
+  std::shared_ptr<models::problem::Fleet> readFleet(const detail::rich::Problem& problem) const {
     using namespace vrp::algorithms::construction;
     using namespace vrp::models::common;
     using namespace vrp::models::problem;
@@ -441,7 +398,7 @@ private:
     return fleet;
   }
 
-  std::shared_ptr<models::problem::Jobs> readJobs(const detail::Problem& problem,
+  std::shared_ptr<models::problem::Jobs> readJobs(const detail::rich::Problem& problem,
                                                   const models::costs::TransportCosts& transport,
                                                   const models::problem::Fleet& fleet) const {
     using namespace ranges;
@@ -451,7 +408,7 @@ private:
 
     auto jobs = view::for_each(problem.plan.jobs, [](const auto& job) {
       static auto ensureDemand = [](const auto& demand) {
-        auto newDemand = demand.value_or(detail::Demand{{{0}}, {{0}}});
+        auto newDemand = demand.value_or(detail::rich::Demand{{{0}}, {{0}}});
 
         newDemand.pickup = newDemand.pickup.value_or(std::vector<int>{0});
         newDemand.delivery = newDemand.delivery.value_or(std::vector<int>{0});
@@ -492,10 +449,10 @@ private:
       };
 
       auto result = job.variant.visit(ranges::overload(  //
-        [&](const detail::Service& s) -> models::problem::Job {
+        [&](const detail::rich::Service& s) -> models::problem::Job {
           return Job{ranges::emplaced_index<0>, createService(s, job.id)};
         },
-        [&](const detail::Sequence& s) -> models::problem::Job {
+        [&](const detail::rich::Sequence& s) -> models::problem::Job {
           return models::problem::Job{
             ranges::emplaced_index<1>,
             std::make_shared<Sequence>(  //
@@ -516,7 +473,7 @@ private:
     return std::make_shared<models::problem::Jobs>(models::problem::Jobs{transport, fleet, jobs});
   }
 
-  std::shared_ptr<models::costs::MatrixTransportCosts> transportCosts(const detail::Problem& problem) const {
+  std::shared_ptr<models::costs::MatrixTransportCosts> transportCosts(const detail::rich::Problem& problem) const {
     using namespace vrp::models::costs;
 
     auto durations = MatrixTransportCosts::DurationProfiles{};

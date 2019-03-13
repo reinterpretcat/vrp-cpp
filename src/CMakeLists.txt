@@ -99,10 +99,12 @@ set(SOURCE_FILES
         models/Problem.hpp
         models/Solution.hpp
 
+        streams/in/HereJson.hpp
         streams/in/Solomon.hpp
         streams/in/RichJson.hpp
         streams/in/LiLim.hpp
         streams/in/extensions/SolomonCosts.hpp
+        streams/in/extensions/JsonHelpers.hpp
         streams/out/DumpSolutionAsText.hpp
 
         utils/Collections.hpp
