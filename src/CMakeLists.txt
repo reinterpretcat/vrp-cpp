@@ -6,6 +6,7 @@ set(SOURCE_FILES
 
         algorithms/construction/constraints/ActorActivityTiming.hpp
         algorithms/construction/constraints/ActorJobLock.hpp
+        algorithms/construction/constraints/ConditionalJob.hpp
         algorithms/construction/constraints/VehicleActivitySize.hpp
 
         algorithms/construction/extensions/Comparators.hpp

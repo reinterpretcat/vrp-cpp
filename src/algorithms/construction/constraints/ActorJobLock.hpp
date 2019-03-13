@@ -11,11 +11,7 @@ struct ActorJobLock final : public HardRouteConstraint {
 
   ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>(); }
 
-
-  /// Accept solution.
-  void accept(InsertionSolutionContext&) const override {
-    // TODO
-  }
+  void accept(InsertionSolutionContext&) const override {}
 
   void accept(InsertionRouteContext&) const override {}
 
