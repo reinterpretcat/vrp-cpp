@@ -1,7 +1,7 @@
 #include "Solver.hpp"
 
-#include "streams/in/LiLim.hpp"
-#include "streams/in/Solomon.hpp"
+#include "streams/in/scientific/LiLim.hpp"
+#include "streams/in/scientific/Solomon.hpp"
 #include "test_utils/algorithms/refinement/LogAndValidate.hpp"
 #include "test_utils/streams/LiLimStreams.hpp"
 #include "test_utils/streams/SolomonStreams.hpp"

@@ -1,4 +1,4 @@
-#include "streams/in/Solomon.hpp"
+#include "streams/in/scientific/Solomon.hpp"
 
 #include "algorithms/construction/constraints/VehicleActivitySize.hpp"
 #include "models/extensions/problem/Helpers.hpp"

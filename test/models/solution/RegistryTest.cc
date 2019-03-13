@@ -1,6 +1,6 @@
 #include "models/solution/Registry.hpp"
 
-#include "streams/in/Solomon.hpp"
+#include "streams/in/scientific/Solomon.hpp"
 #include "test_utils/models/Factories.hpp"
 #include "test_utils/streams/SolomonStreams.hpp"
 

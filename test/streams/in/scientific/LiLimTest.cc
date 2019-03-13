@@ -1,4 +1,4 @@
-#include "streams/in/LiLim.hpp"
+#include "streams/in/scientific/LiLim.hpp"
 
 #include "models/extensions/problem/Helpers.hpp"
 #include "test_utils/streams/LiLimStreams.hpp"

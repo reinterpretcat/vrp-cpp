@@ -1,7 +1,7 @@
 #include "algorithms/refinement/recreate/RecreateWithBlinks.hpp"
 
 #include "algorithms/objectives/PenalizeUnassignedJobs.hpp"
-#include "streams/in/Solomon.hpp"
+#include "streams/in/scientific/Solomon.hpp"
 #include "test_utils/algorithms/construction/Factories.hpp"
 #include "test_utils/fakes/TestTransportCosts.hpp"
 #include "test_utils/models/Factories.hpp"

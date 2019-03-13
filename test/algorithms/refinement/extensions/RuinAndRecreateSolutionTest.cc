@@ -1,7 +1,7 @@
 #include "algorithms/refinement/extensions/RuinAndRecreateSolution.hpp"
 
 #include "algorithms/refinement/extensions/CreateRefinementContext.hpp"
-#include "streams/in/Solomon.hpp"
+#include "streams/in/scientific/Solomon.hpp"
 #include "test_utils/streams/SolomonStreams.hpp"
 
 #include <catch/catch.hpp>

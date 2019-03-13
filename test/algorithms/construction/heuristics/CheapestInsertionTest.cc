@@ -2,8 +2,8 @@
 
 #include "algorithms/construction/constraints/ActorActivityTiming.hpp"
 #include "algorithms/construction/constraints/VehicleActivitySize.hpp"
-#include "streams/in/LiLim.hpp"
-#include "streams/in/Solomon.hpp"
+#include "streams/in/scientific/LiLim.hpp"
+#include "streams/in/scientific/Solomon.hpp"
 #include "test_utils/algorithms/construction/Factories.hpp"
 #include "test_utils/algorithms/construction/Results.hpp"
 #include "test_utils/fakes/TestTransportCosts.hpp"

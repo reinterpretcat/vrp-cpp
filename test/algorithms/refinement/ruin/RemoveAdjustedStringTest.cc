@@ -1,7 +1,7 @@
 #include "algorithms/refinement/ruin/RemoveAdjustedString.hpp"
 
 #include "algorithms/refinement/extensions/RestoreInsertionContext.hpp"
-#include "streams/in/LiLim.hpp"
+#include "streams/in/scientific/LiLim.hpp"
 #include "test_utils/StreamSolver.hpp"
 #include "test_utils/algorithms/construction/Results.hpp"
 #include "test_utils/algorithms/refinement/MatrixRoutes.hpp"
