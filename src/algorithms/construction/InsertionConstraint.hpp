@@ -91,6 +91,17 @@ public:
 
   // endregion
 
+  // region Add generic
+
+  /// Adds generic constraint.
+  InsertionConstraint& add(std::shared_ptr<Constraint> constraint) {
+    addStateKeys(constraint->stateKeys());
+    constraints_.insert(constraint);
+    return *this;
+  }
+
+  // endregion
+
   // region Add route
 
   /// Adds hard route constraints

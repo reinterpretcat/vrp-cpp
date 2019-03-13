@@ -11,7 +11,7 @@
 namespace vrp::algorithms::construction {
 
 /// Allows to assign jobs with some condition.
-struct ConditionalJob final : public HardRouteConstraint {
+struct ConditionalJob final : public Constraint {
   /// Specifies a predicate type which returns true when job is considered as required.
   using Predicate = std::function<bool(const InsertionSolutionContext&, const models::problem::Job& job)>;
 
@@ -29,10 +29,6 @@ struct ConditionalJob final : public HardRouteConstraint {
   }
 
   void accept(InsertionRouteContext&) const override {}
-
-  HardRouteConstraint::Result hard(const InsertionRouteContext&, const HardRouteConstraint::Job&) const override {
-    return {};
-  }
 
 private:
   template<typename F>
