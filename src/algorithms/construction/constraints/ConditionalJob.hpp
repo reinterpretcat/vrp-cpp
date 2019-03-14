@@ -23,9 +23,9 @@ struct ConditionalJob final : public Constraint {
   void accept(InsertionSolutionContext& ctx) const override {
     // NOTE we scan all jobs as we don't know how much solution has changed.
 
-    analyzeJobs(ctx.required, ctx.optional, [&](const auto& job) { return !predicate_(ctx, job); });
+    analyzeJobs(ctx.required, ctx.ignored, [&](const auto& job) { return !predicate_(ctx, job); });
 
-    analyzeJobs(ctx.optional, ctx.required, [&](const auto& job) { return predicate_(ctx, job); });
+    analyzeJobs(ctx.ignored, ctx.required, [&](const auto& job) { return predicate_(ctx, job); });
   }
 
   void accept(InsertionRouteContext&) const override {}

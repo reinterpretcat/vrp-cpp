@@ -20,9 +20,9 @@ struct InsertionSolutionContext final {
   std::vector<models::problem::Job> required;
 
   /// List of jobs which at the moment does not require assignment and might be ignored.
-  std::vector<models::problem::Job> optional;
+  std::vector<models::problem::Job> ignored;
 
-  /// Map of jobs within reason code.
+  /// Map of jobs which cannot be assigned and within reason code.
   std::map<models::problem::Job, int, models::problem::compare_jobs> unassigned;
 
   /// Set of routes within their state.

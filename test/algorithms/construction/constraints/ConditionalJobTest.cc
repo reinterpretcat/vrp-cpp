@@ -13,8 +13,8 @@ using namespace ranges;
 
 namespace vrp::test {
 
-SCENARIO("job can be promoted from optional list", "[algorithms][construction][constraints]") {
-  GIVEN("three jobs in optional list") {
+SCENARIO("job can be promoted from ignored list", "[algorithms][construction][constraints]") {
+  GIVEN("three jobs in ignored list") {
     auto ctx = InsertionSolutionContext{
       {},
       {
@@ -32,7 +32,7 @@ SCENARIO("job can be promoted from optional list", "[algorithms][construction][c
 
       THEN("one is promoted to required") {
         CHECK_THAT(get_job_ids_from_jobs{}.operator()(ctx.required), Catch::Equals(std::vector<std::string>{"s1"}));
-        CHECK_THAT(get_job_ids_from_jobs{}.operator()(ctx.optional),
+        CHECK_THAT(get_job_ids_from_jobs{}.operator()(ctx.ignored),
                    Catch::Equals(std::vector<std::string>{"s0", "s2"}));
       }
     }
@@ -40,7 +40,7 @@ SCENARIO("job can be promoted from optional list", "[algorithms][construction][c
 }
 
 SCENARIO("job can be promoted from required list", "[algorithms][construction][constraints]") {
-  GIVEN("three jobs in optional list") {
+  GIVEN("three jobs in ignored list") {
     auto ctx = InsertionSolutionContext{
       {
         as_job(test_build_service{}.id("s0").shared()),
@@ -56,17 +56,17 @@ SCENARIO("job can be promoted from required list", "[algorithms][construction][c
     WHEN("accepts solution change") {
       ConditionalJob{[](const auto&, const auto& job) { return get_job_id{}(job) != "s1"; }}.accept(ctx);
 
-      THEN("one is promoted to optional") {
+      THEN("one is promoted to ignored") {
         CHECK_THAT(get_job_ids_from_jobs{}.operator()(ctx.required),
                    Catch::Equals(std::vector<std::string>{"s0", "s2"}));
-        CHECK_THAT(get_job_ids_from_jobs{}.operator()(ctx.optional), Catch::Equals(std::vector<std::string>{"s1"}));
+        CHECK_THAT(get_job_ids_from_jobs{}.operator()(ctx.ignored), Catch::Equals(std::vector<std::string>{"s1"}));
       }
     }
   }
 }
 
-SCENARIO("jobs can be moved across required and optional lists", "[algorithms][construction][constraints]") {
-  GIVEN("jobs in required and optional lists") {
+SCENARIO("jobs can be moved across required and ignored lists", "[algorithms][construction][constraints]") {
+  GIVEN("jobs in required and ignored lists") {
     auto ctx = InsertionSolutionContext{
       {
         as_job(test_build_service{}.id("s0").shared()),
@@ -93,7 +93,7 @@ SCENARIO("jobs can be moved across required and optional lists", "[algorithms][c
       THEN("jobs are moved across lists according to predicate") {
         CHECK_THAT(get_job_ids_from_jobs{}.operator()(ctx.required),
                    Catch::Equals(std::vector<std::string>{"s0", "s2", "s4"}));
-        CHECK_THAT(get_job_ids_from_jobs{}.operator()(ctx.optional),
+        CHECK_THAT(get_job_ids_from_jobs{}.operator()(ctx.ignored),
                    Catch::Equals(std::vector<std::string>{"s1", "s3", "s5"}));
       }
     }
