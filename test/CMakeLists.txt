@@ -64,6 +64,7 @@ set(SOURCE_FILES
         test_utils/streams/SolomonBuilder.hpp
         test_utils/streams/SolomonStreams.hpp
 
+        streams/in/json/HereJsonTest.cc
         streams/in/json/RichJsonTest.cc
         streams/in/scientific/LiLimTest.cc
         streams/in/scientific/SolomonTest.cc

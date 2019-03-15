@@ -43,7 +43,7 @@ struct TimeWindow {
   Timestamp end;
 };
 
-void
+inline void
 from_json(const nlohmann::json& j, TimeWindow& tw) {
   j.at("start").get_to(tw.start);
   j.at("end").get_to(tw.end);
