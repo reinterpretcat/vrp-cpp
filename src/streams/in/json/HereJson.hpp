@@ -7,12 +7,16 @@
 #include "models/Problem.hpp"
 #include "models/costs/MatrixTransportCosts.hpp"
 #include "streams/in/extensions/JsonHelpers.hpp"
+#include "utils/Date.hpp"
 
 #include <istream>
+#include <limits>
 #include <map>
 #include <nlohmann/json.hpp>
 #include <optional>
 #include <range/v3/utility/variant.hpp>
+#include <tuple>
+#include <unordered_map>
 
 namespace vrp::streams::in {
 
@@ -246,6 +250,17 @@ from_json(const nlohmann::json& j, Problem& p) {
 
 /// Parses HERE VRP problem definition from json.
 struct read_here_json_type {
+private:
+  struct coord_less final {
+    bool operator()(const std::pair<double, double>& lhs, const std::pair<double, double>& rhs) const {
+      return std::tie(lhs.first, lhs.second) < std::tie(rhs.first, rhs.second);
+    }
+  };
+
+  ///
+  using CoordIndex = std::map<std::pair<double, double>, size_t, coord_less>;
+
+public:
   std::shared_ptr<models::Problem> operator()(std::istream& input) const {
     using namespace vrp::algorithms::construction;
 
@@ -254,7 +269,167 @@ struct read_here_json_type {
 
     auto problem = j.get<detail::here::Problem>();
 
-    return std::make_shared<models::Problem>();
+    auto coordIndex = createCoordIndex(problem);
+
+    auto transport = transportCosts(problem);
+    auto activity = std::make_shared<models::costs::ActivityCosts>();
+
+    auto fleet = readFleet(problem, coordIndex);
+    auto jobs = readJobs(problem, coordIndex, *transport, *fleet);
+
+    auto constraint = std::make_shared<InsertionConstraint>();
+    constraint->add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(fleet, transport, activity))
+      .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>());
+
+    return std::make_shared<models::Problem>(
+      models::Problem{fleet,
+                      jobs,
+                      constraint,
+                      std::make_shared<algorithms::objectives::penalize_unassigned_jobs<10000>>(),
+                      activity,
+                      transport});
+  }
+
+private:
+  /// Creates coordinate index to match routing data.
+  CoordIndex createCoordIndex(const detail::here::Problem& problem) const {
+    auto index = CoordIndex{};
+
+    auto addCoord = [&](const auto& location) {
+      assert(location.size() == 2);
+      auto value = std::make_pair(location[0], location[1]);
+      if (index.find(value) == index.end()) { index[value] = index.size(); }
+    };
+
+    ranges::for_each(problem.plan.jobs, [&](const auto& job) {
+      if (job.places.pickup) addCoord(job.places.pickup.value().location);
+      if (job.places.delivery) addCoord(job.places.delivery.value().location);
+    });
+
+    ranges::for_each(problem.fleet.types, [&](const auto& vehicle) {
+      addCoord(vehicle.places.start.location);
+      if (vehicle.places.end) addCoord(vehicle.places.end.value().location);
+    });
+
+    return std::move(index);
+  }
+
+  std::pair<double, double> asCoord(const std::vector<double>& location) const {
+    assert(location.size() == 2);
+    return std::make_pair(location[0], location[1]);
+  }
+
+  std::shared_ptr<models::problem::Fleet> readFleet(const detail::here::Problem& problem,
+                                                    const CoordIndex& coordIndex) const {
+    using namespace vrp::algorithms::construction;
+    using namespace vrp::models::common;
+    using namespace vrp::models::problem;
+    using namespace vrp::utils;
+
+    auto dateParser = parse_date_from_rc3339{};
+
+    auto fleet = std::make_shared<Fleet>();
+    ranges::for_each(problem.fleet.types, [&](const auto& vehicle) {
+      ranges::for_each(ranges::view::closed_indices(1, vehicle.amount), [&](auto index) {
+        assert(vehicle.capacity.size() == 1);
+
+        auto details = std::vector<Vehicle::Detail>{Vehicle::Detail{
+          coordIndex.at(asCoord(vehicle.places.start.location)),
+          vehicle.places.end ? std::make_optional(coordIndex.at(asCoord(vehicle.places.end.value().location)))
+                             : std::optional<models::common::Location>{},
+          TimeWindow{static_cast<double>(dateParser(vehicle.places.start.time)),
+                     vehicle.places.end ? static_cast<double>(dateParser(vehicle.places.end.value().time))
+                                        : std::numeric_limits<double>::max()}}};
+
+        fleet->add(Vehicle{vehicle.profile,
+                           Costs{vehicle.costs.fixed.value_or(0),
+                                 vehicle.costs.distance,
+                                 vehicle.costs.time,
+                                 vehicle.costs.time,
+                                 vehicle.costs.time},
+
+                           Dimensions{{"id", vehicle.id + "_" + std::to_string(index)},
+                                      {VehicleActivitySize<int>::DimKeyCapacity, vehicle.capacity.front()}},
+
+                           details});
+      });
+    });
+
+    fleet->add(Driver{Costs{0, 0, 0, 0, 0}, Dimensions{{"id", "driver"}}});
+
+    return fleet;
+  }
+
+  std::shared_ptr<models::problem::Jobs> readJobs(const detail::here::Problem& problem,
+                                                  const CoordIndex& coordIndex,
+                                                  const models::costs::TransportCosts& transport,
+                                                  const models::problem::Fleet& fleet) const {
+    using namespace ranges;
+    using namespace algorithms::construction;
+    using namespace models::common;
+    using namespace models::problem;
+    using namespace vrp::utils;
+
+    auto dateParser = parse_date_from_rc3339{};
+
+    auto jobs = view::for_each(problem.plan.jobs, [&](const auto& job) {
+      assert(job.places.pickup || job.places.delivery);
+
+      static auto createDemand = [](const auto& job, bool isPickup, bool isFixed) {
+        assert(job.demand.size() == 1);
+        auto value = job.demand.front();
+        return VehicleActivitySize<int>::Demand{{isFixed && isPickup ? value : 0, !isFixed && isPickup ? value : 0},
+                                                {isFixed && !isPickup ? value : 0, !isFixed && !isPickup ? value : 0}};
+      };
+
+      static auto createService = [&](const std::string& id, const auto& place, const auto& demand) {
+        auto times = place.times.has_value()  //
+          ? ranges::accumulate(place.times.value(),
+                               std::vector<TimeWindow>{},
+                               [&](auto& acc, const auto& time) {
+                                 acc.push_back({static_cast<double>(dateParser(time.at(0))),
+                                                static_cast<double>(dateParser(time.at(1)))});
+                                 return std::move(acc);
+                               })
+          : std::vector<TimeWindow>{TimeWindow{0, std::numeric_limits<double>::max()}};
+        return std::make_shared<Service>(
+          Service{{Service::Detail{coordIndex.at(asCoord(place.location)), place.duration, std::move(times)}},
+                  Dimensions{{"id", id}, {VehicleActivitySize<int>::DimKeyDemand, demand}}});
+      };
+
+      // shipment
+      if (job.places.pickup && job.places.delivery) {
+        return yield(Job{ranges::emplaced_index<1>,
+                         std::make_shared<Sequence>(Sequence{
+                           {createService(job.id, job.places.pickup.value(), createDemand(job, true, false)),
+                            createService(job.id, job.places.delivery.value(), createDemand(job, false, false))},
+                           Dimensions{{"id", job.id}}})});
+        // pickup
+      } else if (job.places.pickup) {
+        return yield(Job{ranges::emplaced_index<0>,
+                         createService(job.id, job.places.pickup.value(), createDemand(job, true, true))});
+      }
+
+      // delivery
+      return yield(Job{ranges::emplaced_index<0>,
+                       createService(job.id, job.places.delivery.value(), createDemand(job, false, true))});
+    });
+
+    return std::make_shared<models::problem::Jobs>(models::problem::Jobs{transport, fleet, jobs});
+  }
+
+  std::shared_ptr<models::costs::MatrixTransportCosts> transportCosts(const detail::here::Problem& problem) const {
+    using namespace vrp::models::costs;
+
+    auto durations = MatrixTransportCosts::DurationProfiles{};
+    auto distances = MatrixTransportCosts::DistanceProfiles{};
+    ranges::for_each(problem.matrices, [&](const auto& matrix) {
+      // TODO check that each profile is defined only once.
+      durations[matrix.profile] = std::move(matrix.durations);
+      distances[matrix.profile] = std::move(matrix.distances);
+    });
+
+    return std::make_shared<MatrixTransportCosts>(MatrixTransportCosts{std::move(durations), std::move(distances)});
   }
 };
 }

@@ -108,6 +108,7 @@ set(SOURCE_FILES
         streams/out/DumpSolutionAsText.hpp
 
         utils/Collections.hpp
+        utils/Date.hpp
         utils/Random.hpp
         utils/Measure.hpp
         utils/extensions/Hash.hpp

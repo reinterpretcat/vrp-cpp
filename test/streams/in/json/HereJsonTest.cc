@@ -1,6 +1,22 @@
 #include "streams/in/json/HereJson.hpp"
 
+#include <any>
 #include <catch/catch.hpp>
+
+using namespace vrp::algorithms::construction;
+using namespace vrp::models::problem;
+using namespace vrp::models::common;
+
+using Demand = VehicleActivitySize<int>::Demand;
+
+namespace {
+
+Job
+getJobAt(size_t index, const Jobs& jobs) {
+  auto v = jobs.all() | ranges::to_vector;
+  return v.at(index);
+}
+}
 
 namespace vrp::test {
 
@@ -29,27 +45,29 @@ SCENARIO("here json can read problem from stream", "[streams][in][json]") {
             },
             {
                 "id": "shipment_job",
-                "demand": [1],
+                "demand": [2],
                 "places": {
                     "pickup": {
-                        "duration": 100,
-                        "location": [52.48300, 13.4420]
+                        "duration": 110,
+                        "location": [52.48300, 13.4420],
+                        "times" : [["1970-01-01T00:00:10Z", "1970-01-01T00:00:30Z"]]
                     },
                     "delivery": {
-                        "duration": 100,
-                        "location": [52.48325, 13.4436]
+                        "duration": 120,
+                        "location": [52.48325, 13.4436],
+                        "times" : [["1970-01-01T00:00:50Z", "1970-01-01T00:01:00Z"]]
                     }
                 }
             },
             {
                 "id": "pickup_job",
-                "demand": [1],
+                "demand": [3],
                 "skills": ["unique2"],
                 "places": {
                     "pickup": {
-                        "duration": 100,
+                        "duration": 90,
                         "location": [52.48321, 13.4438],
-                        "times" : [["1970-01-01T00:00:00Z", "1970-01-01T00:01:40Z"]]
+                        "times" : [["1970-01-01T00:00:10Z", "1970-01-01T00:01:10Z"]]
                     }
                 }
             }
@@ -112,11 +130,80 @@ SCENARIO("here json can read problem from stream", "[streams][in][json]") {
 
     WHEN("read from stream") {
       auto problem = streams::in::read_here_json_type{}(ss);
-      THEN("creates problem") {
+
+      THEN("creates problem with expected fleet size") {
         REQUIRE(ranges::distance(problem->fleet->drivers()) == 1);
         REQUIRE(ranges::distance(problem->fleet->vehicles()) == 2);
         REQUIRE(ranges::distance(problem->fleet->profiles()) == 1);
-        REQUIRE(problem->jobs->size() == 3);
+      }
+
+      THEN("creates problem with expected plan size") { REQUIRE(problem->jobs->size() == 3); }
+
+      THEN("creates expected delivery job") {
+        auto delivery = ranges::get<0>(getJobAt(0, *problem->jobs));
+
+        REQUIRE(delivery->details.size() == 1);
+        REQUIRE(delivery->details.front().location.value() == 0);
+        REQUIRE(delivery->details.front().duration == 100);
+        REQUIRE(delivery->details.front().times.size() == 2);
+        REQUIRE(delivery->details.front().times.at(0).start == 0);
+        REQUIRE(delivery->details.front().times.at(0).end == 100);
+        REQUIRE(delivery->details.front().times.at(1).start == 110);
+        REQUIRE(delivery->details.front().times.at(1).end == 120);
+        REQUIRE(std::any_cast<std::string>(delivery->dimens.at("id")) == "delivery_job");
+        REQUIRE(std::any_cast<Demand>(delivery->dimens.at("demand")).pickup.first == 0);
+        REQUIRE(std::any_cast<Demand>(delivery->dimens.at("demand")).pickup.second == 0);
+        REQUIRE(std::any_cast<Demand>(delivery->dimens.at("demand")).delivery.first == 1);
+        REQUIRE(std::any_cast<Demand>(delivery->dimens.at("demand")).delivery.second == 0);
+      }
+
+      THEN("creates expected shipment job") {
+        auto shipment = ranges::get<1>(getJobAt(1, *problem->jobs));
+
+        REQUIRE(shipment->services.size() == 2);
+        REQUIRE(std::any_cast<std::string>(shipment->dimens.at("id")) == "shipment_job");
+
+        auto pickup = shipment->services.at(0);
+        REQUIRE(pickup->details.size() == 1);
+        REQUIRE(pickup->details.front().location.value() == 1);
+        REQUIRE(pickup->details.front().duration == 110);
+        REQUIRE(pickup->details.front().times.size() == 1);
+        REQUIRE(pickup->details.front().times.at(0).start == 10);
+        REQUIRE(pickup->details.front().times.at(0).end == 30);
+        REQUIRE(std::any_cast<std::string>(pickup->dimens.at("id")) == "shipment_job");
+        REQUIRE(std::any_cast<Demand>(pickup->dimens.at("demand")).pickup.first == 0);
+        REQUIRE(std::any_cast<Demand>(pickup->dimens.at("demand")).pickup.second == 2);
+        REQUIRE(std::any_cast<Demand>(pickup->dimens.at("demand")).delivery.first == 0);
+        REQUIRE(std::any_cast<Demand>(pickup->dimens.at("demand")).delivery.second == 0);
+
+        auto delivery = shipment->services.at(1);
+        REQUIRE(delivery->details.size() == 1);
+        REQUIRE(delivery->details.front().location.value() == 0);
+        REQUIRE(delivery->details.front().duration == 120);
+        REQUIRE(delivery->details.front().times.size() == 1);
+        REQUIRE(delivery->details.front().times.at(0).start == 50);
+        REQUIRE(delivery->details.front().times.at(0).end == 60);
+        REQUIRE(std::any_cast<std::string>(delivery->dimens.at("id")) == "shipment_job");
+        REQUIRE(std::any_cast<Demand>(delivery->dimens.at("demand")).pickup.first == 0);
+        REQUIRE(std::any_cast<Demand>(delivery->dimens.at("demand")).pickup.second == 0);
+        REQUIRE(std::any_cast<Demand>(delivery->dimens.at("demand")).delivery.first == 0);
+        REQUIRE(std::any_cast<Demand>(delivery->dimens.at("demand")).delivery.second == 2);
+      }
+
+      THEN("creates expected pickup job") {
+        auto pickup = ranges::get<0>(getJobAt(2, *problem->jobs));
+
+        REQUIRE(pickup->details.size() == 1);
+        REQUIRE(pickup->details.front().location.value() == 2);
+        REQUIRE(pickup->details.front().duration == 90);
+        REQUIRE(pickup->details.front().times.size() == 1);
+        REQUIRE(pickup->details.front().times.at(0).start == 10);
+        REQUIRE(pickup->details.front().times.at(0).end == 70);
+        REQUIRE(std::any_cast<std::string>(pickup->dimens.at("id")) == "pickup_job");
+        REQUIRE(std::any_cast<Demand>(pickup->dimens.at("demand")).pickup.first == 3);
+        REQUIRE(std::any_cast<Demand>(pickup->dimens.at("demand")).pickup.second == 0);
+        REQUIRE(std::any_cast<Demand>(pickup->dimens.at("demand")).delivery.first == 0);
+        REQUIRE(std::any_cast<Demand>(pickup->dimens.at("demand")).delivery.second == 0);
       }
     }
   }

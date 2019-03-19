@@ -69,6 +69,8 @@ set(SOURCE_FILES
         streams/in/scientific/LiLimTest.cc
         streams/in/scientific/SolomonTest.cc
 
+        utils/DateTest.cc
+
         SolverTest.cc
 
         )
