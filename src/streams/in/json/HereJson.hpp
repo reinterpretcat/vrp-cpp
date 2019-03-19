@@ -309,6 +309,8 @@ private:
     ranges::for_each(problem.fleet.types, [&](const auto& vehicle) {
       addCoord(vehicle.places.start.location);
       if (vehicle.places.end) addCoord(vehicle.places.end.value().location);
+      if (vehicle.vehicleBreak && vehicle.vehicleBreak.value().location)
+        addCoord(vehicle.vehicleBreak.value().location.value());
     });
 
     return std::move(index);
@@ -330,17 +332,17 @@ private:
 
     auto fleet = std::make_shared<Fleet>();
     ranges::for_each(problem.fleet.types, [&](const auto& vehicle) {
+      assert(vehicle.capacity.size() == 1);
+
+      auto details = std::vector<Vehicle::Detail>{Vehicle::Detail{
+        coordIndex.at(asCoord(vehicle.places.start.location)),
+        vehicle.places.end ? std::make_optional(coordIndex.at(asCoord(vehicle.places.end.value().location)))
+                           : std::optional<models::common::Location>{},
+        TimeWindow{static_cast<double>(dateParser(vehicle.places.start.time)),
+                   vehicle.places.end ? static_cast<double>(dateParser(vehicle.places.end.value().time))
+                                      : std::numeric_limits<double>::max()}}};
+
       ranges::for_each(ranges::view::closed_indices(1, vehicle.amount), [&](auto index) {
-        assert(vehicle.capacity.size() == 1);
-
-        auto details = std::vector<Vehicle::Detail>{Vehicle::Detail{
-          coordIndex.at(asCoord(vehicle.places.start.location)),
-          vehicle.places.end ? std::make_optional(coordIndex.at(asCoord(vehicle.places.end.value().location)))
-                             : std::optional<models::common::Location>{},
-          TimeWindow{static_cast<double>(dateParser(vehicle.places.start.time)),
-                     vehicle.places.end ? static_cast<double>(dateParser(vehicle.places.end.value().time))
-                                        : std::numeric_limits<double>::max()}}};
-
         fleet->add(Vehicle{vehicle.profile,
                            Costs{vehicle.costs.fixed.value_or(0),
                                  vehicle.costs.distance,
@@ -372,6 +374,7 @@ private:
 
     auto dateParser = parse_date_from_rc3339{};
 
+    // read normal jobs
     auto jobs = view::for_each(problem.plan.jobs, [&](const auto& job) {
       assert(job.places.pickup || job.places.delivery);
 
@@ -414,6 +417,31 @@ private:
       return yield(Job{ranges::emplaced_index<0>,
                        createService(job.id, job.places.delivery.value(), createDemand(job, false, true))});
     });
+
+    // convert vehicle breaks to conditional jobs
+    ranges::for_each(
+      problem.fleet.types | ranges::view::filter([](const auto& v) { return v.vehicleBreak.has_value(); }),
+      [&](const auto& vehicle) {
+        const auto& model = vehicle.vehicleBreak.value();
+
+        auto breakService = std::make_shared<Service>(Service{
+          {Service::Detail{model.location
+                             ? std::make_optional<Location>(Location{coordIndex.at(asCoord(model.location.value()))})
+                             : std::make_optional<Location>(),
+                           model.duration,
+                           ranges::accumulate(model.times,
+                                              std::vector<TimeWindow>{},
+                                              [&](auto& acc, const auto& time) {
+                                                acc.push_back({static_cast<double>(dateParser(time.at(0))),
+                                                               static_cast<double>(dateParser(time.at(1)))});
+                                                return std::move(acc);
+                                              })}},
+          Dimensions{{"id", "break"}}});
+
+        ranges::for_each(ranges::view::closed_indices(1, vehicle.amount), [&](auto index) {
+          // TODO add break as conditional jobs
+        });
+      });
 
     return std::make_shared<models::problem::Jobs>(models::problem::Jobs{transport, fleet, jobs});
   }
