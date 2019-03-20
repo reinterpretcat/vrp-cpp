@@ -137,7 +137,7 @@ SCENARIO("here json can read problem from stream", "[streams][in][json]") {
     WHEN("read from stream") {
       auto problem = streams::in::read_here_json_type{}(ss);
 
-      THEN("creates problem with expected plan size") { REQUIRE(problem->jobs->size() == 3); }
+      THEN("creates problem with expected plan size") { REQUIRE(problem->jobs->size() == 3 + 2); }
 
       THEN("creates expected delivery job") {
         auto delivery = ranges::get<0>(getJobAt(0, *problem->jobs));

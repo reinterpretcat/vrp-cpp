@@ -366,16 +366,26 @@ private:
                                                   const CoordIndex& coordIndex,
                                                   const models::costs::TransportCosts& transport,
                                                   const models::problem::Fleet& fleet) const {
+    // TODO just concat with jobs and check:
+    //  1. ruin handles conditional jobs correctly
+    //  2. CreateRefinementContext adds all jobs as required
+    return std::make_shared<models::problem::Jobs>(models::problem::Jobs{
+      transport,
+      fleet,
+      ranges::view::concat(readRequiredJobs(problem, coordIndex), readConditionalJobs(problem, coordIndex)),
+    });
+  }
+
+  ranges::any_view<models::problem::Job> readRequiredJobs(const detail::here::Problem& problem,
+                                                          const CoordIndex& coordIndex) const {
     using namespace ranges;
     using namespace algorithms::construction;
     using namespace models::common;
     using namespace models::problem;
-    using namespace vrp::utils;
 
-    auto dateParser = parse_date_from_rc3339{};
+    auto dateParser = vrp::utils::parse_date_from_rc3339{};
 
-    // read normal jobs
-    auto jobs = view::for_each(problem.plan.jobs, [&](const auto& job) {
+    return view::for_each(problem.plan.jobs, [&, dateParser](const auto& job) {
       assert(job.places.pickup || job.places.delivery);
 
       static auto createDemand = [](const auto& job, bool isPickup, bool isFixed) {
@@ -385,7 +395,7 @@ private:
                                                 {isFixed && !isPickup ? value : 0, !isFixed && !isPickup ? value : 0}};
       };
 
-      static auto createService = [&](const std::string& id, const auto& place, const auto& demand) {
+      static auto createService = [&, dateParser](const std::string& id, const auto& place, const auto& demand) {
         auto times = place.times.has_value()  //
           ? ranges::accumulate(place.times.value(),
                                std::vector<TimeWindow>{},
@@ -417,33 +427,38 @@ private:
       return yield(Job{ranges::emplaced_index<0>,
                        createService(job.id, job.places.delivery.value(), createDemand(job, false, true))});
     });
+  }
+
+
+  ranges::any_view<models::problem::Job> readConditionalJobs(const detail::here::Problem& problem,
+                                                             const CoordIndex& coordIndex) const {
+    using namespace ranges;
+    using namespace algorithms::construction;
+    using namespace models::common;
+    using namespace models::problem;
+
+    auto dateParser = vrp::utils::parse_date_from_rc3339{};
 
     // convert vehicle breaks to conditional jobs
-    ranges::for_each(
+    return view::for_each(
       problem.fleet.types | ranges::view::filter([](const auto& v) { return v.vehicleBreak.has_value(); }),
-      [&](const auto& vehicle) {
+      [&, dateParser](const auto& vehicle) {
         const auto& model = vehicle.vehicleBreak.value();
+        const auto detail = Service::Detail{
+          model.location ? std::make_optional<Location>(Location{coordIndex.at(asCoord(model.location.value()))})
+                         : std::make_optional<Location>(),
+          model.duration,
+          ranges::accumulate(model.times, std::vector<TimeWindow>{}, [&](auto& acc, const auto& time) {
+            acc.push_back({static_cast<double>(dateParser(time.at(0))), static_cast<double>(dateParser(time.at(1)))});
+            return std::move(acc);
+          })};
 
-        auto breakService = std::make_shared<Service>(Service{
-          {Service::Detail{model.location
-                             ? std::make_optional<Location>(Location{coordIndex.at(asCoord(model.location.value()))})
-                             : std::make_optional<Location>(),
-                           model.duration,
-                           ranges::accumulate(model.times,
-                                              std::vector<TimeWindow>{},
-                                              [&](auto& acc, const auto& time) {
-                                                acc.push_back({static_cast<double>(dateParser(time.at(0))),
-                                                               static_cast<double>(dateParser(time.at(1)))});
-                                                return std::move(acc);
-                                              })}},
-          Dimensions{{"id", "break"}}});
-
-        ranges::for_each(ranges::view::closed_indices(1, vehicle.amount), [&](auto index) {
-          // TODO add break as conditional jobs
+        return view::for_each(ranges::view::closed_indices(1, vehicle.amount), [=](auto index) {
+          // TODO add vehicle specific tag as dimension
+          return yield(
+            Job{ranges::emplaced_index<0>, std::make_shared<Service>(Service{{detail}, Dimensions{{"id", "break"}}})});
         });
       });
-
-    return std::make_shared<models::problem::Jobs>(models::problem::Jobs{transport, fleet, jobs});
   }
 
   std::shared_ptr<models::costs::MatrixTransportCosts> transportCosts(const detail::here::Problem& problem) const {
