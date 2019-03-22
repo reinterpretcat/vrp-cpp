@@ -44,6 +44,8 @@ set(SOURCE_FILES
         models/solution/TourTest.cc
         models/solution/RegistryTest.cc
 
+        scenarios/here/BreakAssignmentTest.cc
+
         test_utils/StreamSolver.hpp
         test_utils/algorithms/acceptance/Factories.hpp
         test_utils/algorithms/construction/Factories.hpp

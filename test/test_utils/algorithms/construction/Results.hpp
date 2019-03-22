@@ -10,11 +10,21 @@ namespace vrp::test {
 
 /// Returns vector of job ids from all routes.
 struct get_job_ids_from_all_routes {
+  std::vector<std::string> operator()(const models::Solution& solution) const {
+    return operator()(solution.routes, [](const auto r) { return r; });
+  }
+
   std::vector<std::string> operator()(const algorithms::construction::InsertionContext& ctx) const {
+    return operator()(ctx.solution->routes, [](const auto r) { return r.route; });
+  }
+
+private:
+  template<typename Routes, typename MapRoute>
+  std::vector<std::string> operator()(const Routes& routes, MapRoute map) const {
     using namespace ranges;
 
-    return ctx.solution->routes | view::for_each([](const auto& r) {
-             return r.route->tour.activities() | view::transform([](const auto& a) {
+    return routes | view::for_each([&](const auto& r) {
+             return map(r)->tour.activities() | view::transform([](const auto& a) {
                       auto job = models::solution::retrieve_job{}(*a);
                       return job.has_value() ? models::problem::get_job_id{}(job.value()) : "";
                     });

@@ -57,7 +57,7 @@ struct Plan final {
   std::optional<std::vector<Relation>> relations;
 };
 
-void
+inline void
 from_json(const nlohmann::json& j, RelationType& r) {
   static const std::map<std::string, RelationType> types = {
     {"sequence", RelationType::Sequence},
@@ -71,7 +71,7 @@ from_json(const nlohmann::json& j, RelationType& r) {
   r = value->second;
 }
 
-void
+inline void
 from_json(const nlohmann::json& j, Relation& r) {
   j.at("type").get_to(r.type);
   j.at("jobs").get_to(r.jobs);
@@ -79,20 +79,20 @@ from_json(const nlohmann::json& j, Relation& r) {
 }
 
 
-void
+inline void
 from_json(const nlohmann::json& j, JobPlace& job) {
   readOptional(j, "times", job.times);
   j.at("location").get_to(job.location);
   j.at("duration").get_to(job.duration);
 }
 
-void
+inline void
 from_json(const nlohmann::json& j, JobPlaces& job) {
   readOptional(j, "pickup", job.pickup);
   readOptional(j, "delivery", job.delivery);
 }
 
-void
+inline void
 from_json(const nlohmann::json& j, Job& job) {
   j.at("id").get_to(job.id);
   j.at("places").get_to(job.places);
@@ -134,32 +134,32 @@ struct VehicleBreak final {
 };
 
 
-void
+inline void
 from_json(const nlohmann::json& j, VehicleCosts& v) {
   readOptional(j, "fixed", v.fixed);
   j.at("distance").get_to(v.distance);
   j.at("time").get_to(v.time);
 }
 
-void
+inline void
 from_json(const nlohmann::json& j, VehiclePlace& v) {
   j.at("time").get_to(v.time);
   j.at("location").get_to(v.location);
 }
 
-void
+inline void
 from_json(const nlohmann::json& j, VehiclePlaces& v) {
   j.at("start").get_to(v.start);
   readOptional(j, "end", v.end);
 }
 
-void
+inline void
 from_json(const nlohmann::json& j, VehicleLimits& v) {
   readOptional(j, "maxDistance", v.maxDistance);
   readOptional(j, "shiftTime", v.shiftTime);
 }
 
-void
+inline void
 from_json(const nlohmann::json& j, VehicleBreak& v) {
   j.at("times").get_to(v.times);
   j.at("duration").get_to(v.duration);
@@ -184,7 +184,7 @@ struct Fleet final {
   std::vector<VehicleType> types;
 };
 
-void
+inline void
 from_json(const nlohmann::json& j, VehicleType& v) {
   j.at("id").get_to(v.id);
   j.at("profile").get_to(v.profile);
@@ -209,7 +209,7 @@ struct Matrix final {
   std::vector<double> durations;
 };
 
-void
+inline void
 from_json(const nlohmann::json& j, Matrix& m) {
   j.at("profile").get_to(m.profile);
   j.at("distances").get_to(m.distances);
@@ -227,18 +227,18 @@ struct Problem final {
   std::vector<Matrix> matrices;
 };
 
-void
+inline void
 from_json(const nlohmann::json& j, Fleet& f) {
   j.at("types").get_to(f.types);
 }
 
-void
+inline void
 from_json(const nlohmann::json& j, Plan& p) {
   j.at("jobs").get_to(p.jobs);
   readOptional(j, "relations", p.relations);
 }
 
-void
+inline void
 from_json(const nlohmann::json& j, Problem& p) {
   j.at("id").get_to(p.id);
   j.at("plan").get_to(p.plan);
@@ -292,6 +292,7 @@ public:
 
             const auto& vehicleId = std::any_cast<std::string>(service->dimens.at("vehicleId"));
             return ranges::find_if(ctx.routes, [&vehicleId](const auto& iCtx) {
+                     // TODO check arrival time at last activity to avoid assigning break as last
                      return std::any_cast<std::string>(iCtx.route->actor->vehicle->dimens.at("id")) == vehicleId;
                    }) != ctx.routes.end();
           },
