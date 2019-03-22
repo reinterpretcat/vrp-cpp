@@ -13,7 +13,7 @@ namespace vrp::algorithms::construction {
 /// Allows to assign jobs with some condition.
 struct ConditionalJob final : public Constraint {
   /// Specifies a predicate type which returns true when job is considered as required.
-  using Predicate = std::function<bool(const InsertionSolutionContext&, const models::problem::Job& job)>;
+  using Predicate = std::function<bool(const InsertionSolutionContext&, const models::problem::Job&)>;
 
   explicit ConditionalJob(Predicate predicate) : predicate_(std::move(predicate)) {}
 

@@ -2,6 +2,7 @@
 
 #include "algorithms/construction/InsertionConstraint.hpp"
 #include "algorithms/construction/constraints/ActorActivityTiming.hpp"
+#include "algorithms/construction/constraints/ConditionalJob.hpp"
 #include "algorithms/construction/constraints/VehicleActivitySize.hpp"
 #include "algorithms/objectives/PenalizeUnassignedJobs.hpp"
 #include "models/Problem.hpp"
@@ -263,6 +264,7 @@ private:
 public:
   std::shared_ptr<models::Problem> operator()(std::istream& input) const {
     using namespace vrp::algorithms::construction;
+    using namespace vrp::models;
 
     nlohmann::json j;
     input >> j;
@@ -272,14 +274,29 @@ public:
     auto coordIndex = createCoordIndex(problem);
 
     auto transport = transportCosts(problem);
-    auto activity = std::make_shared<models::costs::ActivityCosts>();
+    auto activity = std::make_shared<costs::ActivityCosts>();
 
     auto fleet = readFleet(problem, coordIndex);
     auto jobs = readJobs(problem, coordIndex, *transport, *fleet);
 
     auto constraint = std::make_shared<InsertionConstraint>();
     constraint->add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(fleet, transport, activity))
-      .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>());
+      .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>())
+      .add(std::make_shared<ConditionalJob>([](const InsertionSolutionContext& ctx, const problem::Job& job) {
+        return problem::analyze_job<bool>(
+          job,
+          [&ctx](const std::shared_ptr<const problem::Service>& service) {
+            // mark service as ignored only if it has break type and vehicle id is not present in routes
+            auto type = service->dimens.find("type");
+            if (type == service->dimens.end() || std::any_cast<std::string>(type->second) != "break") return true;
+
+            const auto& vehicleId = std::any_cast<std::string>(service->dimens.at("vehicleId"));
+            return ranges::find_if(ctx.routes, [&vehicleId](const auto& iCtx) {
+                     return std::any_cast<std::string>(iCtx.route->actor->vehicle->dimens.at("id")) == vehicleId;
+                   }) != ctx.routes.end();
+          },
+          [](const std::shared_ptr<const problem::Sequence>& sequence) { return true; });
+      }));
 
     return std::make_shared<models::Problem>(
       models::Problem{fleet,
@@ -444,6 +461,7 @@ private:
       problem.fleet.types | ranges::view::filter([](const auto& v) { return v.vehicleBreak.has_value(); }),
       [&, dateParser](const auto& vehicle) {
         const auto& model = vehicle.vehicleBreak.value();
+        const auto id = vehicle.id;
         const auto detail = Service::Detail{
           model.location ? std::make_optional<Location>(Location{coordIndex.at(asCoord(model.location.value()))})
                          : std::make_optional<Location>(),
@@ -454,9 +472,12 @@ private:
           })};
 
         return view::for_each(ranges::view::closed_indices(1, vehicle.amount), [=](auto index) {
-          // TODO add vehicle specific tag as dimension
           return yield(
-            Job{ranges::emplaced_index<0>, std::make_shared<Service>(Service{{detail}, Dimensions{{"id", "break"}}})});
+            Job{ranges::emplaced_index<0>,
+                std::make_shared<Service>(Service{{detail},
+                                                  Dimensions{{"id", std::string("break")},
+                                                             {"type", std::string("break")},
+                                                             {"vehicleId", id + "_" + std::to_string(index)}}})});
         });
       });
   }

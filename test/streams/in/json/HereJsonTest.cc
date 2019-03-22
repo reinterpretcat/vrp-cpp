@@ -1,5 +1,7 @@
 #include "streams/in/json/HereJson.hpp"
 
+#include "algorithms/construction/InsertionSolutionContext.hpp"
+
 #include <any>
 #include <catch/catch.hpp>
 
@@ -230,6 +232,16 @@ SCENARIO("here json can read problem from stream", "[streams][in][json]") {
           REQUIRE(vehicle->details.front().time.start == 0);
           REQUIRE(vehicle->details.front().time.end == 100);
         });
+      }
+
+      THEN("once accepted with no routes, breaks should be moved to ignored") {
+        auto ctx = InsertionSolutionContext{problem->jobs->all(), {}, {}, {}, {}};
+        problem->constraint->accept(ctx);
+
+        REQUIRE(ctx.required.size() == 3);
+        REQUIRE(ctx.ignored.size() == 2);
+        REQUIRE(std::any_cast<std::string>(ranges::get<0>(ctx.ignored.at(0))->dimens.at("type")) == "break");
+        REQUIRE(std::any_cast<std::string>(ranges::get<0>(ctx.ignored.at(1))->dimens.at("type")) == "break");
       }
     }
   }
