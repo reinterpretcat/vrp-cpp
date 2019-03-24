@@ -20,7 +20,7 @@ public:
     distances_(std::move(distances)),
     size_(0) {
     assert(durations_.size() == distances_.size());
-    ranges::for_each(durations, [this](const auto& pair) mutable {
+    ranges::for_each(durations_, [this](const auto& pair) mutable {
       if (this->size_ == 0) {
         this->size_ = std::sqrt(pair.second.size());
         assert(this->size_ * this->size_ == pair.second.size());

@@ -83,7 +83,7 @@ SCENARIO("break can be assigned between jobs", "[scenarios][break]") {
         "amount": 1,
         "break": {
           "times": [["1970-01-01T00:00:05Z", "1970-01-01T00:00:08Z"]],
-          "duration": 1,
+          "duration": 2,
           "location": [6.0, 0.0]
         }
       }
@@ -92,8 +92,8 @@ SCENARIO("break can be assigned between jobs", "[scenarios][break]") {
   "matrices": [
     {
       "profile": "car",
-      "distances": [0, 5, 5, 1, 5, 0, 10, 4, 5, 10, 0, 6, 1, 4, 6, 0 ],
-      "durations": [0, 5, 5, 1, 5, 0, 10, 4, 5, 10, 0, 6, 1, 4, 6, 0 ]
+      "distances": [0, 5, 5, 1, 5, 0, 10, 4, 5, 10, 0, 6, 1, 4, 6, 0],
+      "durations": [0, 5, 5, 1, 5, 0, 10, 4, 5, 10, 0, 6, 1, 4, 6, 0]
     }
   ]
 }
@@ -103,7 +103,7 @@ SCENARIO("break can be assigned between jobs", "[scenarios][break]") {
 
       THEN("break is assigned") {
         REQUIRE(estimatedSolution.first->routes.size() == 1);
-        REQUIRE(estimatedSolution.first->unassigned.size() == 0);
+        REQUIRE(estimatedSolution.first->unassigned.empty());
         CHECK_THAT(get_job_ids_from_all_routes{}.operator()(*estimatedSolution.first),
                    Catch::Matchers::Equals(std::vector<std::string>{"job1", "break", "job2"}));
       }
