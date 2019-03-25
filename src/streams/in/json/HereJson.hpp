@@ -246,6 +246,52 @@ from_json(const nlohmann::json& j, Problem& p) {
   j.at("matrices").get_to(p.matrices);
 }
 
+struct BreakConstraint final : public vrp::algorithms::construction::HardActivityConstraint {
+  // TODO decorate ConditionalJob + ensure break first
+
+  BreakConstraint() :
+    conditionalJob_(
+      [](const vrp::algorithms::construction::InsertionSolutionContext& ctx, const models::problem::Job& job) {
+        return models::problem::analyze_job<bool>(
+          job,
+          [&ctx](const std::shared_ptr<const models::problem::Service>& service) {
+            // mark service as ignored only if it has break type and vehicle id is not present in routes
+            if (isNotBreak(service)) return true;
+
+            const auto& vehicleId = std::any_cast<std::string>(service->dimens.at("vehicleId"));
+            return ranges::find_if(ctx.routes, [&vehicleId](const auto& iCtx) {
+                     // TODO check arrival time at last activity to avoid assigning break as last
+                     return std::any_cast<std::string>(iCtx.route->actor->vehicle->dimens.at("id")) == vehicleId;
+                   }) != ctx.routes.end();
+          },
+          [](const std::shared_ptr<const models::problem::Sequence>& sequence) { return true; });
+      }) {}
+
+  ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>(); }
+
+  void accept(vrp::algorithms::construction::InsertionSolutionContext& ctx) const override {
+    conditionalJob_.accept(ctx);
+  }
+
+  void accept(vrp::algorithms::construction::InsertionRouteContext&) const override {}
+
+  vrp::algorithms::construction::HardActivityConstraint::Result hard(
+    const vrp::algorithms::construction::InsertionRouteContext& routeCtx,
+    const vrp::algorithms::construction::InsertionActivityContext& actCtx) const override {
+    // TODO ensure break first
+  }
+
+private:
+  static bool isNotBreak(const std::shared_ptr<const models::problem::Service>& service) {
+    auto type = service->dimens.find("type");
+    if (type == service->dimens.end() || std::any_cast<std::string>(type->second) != "break") return true;
+
+    return false;
+  }
+
+  vrp::algorithms::construction::ConditionalJob conditionalJob_;
+};
+
 // endregion
 }
 
@@ -282,22 +328,7 @@ public:
     auto constraint = std::make_shared<InsertionConstraint>();
     constraint->add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(fleet, transport, activity))
       .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>())
-      .add(std::make_shared<ConditionalJob>([](const InsertionSolutionContext& ctx, const problem::Job& job) {
-        return problem::analyze_job<bool>(
-          job,
-          [&ctx](const std::shared_ptr<const problem::Service>& service) {
-            // mark service as ignored only if it has break type and vehicle id is not present in routes
-            auto type = service->dimens.find("type");
-            if (type == service->dimens.end() || std::any_cast<std::string>(type->second) != "break") return true;
-
-            const auto& vehicleId = std::any_cast<std::string>(service->dimens.at("vehicleId"));
-            return ranges::find_if(ctx.routes, [&vehicleId](const auto& iCtx) {
-                     // TODO check arrival time at last activity to avoid assigning break as last
-                     return std::any_cast<std::string>(iCtx.route->actor->vehicle->dimens.at("id")) == vehicleId;
-                   }) != ctx.routes.end();
-          },
-          [](const std::shared_ptr<const problem::Sequence>& sequence) { return true; });
-      }));
+      .add(std::make_shared<detail::here::BreakConstraint>());
 
     return std::make_shared<models::Problem>(
       models::Problem{fleet,
