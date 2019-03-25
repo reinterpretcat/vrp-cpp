@@ -278,7 +278,9 @@ struct BreakConstraint final : public vrp::algorithms::construction::HardActivit
   vrp::algorithms::construction::HardActivityConstraint::Result hard(
     const vrp::algorithms::construction::InsertionRouteContext& routeCtx,
     const vrp::algorithms::construction::InsertionActivityContext& actCtx) const override {
-    // TODO ensure break first
+    using namespace vrp::algorithms::construction;
+    // TODO check that break is not assigned as last?
+    return isNotBreak(actCtx.target->service.value()) || actCtx.prev->service.has_value() ? success() : stop(4);
   }
 
 private:
@@ -328,7 +330,7 @@ public:
     auto constraint = std::make_shared<InsertionConstraint>();
     constraint->add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(fleet, transport, activity))
       .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>())
-      .add(std::make_shared<detail::here::BreakConstraint>());
+      .addHardActivity(std::make_shared<detail::here::BreakConstraint>());
 
     return std::make_shared<models::Problem>(
       models::Problem{fleet,
