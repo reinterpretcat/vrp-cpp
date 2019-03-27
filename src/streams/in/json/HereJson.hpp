@@ -446,7 +446,7 @@ private:
                                                 {isFixed && !isPickup ? value : 0, !isFixed && !isPickup ? value : 0}};
       };
 
-      static auto createService = [&, dateParser](const std::string& id, const auto& place, const auto& demand) {
+      auto createService = [&, dateParser](const std::string& id, const auto& place, const auto& demand) {
         auto times = place.times.has_value()  //
           ? ranges::accumulate(place.times.value(),
                                std::vector<TimeWindow>{},
