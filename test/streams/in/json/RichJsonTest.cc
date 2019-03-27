@@ -89,8 +89,8 @@ SCENARIO("rich json can read problem from stream", "[streams][in][json]") {
     "matrices": [
       {
         "profile": "car",
-        "distances": [0,1,0,1],
-        "durations": [0,1,0,1]
+        "distances": [0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0],
+        "durations": [0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0]
       }
     ]
   }
