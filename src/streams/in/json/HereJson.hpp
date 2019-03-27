@@ -417,9 +417,6 @@ private:
                                                   const CoordIndex& coordIndex,
                                                   const models::costs::TransportCosts& transport,
                                                   const models::problem::Fleet& fleet) const {
-    // TODO just concat with jobs and check:
-    //  1. ruin handles conditional jobs correctly
-    //  2. CreateRefinementContext adds all jobs as required
     return std::make_shared<models::problem::Jobs>(models::problem::Jobs{
       transport,
       fleet,
