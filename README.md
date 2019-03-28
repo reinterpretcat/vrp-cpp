@@ -28,6 +28,7 @@ https://github.com/justusc/FindTBB
 
 ## Next
     * Vehicle/Driver breaks
+        * write helper method to generate test json [done]
     * initial routes
         * any
         * sequence
@@ -42,7 +43,7 @@ https://github.com/justusc/FindTBB
 
 ## TechDebt
     * merge two accept method from constraint:
-        accept(SolutionContext, RouteContext, Job)?
+        accept(SolutionContext, RouteContext, Job)? [No, can't do that]
     * why routes are set in InsertionContext?
     * rename get_job_ids_from_jobs and etc.
     * use snake case for ruin/recreate methods

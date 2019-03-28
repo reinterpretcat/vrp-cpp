@@ -61,6 +61,7 @@ set(SOURCE_FILES
         test_utils/models/Factories.hpp
         test_utils/models/Matchers.hpp
         test_utils/models/Validators.hpp
+        test_utils/streams/HereModelBuilders.hpp
         test_utils/streams/LiLimBuilder.hpp
         test_utils/streams/LiLimStreams.hpp
         test_utils/streams/SolomonBuilder.hpp
