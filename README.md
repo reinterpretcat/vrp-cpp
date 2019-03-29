@@ -27,12 +27,13 @@ https://github.com/justusc/FindTBB
 # TODO
 
 ## Next
-    * Vehicle/Driver breaks
-        * write helper method to generate test json [done]
+    * generate here solution
     * initial routes
         * any
         * sequence
         * strict
+    * Vehicle breaks [done]
+        * write helper method to generate test json [done]
 
 
 # Check
@@ -42,6 +43,9 @@ https://github.com/justusc/FindTBB
        CreateRefinementContext adds all jobs as required
 
 ## TechDebt
+    * HereJsonTest: replace json text with json builder
+    * move text stream out to streams/out/text
+    * rename HereJson and RichJson to include Problem in the name
     * merge two accept method from constraint:
         accept(SolutionContext, RouteContext, Job)? [No, can't do that]
     * why routes are set in InsertionContext?

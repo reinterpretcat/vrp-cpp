@@ -47,7 +47,7 @@ SCENARIO("break can be assigned between jobs", "[scenarios][break]") {
                         "durations": [0, 5, 5, 1, 5, 0, 10, 4, 5, 10, 0, 6, 1, 4, 6, 0]
                       })"_json}))
                     .build();
-    WHEN("solver problem") {
+    WHEN("solve problem") {
       auto estimatedSolution = solver(read_here_json_type{}(stream));
 
       THEN("break is assigned") {
@@ -81,7 +81,7 @@ SCENARIO("break can be skipped when vehicle is not used", "[scenarios][break]") 
                       })"_json}))
                     .build();
 
-    WHEN("solver problem") {
+    WHEN("solve problem") {
       auto estimatedSolution = solver(read_here_json_type{}(stream));
 
       THEN("vehicle without break is used and break is not considered as required job") {

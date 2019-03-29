@@ -45,6 +45,7 @@ set(SOURCE_FILES
         models/solution/RegistryTest.cc
 
         scenarios/here/BreakAssignmentTest.cc
+        scenarios/here/StatisticCalculationTest.cc
 
         test_utils/StreamSolver.hpp
         test_utils/algorithms/acceptance/Factories.hpp
@@ -71,6 +72,7 @@ set(SOURCE_FILES
         streams/in/json/RichJsonTest.cc
         streams/in/scientific/LiLimTest.cc
         streams/in/scientific/SolomonTest.cc
+        streams/out/json/HereProblemJsonTest.cc
 
         utils/DateTest.cc
 
