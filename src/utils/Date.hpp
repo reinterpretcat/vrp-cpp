@@ -36,6 +36,7 @@ private:
   time_t diff = 0;
 };
 
+/// A naive implementation of timestamp to rfc3339 date converter.
 struct timestamp_to_rc3339_string final {
   std::string operator()(models::common::Timestamp timestamp) const {
     auto l = static_cast<time_t>(timestamp);
