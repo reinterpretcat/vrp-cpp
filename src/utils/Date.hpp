@@ -1,5 +1,7 @@
 #pragma once
 
+#include "models/common/Timestamp.hpp"
+
 #include <chrono>
 #include <iomanip>
 #include <sstream>
@@ -32,5 +34,15 @@ struct parse_date_from_rc3339 final {
 
 private:
   time_t diff = 0;
+};
+
+struct timestamp_to_rc3339_string final {
+  std::string operator()(models::common::Timestamp timestamp) const {
+    auto l = static_cast<time_t>(timestamp);
+    auto t = *std::gmtime(&l);
+    std::ostringstream oss;
+    oss << std::put_time(&t, "%Y-%m-%dT%H:%M:%SZ");
+    return oss.str();
+  }
 };
 }

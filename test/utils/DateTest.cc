@@ -21,4 +21,19 @@ SCENARIO("can parse date in RFC3339", "[utils][date]") {
     }
   }
 }
+
+SCENARIO("can convert date from timestamp to RFC3339", "[utils][date]") {
+  auto [timestamp, expected] = GENERATE(table<int, std::string>({
+    {0, std::string{"1970-01-01T00:00:00Z"}},
+    {1542621600, std::string{"2018-11-19T10:00:00Z"}},
+  }));
+
+  GIVEN("date as timestamp") {
+    WHEN("convert") {
+      auto result = timestamp_to_rc3339_string{}(timestamp);
+
+      THEN("returns seconds since epoch") { REQUIRE(result == expected); }
+    }
+  }
+}
 }
