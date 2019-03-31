@@ -4,6 +4,7 @@
 #include "models/Solution.hpp"
 #include "models/extensions/problem/Helpers.hpp"
 #include "models/extensions/solution/Helpers.hpp"
+#include "streams/in/json/HereProblemJson.hpp"
 #include "utils/Date.hpp"
 
 #include <any>
@@ -214,6 +215,7 @@ inline Solution
 createSolution(const models::Problem& problem, const models::EstimatedSolution& es) {
   using namespace ranges;
 
+  const auto& coordIndex = std::any_cast<streams::in::CoordIndex>(problem.extras->at("coordIndex"));
   auto dateConverter = utils::timestamp_to_rc3339_string{};
   auto solution = Solution{};
 
@@ -249,7 +251,7 @@ createSolution(const models::Problem& problem, const models::EstimatedSolution& 
 
           // TODO initialize stop
           if (tour.stops.empty() || isSameLocation)
-            tour.stops.push_back(Stop{{},  // act->detail.location, // TODO use index to get location as array
+            tour.stops.push_back(Stop{coordIndex.find(act->detail.location),
                                       Schedule{dateConverter(arrival), dateConverter(departure)},
                                       {},
                                       {}});

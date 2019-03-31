@@ -297,8 +297,28 @@ private:
 // endregion
 }
 
-/// Parses HERE VRP problem definition from json.
-struct read_here_json_type {
+/// Represents coordinate index.
+struct CoordIndex final {
+  void add(const std::vector<double>& location) {
+    assert(location.size() == 2);
+    auto value = std::make_pair(location[0], location[1]);
+    if (coordToIndex.find(value) == coordToIndex.end()) {
+      auto index = coordToIndex.size();
+      coordToIndex[value] = index;
+      indexToCoord[index] = value;
+    }
+  }
+
+  std::vector<double> find(size_t index) const {
+    auto pair = indexToCoord.at(index);
+    return {pair.first, pair.second};
+  }
+
+  size_t find(const std::vector<double>& location) const {
+    assert(location.size() == 2);
+    return coordToIndex.at(std::make_pair(location[0], location[1]));
+  }
+
 private:
   struct coord_less final {
     bool operator()(const std::pair<double, double>& lhs, const std::pair<double, double>& rhs) const {
@@ -306,9 +326,12 @@ private:
     }
   };
 
-  ///
-  using CoordIndex = std::map<std::pair<double, double>, size_t, coord_less>;
+  std::map<std::pair<double, double>, size_t, coord_less> coordToIndex;
+  std::map<size_t, std::pair<double, double>> indexToCoord;
+};
 
+/// Parses HERE VRP problem definition from json.
+struct read_here_json_type {
 public:
   std::shared_ptr<models::Problem> operator()(std::istream& input) const {
     using namespace vrp::algorithms::construction;
@@ -332,44 +355,36 @@ public:
       .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>())
       .addHardActivity(std::make_shared<detail::here::BreakConstraint>());
 
+    auto extras = std::make_shared<std::map<std::string, std::any>>();
+    extras->insert(std::make_pair("coordIndex", std::move(coordIndex)));
+
     return std::make_shared<models::Problem>(
       models::Problem{fleet,
                       jobs,
                       constraint,
                       std::make_shared<algorithms::objectives::penalize_unassigned_jobs<10000>>(),
                       activity,
-                      transport});
+                      transport,
+                      extras});
   }
 
 private:
   /// Creates coordinate index to match routing data.
   CoordIndex createCoordIndex(const detail::here::Problem& problem) const {
     auto index = CoordIndex{};
-
-    auto addCoord = [&](const auto& location) {
-      assert(location.size() == 2);
-      auto value = std::make_pair(location[0], location[1]);
-      if (index.find(value) == index.end()) { index[value] = index.size(); }
-    };
-
     ranges::for_each(problem.plan.jobs, [&](const auto& job) {
-      if (job.places.pickup) addCoord(job.places.pickup.value().location);
-      if (job.places.delivery) addCoord(job.places.delivery.value().location);
+      if (job.places.pickup) index.add(job.places.pickup.value().location);
+      if (job.places.delivery) index.add(job.places.delivery.value().location);
     });
 
     ranges::for_each(problem.fleet.types, [&](const auto& vehicle) {
-      addCoord(vehicle.places.start.location);
-      if (vehicle.places.end) addCoord(vehicle.places.end.value().location);
+      index.add(vehicle.places.start.location);
+      if (vehicle.places.end) index.add(vehicle.places.end.value().location);
       if (vehicle.vehicleBreak && vehicle.vehicleBreak.value().location)
-        addCoord(vehicle.vehicleBreak.value().location.value());
+        index.add(vehicle.vehicleBreak.value().location.value());
     });
 
     return std::move(index);
-  }
-
-  std::pair<double, double> asCoord(const std::vector<double>& location) const {
-    assert(location.size() == 2);
-    return std::make_pair(location[0], location[1]);
   }
 
   std::shared_ptr<models::problem::Fleet> readFleet(const detail::here::Problem& problem,
@@ -386,8 +401,8 @@ private:
       assert(vehicle.capacity.size() == 1);
 
       auto details = std::vector<Vehicle::Detail>{Vehicle::Detail{
-        coordIndex.at(asCoord(vehicle.places.start.location)),
-        vehicle.places.end ? std::make_optional(coordIndex.at(asCoord(vehicle.places.end.value().location)))
+        coordIndex.find(vehicle.places.start.location),
+        vehicle.places.end ? std::make_optional(coordIndex.find(vehicle.places.end.value().location))
                            : std::optional<models::common::Location>{},
         TimeWindow{static_cast<double>(dateParser(vehicle.places.start.time)),
                    vehicle.places.end ? static_cast<double>(dateParser(vehicle.places.end.value().time))
@@ -454,7 +469,7 @@ private:
                                })
           : std::vector<TimeWindow>{TimeWindow{0, std::numeric_limits<double>::max()}};
         return std::make_shared<Service>(
-          Service{{Service::Detail{coordIndex.at(asCoord(place.location)), place.duration, std::move(times)}},
+          Service{{Service::Detail{coordIndex.find(place.location), place.duration, std::move(times)}},
                   Dimensions{{"id", id}, {VehicleActivitySize<int>::DimKeyDemand, demand}}});
       };
 
@@ -494,7 +509,7 @@ private:
         const auto& model = vehicle.vehicleBreak.value();
         const auto id = vehicle.id;
         const auto detail = Service::Detail{
-          model.location ? std::make_optional<Location>(Location{coordIndex.at(asCoord(model.location.value()))})
+          model.location ? std::make_optional<Location>(Location{coordIndex.find(model.location.value())})
                          : std::make_optional<Location>(),
           model.duration,
           ranges::accumulate(model.times, std::vector<TimeWindow>{}, [&](auto& acc, const auto& time) {
