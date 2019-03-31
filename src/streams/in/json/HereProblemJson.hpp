@@ -400,13 +400,13 @@ private:
     ranges::for_each(problem.fleet.types, [&](const auto& vehicle) {
       assert(vehicle.capacity.size() == 1);
 
-      auto details = std::vector<Vehicle::Detail>{Vehicle::Detail{
-        coordIndex.find(vehicle.places.start.location),
-        vehicle.places.end ? std::make_optional(coordIndex.find(vehicle.places.end.value().location))
-                           : std::optional<models::common::Location>{},
-        TimeWindow{static_cast<double>(dateParser(vehicle.places.start.time)),
-                   vehicle.places.end ? static_cast<double>(dateParser(vehicle.places.end.value().time))
-                                      : std::numeric_limits<double>::max()}}};
+      auto details = std::vector<Vehicle::Detail>{
+        Vehicle::Detail{coordIndex.find(vehicle.places.start.location),
+                        vehicle.places.end ? std::make_optional(coordIndex.find(vehicle.places.end.value().location))
+                                           : std::optional<models::common::Location>{},
+                        TimeWindow{static_cast<double>(dateParser(vehicle.places.start.time)),
+                                   vehicle.places.end ? static_cast<double>(dateParser(vehicle.places.end.value().time))
+                                                      : std::numeric_limits<double>::max()}}};
 
       ranges::for_each(ranges::view::closed_indices(1, vehicle.amount), [&](auto index) {
         fleet->add(Vehicle{vehicle.profile,

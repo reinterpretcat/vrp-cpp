@@ -1,5 +1,6 @@
 #pragma once
 
+#include "algorithms/construction/constraints/VehicleActivitySize.hpp"
 #include "models/Problem.hpp"
 #include "models/Solution.hpp"
 #include "models/extensions/problem/Helpers.hpp"
@@ -190,6 +191,7 @@ struct Leg final {
   models::common::Duration duration;
   Timing timing;
   models::common::Cost cost;
+  int load;
 };
 
 inline std::string
@@ -206,17 +208,19 @@ getActivityType(const models::solution::Activity& activity, int index) {
   return index == 0 ? "departure" : "arrival";
 }
 
-// inline bool
-// isSameLocations(const std::vector<double>& lhs, const std::vector<double>& rhs) {
-//  return lhs.at(0) != rhs.at(0) || lhs.at(1) != rhs.at(1)
-//}
+inline int
+changeLoad(int current, const algorithms::construction::VehicleActivitySize<int>::Demand& demand) {
+  return current - demand.delivery.first - demand.delivery.second + demand.pickup.first + demand.pickup.second;
+}
 
 inline Solution
 createSolution(const models::Problem& problem, const models::EstimatedSolution& es) {
   using namespace ranges;
+  using namespace algorithms::construction;
+  using namespace models::common;
 
   const auto& coordIndex = std::any_cast<streams::in::CoordIndex>(problem.extras->at("coordIndex"));
-  auto dateConverter = utils::timestamp_to_rc3339_string{};
+  auto date = utils::timestamp_to_rc3339_string{};
   auto solution = Solution{};
 
   solution.statistic = ranges::accumulate(
@@ -227,10 +231,19 @@ createSolution(const models::Problem& problem, const models::EstimatedSolution& 
       const auto& actor = *route->actor;
 
       auto tour = Tour{};
+      auto load = ranges::accumulate(route->tour.activities(), 0, [&](const auto& acc, const auto& a) {
+        return a->service.has_value() ? acc + VehicleActivitySize<int>::getDemand(a).delivery.first : acc;
+      });
 
-      auto leg = ranges::accumulate(  //
+      auto leg = ranges::accumulate(
         view::zip(route->tour.activities(), view::iota(0)),
-        Leg{route->tour.start()->detail.location, route->tour.start()->schedule.departure, 0, 0, Timing{0, 0, 0, 0}, 0},
+        Leg{route->tour.start()->detail.location,
+            route->tour.start()->schedule.departure,
+            0,
+            0,
+            Timing{0, 0, 0, 0},
+            0,
+            load},
         [&](const auto& acc, const auto& indexedActivity) {
           auto [act, activityIndex] = indexedActivity;
 
@@ -249,37 +262,19 @@ createSolution(const models::Problem& problem, const models::EstimatedSolution& 
 
           bool isSameLocation = acc.location == act->detail.location;
 
-          // TODO initialize stop
           if (tour.stops.empty() || isSameLocation)
-            tour.stops.push_back(Stop{coordIndex.find(act->detail.location),
-                                      Schedule{dateConverter(arrival), dateConverter(departure)},
-                                      {},
-                                      {}});
+            tour.stops.push_back(
+              Stop{coordIndex.find(act->detail.location), Schedule{date(arrival), date(departure)}, {acc.load}, {}});
 
-          /**
-           struct Stop final {
-            std::vector<double> location;
-            Schedule time;
-            std::vector<int> load;
-            std::vector<Activity> activities;
-          };
-
-           struct Activity final {
-            std::string jobId;
-            std::string type;
-            std::optional<std::vector<double>> location;
-            std::optional<Interval> time;
-          };
-           */
+          auto load = changeLoad(acc.load, VehicleActivitySize<int>::getDemand(act));
 
           tour.stops.back().time.departure = departure;
-          tour.stops.back().load = {};  // TODO
-                                        //          tour.stops.back().activities.push_back(Activity{
-                                        //            "jobId",
-                                        //            type,
-                                        //            isSameLocation ? {} : std::make_optional<>(act->detail.location)
-          //            isSameLocation ? {} : std::make_optional<Interval>(Interval{arrival, departure})
-          //          });
+          tour.stops.back().load[0] = load;
+          tour.stops.back().activities.push_back(Activity{
+            "jobId",
+            type,
+            isSameLocation ? std::vector<double>{} : std::make_optional(coordIndex.find(act->detail.location)),
+            isSameLocation ? std::optional<Interval>{} : std::make_optional(Interval{date(arrival), date(departure)})});
 
           return Leg{
             act->detail.location,
@@ -291,7 +286,8 @@ createSolution(const models::Problem& problem, const models::EstimatedSolution& 
                    static_cast<int>(acc.timing.serving + (isBreak ? 0 : serving)),
                    static_cast<int>(waiting),
                    static_cast<int>(acc.timing.breakTime + (isBreak ? serving : 0))},
-            problem.transport->cost(actor, acc.location, act->detail.location, acc.departure)};
+            problem.transport->cost(actor, acc.location, act->detail.location, acc.departure),
+            load};
         });
 
       tour.statistic = Statistic{leg.cost, static_cast<int>(leg.distance), static_cast<int>(leg.duration), leg.timing};
