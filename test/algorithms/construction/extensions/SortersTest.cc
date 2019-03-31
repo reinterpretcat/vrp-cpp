@@ -69,7 +69,7 @@ SCENARIO("ranked jobs sorter can sort by distance rank", "[algorithms][construct
   GIVEN("unsorted tree services and one sequence") {
     auto ctx = test_build_insertion_context{}
                  .jobs(std::move(species))
-                 .problem(std::make_shared<Problem>(Problem{fleet, jobs, {}, {}, {}, {}}))
+                 .problem(std::make_shared<Problem>(Problem{fleet, jobs, {}, {}, {}, {}, {}}))
                  .owned();
 
     WHEN("sort by rank") {

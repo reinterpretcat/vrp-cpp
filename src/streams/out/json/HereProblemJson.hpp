@@ -4,6 +4,7 @@
 #include "models/Solution.hpp"
 #include "models/extensions/problem/Helpers.hpp"
 #include "models/extensions/solution/Helpers.hpp"
+#include "utils/Date.hpp"
 
 #include <any>
 #include <nlohmann/json.hpp>
@@ -86,19 +87,19 @@ struct Tour final {
   Statistic statistic;
 };
 
-void
+inline void
 to_json(nlohmann::json& j, const Schedule& schedule) {
   j["arrival"] = schedule.arrival;
   j["departure"] = schedule.departure;
 }
 
-void
+inline void
 to_json(nlohmann::json& j, const Interval& interval) {
   j["start"] = interval.start;
   j["end"] = interval.end;
 }
 
-void
+inline void
 to_json(nlohmann::json& j, const Activity& activity) {
   j["jobId"] = activity.jobId;
   j["type"] = activity.type;
@@ -106,7 +107,7 @@ to_json(nlohmann::json& j, const Activity& activity) {
   if (activity.time) j["time"] = activity.time.value();
 }
 
-void
+inline void
 to_json(nlohmann::json& j, const Stop& stop) {
   //  j["location"] = tour.location;
   //  j["time"] = tour.time;
@@ -117,7 +118,7 @@ to_json(nlohmann::json& j, const Stop& stop) {
     {"location", stop.location}, {"time", stop.time}, {"load", stop.load}, {"activities", stop.activities}};
 }
 
-void
+inline void
 to_json(nlohmann::json& j, const Tour& tour) {
   //  j["vehicleId"] = tour.vehicleId;
   //  j["typeId"] = tour.typeId;
@@ -141,13 +142,13 @@ struct UnassignedJob final {
   std::vector<UnassignedJobReason> reasons;
 };
 
-void
+inline void
 to_json(nlohmann::json& j, const UnassignedJobReason& reason) {
   j["code"] = reason.code;
   j["description"] = reason.description;
 }
 
-void
+inline void
 to_json(nlohmann::json& j, const UnassignedJob& job) {
   //  j["jobId"] = job.jobId;
   //  j["reasons"] = job.reasons;
@@ -165,7 +166,7 @@ struct Solution final {
   std::vector<UnassignedJob> unassigned;
 };
 
-void
+inline void
 to_json(nlohmann::json& j, const Solution& solution) {
   //  j["problemId"] = solution.problemId;
   //  j["statistic"] = solution.statistic;
@@ -190,10 +191,30 @@ struct Leg final {
   models::common::Cost cost;
 };
 
+inline std::string
+getActivityType(const models::solution::Activity& activity, int index) {
+  if (activity.service.has_value()) {
+    auto dim = activity.service.value()->dimens.find("type");
+    if (dim != activity.service.value()->dimens.end() && std::any_cast<std::string>(dim) == "break") return "break";
+
+    // TODO get demand and detect pickup/delivery
+
+    return "";
+  }
+
+  return index == 0 ? "departure" : "arrival";
+}
+
+// inline bool
+// isSameLocations(const std::vector<double>& lhs, const std::vector<double>& rhs) {
+//  return lhs.at(0) != rhs.at(0) || lhs.at(1) != rhs.at(1)
+//}
+
 inline Solution
 createSolution(const models::Problem& problem, const models::EstimatedSolution& es) {
   using namespace ranges;
 
+  auto dateConverter = utils::timestamp_to_rc3339_string{};
   auto solution = Solution{};
 
   solution.statistic = ranges::accumulate(
@@ -211,12 +232,9 @@ createSolution(const models::Problem& problem, const models::EstimatedSolution& 
         [&](const auto& acc, const auto& indexedActivity) {
           auto [act, activityIndex] = indexedActivity;
 
-          // detect break
-          bool isBreak = false;
-          if (act->service.has_value()) {
-            auto dim = act->service.value()->dimens.find("type");
-            isBreak = dim != act->service.value()->dimens.end() && std::any_cast<std::string>(dim) == "break";
-          }
+          // get activity type
+          auto type = getActivityType(*act, activityIndex);
+          bool isBreak = type == "break";
 
           // timings
           auto driving =
@@ -227,9 +245,39 @@ createSolution(const models::Problem& problem, const models::EstimatedSolution& 
           auto serving = problem.activity->duration(actor, *act, act->schedule.arrival);
           auto departure = start + serving;
 
+          bool isSameLocation = acc.location == act->detail.location;
+
           // TODO initialize stop
-          auto stop = Stop{};
-          tour.stops.push_back(stop);
+          if (tour.stops.empty() || isSameLocation)
+            tour.stops.push_back(Stop{{},  // act->detail.location, // TODO use index to get location as array
+                                      Schedule{dateConverter(arrival), dateConverter(departure)},
+                                      {},
+                                      {}});
+
+          /**
+           struct Stop final {
+            std::vector<double> location;
+            Schedule time;
+            std::vector<int> load;
+            std::vector<Activity> activities;
+          };
+
+           struct Activity final {
+            std::string jobId;
+            std::string type;
+            std::optional<std::vector<double>> location;
+            std::optional<Interval> time;
+          };
+           */
+
+          tour.stops.back().time.departure = departure;
+          tour.stops.back().load = {};  // TODO
+                                        //          tour.stops.back().activities.push_back(Activity{
+                                        //            "jobId",
+                                        //            type,
+                                        //            isSameLocation ? {} : std::make_optional<>(act->detail.location)
+          //            isSameLocation ? {} : std::make_optional<Interval>(Interval{arrival, departure})
+          //          });
 
           return Leg{
             act->detail.location,
@@ -265,12 +313,8 @@ createSolution(const models::Problem& problem, const models::EstimatedSolution& 
 struct dump_solution_as_here_json final {
   std::shared_ptr<const models::Problem> problem;
   void operator()(std::ostream& out, const models::EstimatedSolution& es) const {
-    using namespace detail::here;
-
-    auto solution = detail::here::createSolution(*problem, es);
-
     nlohmann::json json;
-    detail::here::to_json(json, solution);
+    detail::here::to_json(json, detail::here::createSolution(*problem, es));
     out << json.dump(4);
   }
 };

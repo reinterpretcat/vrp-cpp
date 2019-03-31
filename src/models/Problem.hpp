@@ -7,6 +7,8 @@
 #include "models/problem/Fleet.hpp"
 #include "models/problem/Jobs.hpp"
 
+#include <any>
+#include <map>
 #include <memory>
 
 namespace vrp::models {
@@ -30,5 +32,8 @@ struct Problem final {
 
   /// Specifies transport costs.
   std::shared_ptr<const costs::TransportCosts> transport;
+
+  /// Specifies index for storing extra parameters of arbitrary type.
+  std::shared_ptr<std::map<std::string, std::any>> extras;
 };
 }

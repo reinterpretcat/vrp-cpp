@@ -349,7 +349,8 @@ struct read_rich_json_type {
                       constraint,
                       std::make_shared<algorithms::objectives::penalize_unassigned_jobs<10000>>(),
                       activity,
-                      transport});
+                      transport,
+                      {}});
   }
 
 private:

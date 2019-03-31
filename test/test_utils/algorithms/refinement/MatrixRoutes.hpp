@@ -68,7 +68,8 @@ struct generate_matrix_routes final {
                                         std::make_shared<algorithms::construction::InsertionConstraint>(),
                                         std::make_shared<algorithms::objectives::penalize_unassigned_jobs<>>(),
                                         std::make_shared<costs::ActivityCosts>(),
-                                        matrix}),
+                                        matrix,
+                                        {}}),
       std::make_shared<Solution>(Solution{std::move(registry), routes, std::map<Job, int, compare_jobs>{}})};
   }
 
