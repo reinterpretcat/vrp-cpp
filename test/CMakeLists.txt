@@ -72,7 +72,7 @@ set(SOURCE_FILES
         streams/in/json/RichJsonTest.cc
         streams/in/scientific/LiLimTest.cc
         streams/in/scientific/SolomonTest.cc
-        streams/out/json/HereProblemJsonTest.cc
+        streams/out/json/HereSolutionJsonTest.cc
 
         utils/DateTest.cc
 

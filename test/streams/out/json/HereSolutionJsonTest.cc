@@ -1,8 +1,7 @@
-#include "streams/out/json/HereProblemJson.hpp"
-
 #include "Solver.hpp"
 #include "algorithms/refinement/logging/LogToConsole.hpp"
 #include "streams/in/json/HereJson.hpp"
+#include "streams/out/json/HereSolutionJson.hpp"
 #include "test_utils/streams/HereModelBuilders.hpp"
 
 #include <catch/catch.hpp>
