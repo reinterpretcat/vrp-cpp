@@ -47,7 +47,7 @@ SCENARIO("can generate solution in here json format", "[streams][out][json][here
 
     WHEN("serialize solution as here json") {
       std::stringstream ss;
-      dump_solution_as_here_json{}(ss, estimatedSolution);
+      dump_solution_as_here_json{problem}(ss, estimatedSolution);
       auto result = json::parse(ss.str());
 
       THEN("proper json is created") {
