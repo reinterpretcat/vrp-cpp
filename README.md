@@ -32,7 +32,9 @@ https://github.com/justusc/FindTBB
         * any
         * sequence
         * strict
-    * Vehicle breaks [done]
+    * Vehicle breaks
+        * break with location [done]
+        * break without location !!!
         * write helper method to generate test json [done]
 
 
@@ -45,7 +47,6 @@ https://github.com/justusc/FindTBB
 ## TechDebt
     * HereJsonTest: replace json text with json builder
     * move text stream out to streams/out/text
-    * rename HereJson and RichJson to include Problem in the name
     * merge two accept method from constraint:
         accept(SolutionContext, RouteContext, Job)? [No, can't do that]
     * why routes are set in InsertionContext?

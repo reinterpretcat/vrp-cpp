@@ -1,7 +1,7 @@
 #include "Solver.hpp"
 #include "algorithms/refinement/logging/LogToConsole.hpp"
 #include "models/extensions/problem/Helpers.hpp"
-#include "streams/in/json/HereJson.hpp"
+#include "streams/in/json/HereProblemJson.hpp"
 #include "test_utils/algorithms/construction/Results.hpp"
 #include "test_utils/streams/HereModelBuilders.hpp"
 

@@ -99,8 +99,8 @@ set(SOURCE_FILES
         models/Problem.hpp
         models/Solution.hpp
 
-        streams/in/json/HereJson.hpp
-        streams/in/json/RichJson.hpp
+        streams/in/json/HereProblemJson.hpp
+        streams/in/json/RichProblemJson.hpp
         streams/in/scientific/LiLim.hpp
         streams/in/scientific/Solomon.hpp
         streams/in/extensions/SolomonCosts.hpp

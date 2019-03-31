@@ -1,4 +1,4 @@
-#include "streams/in/json/RichJson.hpp"
+#include "streams/in/json/RichProblemJson.hpp"
 
 #include <catch/catch.hpp>
 
