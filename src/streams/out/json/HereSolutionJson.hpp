@@ -200,9 +200,10 @@ getActivityType(const models::solution::Activity& activity, int index) {
     auto dim = activity.service.value()->dimens.find("type");
     if (dim != activity.service.value()->dimens.end() && std::any_cast<std::string>(dim) == "break") return "break";
 
-    // TODO get demand and detect pickup/delivery
+    auto demand = std::any_cast<algorithms::construction::VehicleActivitySize<int>::Demand>(
+      activity.service.value()->dimens.find("demand")->second);
 
-    return "";
+    return demand.pickup.first > 0 || demand.pickup.second > 0 ? "pickup" : "delivery";
   }
 
   return index == 0 ? "departure" : "arrival";
@@ -222,6 +223,8 @@ createSolution(const models::Problem& problem, const models::EstimatedSolution& 
   const auto& coordIndex = std::any_cast<streams::in::CoordIndex>(problem.extras->at("coordIndex"));
   auto date = utils::timestamp_to_rc3339_string{};
   auto solution = Solution{};
+
+  solution.problemId = std::any_cast<std::string>(problem.extras->at("problemId"));
 
   solution.statistic = ranges::accumulate(
     view::zip(es.first->routes, view::iota(0)),
@@ -250,6 +253,9 @@ createSolution(const models::Problem& problem, const models::EstimatedSolution& 
           // get activity type
           auto type = getActivityType(*act, activityIndex);
           bool isBreak = type == "break";
+          auto jobId = type == "pickup" || type == "delivery"
+            ? models::problem::get_job_id{}(models::problem::as_job(act->service.value()))
+            : type;
 
           // timings
           auto driving =
@@ -262,19 +268,22 @@ createSolution(const models::Problem& problem, const models::EstimatedSolution& 
 
           bool isSameLocation = acc.location == act->detail.location;
 
-          if (tour.stops.empty() || isSameLocation)
+          if (tour.stops.empty() || !isSameLocation)
             tour.stops.push_back(
               Stop{coordIndex.find(act->detail.location), Schedule{date(arrival), date(departure)}, {acc.load}, {}});
 
           auto load = changeLoad(acc.load, VehicleActivitySize<int>::getDemand(act));
+          auto addOptionalFields = tour.stops.back().activities.size() > 1;
 
-          tour.stops.back().time.departure = departure;
+          tour.stops.back().time.departure = date(departure);
           tour.stops.back().load[0] = load;
-          tour.stops.back().activities.push_back(Activity{
-            "jobId",
-            type,
-            isSameLocation ? std::vector<double>{} : std::make_optional(coordIndex.find(act->detail.location)),
-            isSameLocation ? std::optional<Interval>{} : std::make_optional(Interval{date(arrival), date(departure)})});
+          tour.stops.back().activities.push_back(
+            Activity{jobId,
+                     type,
+                     addOptionalFields ? std::make_optional(coordIndex.find(act->detail.location))
+                                       : std::optional<std::vector<double>>{},
+                     addOptionalFields ? std::make_optional(Interval{date(arrival), date(departure)})
+                                       : std::optional<Interval>{}});
 
           return Leg{
             act->detail.location,
@@ -291,6 +300,9 @@ createSolution(const models::Problem& problem, const models::EstimatedSolution& 
         });
 
       tour.statistic = Statistic{leg.cost, static_cast<int>(leg.distance), static_cast<int>(leg.duration), leg.timing};
+      tour.vehicleId = std::any_cast<std::string>(actor.vehicle->dimens.at("id"));
+      tour.typeId = std::any_cast<std::string>(actor.vehicle->dimens.at("typeId"));
+
       solution.tours.push_back(tour);
 
       return Statistic{acc.cost + leg.cost,

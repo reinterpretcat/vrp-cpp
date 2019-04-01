@@ -261,7 +261,7 @@ struct BreakConstraint final : public vrp::algorithms::construction::HardActivit
             const auto& vehicleId = std::any_cast<std::string>(service->dimens.at("vehicleId"));
             return ranges::find_if(ctx.routes, [&vehicleId](const auto& iCtx) {
                      // TODO check arrival time at last activity to avoid assigning break as last
-                     return std::any_cast<std::string>(iCtx.route->actor->vehicle->dimens.at("id")) == vehicleId;
+                     return std::any_cast<std::string>(iCtx.route->actor->vehicle->dimens.at("vehicleId")) == vehicleId;
                    }) != ctx.routes.end();
           },
           [](const std::shared_ptr<const models::problem::Sequence>& sequence) { return true; });
@@ -357,6 +357,7 @@ public:
 
     auto extras = std::make_shared<std::map<std::string, std::any>>();
     extras->insert(std::make_pair("coordIndex", std::move(coordIndex)));
+    extras->insert(std::make_pair("problemId", problem.id));
 
     return std::make_shared<models::Problem>(
       models::Problem{fleet,
@@ -416,7 +417,8 @@ private:
                                  vehicle.costs.time,
                                  vehicle.costs.time},
 
-                           Dimensions{{"id", vehicle.id + "_" + std::to_string(index)},
+                           Dimensions{{"typeId", vehicle.id},
+                                      {"id", vehicle.id + "_" + std::to_string(index)},
                                       {VehicleActivitySize<int>::DimKeyCapacity, vehicle.capacity.front()}},
 
                            details});
