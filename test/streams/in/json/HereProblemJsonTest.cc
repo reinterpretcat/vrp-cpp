@@ -157,6 +157,7 @@ SCENARIO("here json can read problem from stream", "[streams][in][json]") {
         REQUIRE(std::any_cast<Demand>(delivery->dimens.at("demand")).pickup.second == 0);
         REQUIRE(std::any_cast<Demand>(delivery->dimens.at("demand")).delivery.first == 1);
         REQUIRE(std::any_cast<Demand>(delivery->dimens.at("demand")).delivery.second == 0);
+        REQUIRE(std::any_cast<std::unordered_set<std::string>>(delivery->dimens.at("skills")).size() == 1);
       }
 
       THEN("creates expected shipment job") {
@@ -220,6 +221,7 @@ SCENARIO("here json can read problem from stream", "[streams][in][json]") {
 
           REQUIRE(std::any_cast<std::string>(vehicle->dimens.at("id")) ==
                   (std::string("myVehicle_") + std::to_string(index + 1)));
+          REQUIRE(std::any_cast<std::unordered_set<std::string>>(vehicle->dimens.at("skills")).size() == 2);
           REQUIRE(vehicle->profile == "car");
           REQUIRE(vehicle->costs.fixed == 100);
           REQUIRE(vehicle->costs.perDistance == 1);

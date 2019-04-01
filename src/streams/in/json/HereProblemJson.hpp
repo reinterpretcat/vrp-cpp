@@ -18,6 +18,7 @@
 #include <range/v3/utility/variant.hpp>
 #include <tuple>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace vrp::streams::in {
 
@@ -247,8 +248,6 @@ from_json(const nlohmann::json& j, Problem& p) {
 }
 
 struct BreakConstraint final : public vrp::algorithms::construction::HardActivityConstraint {
-  // TODO decorate ConditionalJob + ensure break first
-
   BreakConstraint() :
     conditionalJob_(
       [](const vrp::algorithms::construction::InsertionSolutionContext& ctx, const models::problem::Job& job) {
@@ -292,6 +291,39 @@ private:
   }
 
   vrp::algorithms::construction::ConditionalJob conditionalJob_;
+};
+
+struct SkillConstraint final : public vrp::algorithms::construction::HardRouteConstraint {
+  using Result = vrp::algorithms::construction::HardRouteConstraint::Result;
+  static constexpr int code = 5;
+
+  ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>(); }
+
+  void accept(vrp::algorithms::construction::InsertionSolutionContext&) const override {}
+
+  void accept(vrp::algorithms::construction::InsertionRouteContext&) const override {}
+
+  Result hard(const vrp::algorithms::construction::InsertionRouteContext& ctx,
+              const vrp::models::problem::Job& job) const override {
+    return models::problem::analyze_job<Result>(
+      job,
+      [&ctx](const std::shared_ptr<const models::problem::Service>& service) {
+        return satisfy(service->dimens, ctx.route->actor->vehicle->dimens) ? Result{} : Result{code};
+      },
+      [&ctx](const std::shared_ptr<const models::problem::Sequence>& sequence) {
+        return satisfy(sequence->dimens, ctx.route->actor->vehicle->dimens) ? Result{} : Result{code};
+      });
+  }
+
+  static bool satisfy(const vrp::models::common::Dimensions& target, const vrp::models::common::Dimensions& required) {
+    if (required.find("skills") == required.end()) return true;
+    if (target.find("skills") == target.end()) return false;
+
+    const auto& skills = std::any_cast<const std::unordered_set<std::string>&>(target.at("skills"));
+
+    return ranges::all_of(std::any_cast<const std::unordered_set<std::string>&>(required.at("skills")),
+                          [&skills](const auto& skill) { return skills.find(skill) != skills.end(); });
+  }
 };
 
 // endregion
@@ -353,7 +385,8 @@ public:
     auto constraint = std::make_shared<InsertionConstraint>();
     constraint->add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(fleet, transport, activity))
       .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>())
-      .addHardActivity(std::make_shared<detail::here::BreakConstraint>());
+      .addHardActivity(std::make_shared<detail::here::BreakConstraint>())
+      .addHardRoute(std::make_shared<detail::here::SkillConstraint>());
 
     auto extras = std::make_shared<std::map<std::string, std::any>>();
     extras->insert(std::make_pair("coordIndex", std::move(coordIndex)));
@@ -397,6 +430,14 @@ private:
 
     auto dateParser = parse_date_from_rc3339{};
 
+    static auto addSkillsIfPresent = [](const auto& vehicle, Dimensions&& dimens) {
+      if (vehicle.skills.has_value() && !vehicle.skills.value().empty())
+        dimens.insert(Dimension{
+          "skills", std::unordered_set<std::string>(vehicle.skills.value().begin(), vehicle.skills.value().end())});
+
+      return std::move(dimens);
+    };
+
     auto fleet = std::make_shared<Fleet>();
     ranges::for_each(problem.fleet.types, [&](const auto& vehicle) {
       assert(vehicle.capacity.size() == 1);
@@ -410,18 +451,20 @@ private:
                                                       : std::numeric_limits<double>::max()}}};
 
       ranges::for_each(ranges::view::closed_indices(1, vehicle.amount), [&](auto index) {
-        fleet->add(Vehicle{vehicle.profile,
-                           Costs{vehicle.costs.fixed.value_or(0),
-                                 vehicle.costs.distance,
-                                 vehicle.costs.time,
-                                 vehicle.costs.time,
-                                 vehicle.costs.time},
+        fleet->add(
+          Vehicle{vehicle.profile,
+                  Costs{vehicle.costs.fixed.value_or(0),
+                        vehicle.costs.distance,
+                        vehicle.costs.time,
+                        vehicle.costs.time,
+                        vehicle.costs.time},
 
-                           Dimensions{{"typeId", vehicle.id},
-                                      {"id", vehicle.id + "_" + std::to_string(index)},
-                                      {VehicleActivitySize<int>::DimKeyCapacity, vehicle.capacity.front()}},
+                  addSkillsIfPresent(vehicle,
+                                     Dimensions{{"typeId", vehicle.id},
+                                                {"id", vehicle.id + "_" + std::to_string(index)},
+                                                {VehicleActivitySize<int>::DimKeyCapacity, vehicle.capacity.front()}}),
 
-                           details});
+                  details});
       });
     });
 
@@ -460,7 +503,16 @@ private:
                                                 {isFixed && !isPickup ? value : 0, !isFixed && !isPickup ? value : 0}};
       };
 
-      auto createService = [&, dateParser](const std::string& id, const auto& place, const auto& demand) {
+      static auto addSkillsIfPresent = [](const auto& job, Dimensions&& dimens, bool skipSkills) {
+        if (!skipSkills && job.skills.has_value() && !job.skills.value().empty())
+          dimens.insert(
+            Dimension{"skills", std::unordered_set<std::string>(job.skills.value().begin(), job.skills.value().end())});
+
+        return std::move(dimens);
+      };
+
+      auto createService = [&, dateParser](
+                             const auto& job, const auto& place, const auto& demand, bool skipSkills = false) {
         auto times = place.times.has_value()  //
           ? ranges::accumulate(place.times.value(),
                                std::vector<TimeWindow>{},
@@ -472,25 +524,26 @@ private:
           : std::vector<TimeWindow>{TimeWindow{0, std::numeric_limits<double>::max()}};
         return std::make_shared<Service>(
           Service{{Service::Detail{coordIndex.find(place.location), place.duration, std::move(times)}},
-                  Dimensions{{"id", id}, {VehicleActivitySize<int>::DimKeyDemand, demand}}});
+                  addSkillsIfPresent(
+                    job, Dimensions{{"id", job.id}, {VehicleActivitySize<int>::DimKeyDemand, demand}}, skipSkills)});
       };
 
       // shipment
       if (job.places.pickup && job.places.delivery) {
         return yield(Job{ranges::emplaced_index<1>,
                          std::make_shared<Sequence>(Sequence{
-                           {createService(job.id, job.places.pickup.value(), createDemand(job, true, false)),
-                            createService(job.id, job.places.delivery.value(), createDemand(job, false, false))},
-                           Dimensions{{"id", job.id}}})});
+                           {createService(job, job.places.pickup.value(), createDemand(job, true, false), true),
+                            createService(job, job.places.delivery.value(), createDemand(job, false, false), true)},
+                           addSkillsIfPresent(job, Dimensions{{"id", job.id}}, false)})});
         // pickup
       } else if (job.places.pickup) {
-        return yield(Job{ranges::emplaced_index<0>,
-                         createService(job.id, job.places.pickup.value(), createDemand(job, true, true))});
+        return yield(
+          Job{ranges::emplaced_index<0>, createService(job, job.places.pickup.value(), createDemand(job, true, true))});
       }
 
       // delivery
       return yield(Job{ranges::emplaced_index<0>,
-                       createService(job.id, job.places.delivery.value(), createDemand(job, false, true))});
+                       createService(job, job.places.delivery.value(), createDemand(job, false, true))});
     });
   }
 
