@@ -44,10 +44,6 @@ to_json(nlohmann::json& j, const Timing& timing) {
 
 inline void
 to_json(nlohmann::json& j, const Statistic& statistic) {
-  //  j["cost"] = statistic.cost;
-  //  j["distance"] = statistic.distance;
-  //  j["duration"] = statistic.duration;
-  //  to_json(j["times"], statistic.times);
   j = nlohmann::json{{"cost", statistic.cost},
                      {"distance", statistic.distance},
                      {"duration", statistic.duration},
@@ -111,21 +107,12 @@ to_json(nlohmann::json& j, const Activity& activity) {
 
 inline void
 to_json(nlohmann::json& j, const Stop& stop) {
-  //  j["location"] = tour.location;
-  //  j["time"] = tour.time;
-  //  j["load"] = tour.load;
-  //  j["activities"] = tour.activities;
-
   j = nlohmann::json{
     {"location", stop.location}, {"time", stop.time}, {"load", stop.load}, {"activities", stop.activities}};
 }
 
 inline void
 to_json(nlohmann::json& j, const Tour& tour) {
-  //  j["vehicleId"] = tour.vehicleId;
-  //  j["typeId"] = tour.typeId;
-  //  j["stops"] = tour.stops;
-  //  j["statistic"] = tour.statistic;
   j = nlohmann::json{
     {"vehicleId", tour.vehicleId}, {"typeId", tour.typeId}, {"stops", tour.stops}, {"statistic", tour.statistic}};
 }
@@ -152,8 +139,6 @@ to_json(nlohmann::json& j, const UnassignedJobReason& reason) {
 
 inline void
 to_json(nlohmann::json& j, const UnassignedJob& job) {
-  //  j["jobId"] = job.jobId;
-  //  j["reasons"] = job.reasons;
   j = nlohmann::json{{"jobId", job.jobId}, {"reasons", job.reasons}};
 }
 
@@ -170,14 +155,9 @@ struct Solution final {
 
 inline void
 to_json(nlohmann::json& j, const Solution& solution) {
-  //  j["problemId"] = solution.problemId;
-  //  j["statistic"] = solution.statistic;
-  //  j["tours"] = solution.tours;
-  //  j["unassigned"] = solution.unassigned;
-  j = nlohmann::json{{"problemId", solution.problemId},
-                     {"statistic", solution.statistic},
-                     {"tours", solution.tours},
-                     {"unassigned", solution.unassigned}};
+  j = nlohmann::json{{"problemId", solution.problemId}, {"statistic", solution.statistic}, {"tours", solution.tours}};
+
+  if (!solution.unassigned.empty()) j["unassigned"] = solution.unassigned;
 }
 
 // endregion
@@ -228,7 +208,7 @@ createSolution(const models::Problem& problem, const models::EstimatedSolution& 
 
   solution.statistic = ranges::accumulate(
     view::zip(es.first->routes, view::iota(0)),
-    Statistic{es.second.total(), 0, 0, Timing{0, 0, 0, 0}},
+    Statistic{0, 0, 0, Timing{0, 0, 0, 0}},
     [&](const auto& acc, const auto& indexedRoute) {
       auto [route, routeIndex] = indexedRoute;
       const auto& actor = *route->actor;
@@ -285,27 +265,33 @@ createSolution(const models::Problem& problem, const models::EstimatedSolution& 
                      addOptionalFields ? std::make_optional(Interval{date(arrival), date(departure)})
                                        : std::optional<Interval>{}});
 
+          auto cost = problem.activity->cost(actor, *act, act->schedule.arrival) +
+            problem.transport->cost(actor, acc.location, act->detail.location, acc.departure);
+
           return Leg{
             act->detail.location,
             act->schedule.departure,
             acc.distance +
               problem.transport->distance(actor.vehicle->profile, acc.location, act->detail.location, acc.departure),
             acc.duration + departure - acc.departure,
-            Timing{static_cast<int>(driving),
+            Timing{static_cast<int>(acc.timing.driving + driving),
                    static_cast<int>(acc.timing.serving + (isBreak ? 0 : serving)),
-                   static_cast<int>(waiting),
+                   static_cast<int>(acc.timing.waiting + waiting),
                    static_cast<int>(acc.timing.breakTime + (isBreak ? serving : 0))},
-            problem.transport->cost(actor, acc.location, act->detail.location, acc.departure),
+            acc.cost + cost,
             load};
         });
 
-      tour.statistic = Statistic{leg.cost, static_cast<int>(leg.distance), static_cast<int>(leg.duration), leg.timing};
       tour.vehicleId = std::any_cast<std::string>(actor.vehicle->dimens.at("id"));
       tour.typeId = std::any_cast<std::string>(actor.vehicle->dimens.at("typeId"));
+      tour.statistic = Statistic{leg.cost + actor.vehicle->costs.fixed,
+                                 static_cast<int>(leg.distance),
+                                 static_cast<int>(leg.duration),
+                                 leg.timing};
 
       solution.tours.push_back(tour);
 
-      return Statistic{acc.cost + leg.cost,
+      return Statistic{acc.cost + leg.cost + actor.vehicle->costs.fixed,
                        static_cast<int>(acc.distance + leg.distance),
                        static_cast<int>(acc.duration + leg.duration),
                        Timing{acc.times.driving + leg.timing.driving,
