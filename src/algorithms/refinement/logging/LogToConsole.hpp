@@ -2,7 +2,7 @@
 
 #include "algorithms/refinement/RefinementContext.hpp"
 #include "models/Solution.hpp"
-#include "streams/out/DumpSolutionAsText.hpp"
+#include "streams/out/text/DumpSolutionAsText.hpp"
 
 #include <chrono>
 #include <iostream>

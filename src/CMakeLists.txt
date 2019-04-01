@@ -105,7 +105,7 @@ set(SOURCE_FILES
         streams/in/scientific/Solomon.hpp
         streams/in/extensions/SolomonCosts.hpp
         streams/in/extensions/JsonHelpers.hpp
-        streams/out/DumpSolutionAsText.hpp
+        streams/out/text/DumpSolutionAsText.hpp
         streams/out/json/HereSolutionJson.hpp
 
         utils/Collections.hpp
