@@ -539,16 +539,13 @@ private:
                    .shared()));
         // pickup
       } else if (job.places.pickup) {
-        return yield(
-          Job{ranges::emplaced_index<0>, createService(job, job.places.pickup.value(), createDemand(job, true, true))});
+        return yield(as_job(createService(job, job.places.pickup.value(), createDemand(job, true, true))));
       }
 
       // delivery
-      return yield(Job{ranges::emplaced_index<0>,
-                       createService(job, job.places.delivery.value(), createDemand(job, false, true))});
+      return yield(as_job(createService(job, job.places.delivery.value(), createDemand(job, false, true))));
     });
   }
-
 
   ranges::any_view<models::problem::Job> readConditionalJobs(const detail::here::Problem& problem,
                                                              const CoordIndex& coordIndex) const {
@@ -575,12 +572,12 @@ private:
           })};
 
         return view::for_each(ranges::view::closed_indices(1, vehicle.amount), [=](auto index) {
-          return yield(
-            Job{ranges::emplaced_index<0>,
-                std::make_shared<Service>(Service{{detail},
-                                                  Dimensions{{"id", std::string("break")},
-                                                             {"type", std::string("break")},
-                                                             {"vehicleId", id + "_" + std::to_string(index)}}})});
+          return yield(as_job(build_service{}
+                                .details({detail})
+                                .dimens(Dimensions{{"id", std::string("break")},
+                                                   {"type", std::string("break")},
+                                                   {"vehicleId", id + "_" + std::to_string(index)}})
+                                .shared()));
         });
       });
   }
