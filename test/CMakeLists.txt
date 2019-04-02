@@ -44,8 +44,10 @@ set(SOURCE_FILES
         models/solution/TourTest.cc
         models/solution/RegistryTest.cc
 
-        scenarios/here/BreakAssignmentTest.cc
-        scenarios/here/StatisticCalculationTest.cc
+        scenarios/here/breaks/BreakAssignmentTest.cc
+        scenarios/here/mixed/StatisticCalculationTest.cc
+        scenarios/here/pickdev/PickDevMixed.cc
+        scenarios/here/pickdev/PickDevSingle.cc
 
         test_utils/StreamSolver.hpp
         test_utils/algorithms/acceptance/Factories.hpp
@@ -62,6 +64,7 @@ set(SOURCE_FILES
         test_utils/models/Factories.hpp
         test_utils/models/Matchers.hpp
         test_utils/models/Validators.hpp
+        test_utils/scenarios/here/Variables.hpp
         test_utils/streams/HereModelBuilders.hpp
         test_utils/streams/LiLimBuilder.hpp
         test_utils/streams/LiLimStreams.hpp

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <nlohmann/json.hpp>
 #include <sstream>
 
@@ -270,6 +271,7 @@ struct build_test_problem final {
   std::stringstream build() {
     std::stringstream ss;
     ss << problem_.dump(2);
+    std::cout << problem_.dump();
     return ss;
   }
 

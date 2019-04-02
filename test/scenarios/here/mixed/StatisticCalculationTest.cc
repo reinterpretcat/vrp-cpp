@@ -1,8 +1,7 @@
-#include "Solver.hpp"
-#include "algorithms/refinement/logging/LogToConsole.hpp"
 #include "models/extensions/problem/Helpers.hpp"
 #include "streams/in/json/HereProblemJson.hpp"
 #include "test_utils/algorithms/construction/Results.hpp"
+#include "test_utils/scenarios/here/Variables.hpp"
 #include "test_utils/streams/HereModelBuilders.hpp"
 
 #include <any>
@@ -12,16 +11,6 @@ using namespace nlohmann;
 using namespace vrp;
 using namespace vrp::models::problem;
 using namespace vrp::streams::in;
-using namespace vrp::algorithms::refinement;
-
-namespace {
-auto solver = Solver<create_refinement_context<>,
-                     select_best_solution,
-                     ruin_and_recreate_solution<>,
-                     GreedyAcceptance<>,
-                     MaxIterationCriteria,
-                     log_to_console>{};
-}
 
 namespace vrp::test::here {
 
@@ -35,7 +24,7 @@ SCENARIO("statistic can be calculated for two simple tours", "[scenario][statist
                           .demand(1)
                           .location(0, 0)
                           .duration(10)
-                          .times(json::array({json::array({"1970-01-01T00:00:00Z", "1970-01-01T00:01:40Z"})}))
+                          .times(SmallTimeWindows)
                           .content())
                 .addJob(build_test_shipment_job{}
                           .id("job2")
@@ -87,25 +76,27 @@ SCENARIO("statistic can be calculated for two simple tours", "[scenario][statist
         .build();
 
     WHEN("solve problem") {
+      auto estimatedSolution = SolverInstance(read_here_json_type{}(stream));
+
       THEN("has no unassigned") {
         // TODO
       }
 
-      THEN("has two tours") {
-        // TODO
-      }
-
-      THEN("has total statistic") {
-        // TODO
-      }
-
-      THEN("has first tour statistic") {
-        // TODO
-      }
-
-      THEN("has second tour statistic") {
-        // TODO
-      }
+      //      THEN("has two tours") {
+      //        // TODO
+      //      }
+      //
+      //      THEN("has total statistic") {
+      //        // TODO
+      //      }
+      //
+      //      THEN("has first tour statistic") {
+      //        // TODO
+      //      }
+      //
+      //      THEN("has second tour statistic") {
+      //        // TODO
+      //      }
     }
   }
 }

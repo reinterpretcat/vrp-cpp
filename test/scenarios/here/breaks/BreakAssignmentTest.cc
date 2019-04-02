@@ -1,8 +1,7 @@
-#include "Solver.hpp"
-#include "algorithms/refinement/logging/LogToConsole.hpp"
 #include "models/extensions/problem/Helpers.hpp"
 #include "streams/in/json/HereProblemJson.hpp"
 #include "test_utils/algorithms/construction/Results.hpp"
+#include "test_utils/scenarios/here/Variables.hpp"
 #include "test_utils/streams/HereModelBuilders.hpp"
 
 #include <any>
@@ -15,12 +14,6 @@ using namespace vrp::streams::in;
 using namespace vrp::algorithms::refinement;
 
 namespace {
-auto solver = Solver<create_refinement_context<>,
-                     select_best_solution,
-                     ruin_and_recreate_solution<>,
-                     GreedyAcceptance<>,
-                     MaxIterationCriteria,
-                     log_to_console>{};
 
 auto defaultBreak = json({{"times", json::array({json::array({"1970-01-01T00:00:05Z", "1970-01-01T00:00:08Z"})})},
                           {"duration", 2},
@@ -48,7 +41,7 @@ SCENARIO("break can be assigned between jobs", "[scenarios][break]") {
                       })"_json}))
                     .build();
     WHEN("solve problem") {
-      auto estimatedSolution = solver(read_here_json_type{}(stream));
+      auto estimatedSolution = SolverInstance(read_here_json_type{}(stream));
 
       THEN("break is assigned") {
         REQUIRE(estimatedSolution.first->routes.size() == 1);
@@ -82,7 +75,7 @@ SCENARIO("break can be skipped when vehicle is not used", "[scenarios][break]") 
                     .build();
 
     WHEN("solve problem") {
-      auto estimatedSolution = solver(read_here_json_type{}(stream));
+      auto estimatedSolution = SolverInstance(read_here_json_type{}(stream));
 
       THEN("vehicle without break is used and break is not considered as required job") {
         REQUIRE(estimatedSolution.first->routes.size() == 1);
