@@ -454,6 +454,7 @@ private:
           return Job{ranges::emplaced_index<0>, createService(s, job.id)};
         },
         [&](const detail::rich::Sequence& s) -> models::problem::Job {
+          // TODO use build_sequence as it adds specific dimens
           return models::problem::Job{
             ranges::emplaced_index<1>,
             std::make_shared<Sequence>(  //

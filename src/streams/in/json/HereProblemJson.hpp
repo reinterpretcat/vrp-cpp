@@ -7,6 +7,7 @@
 #include "algorithms/objectives/PenalizeUnassignedJobs.hpp"
 #include "models/Problem.hpp"
 #include "models/costs/MatrixTransportCosts.hpp"
+#include "models/extensions/problem/Factories.hpp"
 #include "streams/in/extensions/JsonHelpers.hpp"
 #include "utils/Date.hpp"
 
@@ -530,11 +531,12 @@ private:
 
       // shipment
       if (job.places.pickup && job.places.delivery) {
-        return yield(Job{ranges::emplaced_index<1>,
-                         std::make_shared<Sequence>(Sequence{
-                           {createService(job, job.places.pickup.value(), createDemand(job, true, false), true),
-                            createService(job, job.places.delivery.value(), createDemand(job, false, false), true)},
-                           addSkillsIfPresent(job, Dimensions{{"id", job.id}}, false)})});
+        return yield(
+          as_job(build_sequence{}
+                   .dimens(addSkillsIfPresent(job, Dimensions{{"id", job.id}}, false))
+                   .service(createService(job, job.places.pickup.value(), createDemand(job, true, false), true))
+                   .service(createService(job, job.places.delivery.value(), createDemand(job, false, false), true))
+                   .shared()));
         // pickup
       } else if (job.places.pickup) {
         return yield(

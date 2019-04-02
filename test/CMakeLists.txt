@@ -64,6 +64,7 @@ set(SOURCE_FILES
         test_utils/models/Factories.hpp
         test_utils/models/Matchers.hpp
         test_utils/models/Validators.hpp
+        test_utils/scenarios/here/Assertions.hpp
         test_utils/scenarios/here/Variables.hpp
         test_utils/streams/HereModelBuilders.hpp
         test_utils/streams/LiLimBuilder.hpp
