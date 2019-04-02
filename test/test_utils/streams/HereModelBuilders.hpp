@@ -35,6 +35,11 @@ struct build_test_single_job {
     return *this;
   }
 
+  build_test_single_job skills(const std::vector<std::string>& skills) {
+    content_["skills"] = nlohmann::json(skills);
+    return *this;
+  }
+
   nlohmann::json content() const { return content_; }
 
 private:
@@ -80,7 +85,17 @@ struct build_test_shipment_job final {
     return *this;
   }
 
-  std::string build() { return content_.dump(); }
+  build_test_shipment_job pickup(nlohmann::json value) {
+    content_["places"]["pickup"] = std::move(value);
+    return *this;
+  }
+
+  build_test_shipment_job delivery(nlohmann::json value) {
+    content_["places"]["delivery"] = std::move(value);
+    return *this;
+  }
+
+  nlohmann::json content() { return content_; }
 
 private:
   nlohmann::json content_ = {
@@ -153,6 +168,11 @@ struct build_test_vehicle final {
     return *this;
   }
 
+  build_test_vehicle places(nlohmann::json value) {
+    content_["places"] = std::move(value);
+    return *this;
+  }
+
   build_test_vehicle end(nlohmann::json value) {
     content_["places"]["end"] = std::move(value);
     return *this;
@@ -176,6 +196,11 @@ struct build_test_vehicle final {
   build_test_vehicle setBreak(nlohmann::json value) {
     content_["break"] = std::move(value);
 
+    return *this;
+  }
+
+  build_test_vehicle skills(std::vector<std::string> skills) {
+    content_["skills"] = nlohmann::json(skills);
     return *this;
   }
 
