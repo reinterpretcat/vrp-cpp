@@ -174,135 +174,178 @@ struct Leg final {
   int load;
 };
 
-inline std::string
-getActivityType(const models::solution::Activity& activity, int index) {
-  if (activity.service.has_value()) {
-    auto dim = activity.service.value()->dimens.find("type");
-    if (dim != activity.service.value()->dimens.end() && std::any_cast<std::string>(dim->second) == "break")
-      return "break";
+struct create_solution final {
+  Solution operator()(const models::Problem& problem, const models::EstimatedSolution& es) const {
+    using namespace ranges;
+    using namespace algorithms::construction;
+    using namespace models::common;
 
-    auto demand = std::any_cast<algorithms::construction::VehicleActivitySize<int>::Demand>(
-      activity.service.value()->dimens.find("demand")->second);
+    // TODO split method
 
-    return demand.pickup.first > 0 || demand.pickup.second > 0 ? "pickup" : "delivery";
-  }
+    const auto& coordIndex = std::any_cast<streams::in::CoordIndex>(problem.extras->at("coordIndex"));
+    auto date = utils::timestamp_to_rc3339_string{};
+    auto solution = Solution{};
 
-  return index == 0 ? "departure" : "arrival";
-}
+    solution.problemId = std::any_cast<std::string>(problem.extras->at("problemId"));
 
-inline int
-changeLoad(int current, const algorithms::construction::VehicleActivitySize<int>::Demand& demand) {
-  return current - demand.delivery.first - demand.delivery.second + demand.pickup.first + demand.pickup.second;
-}
+    solution.statistic = ranges::accumulate(
+      view::zip(es.first->routes, view::iota(0)),
+      Statistic{0, 0, 0, Timing{0, 0, 0, 0}},
+      [&](const auto& acc, const auto& indexedRoute) {
+        auto [route, routeIndex] = indexedRoute;
+        const auto& actor = *route->actor;
 
-inline Solution
-createSolution(const models::Problem& problem, const models::EstimatedSolution& es) {
-  using namespace ranges;
-  using namespace algorithms::construction;
-  using namespace models::common;
-
-  const auto& coordIndex = std::any_cast<streams::in::CoordIndex>(problem.extras->at("coordIndex"));
-  auto date = utils::timestamp_to_rc3339_string{};
-  auto solution = Solution{};
-
-  solution.problemId = std::any_cast<std::string>(problem.extras->at("problemId"));
-
-  solution.statistic = ranges::accumulate(
-    view::zip(es.first->routes, view::iota(0)),
-    Statistic{0, 0, 0, Timing{0, 0, 0, 0}},
-    [&](const auto& acc, const auto& indexedRoute) {
-      auto [route, routeIndex] = indexedRoute;
-      const auto& actor = *route->actor;
-
-      auto tour = Tour{};
-      auto load = ranges::accumulate(route->tour.activities(), 0, [&](const auto& acc, const auto& a) {
-        return a->service.has_value() ? acc + VehicleActivitySize<int>::getDemand(a).delivery.first : acc;
-      });
-
-      auto leg = ranges::accumulate(
-        view::zip(route->tour.activities(), view::iota(0)),
-        Leg{route->tour.start()->detail.location,
-            route->tour.start()->schedule.departure,
-            0,
-            0,
-            Timing{0, 0, 0, 0},
-            0,
-            load},
-        [&](const auto& acc, const auto& indexedActivity) {
-          auto [act, activityIndex] = indexedActivity;
-
-          // get activity type
-          auto type = getActivityType(*act, activityIndex);
-          bool isBreak = type == "break";
-          auto jobId = type == "pickup" || type == "delivery"
-            ? models::problem::get_job_id{}(models::problem::as_job(act->service.value()))
-            : type;
-
-          // timings
-          auto driving =
-            problem.transport->duration(actor.vehicle->profile, acc.location, act->detail.location, acc.departure);
-          auto arrival = acc.departure + driving;
-          auto start = std::max(act->schedule.arrival, act->detail.time.start);
-          auto waiting = start - act->schedule.arrival;
-          auto serving = problem.activity->duration(actor, *act, act->schedule.arrival);
-          auto departure = start + serving;
-
-          bool isSameLocation = acc.location == act->detail.location;
-
-          if (tour.stops.empty() || !isSameLocation)
-            tour.stops.push_back(
-              Stop{coordIndex.find(act->detail.location), Schedule{date(arrival), date(departure)}, {acc.load}, {}});
-
-          auto load = changeLoad(acc.load, VehicleActivitySize<int>::getDemand(act));
-          auto addOptionalFields = tour.stops.back().activities.size() > 1;
-
-          tour.stops.back().time.departure = date(departure);
-          tour.stops.back().load[0] = load;
-          tour.stops.back().activities.push_back(
-            Activity{jobId,
-                     type,
-                     addOptionalFields ? std::make_optional(coordIndex.find(act->detail.location))
-                                       : std::optional<std::vector<double>>{},
-                     addOptionalFields ? std::make_optional(Interval{date(arrival), date(departure)})
-                                       : std::optional<Interval>{}});
-
-          auto cost = problem.activity->cost(actor, *act, act->schedule.arrival) +
-            problem.transport->cost(actor, acc.location, act->detail.location, acc.departure);
-
-          return Leg{
-            act->detail.location,
-            act->schedule.departure,
-            acc.distance +
-              problem.transport->distance(actor.vehicle->profile, acc.location, act->detail.location, acc.departure),
-            acc.duration + departure - acc.departure,
-            Timing{static_cast<int>(acc.timing.driving + driving),
-                   static_cast<int>(acc.timing.serving + (isBreak ? 0 : serving)),
-                   static_cast<int>(acc.timing.waiting + waiting),
-                   static_cast<int>(acc.timing.breakTime + (isBreak ? serving : 0))},
-            acc.cost + cost,
-            load};
+        auto tour = Tour{};
+        auto load = ranges::accumulate(route->tour.activities(), 0, [&](const auto& acc, const auto& a) {
+          return a->service.has_value() ? acc + VehicleActivitySize<int>::getDemand(a).delivery.first : acc;
         });
 
-      tour.vehicleId = std::any_cast<std::string>(actor.vehicle->dimens.at("id"));
-      tour.typeId = std::any_cast<std::string>(actor.vehicle->dimens.at("typeId"));
-      tour.statistic = Statistic{leg.cost + actor.vehicle->costs.fixed,
-                                 static_cast<int>(leg.distance),
-                                 static_cast<int>(leg.duration),
-                                 leg.timing};
+        auto leg = ranges::accumulate(
+          view::zip(route->tour.activities(), view::iota(0)),
+          Leg{route->tour.start()->detail.location,
+              route->tour.start()->schedule.departure,
+              0,
+              0,
+              Timing{0, 0, 0, 0},
+              0,
+              load},
+          [&](const auto& acc, const auto& indexedActivity) {
+            auto [act, activityIndex] = indexedActivity;
 
-      solution.tours.push_back(tour);
+            // get activity type
+            auto type = getActivityType(*act, activityIndex);
+            bool isBreak = type == "break";
+            auto jobId = type == "pickup" || type == "delivery"
+              ? models::problem::get_job_id{}(models::problem::as_job(act->service.value()))
+              : type;
 
-      return Statistic{acc.cost + leg.cost + actor.vehicle->costs.fixed,
-                       static_cast<int>(acc.distance + leg.distance),
-                       static_cast<int>(acc.duration + leg.duration),
-                       Timing{acc.times.driving + leg.timing.driving,
-                              acc.times.serving + leg.timing.serving,
-                              acc.times.waiting + leg.timing.waiting,
-                              acc.times.breakTime + leg.timing.breakTime}};
-    });
+            // timings
+            auto driving =
+              problem.transport->duration(actor.vehicle->profile, acc.location, act->detail.location, acc.departure);
+            auto arrival = acc.departure + driving;
+            auto start = std::max(act->schedule.arrival, act->detail.time.start);
+            auto waiting = start - act->schedule.arrival;
+            auto serving = problem.activity->duration(actor, *act, act->schedule.arrival);
+            auto departure = start + serving;
 
-  return std::move(solution);
-}
+            bool isSameLocation = acc.location == act->detail.location;
+
+            if (tour.stops.empty() || !isSameLocation)
+              tour.stops.push_back(
+                Stop{coordIndex.find(act->detail.location), Schedule{date(arrival), date(departure)}, {acc.load}, {}});
+
+            auto load = changeLoad(acc.load, VehicleActivitySize<int>::getDemand(act));
+            auto addOptionalFields = tour.stops.back().activities.size() > 1;
+
+            tour.stops.back().time.departure = date(departure);
+            tour.stops.back().load[0] = load;
+            tour.stops.back().activities.push_back(
+              Activity{jobId,
+                       type,
+                       addOptionalFields ? std::make_optional(coordIndex.find(act->detail.location))
+                                         : std::optional<std::vector<double>>{},
+                       addOptionalFields ? std::make_optional(Interval{date(arrival), date(departure)})
+                                         : std::optional<Interval>{}});
+
+            auto cost = problem.activity->cost(actor, *act, act->schedule.arrival) +
+              problem.transport->cost(actor, acc.location, act->detail.location, acc.departure);
+
+            return Leg{
+              act->detail.location,
+              act->schedule.departure,
+              acc.distance +
+                problem.transport->distance(actor.vehicle->profile, acc.location, act->detail.location, acc.departure),
+              acc.duration + departure - acc.departure,
+              Timing{static_cast<int>(acc.timing.driving + driving),
+                     static_cast<int>(acc.timing.serving + (isBreak ? 0 : serving)),
+                     static_cast<int>(acc.timing.waiting + waiting),
+                     static_cast<int>(acc.timing.breakTime + (isBreak ? serving : 0))},
+              acc.cost + cost,
+              load};
+          });
+
+        tour.vehicleId = std::any_cast<std::string>(actor.vehicle->dimens.at("id"));
+        tour.typeId = std::any_cast<std::string>(actor.vehicle->dimens.at("typeId"));
+        tour.statistic = Statistic{leg.cost + actor.vehicle->costs.fixed,
+                                   static_cast<int>(leg.distance),
+                                   static_cast<int>(leg.duration),
+                                   leg.timing};
+
+        solution.tours.push_back(tour);
+
+        return Statistic{acc.cost + leg.cost + actor.vehicle->costs.fixed,
+                         static_cast<int>(acc.distance + leg.distance),
+                         static_cast<int>(acc.duration + leg.duration),
+                         Timing{acc.times.driving + leg.timing.driving,
+                                acc.times.serving + leg.timing.serving,
+                                acc.times.waiting + leg.timing.waiting,
+                                acc.times.breakTime + leg.timing.breakTime}};
+      });
+
+    if (!es.first->unassigned.empty()) solution.unassigned = getUnassigned(es);
+
+    return std::move(solution);
+  }
+
+private:
+  static std::vector<UnassignedJob> getUnassigned(const models::EstimatedSolution& es) {
+    using namespace ranges;
+    using namespace nlohmann;
+
+    return view::for_each(es.first->unassigned,
+                          [](const auto& un) {
+                            return yield(UnassignedJob{models::problem::get_job_id{}(un.first),
+                                                       {UnassignedJobReason{mapUnassignedCode(un.second),
+                                                                            mapUnassignedDescription(un.second)}}});
+                          }) |
+      to_vector;
+  }
+
+  static std::string getActivityType(const models::solution::Activity& activity, int index) {
+    if (activity.service.has_value()) {
+      auto dim = activity.service.value()->dimens.find("type");
+      if (dim != activity.service.value()->dimens.end() && std::any_cast<std::string>(dim->second) == "break")
+        return "break";
+
+      auto demand = std::any_cast<algorithms::construction::VehicleActivitySize<int>::Demand>(
+        activity.service.value()->dimens.find("demand")->second);
+
+      return demand.pickup.first > 0 || demand.pickup.second > 0 ? "pickup" : "delivery";
+    }
+
+    return index == 0 ? "departure" : "arrival";
+  }
+
+  static int mapUnassignedCode(int code) {
+    switch (code) {
+      case 1:
+        return 2;
+      case 2:
+        return 3;
+      case 5:
+        return 1;
+      default:
+        return 0;
+    }
+  }
+
+  static std::string mapUnassignedDescription(int code) {
+    switch (code) {
+      case 1:
+        return "cannot be visited within time window";
+      case 2:
+        return "does not fit into any vehicle due to capacity";
+      case 5:
+        return "cannot serve required skill";
+      default:
+        return "unknown";
+    }
+  }
+
+  static int changeLoad(int current, const algorithms::construction::VehicleActivitySize<int>::Demand& demand) {
+    return current - demand.delivery.first - demand.delivery.second + demand.pickup.first + demand.pickup.second;
+  }
+};
 
 // endregion
 }
@@ -311,7 +354,7 @@ struct dump_solution_as_here_json final {
   std::shared_ptr<const models::Problem> problem;
   void operator()(std::ostream& out, const models::EstimatedSolution& es) const {
     nlohmann::json json;
-    detail::here::to_json(json, detail::here::createSolution(*problem, es));
+    detail::here::to_json(json, detail::here::create_solution{}(*problem, es));
     out << json.dump(4);
   }
 };
