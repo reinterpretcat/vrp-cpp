@@ -45,7 +45,7 @@ set(SOURCE_FILES
         models/solution/RegistryTest.cc
 
         scenarios/here/breaks/BreakAssignmentTest.cc
-        scenarios/here/mixed/StatisticCalculationTest.cc
+        scenarios/here/fleet/OpenEndTest.cc
         scenarios/here/pickdev/PickDevMixed.cc
         scenarios/here/pickdev/PickDevSingle.cc
         scenarios/here/skills/SkillsSingle.cc

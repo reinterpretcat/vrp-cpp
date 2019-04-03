@@ -26,7 +26,7 @@ namespace vrp::test::here {
 // 2. break should not be assigned at the beginning
 // 3. break should not be assigned at the end
 
-SCENARIO("break can be assigned between jobs", "[scenarios][break]") {
+SCENARIO("break can be assigned between jobs", "[scenarios][breaks]") {
   GIVEN("two jobs and break in between") {
     auto stream = build_test_problem{}
                     .plan(build_test_plan{}
@@ -53,7 +53,7 @@ SCENARIO("break can be assigned between jobs", "[scenarios][break]") {
   }
 }
 
-SCENARIO("break can be skipped when vehicle is not used", "[scenarios][break]") {
+SCENARIO("break can be skipped when vehicle is not used", "[scenarios][breaks]") {
   GIVEN("two jobs and two vehicles, one within break in between") {
     auto stream = build_test_problem{}
                     .plan(build_test_plan{}
