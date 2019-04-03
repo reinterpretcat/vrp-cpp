@@ -44,11 +44,11 @@ set(SOURCE_FILES
         models/solution/TourTest.cc
         models/solution/RegistryTest.cc
 
-        scenarios/here/breaks/BreakAssignmentTest.cc
-        scenarios/here/fleet/OpenEndTest.cc
+        scenarios/here/breaks/BreakBasicTest.cc
+        scenarios/here/fleet/OpenEndBasicTest.cc
         scenarios/here/pickdev/PickDevMixed.cc
-        scenarios/here/pickdev/PickDevSingle.cc
-        scenarios/here/skills/SkillsSingle.cc
+        scenarios/here/pickdev/PickDevBasic.cc
+        scenarios/here/skills/SkillsBasic.cc
 
         test_utils/StreamSolver.hpp
         test_utils/algorithms/acceptance/Factories.hpp
