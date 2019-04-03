@@ -295,7 +295,10 @@ private:
 };
 
 struct SkillConstraint final : public vrp::algorithms::construction::HardRouteConstraint {
+  using RawType = std::unordered_set<std::string>;
+  using WrappedType = std::shared_ptr<RawType>;
   using Result = vrp::algorithms::construction::HardRouteConstraint::Result;
+
   static constexpr int code = 5;
 
   ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>(); }
@@ -309,10 +312,10 @@ struct SkillConstraint final : public vrp::algorithms::construction::HardRouteCo
     return models::problem::analyze_job<Result>(
       job,
       [&ctx](const std::shared_ptr<const models::problem::Service>& service) {
-        return satisfy(service->dimens, ctx.route->actor->vehicle->dimens) ? Result{} : Result{code};
+        return satisfy(ctx.route->actor->vehicle->dimens, service->dimens) ? Result{} : Result{code};
       },
       [&ctx](const std::shared_ptr<const models::problem::Sequence>& sequence) {
-        return satisfy(sequence->dimens, ctx.route->actor->vehicle->dimens) ? Result{} : Result{code};
+        return satisfy(ctx.route->actor->vehicle->dimens, sequence->dimens) ? Result{} : Result{code};
       });
   }
 
@@ -320,10 +323,10 @@ struct SkillConstraint final : public vrp::algorithms::construction::HardRouteCo
     if (required.find("skills") == required.end()) return true;
     if (target.find("skills") == target.end()) return false;
 
-    const auto& skills = std::any_cast<const std::unordered_set<std::string>&>(target.at("skills"));
+    const auto& skills = std::any_cast<const WrappedType&>(target.at("skills"));
 
-    return ranges::all_of(std::any_cast<const std::unordered_set<std::string>&>(required.at("skills")),
-                          [&skills](const auto& skill) { return skills.find(skill) != skills.end(); });
+    return ranges::all_of(*std::any_cast<const WrappedType&>(required.at("skills")),
+                          [&skills](const auto& skill) { return skills->find(skill) != skills->end(); });
   }
 };
 
@@ -429,17 +432,12 @@ private:
     using namespace vrp::models::problem;
     using namespace vrp::utils;
 
+    using SkillWrappedType = detail::here::SkillConstraint::WrappedType;
+    using SkillRawType = detail::here::SkillConstraint::RawType;
+
     auto dateParser = parse_date_from_rc3339{};
-
-    static auto addSkillsIfPresent = [](const auto& vehicle, Dimensions&& dimens) {
-      if (vehicle.skills.has_value() && !vehicle.skills.value().empty())
-        dimens.insert(Dimension{
-          "skills", std::unordered_set<std::string>(vehicle.skills.value().begin(), vehicle.skills.value().end())});
-
-      return std::move(dimens);
-    };
-
     auto fleet = std::make_shared<Fleet>();
+
     ranges::for_each(problem.fleet.types, [&](const auto& vehicle) {
       assert(vehicle.capacity.size() == 1);
 
@@ -451,21 +449,27 @@ private:
                                    vehicle.places.end ? static_cast<double>(dateParser(vehicle.places.end.value().time))
                                                       : std::numeric_limits<double>::max()}}};
 
+      SkillWrappedType skills = {};
+      if (vehicle.skills.has_value() && !vehicle.skills.value().empty()) {
+        skills =
+          std::make_shared<SkillRawType>(SkillRawType(vehicle.skills.value().begin(), vehicle.skills.value().end()));
+      }
+
       ranges::for_each(ranges::view::closed_indices(1, vehicle.amount), [&](auto index) {
-        fleet->add(
-          Vehicle{vehicle.profile,
-                  Costs{vehicle.costs.fixed.value_or(0),
-                        vehicle.costs.distance,
-                        vehicle.costs.time,
-                        vehicle.costs.time,
-                        vehicle.costs.time},
+        auto dimens = Dimensions{{"typeId", vehicle.id},
+                                 {"id", vehicle.id + "_" + std::to_string(index)},
+                                 {VehicleActivitySize<int>::DimKeyCapacity, vehicle.capacity.front()}};
 
-                  addSkillsIfPresent(vehicle,
-                                     Dimensions{{"typeId", vehicle.id},
-                                                {"id", vehicle.id + "_" + std::to_string(index)},
-                                                {VehicleActivitySize<int>::DimKeyCapacity, vehicle.capacity.front()}}),
+        if (skills) dimens.insert(std::make_pair("skills", skills));
 
-                  details});
+        fleet->add(Vehicle{vehicle.profile,
+                           Costs{vehicle.costs.fixed.value_or(0),
+                                 vehicle.costs.distance,
+                                 vehicle.costs.time,
+                                 vehicle.costs.time,
+                                 vehicle.costs.time},
+                           dimens,
+                           details});
       });
     });
 
@@ -492,6 +496,8 @@ private:
     using namespace models::common;
     using namespace models::problem;
 
+    using SkillRawType = detail::here::SkillConstraint::RawType;
+
     auto dateParser = vrp::utils::parse_date_from_rc3339{};
 
     return view::for_each(problem.plan.jobs, [&, dateParser](const auto& job) {
@@ -505,9 +511,11 @@ private:
       };
 
       static auto addSkillsIfPresent = [](const auto& job, Dimensions&& dimens, bool skipSkills) {
-        if (!skipSkills && job.skills.has_value() && !job.skills.value().empty())
-          dimens.insert(
-            Dimension{"skills", std::unordered_set<std::string>(job.skills.value().begin(), job.skills.value().end())});
+        if (!skipSkills && job.skills.has_value() && !job.skills.value().empty()) {
+          auto skills =
+            std::make_shared<SkillRawType>(SkillRawType(job.skills.value().begin(), job.skills.value().end()));
+          dimens.insert(std::make_pair("skills", skills));
+        }
 
         return std::move(dimens);
       };

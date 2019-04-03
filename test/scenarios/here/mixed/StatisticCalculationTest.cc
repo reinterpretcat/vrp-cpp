@@ -1,6 +1,7 @@
 #include "models/extensions/problem/Helpers.hpp"
 #include "streams/in/json/HereProblemJson.hpp"
 #include "test_utils/algorithms/construction/Results.hpp"
+#include "test_utils/scenarios/here/Assertions.hpp"
 #include "test_utils/scenarios/here/Variables.hpp"
 #include "test_utils/streams/HereModelBuilders.hpp"
 
@@ -76,27 +77,175 @@ SCENARIO("statistic can be calculated for two simple tours", "[scenario][statist
         .build();
 
     WHEN("solve problem") {
-      auto estimatedSolution = SolverInstance(read_here_json_type{}(stream));
+      auto problem = read_here_json_type{}(stream);
+      auto estimatedSolution = SolverInstance(problem);
 
-      THEN("has no unassigned") {
-        // TODO
+      THEN("has expected solution") {
+        assertSolution(problem, estimatedSolution, R"(
+          {
+            "problemId": "problem",
+              "statistic": {
+              "cost": 601.0,
+                "distance": 7,
+                "duration": 239,
+                "times": {
+                "driving": 7,
+                  "serving": 45,
+                  "waiting": 137,
+                  "break": 50
+              }
+            },
+            "tours": [
+            {
+              "vehicleId": "vehicle_1",
+                "typeId": "vehicle",
+                "stops": [
+              {
+                "location": [1.0, 0.0],
+                "time": {
+                  "arrival": "1970-01-01T00:00:00Z",
+                    "departure": "1970-01-01T00:00:00Z"
+                },
+                "load": [1],
+                "activities": [
+                {
+                  "jobId": "departure",
+                    "type": "departure"
+                }
+                ]
+              },
+              {
+                "location": [0.0, 0.0],
+                "time": {
+                  "arrival": "1970-01-01T00:00:01Z",
+                    "departure": "1970-01-01T00:02:30Z"
+                },
+                "load": [0],
+                "activities": [
+                {
+                  "jobId": "job1",
+                    "type": "delivery",
+                    "location": [0.0, 0.0],
+                  "time": {
+                    "start": "1970-01-01T00:00:01Z",
+                      "end": "1970-01-01T00:00:11Z"
+                  }
+                },
+                {
+                  "jobId": "break",
+                    "type": "break",
+                    "location": [0.0, 0.0],
+                  "time": {
+                    "start": "1970-01-01T00:00:12Z",
+                      "end": "1970-01-01T00:02:30Z"
+                  }
+                }
+                ]
+              },
+              {
+                "location": [1.0, 0.0],
+                "time": {
+                  "arrival": "1970-01-01T00:02:31Z",
+                    "departure": "1970-01-01T00:03:30Z"
+                },
+                "load": [1],
+                "activities": [
+                {
+                  "jobId": "job2",
+                    "type": "pickup"
+                }
+                ]
+              },
+              {
+                "location": [2.0, 0.0],
+                "time": {
+                  "arrival": "1970-01-01T00:03:31Z",
+                    "departure": "1970-01-01T00:03:51Z"
+                },
+                "load": [0],
+                "activities": [
+                {
+                  "jobId": "job2",
+                    "type": "delivery"
+                }
+                ]
+              }
+              ],
+              "statistic": {
+                "cost": 469.0,
+                  "distance": 5,
+                  "duration": 232,
+                  "times": {
+                  "driving": 5,
+                    "serving": 40,
+                    "waiting": 137,
+                    "break": 50
+                }
+              }
+            },
+            {
+              "vehicleId": "myVehicle2_1",
+                "typeId": "myVehicle2",
+                "stops": [
+              {
+                "location": [0.0, 1.0],
+                "time": {
+                  "arrival": "1970-01-01T00:00:00Z",
+                    "departure": "1970-01-01T00:00:00Z"
+                },
+                "load": [1],
+                "activities": [
+                {
+                  "jobId": "departure",
+                    "type": "departure"
+                }
+                ]
+              },
+              {
+                "location": [3.0, 1.0],
+                "time": {
+                  "arrival": "1970-01-01T00:00:01Z",
+                    "departure": "1970-01-01T00:00:06Z"
+                },
+                "load": [0],
+                "activities": [
+                {
+                  "jobId": "job3",
+                    "type": "delivery"
+                }
+                ]
+              },
+              {
+                "location": [1.0, 1.0],
+                "time": {
+                  "arrival": "1970-01-01T00:00:07Z",
+                    "departure": "1970-01-01T00:00:07Z"
+                },
+                "load": [0],
+                "activities": [
+                {
+                  "jobId": "arrival",
+                    "type": "arrival"
+                }
+                ]
+              }
+              ],
+              "statistic": {
+                "cost": 132.0,
+                  "distance": 2,
+                  "duration": 7,
+                  "times": {
+                  "driving": 2,
+                    "serving": 5,
+                    "waiting": 0,
+                    "break": 0
+                }
+              }
+            }
+            ]
+          }
+)");
       }
-
-      //      THEN("has two tours") {
-      //        // TODO
-      //      }
-      //
-      //      THEN("has total statistic") {
-      //        // TODO
-      //      }
-      //
-      //      THEN("has first tour statistic") {
-      //        // TODO
-      //      }
-      //
-      //      THEN("has second tour statistic") {
-      //        // TODO
-      //      }
     }
   }
 }

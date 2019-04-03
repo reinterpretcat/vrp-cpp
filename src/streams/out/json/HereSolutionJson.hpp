@@ -178,7 +178,8 @@ inline std::string
 getActivityType(const models::solution::Activity& activity, int index) {
   if (activity.service.has_value()) {
     auto dim = activity.service.value()->dimens.find("type");
-    if (dim != activity.service.value()->dimens.end() && std::any_cast<std::string>(dim) == "break") return "break";
+    if (dim != activity.service.value()->dimens.end() && std::any_cast<std::string>(dim->second) == "break")
+      return "break";
 
     auto demand = std::any_cast<algorithms::construction::VehicleActivitySize<int>::Demand>(
       activity.service.value()->dimens.find("demand")->second);

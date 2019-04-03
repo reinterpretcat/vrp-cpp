@@ -48,6 +48,7 @@ set(SOURCE_FILES
         scenarios/here/mixed/StatisticCalculationTest.cc
         scenarios/here/pickdev/PickDevMixed.cc
         scenarios/here/pickdev/PickDevSingle.cc
+        scenarios/here/skills/SkillsSingle.cc
 
         test_utils/StreamSolver.hpp
         test_utils/algorithms/acceptance/Factories.hpp
