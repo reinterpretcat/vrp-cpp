@@ -50,6 +50,7 @@ set(SOURCE_FILES
         scenarios/here/pickdev/PickDevBasic.cc
         scenarios/here/skills/SkillsBasic.cc
         scenarios/here/skills/SkillsUnassigned.cc
+        scenarios/here/times/TimeStrictUnassigned.cc
 
         test_utils/StreamSolver.hpp
         test_utils/algorithms/acceptance/Factories.hpp
