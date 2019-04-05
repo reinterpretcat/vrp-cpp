@@ -51,9 +51,11 @@ set(SOURCE_FILES
         scenarios/here/pickdev/PickDevBasicTest.cc
         scenarios/here/skills/SkillsBasicTest.cc
         scenarios/here/skills/SkillsUnassignedTest.cc
+        scenarios/here/times/AvoidInitialWaitTest.cc
         scenarios/here/times/TimeStrictUnassignedTest.cc
         scenarios/here/times/TimeStrictTwoToursTest.cc
         scenarios/here/times/TimeMultipleBasicTest.cc
+        scenarios/here/times/WaitingBasicTest.cc
 
         test_utils/StreamSolver.hpp
         test_utils/algorithms/acceptance/Factories.hpp

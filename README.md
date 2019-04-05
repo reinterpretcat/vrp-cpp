@@ -77,3 +77,6 @@ https://github.com/justusc/FindTBB
 # Potential use cases
     * Job with mixed demand
     * Multiday planning
+
+# Ideas
+    * compile to web assembly - run in browser
