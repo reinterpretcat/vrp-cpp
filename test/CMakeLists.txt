@@ -47,13 +47,13 @@ set(SOURCE_FILES
         scenarios/here/breaks/BreakBasicTest.cc
         scenarios/here/breaks/BreakSkipTest.cc
         scenarios/here/fleet/OpenEndBasicTest.cc
-        scenarios/here/pickdev/PickDevMixed.cc
-        scenarios/here/pickdev/PickDevBasic.cc
-        scenarios/here/skills/SkillsBasic.cc
-        scenarios/here/skills/SkillsUnassigned.cc
-        scenarios/here/times/TimeStrictUnassigned.cc
-        scenarios/here/times/TimeStrictTwoTours.cc
-        scenarios/here/times/TimeMultipleBasic.cc
+        scenarios/here/pickdev/PickDevMixedTest.cc
+        scenarios/here/pickdev/PickDevBasicTest.cc
+        scenarios/here/skills/SkillsBasicTest.cc
+        scenarios/here/skills/SkillsUnassignedTest.cc
+        scenarios/here/times/TimeStrictUnassignedTest.cc
+        scenarios/here/times/TimeStrictTwoToursTest.cc
+        scenarios/here/times/TimeMultipleBasicTest.cc
 
         test_utils/StreamSolver.hpp
         test_utils/algorithms/acceptance/Factories.hpp
