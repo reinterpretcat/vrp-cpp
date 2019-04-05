@@ -110,8 +110,9 @@ struct ActorActivityTiming final
     const auto departure = prev.schedule.departure;
     const auto& profile = actor.vehicle->profile;
 
-    if (target.detail.time.end < prev.detail.time.start || actor.detail.time.end < prev.detail.time.start ||
-        actor.detail.time.end < target.detail.time.start)
+    if (actor.detail.time.end < prev.detail.time.start ||  //
+        actor.detail.time.end < target.detail.time.start ||
+        (next && actor.detail.time.end < next.value()->detail.time.start))
       return fail(code_);
 
     Location nextActLocation;

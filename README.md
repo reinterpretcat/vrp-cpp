@@ -45,8 +45,8 @@ https://github.com/justusc/FindTBB
        CreateRefinementContext adds all jobs as required
 
 ## TechDebt
+    * clean headers from iostream
     * HereJsonTest: replace json text with json builder
-    * move text stream out to streams/out/text
     * merge two accept method from constraint:
         accept(SolutionContext, RouteContext, Job)? [No, can't do that]
     * why routes are set in InsertionContext?
