@@ -53,6 +53,21 @@ struct ActorActivityTiming final
     const auto& state = *context.state;
     const auto& actor = *route.actor;
 
+    // TODO investigate why it breaks some tests
+    //    // NOTE revise this once routing is sensible to departure time
+    //    // reschedule departure and arrivals if arriving earlier to the first activity
+    //    if (route.tour.count() > 0) {
+    //      const auto& first = route.tour.get(1);
+    //      auto earliestDepartureTime = route.tour.start()->schedule.departure;
+    //      auto startToFirst = transport_->duration(actor.vehicle->profile, route.tour.start()->detail.location,
+    //        first->detail.location, earliestDepartureTime);
+    //      auto newDepartureTime = std::max(earliestDepartureTime, first->detail.time.start - startToFirst);
+    //
+    //      if (newDepartureTime > earliestDepartureTime) {
+    //        route.tour.start()->schedule.departure = newDepartureTime;
+    //      }
+    //    }
+
     // update each activity schedule
     ranges::accumulate(  //
       route.tour.activities(),

@@ -26,23 +26,23 @@ namespace vrp::test::here {
 SCENARIO("break can be skipped when vehicle is not used", "[scenarios][breaks]") {
   GIVEN("two jobs and two vehicles, one within break in between") {
     auto stream = build_test_problem{}
-      .plan(build_test_plan{}
-              .addJob(build_test_delivery_job{}.id("job1").location(5, 0).content())
-              .addJob(build_test_delivery_job{}.id("job2").location(10, 0).duration(10).content()))
-      .fleet(build_test_fleet{}
-               .addVehicle(build_test_vehicle{}
-                             .id("vehicle_with_break")
-                             .locations({100, 0}, {100, 0})
-                             .setBreak(defaultBreak)
-                             .content())
-               .addVehicle(build_test_vehicle{}.id("vehicle_without_break").amount(1).content()))
-      .matrices(json::array({R"(
+                    .plan(build_test_plan{}
+                            .addJob(build_test_delivery_job{}.id("job1").location(5, 0).content())
+                            .addJob(build_test_delivery_job{}.id("job2").location(10, 0).duration(10).content()))
+                    .fleet(build_test_fleet{}
+                             .addVehicle(build_test_vehicle{}
+                                           .id("vehicle_with_break")
+                                           .locations({100, 0}, {100, 0})
+                                           .setBreak(defaultBreak)
+                                           .content())
+                             .addVehicle(build_test_vehicle{}.id("vehicle_without_break").amount(1).content()))
+                    .matrices(json::array({R"(
                       {
                         "profile": "car",
                         "distances": [0,5,95,1,5,5,0,90,4,10,95,90,0,94,100,1,4,94,0,6,5,10,100,6,0],
                         "durations": [0,5,95,1,5,5,0,90,4,10,95,90,0,94,100,1,4,94,0,6,5,10,100,6,0]
                       })"_json}))
-      .build();
+                    .build();
 
     WHEN("solve problem") {
       auto estimatedSolution = SolverInstance(read_here_json_type{}(stream));
@@ -54,7 +54,7 @@ SCENARIO("break can be skipped when vehicle is not used", "[scenarios][breaks]")
         REQUIRE(estimatedSolution.second.penalty == 0);
 
         REQUIRE(get_vehicle_id{}(*estimatedSolution.first->routes.front()->actor->vehicle) ==
-          "vehicle_without_break_1");
+                "vehicle_without_break_1");
         CHECK_THAT(get_job_ids_from_all_routes{}.operator()(*estimatedSolution.first),
                    Catch::Matchers::Equals(std::vector<std::string>{"job2", "job1"}));
       }
@@ -64,17 +64,17 @@ SCENARIO("break can be skipped when vehicle is not used", "[scenarios][breaks]")
 
 SCENARIO("break can be skipped when all jobs completed", "[scenarios][breaks]") {
   GIVEN("one jobs and vehicle with break") {
-    auto stream = build_test_problem{}
-      .plan(build_test_plan{}
-              .addJob(build_test_delivery_job{}.id("job1").duration(10).content()))
-      .fleet(build_test_fleet{}.addVehicle(build_test_vehicle{}.setBreak(defaultBreak).amount(1).content()))
-      .matrices(json::array({R"(
+    auto stream =
+      build_test_problem{}
+        .plan(build_test_plan{}.addJob(build_test_delivery_job{}.id("job1").duration(10).content()))
+        .fleet(build_test_fleet{}.addVehicle(build_test_vehicle{}.setBreak(defaultBreak).amount(1).content()))
+        .matrices(json::array({R"(
                       {
                         "profile": "car",
                         "distances": [0,1,5,1,0,6,5,6,0],
                         "durations": [0,1,5,1,0,6,5,6,0]
                       })"_json}))
-      .build();
+        .build();
     WHEN("solve problem") {
       auto problem = read_here_json_type{}(stream);
       auto estimatedSolution = SolverInstance(problem);
