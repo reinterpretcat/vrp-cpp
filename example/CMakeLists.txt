@@ -1,6 +1,7 @@
 project(SolverExample LANGUAGES CXX)
 
-set(LIBRARY_EXAMPLE SolverExample)
+set(SOLVER_EXE SolverExe)
+set(SOLVER_LIBRARY SolverLib)
 
 include_directories(${MAIN_SOURCE}
         ${EXTERNAL_SOURCE}/catch/src
@@ -10,23 +11,27 @@ include_directories(${MAIN_SOURCE}
         ${EXAMPLE_SOURCE}
         ${CMAKE_CURRENT_BINARY_DIR})
 
-set(SOURCE_FILES
-       SolverExample.cc
-
-        )
 
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2")
 #set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -O2")
 
-add_executable(${LIBRARY_EXAMPLE}
-        ${SOURCE_FILES}
+add_executable(${SOLVER_EXE}
+        SolverExe.cc
         )
 
-set_target_properties(${LIBRARY_EXAMPLE} PROPERTIES
-        LINKER_LANGUAGE CXX
-        )
+add_library(
+        ${SOLVER_LIBRARY}
+        SolverLib.cc
+)
 
-target_link_libraries(${LIBRARY_EXAMPLE}
-        ${CMAKE_THREAD_LIBS_INIT}
-        ${TBB_LIBRARIES}
-        )
+foreach(TARGET ${SOLVER_EXE} ${SOLVER_LIBRARY})
+    set_target_properties(${TARGET} PROPERTIES
+            LINKER_LANGUAGE CXX
+            )
+
+    target_link_libraries(${TARGET}
+            ${CMAKE_THREAD_LIBS_INIT}
+            ${TBB_LIBRARIES}
+            )
+endforeach()
+

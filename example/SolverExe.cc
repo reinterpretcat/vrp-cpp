@@ -1,6 +1,6 @@
 #include "Solver.hpp"
-#include "streams/in/LiLim.hpp"
-#include "streams/in/Solomon.hpp"
+#include "streams/in/scientific/LiLim.hpp"
+#include "streams/in/scientific/Solomon.hpp"
 
 #include <algorithms/refinement/logging/LogToConsole.hpp>
 #include <fstream>
