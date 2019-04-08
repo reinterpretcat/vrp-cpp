@@ -1,9 +1,7 @@
-#include "Solver.hpp"
-#include "streams/in/scientific/LiLim.hpp"
-#include "streams/in/scientific/Solomon.hpp"
+#include "VarTypeSolver.hpp"
 
-#include <algorithms/refinement/logging/LogToConsole.hpp>
 #include <fstream>
+#include <ostream>
 
 using namespace vrp::algorithms;
 using namespace vrp::algorithms::construction;
@@ -11,19 +9,10 @@ using namespace vrp::streams::in;
 
 int
 main(int argc, char* argv[]) {
-  if (argc < 2) throw std::invalid_argument("Missing path to solomon problem.");
+  if (argc < 4) throw std::invalid_argument("Usage:\n\t$solver Path inType outType");
 
-  auto stream = std::fstream(argv[1], std::ios::in);
-  auto problem = argc > 2 && std::string(argv[2]) == "lilim"
-    ? read_li_lim_type<cartesian_distance>{}.operator()(stream)
-    : read_solomon_type<cartesian_distance>{}.operator()(stream);
+  auto inStream = std::fstream(argv[1], std::ios::in);
+  vrp::example::solve_based_on_type{}(argv[2], inStream, argv[3], std::cout);
 
-  auto solver = vrp::Solver<vrp::algorithms::refinement::create_refinement_context<>,
-                            vrp::algorithms::refinement::select_best_solution,
-                            vrp::algorithms::refinement::ruin_and_recreate_solution<>,
-                            vrp::algorithms::refinement::GreedyAcceptance<>,
-                            vrp::algorithms::refinement::MaxIterationCriteria,
-                            vrp::algorithms::refinement::log_to_console>{};
-
-  auto estimatedSolution = solver(problem);
+  return 0;
 }

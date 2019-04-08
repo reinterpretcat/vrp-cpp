@@ -15,12 +15,20 @@ include_directories(${MAIN_SOURCE}
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2")
 #set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -O2")
 
+set(SOURCE_FILES
+        VarTypeSolver.hpp
+        )
+
 add_executable(${SOLVER_EXE}
+        ${SOURCE_FILES}
+
         SolverExe.cc
         )
 
 add_library(
         ${SOLVER_LIBRARY} SHARED
+        ${SOURCE_FILES}
+
         SolverLib.cc
 )
 
