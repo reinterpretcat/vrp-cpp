@@ -37,11 +37,11 @@ struct Fleet final {
 
   ranges::any_view<std::shared_ptr<const Vehicle>> vehicles() const { return ranges::view::all(vehicles_); }
 
-  ranges::any_view<std::string> profiles() const { return ranges::view::all(profiles_); }
+  ranges::any_view<common::Profile> profiles() const { return ranges::view::all(profiles_); }
 
 private:
   std::vector<std::shared_ptr<const Driver>> drivers_;
   std::vector<std::shared_ptr<const Vehicle>> vehicles_;
-  std::set<std::string> profiles_;
+  std::set<common::Profile> profiles_;
 };
 }

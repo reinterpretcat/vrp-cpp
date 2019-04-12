@@ -56,7 +56,7 @@ protected:
 /// A helper class to build vehicle;
 class build_vehicle {
 public:
-  build_vehicle& profile(std::string&& value) {
+  build_vehicle& profile(common::Profile value) {
     vehicle_.profile = value;
     return *this;
   }

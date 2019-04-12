@@ -462,7 +462,7 @@ private:
 
         if (skills) dimens.insert(std::make_pair("skills", skills));
 
-        fleet->add(Vehicle{vehicle.profile,
+        fleet->add(Vehicle{getProfile(vehicle.profile),
                            Costs{vehicle.costs.fixed.value_or(0),
                                  vehicle.costs.distance,
                                  vehicle.costs.time,
@@ -597,11 +597,19 @@ private:
     auto distances = MatrixTransportCosts::DistanceProfiles{};
     ranges::for_each(problem.matrices, [&](const auto& matrix) {
       // TODO check that each profile is defined only once.
-      durations[matrix.profile] = std::move(matrix.durations);
-      distances[matrix.profile] = std::move(matrix.distances);
+      auto profile = getProfile(matrix.profile);
+      durations[profile] = std::move(matrix.durations);
+      distances[profile] = std::move(matrix.distances);
     });
 
     return std::make_shared<MatrixTransportCosts>(MatrixTransportCosts{std::move(durations), std::move(distances)});
+  }
+
+  models::common::Profile getProfile(const std::string& value) const {
+    if (value == "car") return 0;
+    if (value == "truck") return 1;
+
+    throw std::invalid_argument(std::string("Unknown routing profile: ") + value);
   }
 };
 }

@@ -61,6 +61,7 @@ set(SOURCE_FILES
         models/common/Distance.hpp
         models/common/Duration.hpp
         models/common/Location.hpp
+        models/common/Profile.hpp
         models/common/Schedule.hpp
         models/common/Timestamp.hpp
         models/common/TimeWindow.hpp

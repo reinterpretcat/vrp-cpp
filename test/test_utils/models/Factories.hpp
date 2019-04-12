@@ -15,6 +15,7 @@ constexpr vrp::models::common::Location DefaultActorLocation = 0;
 constexpr vrp::models::common::Location DefaultJobLocation = 5;
 constexpr vrp::models::common::TimeWindow DefaultTimeWindow = {0, 1000};
 constexpr vrp::models::problem::Costs DefaultCosts = {100, 1, 1, 1, 1};
+constexpr models::common::Profile DefaultProfile = 0;
 
 const vrp::models::problem::Service::Detail DefaultJobDetail = {{DefaultJobLocation},
                                                                 DefaultDuration,
@@ -104,7 +105,7 @@ inline std::shared_ptr<vrp::models::solution::Activity> DefaultActivity = test_b
 class test_build_vehicle : public vrp::models::problem::build_vehicle {
 public:
   explicit test_build_vehicle() : vrp::models::problem::build_vehicle() {
-    dimens({{"id", "vehicle1"}}).profile("car").details({DefaultVehicleDetail}).costs(DefaultCosts);
+    dimens({{"id", "vehicle1"}}).profile(DefaultProfile).details({DefaultVehicleDetail}).costs(DefaultCosts);
   }
 
   test_build_vehicle& id(const std::string& value) {

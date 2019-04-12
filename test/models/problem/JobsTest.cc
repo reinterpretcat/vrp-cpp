@@ -14,23 +14,23 @@ using namespace ranges;
 namespace {
 
 struct ProfileAwareTransportCosts final : public TransportCosts {
-  vrp::models::common::Duration duration(const std::string& p,
+  vrp::models::common::Duration duration(const Profile p,
                                          const Location& from,
                                          const Location& to,
                                          const Timestamp&) const override {
     return measure<vrp::models::common::Duration>(p, from, to);
   }
 
-  Distance distance(const std::string& p, const Location& from, const Location& to, const Timestamp&) const override {
+  Distance distance(const Profile p, const Location& from, const Location& to, const Timestamp&) const override {
     return measure<Distance>(p, from, to);
   }
 
 
 private:
   template<typename Unit>
-  Unit measure(const std::string& profile, const Location& from, const Location& to) const {
+  Unit measure(const Profile p, const Location& from, const Location& to) const {
     auto value = static_cast<Unit>(to > from ? to - from : from - to);
-    return profile == "p2" ? 10 - value : value;
+    return p == 2 ? 10 - value : value;
   }
 };
 }
@@ -42,8 +42,8 @@ SCENARIO("job neighbourhood", "[algorithms][ruin][jobs]") {
     auto fleet = std::make_shared<Fleet>();
     (*fleet)
       .add(test_build_driver{}.owned())
-      .add(test_build_vehicle{}.id("v1").profile("p1").details({{0, 0, {0, 100}}}).owned())
-      .add(test_build_vehicle{}.id("v2").profile("p2").details({{0, 0, {0, 100}}}).owned());
+      .add(test_build_vehicle{}.id("v1").profile(1).details({{0, 0, {0, 100}}}).owned())
+      .add(test_build_vehicle{}.id("v2").profile(2).details({{0, 0, {0, 100}}}).owned());
     auto species = std::vector<models::problem::Job>{as_job(test_build_service{}.location(0).id("s0").shared()),
                                                      as_job(test_build_service{}.location(1).id("s1").shared()),
                                                      as_job(test_build_service{}.location(2).id("s2").shared()),
@@ -59,7 +59,7 @@ SCENARIO("job neighbourhood", "[algorithms][ruin][jobs]") {
     }));
 
     WHEN("get neighbours for specific profile") {
-      auto result = jobs.neighbors("p1", species.at(index), Timestamp{}) |
+      auto result = jobs.neighbors(1, species.at(index), Timestamp{}) |
         view::transform([](const auto& j) { return get_job_id{}(j); }) | to_vector;
 
       THEN("returns expected jobs") { CHECK_THAT(result, Catch::Matchers::Equals(expected)); }
@@ -72,24 +72,24 @@ SCENARIO("job rank", "[algorithms][ruin][jobs]") {
     auto fleet = std::make_shared<Fleet>();
     (*fleet)
       .add(test_build_driver{}.owned())
-      .add(test_build_vehicle{}.id("v1_1").profile("p1").details({{0, 0, {0, 100}}}).owned())
-      .add(test_build_vehicle{}.id("v1_2").profile("p1").details({{15, 0, {0, 100}}}).owned())
-      .add(test_build_vehicle{}.id("v2_1").profile("p3").details({{30, 0, {0, 100}}}).owned());
+      .add(test_build_vehicle{}.id("v1_1").profile(1).details({{0, 0, {0, 100}}}).owned())
+      .add(test_build_vehicle{}.id("v1_2").profile(1).details({{15, 0, {0, 100}}}).owned())
+      .add(test_build_vehicle{}.id("v2_1").profile(3).details({{30, 0, {0, 100}}}).owned());
     auto species = std::vector<models::problem::Job>{as_job(test_build_service{}.location(0).id("s0").shared()),
                                                      as_job(test_build_service{}.location(10).id("s1").shared()),
                                                      as_job(test_build_service{}.location(21).id("s2").shared()),
                                                      as_job(test_build_service{}.location(31).id("s3").shared())};
     auto jobs = Jobs{ProfileAwareTransportCosts{}, *fleet, ranges::view::all(species)};
 
-    auto [index, profile, expected] = GENERATE(table<int, std::string, common::Distance>({
-      {0, "p1", 0},
-      {1, "p1", 5},
-      {2, "p1", 6},
-      {3, "p1", 16},
-      {0, "p3", 30},
-      {1, "p3", 20},
-      {2, "p3", 9},
-      {3, "p3", 1},
+    auto [index, profile, expected] = GENERATE(table<int, Profile, Distance>({
+      {0, 1, 0},
+      {1, 1, 5},
+      {2, 1, 6},
+      {3, 1, 16},
+      {0, 3, 30},
+      {1, 3, 20},
+      {2, 3, 9},
+      {3, 3, 1},
     }));
 
     WHEN("get rank for specific job and profile") {

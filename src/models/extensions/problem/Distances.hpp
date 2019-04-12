@@ -12,7 +12,7 @@ namespace vrp::models::problem {
 /// Calculates smallest possible distance between two jobs.
 struct job_distance final {
   const costs::TransportCosts& transport;
-  const std::string& profile;
+  const common::Profile profile;
   const common::Timestamp departure;
 
   /// Returns min distance between location and job.

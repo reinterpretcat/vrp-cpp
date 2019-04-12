@@ -18,8 +18,6 @@ namespace vrp::test {
 /// 2  6  10 14
 /// 3  7  11 15
 struct generate_matrix_routes final {
-  static const inline std::string Profile = "car";
-
   using Result = std::pair<std::shared_ptr<vrp::models::Problem>, std::shared_ptr<vrp::models::Solution>>;
 
   Result operator()(int rows, int cols) const {
@@ -75,7 +73,7 @@ struct generate_matrix_routes final {
 
 private:
   template<typename T>
-  std::map<std::string, std::vector<T>> values(int rows, int cols, T scale = 1000) const {
+  std::unordered_map<models::common::Profile, std::vector<T>> values(int rows, int cols, T scale = 1000) const {
     auto size = cols * rows;
     auto sqr = [](T x) -> double { return static_cast<double>(x * x); };
     auto data = std::vector<T>(static_cast<size_t>(sqr(size)), 0);
@@ -91,7 +89,7 @@ private:
       });
     });
 
-    return {{Profile, data}};
+    return {{test::DefaultProfile, data}};
   }
 };
 }

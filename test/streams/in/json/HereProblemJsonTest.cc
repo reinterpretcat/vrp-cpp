@@ -223,7 +223,7 @@ SCENARIO("here json can read problem from stream", "[streams][in][json]") {
           REQUIRE(std::any_cast<std::string>(vehicle->dimens.at("id")) ==
                   (std::string("myVehicle_") + std::to_string(index + 1)));
           REQUIRE(std::any_cast<Skills>(vehicle->dimens.at("skills"))->size() == 2);
-          REQUIRE(vehicle->profile == "car");
+          REQUIRE(vehicle->profile == 0);
           REQUIRE(vehicle->costs.fixed == 100);
           REQUIRE(vehicle->costs.perDistance == 1);
           REQUIRE(vehicle->costs.perDrivingTime == 2);

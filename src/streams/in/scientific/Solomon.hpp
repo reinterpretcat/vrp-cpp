@@ -78,6 +78,7 @@ private:
                                              models::problem::Fleet& fleet,
                                              RoutingMatrix<Distance>& matrix,
                                              const std::tuple<int, int>& vehicle) const {
+    constexpr models::common::Profile DefaultProfile = 0;
     /// Customer defined by: id, x, y, demand, start, end, service
     using CustomerData = std::tuple<int, int, int, int, int, int, int>;
     using namespace vrp::models::common;
@@ -101,7 +102,7 @@ private:
         ranges::for_each(ranges::view::ints(0, std::get<0>(vehicle)), [&](auto i) {
           fleet.add(
             models::problem::build_vehicle{}
-              .profile("car")
+              .profile(DefaultProfile)
               .costs({0, 1, 0, 0, 0})
               .dimens({{"id", std::string("v") + std::to_string(i + 1)}, {DimKeyCapacity, std::get<1>(vehicle)}})
               .details(

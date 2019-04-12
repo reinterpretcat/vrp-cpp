@@ -4,6 +4,7 @@
 #include "models/common/Distance.hpp"
 #include "models/common/Duration.hpp"
 #include "models/common/Location.hpp"
+#include "models/common/Profile.hpp"
 #include "models/common/Timestamp.hpp"
 #include "models/solution/Actor.hpp"
 
@@ -23,13 +24,13 @@ struct TransportCosts {
   }
 
   /// Returns transport time between two locations.
-  virtual common::Duration duration(const std::string& profile,
+  virtual common::Duration duration(const common::Profile profile,
                                     const common::Location& from,
                                     const common::Location& to,
                                     const common::Timestamp& departure) const = 0;
 
   /// Returns transport distance between two locations.
-  virtual common::Distance distance(const std::string& profile,
+  virtual common::Distance distance(const common::Profile profile,
                                     const common::Location& from,
                                     const common::Location& to,
                                     const common::Timestamp& departure) const = 0;

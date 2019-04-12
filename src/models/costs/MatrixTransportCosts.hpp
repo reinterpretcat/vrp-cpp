@@ -12,8 +12,8 @@ namespace vrp::models::costs {
 /// Not time aware as it ignores departure timestamp.
 class MatrixTransportCosts : public TransportCosts {
 public:
-  using DurationProfiles = std::map<std::string, std::vector<common::Duration>>;
-  using DistanceProfiles = std::map<std::string, std::vector<common::Distance>>;
+  using DurationProfiles = std::unordered_map<common::Profile, std::vector<common::Duration>>;
+  using DistanceProfiles = std::unordered_map<common::Profile, std::vector<common::Distance>>;
 
   MatrixTransportCosts(DurationProfiles&& durations, DistanceProfiles&& distances) :
     durations_(std::move(durations)),
@@ -38,7 +38,7 @@ public:
   MatrixTransportCosts& operator=(const MatrixTransportCosts&) = delete;
 
   /// Returns transport time between two locations.
-  common::Duration duration(const std::string& profile,
+  common::Duration duration(const common::Profile profile,
                             const common::Location& from,
                             const common::Location& to,
                             const common::Timestamp& departure) const override {
@@ -46,7 +46,7 @@ public:
   }
 
   /// Returns transport distance between two locations.
-  common::Distance distance(const std::string& profile,
+  common::Distance distance(const common::Profile profile,
                             const common::Location& from,
                             const common::Location& to,
                             const common::Timestamp& departure) const override {

@@ -13,7 +13,6 @@
 #include <pstl/execution>
 #include <range/v3/all.hpp>
 #include <set>
-#include <string>
 #include <vector>
 
 namespace vrp::models::problem {
@@ -34,7 +33,7 @@ struct Jobs final {
   ranges::any_view<Job> all() const { return ranges::view::all(jobs_); }
 
   /// Returns all jobs with distance zero to given.
-  ranges::any_view<Job> ghosts(const std::string& profile, const Job& job, const common::Timestamp time) const {
+  ranges::any_view<Job> ghosts(const common::Profile profile, const Job& job, const common::Timestamp time) const {
     return index_.find(profile)->second.find(job)->second.first |
       ranges::view::remove_if([=](const auto& pair) { return pair.second == 0; }) |
       ranges::view::transform([](const auto& pair) { return pair.first; });
@@ -42,7 +41,7 @@ struct Jobs final {
 
   /// Returns range of jobs "near" to given one applying filter predicate on "near" value.
   /// Near is defined by transport costs, its profile and time. Value is filtered by max distance.
-  ranges::any_view<Job> neighbors(const std::string& profile,
+  ranges::any_view<Job> neighbors(const common::Profile profile,
                                   const Job& job,
                                   const common::Timestamp time,
                                   common::Distance maxDistance = std::numeric_limits<common::Distance>::max()) const {
@@ -52,7 +51,7 @@ struct Jobs final {
   }
 
   /// Returns job rank as distance to any vehicle's start position.
-  common::Distance rank(const std::string& profile, const Job& job) const {
+  common::Distance rank(common::Profile profile, const Job& job) const {
     return index_.find(profile)->second.find(job)->second.second;
   }
 
@@ -100,6 +99,6 @@ private:
   using JobIndex = std::pair<std::vector<std::pair<Job, common::Distance>>, common::Distance>;
 
   std::vector<Job> jobs_;
-  std::map<std::string, std::map<Job, JobIndex, compare_jobs>> index_;
+  std::map<common::Profile, std::map<Job, JobIndex, compare_jobs>> index_;
 };
 }

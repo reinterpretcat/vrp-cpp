@@ -4,6 +4,7 @@
 #include "Driver.hpp"
 #include "models/common/Dimension.hpp"
 #include "models/common/Location.hpp"
+#include "models/common/Profile.hpp"
 #include "models/common/TimeWindow.hpp"
 
 #include <optional>
@@ -26,8 +27,8 @@ struct Vehicle final {
     common::TimeWindow time;
   };
 
-  /// Specifies vehicle transport cost profile.
-  std::string profile;
+  /// Specifies vehicle transport cost profile id.
+  common::Profile profile;
 
   /// Specifies vehicle costs.
   Costs costs;

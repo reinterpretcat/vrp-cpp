@@ -58,7 +58,7 @@ SCENARIO("ranked jobs sorter can sort by distance rank", "[algorithms][construct
   auto fleet = std::make_shared<Fleet>();
   (*fleet)
     .add(test_build_driver{}.owned())
-    .add(test_build_vehicle{}.id("v1").profile("p1").details({{0, 0, {0, 100}}}).owned());
+    .add(test_build_vehicle{}.id("v1").profile(DefaultProfile + 1).details({{0, 0, {0, 100}}}).owned());
   auto species = std::vector<models::problem::Job>{
     as_job(test_build_service{}.location(5).id("srv0").shared()),
     as_job(test_build_service{}.location(20).id("srv1").shared()),

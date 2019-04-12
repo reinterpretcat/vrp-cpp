@@ -33,14 +33,14 @@ struct ServiceCosts : models::costs::ActivityCosts {
 /// Creates routing matrix as transport costs.
 template<typename Distance>
 struct RoutingMatrix : models::costs::TransportCosts {
-  models::common::Duration duration(const std::string& profile,
+  models::common::Duration duration(const models::common::Profile profile,
                                     const models::common::Location& from,
                                     const models::common::Location& to,
                                     const models::common::Timestamp& departure) const override {
     return distance(profile, from, to, departure);
   }
 
-  models::common::Distance distance(const std::string&,
+  models::common::Distance distance(const models::common::Profile,
                                     const models::common::Location& from,
                                     const models::common::Location& to,
                                     const models::common::Timestamp&) const override {

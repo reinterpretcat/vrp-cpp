@@ -368,7 +368,7 @@ private:
         assert(vehicle.capabilities.value().capacity.size() == 1);
 
         fleet->add(
-          Vehicle{vehicle.profile,
+          Vehicle{getProfile(vehicle.profile),
 
                   Costs{vehicle.costs.fixed,
                         vehicle.costs.distance,
@@ -482,11 +482,19 @@ private:
     auto distances = MatrixTransportCosts::DistanceProfiles{};
     ranges::for_each(problem.routing.matrices, [&](const auto& matrix) {
       // TODO check that each profile is defined only once.
-      durations[matrix.profile] = std::move(matrix.durations);
-      distances[matrix.profile] = std::move(matrix.distances);
+      auto profile = getProfile(matrix.profile);
+      durations[profile] = std::move(matrix.durations);
+      distances[profile] = std::move(matrix.distances);
     });
 
     return std::make_shared<MatrixTransportCosts>(MatrixTransportCosts{std::move(durations), std::move(distances)});
+  }
+
+  models::common::Profile getProfile(const std::string& value) const {
+    if (value == "car") return 0;
+    if (value == "truck") return 1;
+
+    throw std::invalid_argument(std::string("Unknown routing profile: ") + value);
   }
 };
 }

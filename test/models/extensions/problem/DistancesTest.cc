@@ -36,7 +36,7 @@ SCENARIO("distance between service jobs", "[models][extensions][problem]") {
     auto s2 = as_job(test_build_service{}.details(std::move(d2)).shared());
 
     WHEN("distance calculated") {
-      auto result = job_distance{TestTransportCosts{}, "", Timestamp{}}.operator()(s1, s2);
+      auto result = job_distance{TestTransportCosts{}, DefaultProfile, Timestamp{}}.operator()(s1, s2);
 
       THEN("has expected value") { REQUIRE(result == expected); }
     }
@@ -65,7 +65,7 @@ SCENARIO("distance between sequence jobs", "[models][extensions][problem]") {
                        .shared());
 
     WHEN("distance calculated") {
-      auto result = job_distance{TestTransportCosts{}, "", Timestamp{}}.operator()(s1, s2);
+      auto result = job_distance{TestTransportCosts{}, DefaultProfile, Timestamp{}}.operator()(s1, s2);
 
       THEN("has expected value") { REQUIRE(result == expected); }
     }
