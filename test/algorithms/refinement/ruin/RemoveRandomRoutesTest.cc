@@ -31,7 +31,7 @@ SCENARIO("random routes removal can ruin solution with three routes without lock
                           0};
       auto iCtx = restore_insertion_context{}(ctx, *solution);
 
-      RemoveRandomRoutes{}.operator()(ctx, *solution, iCtx);
+      RemoveRandomRoutes{1, 3, 1}.operator()(ctx, *solution, iCtx);
 
       THEN("should ruin expected jobs") { REQUIRE(iCtx.solution->required.size() == size); }
     }

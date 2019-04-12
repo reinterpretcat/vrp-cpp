@@ -14,10 +14,16 @@ struct RemoveRandomRoutes final {
   /// Specifies maximum amount of removed routes.
   int rmax = 3;
 
+  /// Specifies threshold ration of maximum removed routes.
+  double threshold = 0.2;
+
   void operator()(const RefinementContext& rCtx,
                   const models::Solution& sln,
                   construction::InsertionContext& iCtx) const {
-    auto toDelete = std::min(static_cast<size_t>(rCtx.random->uniform<int>(rmin, rmax)), iCtx.solution->routes.size());
+    auto max = std::max(static_cast<size_t>(iCtx.solution->routes.size() * threshold), static_cast<size_t>(rmin));
+    auto toDelete = std::min(static_cast<size_t>(rCtx.random->uniform<int>(rmin, rmax)),  //
+                             std::min(max, iCtx.solution->routes.size()));
+
     ranges::for_each(ranges::view::iota(0, toDelete), [&](auto) {
       auto routeIndex = rCtx.random->uniform<int>(0, static_cast<int>(iCtx.solution->routes.size()) - 1);
 

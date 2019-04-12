@@ -9,7 +9,7 @@ namespace vrp::algorithms::refinement {
 
 /// Ruins and recreates solution.
 template<typename Ruin = ruin_with_probabilities<std::tuple<RemoveAdjustedString, Probability<10, 10>>,
-                                                 std::tuple<RemoveRandomRoutes, Probability<1, 10>>>,
+                                                 std::tuple<RemoveRandomRoutes, Probability<1, 100>>>,
          typename Recreate = RecreateWithBlinks>
 struct ruin_and_recreate_solution final {
   models::EstimatedSolution operator()(const RefinementContext& ctx, const models::EstimatedSolution& sln) const {
