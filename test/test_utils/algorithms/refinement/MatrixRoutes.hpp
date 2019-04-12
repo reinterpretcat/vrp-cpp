@@ -73,7 +73,7 @@ struct generate_matrix_routes final {
 
 private:
   template<typename T>
-  std::unordered_map<models::common::Profile, std::vector<T>> values(int rows, int cols, T scale = 1000) const {
+  std::vector<std::vector<T>> values(int rows, int cols, T scale = 1000) const {
     auto size = cols * rows;
     auto sqr = [](T x) -> double { return static_cast<double>(x * x); };
     auto data = std::vector<T>(static_cast<size_t>(sqr(size)), 0);
@@ -89,7 +89,7 @@ private:
       });
     });
 
-    return {{test::DefaultProfile, data}};
+    return {data};
   }
 };
 }

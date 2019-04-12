@@ -12,22 +12,21 @@ namespace vrp::models::costs {
 /// Not time aware as it ignores departure timestamp.
 class MatrixTransportCosts : public TransportCosts {
 public:
-  using DurationProfiles = std::unordered_map<common::Profile, std::vector<common::Duration>>;
-  using DistanceProfiles = std::unordered_map<common::Profile, std::vector<common::Distance>>;
+  using DurationProfiles = std::vector<std::vector<common::Duration>>;
+  using DistanceProfiles = std::vector<std::vector<common::Distance>>;
 
   MatrixTransportCosts(DurationProfiles&& durations, DistanceProfiles&& distances) :
     durations_(std::move(durations)),
     distances_(std::move(distances)),
     size_(0) {
+    assert(!durations_.empty());
     assert(durations_.size() == distances_.size());
-    ranges::for_each(durations_, [this](const auto& pair) mutable {
-      if (this->size_ == 0) {
-        this->size_ = std::sqrt(pair.second.size());
-        assert(this->size_ * this->size_ == pair.second.size());
-      }
-      assert(this->size_ == std::sqrt(pair.second.size()));
-      assert(this->size_ == std::sqrt(this->distances_.at(pair.first).size()));
-    });
+
+    auto size = std::sqrt(durations_.front().size());
+    assert(ranges::all_of(durations_, [size](const auto& d) { d.size() == size }));
+    assert(ranges::all_of(distances_, [size](const auto& d) { d.size() == size }));
+
+    size_ = size;
   }
 
   MatrixTransportCosts(MatrixTransportCosts&& other) :
@@ -42,7 +41,7 @@ public:
                             const common::Location& from,
                             const common::Location& to,
                             const common::Timestamp& departure) const override {
-    return durations_.at(profile).at(from * size_ + to);
+    return durations_[profile][from * size_ + to];
   }
 
   /// Returns transport distance between two locations.
@@ -50,7 +49,7 @@ public:
                             const common::Location& from,
                             const common::Location& to,
                             const common::Timestamp& departure) const override {
-    return distances_.at(profile).at(from * size_ + to);
+    return distances_[profile][from * size_ + to];
   }
 
 private:

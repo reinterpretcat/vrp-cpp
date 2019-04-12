@@ -480,6 +480,8 @@ private:
 
     auto durations = MatrixTransportCosts::DurationProfiles{};
     auto distances = MatrixTransportCosts::DistanceProfiles{};
+    durations.resize(2);
+    distances.resize(2);
     ranges::for_each(problem.routing.matrices, [&](const auto& matrix) {
       // TODO check that each profile is defined only once.
       auto profile = getProfile(matrix.profile);
