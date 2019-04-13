@@ -96,7 +96,7 @@ public:
   /// Adds generic constraint.
   InsertionConstraint& add(std::shared_ptr<Constraint> constraint) {
     addStateKeys(constraint->stateKeys());
-    constraints_.insert(constraint);
+    constraints_.push_back(constraint);
     return *this;
   }
 
@@ -107,7 +107,7 @@ public:
   /// Adds hard route constraints
   InsertionConstraint& addHardRoute(std::shared_ptr<HardRouteConstraint> constraint) {
     addStateKeys(constraint->stateKeys());
-    constraints_.insert(constraint);
+    constraints_.push_back(constraint);
     hardRouteConstraints_.push_back(std::move(constraint));
     return *this;
   }
@@ -115,7 +115,7 @@ public:
   /// Adds soft route constraint.
   InsertionConstraint& addSoftRoute(std::shared_ptr<SoftRouteConstraint> constraint) {
     addStateKeys(constraint->stateKeys());
-    constraints_.insert(constraint);
+    constraints_.push_back(constraint);
     softRouteConstraints_.push_back(std::move(constraint));
     return *this;
   }
@@ -127,7 +127,7 @@ public:
   /// Adds hard activity constraint.
   InsertionConstraint& addHardActivity(std::shared_ptr<HardActivityConstraint> constraint) {
     addStateKeys(constraint->stateKeys());
-    constraints_.insert(constraint);
+    constraints_.push_back(constraint);
     hardActivityConstraints_.push_back(std::move(constraint));
     return *this;
   }
@@ -135,7 +135,7 @@ public:
   /// Adds soft activity constraint.
   InsertionConstraint& addSoftActivity(std::shared_ptr<SoftActivityConstraint> constraint) {
     addStateKeys(constraint->stateKeys());
-    constraints_.insert(constraint);
+    constraints_.push_back(constraint);
     softActivityConstraints_.push_back(std::move(constraint));
     return *this;
   }
@@ -151,7 +151,7 @@ public:
                                               std::is_base_of<HardActivityConstraint, T>::value,
                                             T>::type> v) {
     addStateKeys(v->stateKeys());
-    constraints_.insert(v);
+    constraints_.push_back(v);
     hardRouteConstraints_.push_back(v);
     hardActivityConstraints_.push_back(v);
     return *this;
@@ -163,7 +163,7 @@ public:
                                               std::is_base_of<SoftActivityConstraint, T>::value,
                                             T>::type> v) {
     addStateKeys(v->stateKeys());
-    constraints_.insert(v);
+    constraints_.push_back(v);
     softRouteConstraints_.push_back(v);
     softActivityConstraints_.push_back(v);
     return *this;
@@ -180,7 +180,7 @@ public:
         std::is_base_of<SoftRouteConstraint, T>::value && std::is_base_of<SoftActivityConstraint, T>::value,
       T>::type> v) {
     addStateKeys(v->stateKeys());
-    constraints_.insert(v);
+    constraints_.push_back(v);
     hardRouteConstraints_.push_back(v);
     hardActivityConstraints_.push_back(v);
     softRouteConstraints_.push_back(v);
@@ -245,7 +245,7 @@ private:
   std::vector<std::shared_ptr<SoftRouteConstraint>> softRouteConstraints_;
   std::vector<std::shared_ptr<HardActivityConstraint>> hardActivityConstraints_;
   std::vector<std::shared_ptr<SoftActivityConstraint>> softActivityConstraints_;
-  std::set<std::shared_ptr<Constraint>> constraints_;
+  std::vector<std::shared_ptr<Constraint>> constraints_;
   std::set<int> stateKeys_;
 };
 
