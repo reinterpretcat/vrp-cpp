@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Solver.hpp"
+#include "algorithms/refinement/logging/LogToConsole.hpp"
 #include "streams/in/json/HereProblemJson.hpp"
 #include "streams/in/json/RichProblemJson.hpp"
 #include "streams/in/scientific/LiLim.hpp"
@@ -34,12 +35,8 @@ struct solve_based_on_type final {
 private:
   std::shared_ptr<models::Problem> readProblem(const char* inType, std::istream& in) const {
     std::stringstream ss;
-    // ss << in.rdbuf();
 
     std::copy(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>(), std::ostreambuf_iterator<char>(ss));
-
-    //    std::string content{ std::istreambuf_iterator<char>(*in),
-    //                         std::istreambuf_iterator<char>() };
 
     if (std::strcmp(inType, "here") == 0) return vrp::streams::in::read_here_json_type{}(ss);
     if (std::strcmp(inType, "rich") == 0) return vrp::streams::in::read_rich_json_type{}(ss);
