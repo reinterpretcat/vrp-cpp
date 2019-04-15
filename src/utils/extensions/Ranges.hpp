@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <range/v3/all.hpp>
 
 namespace vrp::utils {
@@ -13,5 +14,16 @@ accumulate_while(const View& view, T&& value, const Pred& predicate, const Accum
     return !predicate(value);
   });
   return std::move(value);
+}
+
+/// Return first element wrapped into optional.
+template<typename T>
+inline std::optional<T>
+first(ranges::any_view<T> view) {
+  auto item = ranges::begin(view);
+
+  if (item == ranges::end(view)) return std::optional<T>();
+
+  return std::make_optional<T>(*item);
 }
 }

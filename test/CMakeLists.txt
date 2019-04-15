@@ -29,6 +29,7 @@ set(SOURCE_FILES
 
         algorithms/refinement/acceptance/GreedyAcceptanceTest.cc
         algorithms/refinement/acceptance/ThresholdAcceptanceTest.cc
+        algorithms/refinement/extensions/CreateRefinementContextTest.cc
         algorithms/refinement/extensions/RemoveEmptyToursTest.cc
         algorithms/refinement/extensions/RuinAndRecreateSolutionTest.cc
         algorithms/refinement/extensions/RestoreInsertionContextTest.cc

@@ -11,6 +11,11 @@ namespace vrp::models::problem {
 /// * reuse vehicle multiple times with different drivers
 /// * solve best driver-vehicle match problem.
 struct Driver {
+  /// Represents driver detail.
+  struct Detail final {
+    // TODO
+  };
+
   /// Specifies driver costs.
   Costs costs;
 

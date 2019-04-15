@@ -2,6 +2,7 @@
 
 #include "algorithms/construction/InsertionConstraint.hpp"
 #include "algorithms/objectives/ObjectiveFunction.hpp"
+#include "models/JobsLock.hpp"
 #include "models/costs/ActivityCosts.hpp"
 #include "models/costs/TransportCosts.hpp"
 #include "models/problem/Fleet.hpp"
@@ -10,6 +11,7 @@
 #include <any>
 #include <map>
 #include <memory>
+#include <vector>
 
 namespace vrp::models {
 
@@ -18,8 +20,11 @@ struct Problem final {
   /// Specifies used fleet.
   std::shared_ptr<const problem::Fleet> fleet;
 
-  /// Specifies used jobs.
+  /// Specifies all job.
   std::shared_ptr<const problem::Jobs> jobs;
+
+  /// Specifies jobs which preassigned to specific vehicles and/or drivers.
+  std::shared_ptr<const std::vector<JobsLock>> locks;
 
   /// Specifies constraints.
   std::shared_ptr<const algorithms::construction::InsertionConstraint> constraint;
@@ -34,6 +39,6 @@ struct Problem final {
   std::shared_ptr<const costs::TransportCosts> transport;
 
   /// Specifies index for storing extra parameters of arbitrary type.
-  std::shared_ptr<std::map<std::string, std::any>> extras;
+  std::shared_ptr<const std::map<std::string, std::any>> extras;
 };
 }

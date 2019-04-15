@@ -6,6 +6,7 @@
 #include "algorithms/construction/InsertionRouteContext.hpp"
 #include "models/extensions/problem/Comparators.hpp"
 #include "models/extensions/solution/DeepCopies.hpp"
+#include "models/extensions/solution/Factories.hpp"
 
 #include <cmath>
 #include <limits>
@@ -56,6 +57,12 @@ public:
 
   build_insertion_solution_context& routes(std::set<InsertionRouteContext, compare_insertion_route_contexts>&& value) {
     ctx_.routes = std::move(value);
+    return *this;
+  }
+
+  build_insertion_solution_context& unassigned(
+    std::map<models::problem::Job, int, models::problem::compare_jobs>&& value) {
+    ctx_.unassigned = std::move(value);
     return *this;
   }
 
@@ -128,6 +135,26 @@ public:
 
 protected:
   InsertionRouteContext context_;
+};
+
+/// Creates insertion route context for specific actor.
+struct create_insertion_route_context {
+  InsertionRouteContext operator()(const std::shared_ptr<const models::solution::Actor>& actor) const {
+    using namespace vrp::models::solution;
+
+    const auto& dtl = actor->detail;
+    auto builder = build_route{}.actor(actor).start(build_activity{}
+                                                      .detail({dtl.start, 0, {dtl.time.start, models::common::MaxTime}})
+                                                      .schedule({dtl.time.start, dtl.time.start})
+                                                      .shared());
+    if (dtl.end.has_value())
+      builder.end(build_activity{}
+                    .detail({dtl.end.value(), 0, {0, dtl.time.end}})
+                    .schedule({dtl.time.end, dtl.time.end})
+                    .shared());
+
+    return InsertionRouteContext{builder.shared(), std::make_shared<InsertionRouteState>()};
+  }
 };
 
 /// Creates insertion activity context.

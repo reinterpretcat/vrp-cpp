@@ -12,7 +12,9 @@ namespace vrp::models::problem {
 template<typename Result, typename ServiceFunc, typename SequenceFunc>
 Result
 analyze_job(const models::problem::Job& job, ServiceFunc&& serviceFun, SequenceFunc&& sequenceFunc) {
-  return job.index() == 0 ? serviceFun(ranges::get<0>(job)) : sequenceFunc(ranges::get<1>(job));
+  if (job.index() == 0) return serviceFun(ranges::get<0>(job));
+
+  return sequenceFunc(ranges::get<1>(job));
 }
 
 /// Creates job from service.

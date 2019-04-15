@@ -131,24 +131,11 @@ public:
     using namespace ranges;
     using namespace models::solution;
 
-    // iterate through list of routes plus a new one
+    // iterate through list of routes plus new ones
     return ranges::accumulate(
-      view::concat(ctx.solution->routes,
-                   ctx.solution->registry->next() | view::transform([&](const auto& a) {
-                     const auto& dtl = a->detail;
-                     auto builder =
-                       build_route{}.actor(a).start(build_activity{}
-                                                      .detail({dtl.start, 0, {dtl.time.start, models::common::MaxTime}})
-                                                      .schedule({dtl.time.start, dtl.time.start})
-                                                      .shared());
-                     if (dtl.end.has_value())
-                       builder.end(build_activity{}
-                                     .detail({dtl.end.value(), 0, {0, dtl.time.end}})
-                                     .schedule({dtl.time.end, dtl.time.end})
-                                     .shared());
-
-                     return InsertionRouteContext{builder.shared(), std::make_shared<InsertionRouteState>()};
-                   })),
+      view::concat(ctx.solution->routes, ctx.solution->registry->next() | view::transform([&](const auto& a) {
+                                           return create_insertion_route_context{}(a);
+                                         })),
       make_result_failure(),
       [&](const auto& acc, const auto& routeCtx) {
         // check hard constraints on route level.

@@ -4,7 +4,10 @@
 #include "models/extensions/problem/Helpers.hpp"
 #include "models/extensions/solution/Helpers.hpp"
 
+#include <map>
 #include <range/v3/all.hpp>
+#include <set>
+#include <vector>
 
 namespace vrp::test {
 
@@ -77,6 +80,13 @@ struct get_job_ids_from_jobs final {
 
     return view::all(jobs) |
       view::transform([](const auto& pair) { return vrp::models::problem::get_job_id{}(pair.first); }) | to_vector |
+      action::sort;
+  }
+
+  std::vector<std::string> operator()(const std::set<models::problem::Job, models::problem::compare_jobs>& jobs) const {
+    using namespace ranges;
+
+    return jobs | view::transform([](const auto& j) { return models::problem::get_job_id{}(j); }) | to_vector |
       action::sort;
   }
 };

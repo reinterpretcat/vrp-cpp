@@ -346,6 +346,7 @@ struct read_rich_json_type {
     return std::make_shared<models::Problem>(
       models::Problem{fleet,
                       jobs,
+                      std::make_shared<std::vector<models::JobsLock>>(),  // TODO read initial routes
                       constraint,
                       std::make_shared<algorithms::objectives::penalize_unassigned_jobs<10000>>(),
                       activity,

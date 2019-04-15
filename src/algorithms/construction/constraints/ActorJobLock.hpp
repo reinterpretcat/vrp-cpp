@@ -7,7 +7,9 @@ namespace vrp::algorithms::construction {
 
 /// Allows to lock specific actors within specific jobs.
 struct ActorJobLock final : public HardRouteConstraint {
-  explicit ActorJobLock(int code = 3) : code_(code), locks_() {}
+  constexpr static int Code = 3;
+
+  explicit ActorJobLock(int code = Code) : code_(code), locks_() {}
 
   ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>(); }
 
