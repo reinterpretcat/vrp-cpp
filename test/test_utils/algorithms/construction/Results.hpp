@@ -21,6 +21,10 @@ struct get_job_ids_from_all_routes {
     return operator()(ctx.solution->routes, [](const auto r) { return r.route; });
   }
 
+  std::vector<std::string> operator()(std::shared_ptr<const models::solution::Route>& route) const {
+    return operator()(ranges::view::single(route), [](const auto r) { return r; });
+  }
+
 private:
   template<typename Routes, typename MapRoute>
   std::vector<std::string> operator()(const Routes& routes, MapRoute map) const {
