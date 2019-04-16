@@ -17,6 +17,7 @@ using namespace vrp::models::solution;
 using namespace vrp::streams::in;
 using namespace vrp::utils;
 using namespace ranges;
+using namespace Catch;
 
 namespace {
 
@@ -65,7 +66,6 @@ SCENARIO("create refinement context adds job locks to locked with sequence or st
 SCENARIO("create refinement context sticks jobs to actor with sequence or strict order",
          "[algorithms][refinement][extensions]") {
   auto order = GENERATE(JobsLock::Order::Sequence, JobsLock::Order::Strict);
-
   GIVEN("Problem with jobs lock and two vehicles") {
     auto stream = create_sequential_problem_stream{}(2, 10);
     auto problem = read_solomon_type<cartesian_distance>{}(stream);
@@ -76,25 +76,23 @@ SCENARIO("create refinement context sticks jobs to actor with sequence or strict
                               {JobsLock::Detail{order, getJobs(*problem, false)}}});
     problem->locks = locks;
 
-    WHEN("create refinement context") {
+
+    WHEN("refinement context created") {
       auto ctx = create_refinement_context{}(problem);
+
       auto solution = ctx.population->front().first;
       auto route1 = find_route_by_vehicle_id{}(*solution, "v1");
       auto route2 = find_route_by_vehicle_id{}(*solution, "v2");
 
-      THEN("has two routes") {
+      THEN("initial solution has two routes") {
         REQUIRE(solution->routes.size() == 2);
         REQUIRE(route1.has_value());
         REQUIRE(route2.has_value());
       }
 
-      THEN("first route has expected jobs") {
-        CHECK_THAT(get_job_ids_from_all_routes{}(route1.value()), Catch::Equals(std::vector<std::string>{"c2", "c4"}));
-      }
-
-      THEN("second route has expected jobs") {
-        CHECK_THAT(get_job_ids_from_all_routes{}(route2.value()),
-                   Catch::Equals(std::vector<std::string>{"c1", "c3", "c5"}));
+      THEN("initial solution has expected job order in routes") {
+        CHECK_THAT(get_job_ids_from_all_routes{}(route1.value()), Equals(std::vector<std::string>{"c2", "c4"}));
+        CHECK_THAT(get_job_ids_from_all_routes{}(route2.value()), Equals(std::vector<std::string>{"c1", "c3", "c5"}));
       }
     }
   }

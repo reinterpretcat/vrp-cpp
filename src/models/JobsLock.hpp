@@ -6,7 +6,6 @@
 #include <functional>
 #include <memory>
 #include <optional>
-#include <set>
 #include <vector>
 
 namespace vrp::models {
@@ -14,7 +13,7 @@ namespace vrp::models {
 /// Specifies jobs locked to specific actors.
 struct JobsLock final {
   /// Specifies locked jobs type.
-  using Jobs = std::set<problem::Job, problem::compare_jobs>;
+  using Jobs = std::vector<problem::Job>;
 
   /// Specifies condition when locked jobs can be assigned to specific actor.
   using Condition = std::function<bool(const solution::Actor&)>;

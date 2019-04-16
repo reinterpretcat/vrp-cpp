@@ -30,7 +30,7 @@ struct create_refinement_context final {
 
     // get various job types and construct initial routes
     auto unassignedJobs = std::map<problem::Job, int, problem::compare_jobs>{};
-    auto lockedJobs = std::make_shared<JobsLock::Jobs>();
+    auto lockedJobs = std::make_shared<LockedJobs>();
     auto initRoutes = createInitialRoutes(*problem, *registry, unassignedJobs, lockedJobs);
     auto requiredJobs = createRequiredJobs(*problem, unassignedJobs, lockedJobs) | to_vector;
 
@@ -67,6 +67,7 @@ struct create_refinement_context final {
   }
 
 private:
+  using LockedJobs = std::set<models::problem::Job, models::problem::compare_jobs>;
   using InitRoutes = std::set<algorithms::construction::InsertionRouteContext,
                               algorithms::construction::compare_insertion_route_contexts>;
 
@@ -74,7 +75,7 @@ private:
   InitRoutes createInitialRoutes(const models::Problem& problem,
                                  models::solution::Registry& registry,
                                  std::map<models::problem::Job, int, models::problem::compare_jobs>& unassignedJobs,
-                                 std::shared_ptr<models::JobsLock::Jobs> lockedJobs) const {
+                                 std::shared_ptr<LockedJobs> lockedJobs) const {
     using namespace ranges;
     using namespace vrp::algorithms::construction;
     using namespace vrp::models;
@@ -143,7 +144,7 @@ private:
   /// Creates required jobs.
   auto createRequiredJobs(const models::Problem& problem,
                           const std::map<models::problem::Job, int, models::problem::compare_jobs>& unassignedJobs,
-                          const std::shared_ptr<models::JobsLock::Jobs> lockedJobs) const {
+                          const std::shared_ptr<LockedJobs>& lockedJobs) const {
     return problem.jobs->all() | ranges::view::filter([&](const auto& j) {
              return lockedJobs->find(j) == lockedJobs->end() && unassignedJobs.find(j) == unassignedJobs.end();
            });

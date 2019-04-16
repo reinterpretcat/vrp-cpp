@@ -22,7 +22,7 @@ struct RefinementContext final {
   std::shared_ptr<utils::Random> random;
 
   /// Specifies jobs which should not be affected.
-  std::shared_ptr<const models::JobsLock::Jobs> locked;
+  std::shared_ptr<const std::set<models::problem::Job, models::problem::compare_jobs>> locked;
 
   /// Specifies sorted collection discovered and accepted solutions with their cost.
   std::shared_ptr<Population> population;
