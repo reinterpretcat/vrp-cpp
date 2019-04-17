@@ -101,6 +101,9 @@ set(SOURCE_FILES
         models/Problem.hpp
         models/Solution.hpp
 
+        streams/in/json/detail/HereProblemConstraints.hpp
+        streams/in/json/detail/HereProblemParser.hpp
+        streams/in/json/detail/RichProblemParser.hpp
         streams/in/json/HereProblemJson.hpp
         streams/in/json/RichProblemJson.hpp
         streams/in/scientific/LiLim.hpp

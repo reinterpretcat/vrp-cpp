@@ -23,8 +23,8 @@ public:
     assert(durations_.size() == distances_.size());
 
     auto size = std::sqrt(durations_.front().size());
-    assert(ranges::all_of(durations_, [size](const auto& d) { d.size() == size }));
-    assert(ranges::all_of(distances_, [size](const auto& d) { d.size() == size }));
+    assert(ranges::all_of(durations_, [size](const auto& d) { return std::sqrt(d.size()) == size; }));
+    assert(ranges::all_of(distances_, [size](const auto& d) { return std::sqrt(d.size()) == size; }));
 
     size_ = size;
   }

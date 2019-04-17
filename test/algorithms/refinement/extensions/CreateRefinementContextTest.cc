@@ -118,5 +118,4 @@ SCENARIO("create refinement context can handle locked jobs as unassigned jobs",
     }
   }
 }
-
 }
