@@ -8,6 +8,7 @@
 #include <catch/catch.hpp>
 
 using namespace vrp::algorithms::construction;
+using namespace vrp::models;
 using namespace vrp::models::problem;
 using namespace vrp::models::solution;
 using namespace ranges;
@@ -38,8 +39,9 @@ SCENARIO("actor job lock can manage actor-job locks", "[algorithms][construction
     auto registry = Registry(*fleet);
 
     WHEN("has job lock for one actor") {
-      auto actorJobLock = ActorJobLock{};
-      actorJobLock.lock(getActorFromRegistry(locked, registry), DefaultService);
+      auto actorJobLock =
+        ActorJobLock{{JobsLock{[locked = locked](const auto& a) { return get_vehicle_id{}(*a.vehicle) == locked; },
+                               {JobsLock::Detail{JobsLock::Order::Any, {DefaultService}}}}}};
 
       THEN("returns expected constraint check") {
         auto result = actorJobLock.hard(
