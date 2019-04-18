@@ -33,7 +33,7 @@ SCENARIO("recreate with blinks handles simple problem", "[algorithms][refinement
     WHEN("analyzes insertion context") {
       auto problem = std::make_shared<Problem>(Problem{{},
                                                        {},
-                                                       std::make_shared<std::vector<JobsLock>>(),
+                                                       std::make_shared<std::vector<Lock>>(),
                                                        std::make_shared<InsertionConstraint>(),
                                                        std::make_shared<penalize_unassigned_jobs<>>(),
                                                        std::make_shared<ActivityCosts>(),

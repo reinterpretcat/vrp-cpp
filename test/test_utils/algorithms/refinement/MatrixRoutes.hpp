@@ -63,7 +63,7 @@ struct generate_matrix_routes final {
     return Result{
       std::make_shared<Problem>(Problem{fleet,
                                         std::make_shared<Jobs>(*matrix, *fleet, view::all(jobs)),
-                                        std::make_shared<std::vector<models::JobsLock>>(),
+                                        std::make_shared<std::vector<models::Lock>>(),
                                         std::make_shared<algorithms::construction::InsertionConstraint>(),
                                         std::make_shared<algorithms::objectives::penalize_unassigned_jobs<>>(),
                                         std::make_shared<costs::ActivityCosts>(),

@@ -65,7 +65,7 @@ public:
     return std::make_shared<models::Problem>(
       models::Problem{fleet,
                       std::make_shared<models::problem::Jobs>(*matrix, *fleet, ranges::view::all(jobs)),
-                      std::make_shared<std::vector<models::JobsLock>>(),
+                      std::make_shared<std::vector<models::Lock>>(),
                       constraint,
                       std::make_shared<algorithms::objectives::penalize_unassigned_jobs<>>(),
                       activity,

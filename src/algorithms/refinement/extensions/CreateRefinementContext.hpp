@@ -107,7 +107,7 @@ private:
 
             // NOTE we do not add jobs with Any order to allow them to be removed.
             // actor lock constrain will take care the rest
-            if (detail.order != JobsLock::Order::Any)
+            if (detail.order != Lock::Order::Any)
               ranges::copy(detail.jobs, ranges::inserter(*lockedJobs, lockedJobs->begin()));
 
             return ranges::accumulate(detail.jobs, 0, [&](const auto&, const auto& job) {

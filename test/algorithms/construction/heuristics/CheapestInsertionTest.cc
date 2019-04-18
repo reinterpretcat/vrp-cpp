@@ -74,7 +74,7 @@ SCENARIO("cheapest insertion inserts service", "[algorithms][construction][inser
     auto constraint = std::make_shared<InsertionConstraint>();
     auto problem = std::make_shared<models::Problem>(models::Problem{{},
                                                                      {},
-                                                                     std::make_shared<std::vector<models::JobsLock>>(),
+                                                                     std::make_shared<std::vector<models::Lock>>(),
                                                                      constraint,
                                                                      {},
                                                                      std::make_shared<ActivityCosts>(),
@@ -474,8 +474,8 @@ SCENARIO("Can solve simple open VRP problem", "[scenarios][openvrp]") {
     constraint->template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>());
     constraint->add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(fleet, transport, activity));
 
-    auto problem = std::make_shared<models::Problem>(models::Problem{
-      {}, {}, std::make_shared<std::vector<models::JobsLock>>(), constraint, {}, activity, transport, {}});
+    auto problem = std::make_shared<models::Problem>(
+      models::Problem{{}, {}, std::make_shared<std::vector<models::Lock>>(), constraint, {}, activity, transport, {}});
 
     WHEN("run solver") {
       auto result =

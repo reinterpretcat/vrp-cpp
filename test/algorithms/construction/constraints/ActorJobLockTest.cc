@@ -40,8 +40,8 @@ SCENARIO("actor job lock can manage actor-job locks", "[algorithms][construction
 
     WHEN("has job lock for one actor") {
       auto actorJobLock =
-        ActorJobLock{{JobsLock{[locked = locked](const auto& a) { return get_vehicle_id{}(*a.vehicle) == locked; },
-                               {JobsLock::Detail{JobsLock::Order::Any, {DefaultService}}}}}};
+        ActorJobLock{{Lock{[locked = locked](const auto& a) { return get_vehicle_id{}(*a.vehicle) == locked; },
+                           {Lock::Detail{Lock::Order::Any, {DefaultService}}}}}};
 
       THEN("returns expected constraint check") {
         auto result = actorJobLock.hard(

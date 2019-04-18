@@ -11,7 +11,7 @@
 namespace vrp::models {
 
 /// Specifies jobs locked to specific actors.
-struct JobsLock final {
+struct Lock final {
   /// Specifies locked jobs type.
   using Jobs = std::vector<problem::Job>;
 

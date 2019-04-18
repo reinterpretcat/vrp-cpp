@@ -19,13 +19,13 @@ using namespace vrp::utils;
 using namespace ranges;
 using namespace Catch;
 
-using JobsLocks = std::vector<vrp::models::JobsLock>;
+using Locks = std::vector<vrp::models::Lock>;
 
 namespace {
 
-JobsLock::Jobs
+Lock::Jobs
 getJobs(const Problem& problem, bool isEven = true) {
-  auto jobs = JobsLock::Jobs{};
+  auto jobs = Lock::Jobs{};
 
   ranges::copy(view::zip(problem.jobs->all(), view::iota(1)) |
                  view::filter([&](const auto& pair) { return pair.second % 2 == (isEven ? 0 : 1); }) |
@@ -40,13 +40,13 @@ namespace vrp::test {
 
 SCENARIO("create refinement context adds job locks to locked with sequence or strict order",
          "[algorithms][refinement][extensions]") {
-  auto order = GENERATE(JobsLock::Order::Sequence, JobsLock::Order::Strict);
+  auto order = GENERATE(Lock::Order::Sequence, Lock::Order::Strict);
 
   GIVEN("Problem with jobs lock and one vehicle") {
     auto stream = create_sequential_problem_stream{}(1, 10);
     auto problem = read_solomon_type<cartesian_distance>{}(stream);
-    problem->locks = std::make_shared<JobsLocks>(
-      JobsLocks{JobsLock{[](const auto&) { return true; }, {JobsLock::Detail{order, getJobs(*problem)}}}});
+    problem->locks =
+      std::make_shared<Locks>(Locks{Lock{[](const auto&) { return true; }, {Lock::Detail{order, getJobs(*problem)}}}});
 
     WHEN("create refinement context") {
       auto ctx = create_refinement_context{}(problem);
@@ -65,15 +65,15 @@ SCENARIO("create refinement context adds job locks to locked with sequence or st
 
 SCENARIO("create refinement context sticks jobs to actor with sequence or strict order",
          "[algorithms][refinement][extensions]") {
-  auto order = GENERATE(JobsLock::Order::Sequence, JobsLock::Order::Strict);
+  auto order = GENERATE(Lock::Order::Sequence, Lock::Order::Strict);
   GIVEN("Problem with jobs lock and two vehicles") {
     auto stream = create_sequential_problem_stream{}(2, 10);
     auto problem = read_solomon_type<cartesian_distance>{}(stream);
     problem->locks =
-      std::make_shared<JobsLocks>(JobsLocks{JobsLock{[](const auto& a) { return get_vehicle_id{}(*a.vehicle) == "v1"; },
-                                                     {JobsLock::Detail{order, getJobs(*problem, true)}}},
-                                            JobsLock{[](const auto& a) { return get_vehicle_id{}(*a.vehicle) == "v2"; },
-                                                     {JobsLock::Detail{order, getJobs(*problem, false)}}}});
+      std::make_shared<Locks>(Locks{Lock{[](const auto& a) { return get_vehicle_id{}(*a.vehicle) == "v1"; },
+                                         {Lock::Detail{order, getJobs(*problem, true)}}},
+                                    Lock{[](const auto& a) { return get_vehicle_id{}(*a.vehicle) == "v2"; },
+                                         {Lock::Detail{order, getJobs(*problem, false)}}}});
 
     WHEN("refinement context created") {
       auto ctx = create_refinement_context{}(problem);
@@ -98,12 +98,12 @@ SCENARIO("create refinement context sticks jobs to actor with sequence or strict
 
 SCENARIO("create refinement context can handle locked jobs as unassigned jobs",
          "[algorithms][refinement][extensions]") {
-  auto order = GENERATE(JobsLock::Order::Any, JobsLock::Order::Sequence, JobsLock::Order::Strict);
+  auto order = GENERATE(Lock::Order::Any, Lock::Order::Sequence, Lock::Order::Strict);
   GIVEN("Problem with jobs lock and two vehicles") {
     auto stream = create_sequential_problem_stream{}(1, 10);
     auto problem = read_solomon_type<cartesian_distance>{}(stream);
-    problem->locks = std::make_shared<JobsLocks>(
-      JobsLocks{JobsLock{[](const auto& a) { return false; }, {JobsLock::Detail{order, getJobs(*problem)}}}});
+    problem->locks = std::make_shared<Locks>(
+      Locks{Lock{[](const auto& a) { return false; }, {Lock::Detail{order, getJobs(*problem)}}}});
 
     WHEN("refinement context created") {
       auto ctx = create_refinement_context{}(problem);

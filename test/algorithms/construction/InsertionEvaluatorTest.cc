@@ -42,14 +42,14 @@ createProblem(const std::shared_ptr<Fleet>& fleet) {
 
   constraint->add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(fleet, transport, activity));
   return std::make_shared<Problem>(
-    Problem{{}, {}, std::make_shared<std::vector<vrp::models::JobsLock>>(), constraint, {}, activity, transport, {}});
+    Problem{{}, {}, std::make_shared<std::vector<vrp::models::Lock>>(), constraint, {}, activity, transport, {}});
 }
 
 std::shared_ptr<Problem>
 createProblem(std::shared_ptr<InsertionConstraint> constraint) {
   return std::make_shared<Problem>(Problem{{},
                                            {},
-                                           std::make_shared<std::vector<vrp::models::JobsLock>>(),
+                                           std::make_shared<std::vector<vrp::models::Lock>>(),
                                            constraint,
                                            {},
                                            std::make_shared<ActivityCosts>(),

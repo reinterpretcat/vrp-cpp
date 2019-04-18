@@ -1,7 +1,7 @@
 #pragma once
 
 #include "algorithms/construction/InsertionConstraint.hpp"
-#include "models/JobsLock.hpp"
+#include "models/Lock.hpp"
 #include "models/extensions/problem/Comparators.hpp"
 
 #include <range/v3/all.hpp>
@@ -14,13 +14,13 @@ struct ActorJobLock final
   , public HardActivityConstraint {
   constexpr static int Code = 3;
 
-  explicit ActorJobLock(const std::vector<models::JobsLock>& locks, int code = Code) : locks_(), code_(code) {
+  explicit ActorJobLock(const std::vector<models::Lock>& locks, int code = Code) : locks_(), code_(code) {
     ranges::for_each(locks, [&](const auto& l) {
-      auto lock = std::make_shared<models::JobsLock>(l);
+      auto lock = std::make_shared<models::Lock>(l);
       ranges::for_each(lock->details, [&](const auto& detail) {
         ranges::for_each(detail.jobs, [&](const auto& j) {
-          // TODO check that the same lock is not already there
-          locks_[j].push_back(lock);
+          // NOTE check that the same lock is not already there in O(N)
+          if (ranges::none_of(locks_[j], [&](const auto& exl) { return exl == lock; })) { locks_[j].push_back(lock); }
         });
       });
     });
@@ -56,8 +56,8 @@ struct ActorJobLock final
 
 private:
   int code_;
-  std::map<models::problem::Job,                            //
-           std::vector<std::shared_ptr<models::JobsLock>>,  //
+  std::map<models::problem::Job,                        //
+           std::vector<std::shared_ptr<models::Lock>>,  //
            models::problem::compare_jobs>
     locks_;
 };

@@ -2,7 +2,7 @@
 
 #include "algorithms/construction/InsertionConstraint.hpp"
 #include "algorithms/objectives/ObjectiveFunction.hpp"
-#include "models/JobsLock.hpp"
+#include "models/Lock.hpp"
 #include "models/costs/ActivityCosts.hpp"
 #include "models/costs/TransportCosts.hpp"
 #include "models/problem/Fleet.hpp"
@@ -24,7 +24,7 @@ struct Problem final {
   std::shared_ptr<const problem::Jobs> jobs;
 
   /// Specifies jobs which preassigned to specific vehicles and/or drivers.
-  std::shared_ptr<const std::vector<JobsLock>> locks;
+  std::shared_ptr<const std::vector<Lock>> locks;
 
   /// Specifies constraints.
   std::shared_ptr<const algorithms::construction::InsertionConstraint> constraint;

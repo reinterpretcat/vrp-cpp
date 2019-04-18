@@ -88,7 +88,7 @@ public:
     return std::make_shared<models::Problem>(
       models::Problem{fleet,
                       jobs,
-                      std::make_shared<std::vector<models::JobsLock>>(),  // TODO read relations
+                      std::make_shared<std::vector<models::Lock>>(),  // TODO read relations
                       constraint,
                       std::make_shared<algorithms::objectives::penalize_unassigned_jobs<10000>>(),
                       activity,

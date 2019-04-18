@@ -97,7 +97,7 @@ set(SOURCE_FILES
         models/solution/Statistic.hpp
         models/solution/Tour.hpp
 
-        models/JobsLock.hpp
+        models/Lock.hpp
         models/Problem.hpp
         models/Solution.hpp
 
