@@ -1,26 +1,84 @@
 #pragma once
 
 #include "algorithms/construction/InsertionConstraint.hpp"
+#include "algorithms/construction/extensions/Constraints.hpp"
 #include "models/Lock.hpp"
 #include "models/extensions/problem/Comparators.hpp"
+#include "models/extensions/solution/Helpers.hpp"
+#include "models/solution/Actor.hpp"
 
+#include <map>
 #include <range/v3/all.hpp>
+#include <unordered_map>
+#include <unordered_set>
 
 namespace vrp::algorithms::construction {
 
-/// Allows to lock specific actors within specific jobs.
+/// Allows to lock specific actors within specific jobs using different rules.
 struct ActorJobLock final
   : public HardRouteConstraint
   , public HardActivityConstraint {
   constexpr static int Code = 3;
 
-  explicit ActorJobLock(const std::vector<models::Lock>& locks, int code = Code) : locks_(), code_(code) {
-    ranges::for_each(locks, [&](const auto& l) {
-      auto lock = std::make_shared<models::Lock>(l);
-      ranges::for_each(lock->details, [&](const auto& detail) {
+private:
+  /// Represents a simple job index.
+  struct JobIndex final {
+    models::problem::Job first;
+    models::problem::Job last;
+    std::unordered_set<models::problem::Job,  //
+                       models::problem::hash_job,
+                       models::problem::is_the_same_jobs>
+      jobs;
+
+    bool contains(const models::problem::Job& job) const { return jobs.find(job) != jobs.end(); }
+  };
+
+  /// Represents a rule created from lock model.
+  struct Rule final {
+    /// Has departure in the beginning.
+    bool hasDep;
+    /// Has arrival in the end.
+    bool hasArr;
+    /// Stores jobs.
+    JobIndex index;
+  };
+
+public:
+  explicit ActorJobLock(const models::solution::Registry& registry,
+                        const std::vector<models::Lock>& locks,
+                        int code = Code) :
+    conditions_(),
+    rules_(),
+    code_(code) {
+    ranges::for_each(locks, [&](const auto& lock) {
+      auto condition = std::make_shared<models::Lock::Condition>(lock.condition);
+
+      ranges::for_each(lock.details, [&](const auto& detail) {
+        // NOTE create rule only for strict order
+        if (detail.order == models::Lock::Order::Strict) {
+          assert(!detail.jobs.empty());
+
+          auto rule = std::make_shared<Rule>();
+
+          rule->hasDep = detail.position.stickToDeparture;
+          rule->hasArr = detail.position.stickToArrival;
+          rule->index.first = detail.jobs.front();
+          rule->index.last = detail.jobs.back();
+          ranges::copy(detail.jobs, ranges::inserter(rule->index.jobs, rule->index.jobs.begin()));
+
+          ranges::for_each(
+            registry.available() | ranges::view::filter([&](const auto& a) { return lock.condition(*a); }),
+            [&](const auto& actor) {
+              // TODO assert arrival postition is not set in rule for open VRP
+              rules_[actor].push_back(rule);
+            });
+        }
+
         ranges::for_each(detail.jobs, [&](const auto& j) {
-          // NOTE check that the same lock is not already there in O(N)
-          if (ranges::none_of(locks_[j], [&](const auto& exl) { return exl == lock; })) { locks_[j].push_back(lock); }
+          // NOTE check in O(N) that the same condition is not already in the collection.
+          if (ranges::none_of(conditions_[j], [&](const auto& exl) { return exl == condition; })) {
+            conditions_[j].push_back(condition);
+          }
         });
       });
     });
@@ -34,31 +92,59 @@ struct ActorJobLock final
 
   HardRouteConstraint::Result hard(const InsertionRouteContext& routeCtx,
                                    const HardRouteConstraint::Job& job) const override {
-    if (locks_.empty()) return {};
-
-    auto lockPair = locks_.find(job);
-    if (lockPair != locks_.end() &&
-        ranges::none_of(lockPair->second, [&](const auto& l) { return l->condition(*routeCtx.route->actor); })) {
-      return HardRouteConstraint::Result{3};
-    }
-
-    return {};
+    auto condPair = conditions_.find(job);
+    return condPair != conditions_.end() &&
+        ranges::none_of(condPair->second, [&](const auto& cond) { return (*cond)(*routeCtx.route->actor); })
+      ? HardRouteConstraint::Result{3}
+      : HardRouteConstraint::Result{};
   }
 
   HardActivityConstraint::Result hard(const InsertionRouteContext& rCtx,
                                       const InsertionActivityContext& aCtx) const override {
-    if (locks_.empty()) return {};
+    using namespace vrp::models::problem;
+    using namespace vrp::models::solution;
 
-    // TODO
+    auto rulePair = rules_.find(rCtx.route->actor);
+    return rulePair != rules_.end() &&
+        ranges::any_of(  //
+             rulePair->second,
+             [&](const auto& rule) {
+               // check with departure
+               bool hasPrev = false;
+               auto prev = retrieve_job{}(*aCtx.prev);
+               if (prev) {
+                 hasPrev = rule->index.contains(prev.value());
+                 if (rule->hasDep && hasPrev && !is_the_same_jobs{}(prev.value(), rule->index.last)) return true;
+               } else if (rule->hasDep)
+                 return true;
 
-    return {};
+               // check with arrival
+               bool hasNext = false;
+               if (aCtx.next) {
+                 auto next = retrieve_job{}(*aCtx.next.value());
+                 if (next) {
+                   hasNext = rule->index.contains(next.value());
+                   if (rule->hasArr && hasNext && !is_the_same_jobs{}(next.value(), rule->index.first)) return true;
+                 } else if (rule->hasArr)
+                   return true;
+               }
+
+               // check general
+               return hasPrev && hasNext;
+             })
+      ? stop(code_)
+      : success();
   }
 
 private:
   int code_;
-  std::map<models::problem::Job,                        //
-           std::vector<std::shared_ptr<models::Lock>>,  //
+  std::map<models::problem::Job,                                   //
+           std::vector<std::shared_ptr<models::Lock::Condition>>,  //
            models::problem::compare_jobs>
-    locks_;
+    conditions_;
+
+  std::unordered_map<std::shared_ptr<const models::solution::Actor>,  //
+                     std::vector<std::shared_ptr<Rule>>>
+    rules_;
 };
 }

@@ -45,8 +45,8 @@ SCENARIO("create refinement context adds job locks to locked with sequence or st
   GIVEN("Problem with jobs lock and one vehicle") {
     auto stream = create_sequential_problem_stream{}(1, 10);
     auto problem = read_solomon_type<cartesian_distance>{}(stream);
-    problem->locks =
-      std::make_shared<Locks>(Locks{Lock{[](const auto&) { return true; }, {Lock::Detail{order, getJobs(*problem)}}}});
+    problem->locks = std::make_shared<Locks>(Locks{
+      Lock{[](const auto&) { return true; }, {Lock::Detail{order, Lock::Position::middle(), getJobs(*problem)}}}});
 
     WHEN("create refinement context") {
       auto ctx = create_refinement_context{}(problem);
@@ -71,9 +71,9 @@ SCENARIO("create refinement context sticks jobs to actor with sequence or strict
     auto problem = read_solomon_type<cartesian_distance>{}(stream);
     problem->locks =
       std::make_shared<Locks>(Locks{Lock{[](const auto& a) { return get_vehicle_id{}(*a.vehicle) == "v1"; },
-                                         {Lock::Detail{order, getJobs(*problem, true)}}},
+                                         {Lock::Detail{order, Lock::Position::middle(), getJobs(*problem, true)}}},
                                     Lock{[](const auto& a) { return get_vehicle_id{}(*a.vehicle) == "v2"; },
-                                         {Lock::Detail{order, getJobs(*problem, false)}}}});
+                                         {Lock::Detail{order, Lock::Position::middle(), getJobs(*problem, false)}}}});
 
     WHEN("refinement context created") {
       auto ctx = create_refinement_context{}(problem);
@@ -102,8 +102,8 @@ SCENARIO("create refinement context can handle locked jobs as unassigned jobs",
   GIVEN("Problem with jobs lock and two vehicles") {
     auto stream = create_sequential_problem_stream{}(1, 10);
     auto problem = read_solomon_type<cartesian_distance>{}(stream);
-    problem->locks = std::make_shared<Locks>(
-      Locks{Lock{[](const auto& a) { return false; }, {Lock::Detail{order, getJobs(*problem)}}}});
+    problem->locks = std::make_shared<Locks>(Locks{
+      Lock{[](const auto& a) { return false; }, {Lock::Detail{order, Lock::Position::middle(), getJobs(*problem)}}}});
 
     WHEN("refinement context created") {
       auto ctx = create_refinement_context{}(problem);

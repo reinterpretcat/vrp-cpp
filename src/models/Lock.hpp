@@ -28,23 +28,24 @@ struct Lock final {
     Strict
   };
 
-  //  /// Specifies how other jobs can be inserted in tour.
-  //  enum class Place {
-  //    /// Any job can be inserted before and after locked.
-  //    NotSpecified = 0,
-  //    /// No job can be inserted before locked.
-  //    StickToDeparture = 1,
-  //    /// No job can be inserted after locked.
-  //    StickToArrival = 2
-  //  };
+  /// Specifies how other jobs can be inserted in tour.
+  struct Position {
+    bool stickToDeparture;
+    bool stickToArrival;
+
+    static Position middle() { return Position{false, false}; }
+    static Position departure() { return Position{true, false}; }
+    static Position arrival() { return Position{false, true}; }
+    static Position fixed() { return Position{true, true}; }
+  };
 
   /// Specifies multiple details.
   struct Detail {
     /// Order type.
     Order order;
 
-    //    /// Insertion type.
-    //    Place place;
+    /// Insertion type.
+    Position position;
 
     /// Locked jobs.
     Jobs jobs;
