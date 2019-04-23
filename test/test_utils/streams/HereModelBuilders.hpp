@@ -125,6 +125,29 @@ private:
     }};
 };
 
+/// Provides the way to build relation.
+struct build_test_relation final {
+  build_test_relation type(const std::string& value) {
+    content_["type"] = value;
+    return *this;
+  }
+
+  build_test_relation vehicle(const std::string& value) {
+    content_["vehicleId"] = value;
+    return *this;
+  }
+
+  build_test_relation jobs(std::initializer_list<std::string> value) {
+    ranges::copy(value, ranges::back_inserter(content_["jobs"]));
+    return *this;
+  }
+
+  nlohmann::json content() { return content_; }
+
+private:
+  nlohmann::json content_ = {{"type", "sequence"}, {"vehicleId", "vehicle_1"}, {"jobs", nlohmann::json::array()}};
+};
+
 /// Provides the way to create serialized representation of plan.
 struct build_test_plan final {
   build_test_plan addJob(nlohmann::json job) {
@@ -132,14 +155,23 @@ struct build_test_plan final {
     return *this;
   }
 
+  build_test_plan addRelation(nlohmann::json relation) {
+    relations_.push_back(std::move(relation));
+    return *this;
+  }
+
   nlohmann::json content() const {
     nlohmann::json plan;
+
     plan["jobs"] = jobs_;
+    if (!relations_.empty()) plan["relations"] = relations_;
+
     return plan;
   }
 
 private:
   nlohmann::json jobs_ = nlohmann::json::array();
+  nlohmann::json relations_ = nlohmann::json::array();
 };
 
 // endregion
