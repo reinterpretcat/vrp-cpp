@@ -46,17 +46,18 @@ SCENARIO("actor job lock can manage any actor-job locks on route level", "[algor
       .add(test_build_driver{}.owned())
       .add(test_build_vehicle{}.id("v1").details(asDetails(0, {}, {0, 100})).owned())
       .add(test_build_vehicle{}.id("v2").details(asDetails(0, {}, {0, 100})).owned());
-    auto registry = Registry(*fleet);
+    auto registry = std::make_shared<Registry>(*fleet);
 
     WHEN("has job lock for one actor") {
+      auto slnCtx = InsertionSolutionContext{{}, {}, {}, {}, registry};
       auto actorJobLock =
-        ActorJobLock{registry,
-                     {Lock{[locked = locked](const auto& a) { return get_vehicle_id{}(*a.vehicle) == locked; },
+        ActorJobLock{{Lock{[locked = locked](const auto& a) { return get_vehicle_id{}(*a.vehicle) == locked; },
                            {Lock::Detail{Lock::Order::Any, Lock::Position::middle(), {DefaultService}}}}}};
+      actorJobLock.accept(slnCtx);
 
       THEN("returns expected constraint check") {
         auto result = actorJobLock.hard(
-          InsertionRouteContext{std::make_shared<Route>(Route{getActorFromRegistry(used, registry), {}}),
+          InsertionRouteContext{std::make_shared<Route>(Route{getActorFromRegistry(used, *registry), {}}),
                                 std::make_shared<InsertionRouteState>()},
           DefaultService);
 
@@ -198,23 +199,27 @@ SCENARIO("actor job lock can manage strict actor-job locks on activity level",
     auto fleet = Fleet();
     fleet.add(test_build_driver{}.owned());
     fleet.add(test_build_vehicle{}.id("v1").details(asDetails(0, {}, {0, 100})).owned());
-    auto registry = Registry(fleet);
+    auto registry = std::make_shared<Registry>(fleet);
     auto newJob = test_build_service{}.id("new").shared();
-    auto actor = (registry.available() | to_vector).front();
+    auto actor = (registry->available() | to_vector).front();
 
     WHEN("activity level constraint called having job lock for one actor") {
       auto locks = std::vector<Lock>{Lock{[](const auto& a) { return true; },
                                           {Lock::Detail{Lock::Order::Strict, position, {as_job(s1), as_job(s2)}}}}};
+      auto slnCtx = InsertionSolutionContext{{}, {}, {}, {}, registry};
       auto routeCtx = test_build_insertion_route_context{}.route(test_build_route{}.actor(actor).shared()).owned();
       auto actCtx = test_build_insertion_activity_context{}
                       .prev(prev)
                       .target(test_build_activity{}.service(newJob).shared())
                       .next(next)
                       .owned();
+      auto constraint = ActorJobLock{locks};
+      constraint.accept(slnCtx);
 
-      auto result = ActorJobLock{registry, locks}.hard(routeCtx, actCtx);
-
-      THEN(message) { REQUIRE(result == expected); }
+      THEN(message) {
+        auto result = constraint.hard(routeCtx, actCtx);
+        REQUIRE(result == expected);
+      }
     }
   }
 }

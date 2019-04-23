@@ -35,6 +35,8 @@ private:
 
   /// Represents a rule created from lock model.
   struct Rule final {
+    /// Actor condition.
+    std::shared_ptr<models::Lock::Condition> condition;
     /// Has departure in the beginning.
     bool hasDep;
     /// Has arrival in the end.
@@ -44,12 +46,11 @@ private:
   };
 
 public:
-  explicit ActorJobLock(const models::solution::Registry& registry,
-                        const std::vector<models::Lock>& locks,
-                        int code = Code) :
+  explicit ActorJobLock(const std::vector<models::Lock>& locks, int code = Code) :
+    code_(code),
     conditions_(),
     rules_(),
-    code_(code) {
+    initRules_() {
     ranges::for_each(locks, [&](const auto& lock) {
       auto condition = std::make_shared<models::Lock::Condition>(lock.condition);
 
@@ -60,18 +61,14 @@ public:
 
           auto rule = std::make_shared<Rule>();
 
+          rule->condition = condition;
           rule->hasDep = detail.position.stickToDeparture;
           rule->hasArr = detail.position.stickToArrival;
           rule->index.first = detail.jobs.front();
           rule->index.last = detail.jobs.back();
           ranges::copy(detail.jobs, ranges::inserter(rule->index.jobs, rule->index.jobs.begin()));
 
-          ranges::for_each(
-            registry.available() | ranges::view::filter([&](const auto& a) { return lock.condition(*a); }),
-            [&](const auto& actor) {
-              // TODO assert arrival postition is not set in rule for open VRP
-              rules_[actor].push_back(rule);
-            });
+          initRules_.push_back(rule);
         }
 
         ranges::for_each(detail.jobs, [&](const auto& j) {
@@ -86,7 +83,21 @@ public:
 
   ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>(); }
 
-  void accept(InsertionSolutionContext&) const override {}
+  void accept(InsertionSolutionContext& ctx) const override {
+    // NOTE initialize rules collection once. We do it here as constraint's constructor
+    // cannot depend on models from solution domain (Registry in this case).
+    if (!initRules_.empty()) {
+      ranges::for_each(initRules_, [&](const auto& rule) {
+        ranges::for_each(
+          ctx.registry->available() | ranges::view::filter([&](const auto& a) { return (*rule->condition)(*a); }),
+          [&](const auto& actor) {
+            // TODO assert arrival postition is not set in rule for open VRP
+            rules_[actor].push_back(rule);
+          });
+      });
+      initRules_.clear();
+    }
+  }
 
   void accept(InsertionRouteContext&) const override {}
 
@@ -143,8 +154,10 @@ private:
            models::problem::compare_jobs>
     conditions_;
 
-  std::unordered_map<std::shared_ptr<const models::solution::Actor>,  //
-                     std::vector<std::shared_ptr<Rule>>>
+  mutable std::unordered_map<std::shared_ptr<const models::solution::Actor>,  //
+                             std::vector<std::shared_ptr<Rule>>>
     rules_;
+
+  mutable std::vector<std::shared_ptr<Rule>> initRules_;
 };
 }
