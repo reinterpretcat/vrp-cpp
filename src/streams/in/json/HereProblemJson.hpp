@@ -2,11 +2,13 @@
 
 #include "algorithms/construction/InsertionConstraint.hpp"
 #include "algorithms/construction/constraints/ActorActivityTiming.hpp"
+#include "algorithms/construction/constraints/ActorJobLock.hpp"
 #include "algorithms/construction/constraints/VehicleActivitySize.hpp"
 #include "algorithms/objectives/PenalizeUnassignedJobs.hpp"
 #include "models/Problem.hpp"
 #include "models/costs/MatrixTransportCosts.hpp"
 #include "models/extensions/problem/Factories.hpp"
+#include "models/extensions/problem/Helpers.hpp"
 #include "streams/in/json/detail/HereProblemConstraints.hpp"
 #include "streams/in/json/detail/HereProblemParser.hpp"
 #include "utils/Date.hpp"
@@ -57,6 +59,9 @@ private:
 
 /// Parses HERE VRP problem definition from json.
 struct read_here_json_type {
+private:
+  using JobIndex = std::unordered_map<std::string, models::problem::Job>;
+
 public:
   std::shared_ptr<models::Problem> operator()(std::istream& input) const {
     using namespace vrp::algorithms::construction;
@@ -68,14 +73,17 @@ public:
     auto problem = j.get<detail::here::Problem>();
 
     auto coordIndex = createCoordIndex(problem);
+    auto jobIndex = JobIndex{};
 
     auto transport = transportCosts(problem);
     auto activity = std::make_shared<costs::ActivityCosts>();
 
     auto fleet = readFleet(problem, coordIndex);
-    auto jobs = readJobs(problem, coordIndex, *transport, *fleet);
+    auto jobs = readJobs(problem, coordIndex, *transport, *fleet, jobIndex);
+    auto locks = readLocks(problem, *jobs, jobIndex);
 
     auto constraint = std::make_shared<InsertionConstraint>();
+    if (!locks->empty()) constraint->addHard<ActorJobLock>(std::make_shared<ActorJobLock>(*locks));
     constraint->add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(fleet, transport, activity))
       .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>())
       .addHardActivity(std::make_shared<detail::here::BreakConstraint>())
@@ -88,7 +96,7 @@ public:
     return std::make_shared<models::Problem>(
       models::Problem{fleet,
                       jobs,
-                      std::make_shared<std::vector<models::Lock>>(),  // TODO read relations
+                      locks,  // TODO read relations
                       constraint,
                       std::make_shared<algorithms::objectives::penalize_unassigned_jobs<10000>>(),
                       activity,
@@ -171,16 +179,19 @@ private:
   std::shared_ptr<models::problem::Jobs> readJobs(const detail::here::Problem& problem,
                                                   const CoordIndex& coordIndex,
                                                   const models::costs::TransportCosts& transport,
-                                                  const models::problem::Fleet& fleet) const {
+                                                  const models::problem::Fleet& fleet,
+                                                  JobIndex& jobIndex) const {
     return std::make_shared<models::problem::Jobs>(models::problem::Jobs{
       transport,
       fleet,
-      ranges::view::concat(readRequiredJobs(problem, coordIndex), readConditionalJobs(problem, coordIndex)),
+      ranges::view::concat(readRequiredJobs(problem, coordIndex, jobIndex),
+                           readConditionalJobs(problem, coordIndex, jobIndex)),
     });
   }
 
   ranges::any_view<models::problem::Job> readRequiredJobs(const detail::here::Problem& problem,
-                                                          const CoordIndex& coordIndex) const {
+                                                          const CoordIndex& coordIndex,
+                                                          JobIndex& jobIndex) const {
     using namespace ranges;
     using namespace algorithms::construction;
     using namespace models::common;
@@ -210,6 +221,11 @@ private:
         return std::move(dimens);
       };
 
+      auto withIndex = [&](const auto& j) {
+        jobIndex[job.id] = j;
+        return j;
+      };
+
       auto createService = [&, dateParser](
                              const auto& job, const auto& place, const auto& demand, bool skipSkills = false) {
         auto times = place.times.has_value()  //
@@ -229,24 +245,25 @@ private:
 
       // shipment
       if (job.places.pickup && job.places.delivery) {
-        return yield(
+        return yield(withIndex(
           as_job(build_sequence{}
                    .dimens(addSkillsIfPresent(job, Dimensions{{"id", job.id}}, false))
                    .service(createService(job, job.places.pickup.value(), createDemand(job, true, false), true))
                    .service(createService(job, job.places.delivery.value(), createDemand(job, false, false), true))
-                   .shared()));
+                   .shared())));
         // pickup
       } else if (job.places.pickup) {
-        return yield(as_job(createService(job, job.places.pickup.value(), createDemand(job, true, true))));
+        return yield(withIndex(as_job(createService(job, job.places.pickup.value(), createDemand(job, true, true)))));
       }
 
       // delivery
-      return yield(as_job(createService(job, job.places.delivery.value(), createDemand(job, false, true))));
+      return yield(withIndex(as_job(createService(job, job.places.delivery.value(), createDemand(job, false, true)))));
     });
   }
 
   ranges::any_view<models::problem::Job> readConditionalJobs(const detail::here::Problem& problem,
-                                                             const CoordIndex& coordIndex) const {
+                                                             const CoordIndex& coordIndex,
+                                                             JobIndex& jobIndex) const {
     using namespace ranges;
     using namespace algorithms::construction;
     using namespace models::common;
@@ -269,13 +286,15 @@ private:
             return std::move(acc);
           })};
 
-        return view::for_each(ranges::view::closed_indices(1, vehicle.amount), [=](auto index) {
-          return yield(as_job(build_service{}
-                                .details({detail})
-                                .dimens(Dimensions{{"id", std::string("break")},
-                                                   {"type", std::string("break")},
-                                                   {"vehicleId", id + "_" + std::to_string(index)}})
-                                .shared()));
+        return view::for_each(ranges::view::closed_indices(1, vehicle.amount), [=, &jobIndex](auto index) {
+          auto job = as_job(build_service{}
+                              .details({detail})
+                              .dimens(Dimensions{{"id", std::string("break")},
+                                                 {"type", std::string("break")},
+                                                 {"vehicleId", id + "_" + std::to_string(index)}})
+                              .shared());
+          jobIndex[id + "_" + std::to_string(index) + "_break"] = job;
+          return yield(job);
         });
       });
   }
@@ -296,6 +315,53 @@ private:
     });
 
     return std::make_shared<MatrixTransportCosts>(MatrixTransportCosts{std::move(durations), std::move(distances)});
+  }
+
+  std::shared_ptr<std::vector<models::Lock>> readLocks(const detail::here::Problem& problem,
+                                                       const models::problem::Jobs& jobs,
+                                                       const JobIndex& jIndx) const {
+    using namespace vrp::models;
+    using namespace vrp::streams::in::detail::here;
+    using namespace ranges;
+
+    auto locks = std::make_shared<std::vector<Lock>>();
+
+    if (!problem.plan.relations || problem.plan.relations.value().empty()) return locks;
+
+    auto relations = ranges::accumulate(problem.plan.relations.value(),
+                                        std::map<std::string, std::vector<detail::here::Relation>>{},
+                                        [](auto& acc, const auto& relation) {
+                                          assert(!relation.jobs.empty());
+                                          acc[relation.vehicleId].push_back(relation);
+                                          return std::move(acc);
+                                        });
+
+    return ranges::accumulate(relations, locks, [&](auto& acc, const auto& pair) {
+      auto vehicleId = pair.first;
+
+      auto condition = [vehicleId = vehicleId](const auto& a) {
+        return problem::get_vehicle_id{}(*a.vehicle) == vehicleId;
+      };
+
+      auto details = ranges::accumulate(pair.second, std::vector<Lock::Detail>{}, [&](auto& dtls, const auto& rel) {
+        auto order = rel.type == RelationType::Tour
+          ? Lock::Order::Any
+          : (rel.type == RelationType::Flexible ? Lock::Order::Sequence : Lock::Order::Strict);
+
+        auto position = Lock::Position{rel.jobs.front() == "departure", rel.jobs.back() == "arrival"};
+
+        auto jobs = rel.jobs |  //
+          view::filter([](const auto& j) { return j != "departure" && j != "arrival"; }) |
+          view::transform([&](const auto& j) { return j == "break" ? jIndx.at(vehicleId + "_break") : jIndx.at(j); });
+
+        dtls.push_back(Lock::Detail{order, position, std::move(jobs)});
+
+        return std::move(dtls);
+      });
+
+      acc->push_back(models::Lock{condition, std::move(details)});
+      return acc;
+    });
   }
 
   models::common::Profile getProfile(const std::string& value) const {

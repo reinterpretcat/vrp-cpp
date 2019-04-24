@@ -126,8 +126,9 @@ private:
             });
           });
 
-        initRoutes.insert(rs);
         registry.use(actor.value());
+        problem.constraint->accept(rs);
+        initRoutes.insert(rs);
 
       } else {
         // add all jobs to unassigned
