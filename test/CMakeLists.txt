@@ -47,6 +47,7 @@ set(SOURCE_FILES
 
         scenarios/here/breaks/BreakBasicTest.cc
         scenarios/here/breaks/BreakSkipTest.cc
+        scenarios/here/breaks/BreakWithLocationRelationTest.cc
         scenarios/here/fleet/OpenEndBasicTest.cc
         scenarios/here/pickdev/PickDevMixedTest.cc
         scenarios/here/pickdev/PickDevBasicTest.cc
