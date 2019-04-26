@@ -17,12 +17,16 @@ using namespace vrp::test::here;
 
 namespace {
 
-auto defaultBreak = json({{"times", json::array({json::array({"1970-01-01T00:00:00Z", "1970-01-01T00:01:40Z"})})},
-                          {"duration", 10},
-                          {"location", json::array({3.0, 0.0})}});
+auto breakWithLocation = json({{"times", json::array({json::array({"1970-01-01T00:00:00Z", "1970-01-01T00:01:40Z"})})},
+                               {"duration", 10},
+                               {"location", json::array({3.0, 0.0})}});
+
+
+auto breakWithoutLocation =
+  json({{"times", json::array({json::array({"1970-01-01T00:00:00Z", "1970-01-01T00:01:40Z"})})}, {"duration", 10}});
 
 auto
-getProblemStream(const std::string& relationType, std::initializer_list<std::string> jobs) {
+getProblemStream(const std::string& relationType, json breakJson, std::initializer_list<std::string> jobs) {
   return build_test_problem{}
     .plan(build_test_plan{}
             .addJob(build_test_delivery_job{}.id("job1").location(1, 0).duration(10).content())
@@ -33,7 +37,7 @@ getProblemStream(const std::string& relationType, std::initializer_list<std::str
                            .jobs(jobs)
                            .content()))
     .fleet(build_test_fleet{}.addVehicle(build_test_vehicle{}  //
-                                           .setBreak(defaultBreak)
+                                           .setBreak(breakJson)
                                            .amount(1)
                                            .capacity(2)
                                            .end(nlohmann::json{})
@@ -55,7 +59,7 @@ SCENARIO("break with location can be used with relation (case 1)", "[scenarios][
   auto relationType = GENERATE(as<std::string>{}, "flexible", "sequence");
 
   GIVEN("two jobs and break in between") {
-    auto stream = getProblemStream(relationType, {"departure", "job1", "break", "job2"});
+    auto stream = getProblemStream(relationType, breakWithLocation, {"departure", "job1", "break", "job2"});
 
     WHEN("solve problem") {
       auto problem = read_here_json_type{}(stream);
@@ -182,7 +186,7 @@ SCENARIO("break with location can be used with relation (case 2)", "[scenarios][
   auto relationType = GENERATE(as<std::string>{}, "flexible", "sequence");
 
   GIVEN("two jobs and break in the end") {
-    auto stream = getProblemStream(relationType, {"departure", "job1", "job2", "break"});
+    auto stream = getProblemStream(relationType, breakWithLocation, {"departure", "job1", "job2", "break"});
 
     WHEN("solve problem") {
       auto problem = read_here_json_type{}(stream);
@@ -300,6 +304,118 @@ SCENARIO("break with location can be used with relation (case 2)", "[scenarios][
   ]
 }
         )");
+      }
+    }
+  }
+}
+
+SCENARIO("break without location can be used with relation", "[scenarios][breaks]") {
+  auto relationType = GENERATE(as<std::string>{}, "flexible", "sequence");
+
+  GIVEN("two jobs and break in between") {
+    auto stream = getProblemStream(relationType, breakWithoutLocation, {"departure", "job1", "break", "job2"});
+
+    WHEN("solve problem") {
+      auto problem = read_here_json_type{}(stream);
+      auto estimatedSolution = SolverInstance(problem);
+
+      THEN("has expected solution") {
+        assertSolution(problem, estimatedSolution, R"(
+{
+  "problemId": "problem",
+  "statistic": {
+    "cost": 44.0,
+    "distance": 2,
+    "duration": 32,
+    "times": {
+      "break": 10,
+      "driving": 2,
+      "serving": 20,
+      "waiting": 0
+    }
+  },
+  "tours": [
+    {
+      "statistic": {
+        "cost": 44.0,
+        "distance": 2,
+        "duration": 32,
+        "times": {
+          "break": 10,
+          "driving": 2,
+          "serving": 20,
+          "waiting": 0
+        }
+      },
+      "stops": [
+        {
+          "activities": [
+            {
+              "jobId": "departure",
+              "type": "departure"
+            }
+          ],
+          "load": [
+            2
+          ],
+          "location": [
+            0.0,
+            0.0
+          ],
+          "time": {
+            "arrival": "1970-01-01T00:00:00Z",
+            "departure": "1970-01-01T00:00:00Z"
+          }
+        },
+        {
+          "activities": [
+            {
+              "jobId": "job1",
+              "type": "delivery"
+            },
+            {
+              "jobId": "break",
+              "type": "break"
+            }
+          ],
+          "load": [
+            1
+          ],
+          "location": [
+            1.0,
+            0.0
+          ],
+          "time": {
+            "arrival": "1970-01-01T00:00:01Z",
+            "departure": "1970-01-01T00:00:21Z"
+          }
+        },
+        {
+          "activities": [
+            {
+              "jobId": "job2",
+              "type": "delivery"
+            }
+          ],
+          "load": [
+            0
+          ],
+          "location": [
+            2.0,
+            0.0
+          ],
+          "time": {
+            "arrival": "1970-01-01T00:00:22Z",
+            "departure": "1970-01-01T00:00:32Z"
+          }
+        }
+      ],
+      "typeId": "vehicle",
+      "vehicleId": "vehicle_1"
+    }
+  ]
+}
+ )");
       }
     }
   }
