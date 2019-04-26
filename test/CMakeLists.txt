@@ -54,6 +54,7 @@ set(SOURCE_FILES
         scenarios/here/skills/SkillsUnassignedTest.cc
         scenarios/here/relations/BasicSplitStrictNewJobsTest.cc
         scenarios/here/relations/BasicSplitStrictNoNewJobsTest.cc
+        scenarios/here/relations/MixedSequenceStrictOneVehicleOneNewJob.cc
         scenarios/here/times/AvoidInitialWaitTest.cc
         scenarios/here/times/TimeStrictUnassignedTest.cc
         scenarios/here/times/TimeStrictTwoToursTest.cc
