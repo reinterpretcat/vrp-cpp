@@ -15,37 +15,40 @@ using namespace vrp::streams::in;
 
 namespace vrp::test::here {
 
-SCENARIO("strict lock can be used with two relations (sequence and flexible) for the same vehicle",
+SCENARIO("strict lock can be used with two vehicles, sequence and tour relations, and new jobs",
          "[scenario][relations]") {
-  GIVEN("problem with strict and flexible relations and one new job") {
-    auto stream =
-      build_test_problem{}
-        .plan(build_test_plan{}
-                .addJob(build_test_delivery_job{}.id("job1").location(1, 0).content())
-                .addJob(build_test_delivery_job{}.id("job2").location(2, 0).content())
-                .addJob(build_test_delivery_job{}.id("job3").location(3, 0).content())
-                .addJob(build_test_delivery_job{}.id("job4").location(4, 0).content())
-                .addJob(build_test_delivery_job{}.id("job5").location(5, 0).content())
-                .addJob(build_test_delivery_job{}.id("job6").location(6, 0).content())
-                .addJob(build_test_delivery_job{}.id("job7").location(7, 0).content())
-                .addRelation(build_test_relation{}
-                               .type("sequence")
-                               .vehicle("vehicle_1")
-                               .jobs({"departure", "job4", "job2", "job6"})
-                               .content())
-                .addRelation(build_test_relation{}  //
-                               .type("flexible")
-                               .vehicle("vehicle_1")
-                               .jobs({"job1", "job3"})
-                               .content()))
-        .fleet(build_test_fleet{}.addVehicle(build_test_vehicle{}.id("vehicle").amount(1).capacity(7).content()))
-        .matrices(json::array({R"(
+  GIVEN("problem with two strict relations and two new jobs") {
+    auto stream = build_test_problem{}
+                    .plan(build_test_plan{}
+                            .addJob(build_test_delivery_job{}.id("job1").location(1, 0).content())
+                            .addJob(build_test_delivery_job{}.id("job2").location(2, 0).content())
+                            .addJob(build_test_delivery_job{}.id("job3").location(3, 0).content())
+                            .addJob(build_test_delivery_job{}.id("job4").location(4, 0).content())
+                            .addJob(build_test_delivery_job{}.id("job5").location(5, 0).content())
+                            .addJob(build_test_delivery_job{}.id("job6").location(6, 0).content())
+                            .addJob(build_test_delivery_job{}.id("job7").location(7, 0).content())
+                            .addRelation(build_test_relation{}
+                                           .type("sequence")
+                                           .vehicle("vehicle_1")
+                                           .jobs({"departure", "job4", "job2", "job6"})
+                                           .content())
+                            .addRelation(build_test_relation{}  //
+                                           .type("tour")
+                                           .vehicle("vehicle_1")
+                                           .jobs({"job1", "job3"})
+                                           .content()))
+                    .fleet(build_test_fleet{}.addVehicle(build_test_vehicle{}  //
+                                                           .id("vehicle")
+                                                           .amount(1)
+                                                           .capacity(10)
+                                                           .content()))
+                    .matrices(json::array({R"(
                       {
                         "profile": "car",
                         "distances": [0,1,2,3,4,5,6,1,1,0,1,2,3,4,5,2,2,1,0,1,2,3,4,3,3,2,1,0,1,2,3,4,4,3,2,1,0,1,2,5,5,4,3,2,1,0,1,6,6,5,4,3,2,1,0,7,1,2,3,4,5,6,7,0],
                         "durations": [0,1,2,3,4,5,6,1,1,0,1,2,3,4,5,2,2,1,0,1,2,3,4,3,3,2,1,0,1,2,3,4,4,3,2,1,0,1,2,5,5,4,3,2,1,0,1,6,6,5,4,3,2,1,0,7,1,2,3,4,5,6,7,0]
                       })"_json}))
-        .build();
+                    .build();
 
     WHEN("solve problem") {
       auto problem = read_here_json_type{}(stream);
@@ -56,11 +59,11 @@ SCENARIO("strict lock can be used with two relations (sequence and flexible) for
 {
   "problemId": "problem",
   "statistic": {
-    "cost": 61.0,
-    "distance": 22,
-    "duration": 29,
+    "cost": 53.0,
+    "distance": 18,
+    "duration": 25,
     "times": {
-      "driving": 22,
+      "driving": 18,
       "serving": 7,
       "waiting": 0,
       "break": 0
@@ -72,12 +75,17 @@ SCENARIO("strict lock can be used with two relations (sequence and flexible) for
       "typeId": "vehicle",
       "stops": [
         {
-          "location": [0.0, 0.0],
+          "location": [
+            0.0,
+            0.0
+          ],
           "time": {
             "arrival": "1970-01-01T00:00:00Z",
             "departure": "1970-01-01T00:00:00Z"
           },
-          "load": [7],
+          "load": [
+            7
+          ],
           "activities": [
             {
               "jobId": "departure",
@@ -86,12 +94,17 @@ SCENARIO("strict lock can be used with two relations (sequence and flexible) for
           ]
         },
         {
-          "location": [4.0, 0.0],
+          "location": [
+            4.0,
+            0.0
+          ],
           "time": {
             "arrival": "1970-01-01T00:00:04Z",
             "departure": "1970-01-01T00:00:05Z"
           },
-          "load": [6],
+          "load": [
+            6
+          ],
           "activities": [
             {
               "jobId": "job4",
@@ -100,12 +113,17 @@ SCENARIO("strict lock can be used with two relations (sequence and flexible) for
           ]
         },
         {
-          "location": [2.0, 0.0],
+          "location": [
+            2.0,
+            0.0
+          ],
           "time": {
             "arrival": "1970-01-01T00:00:07Z",
             "departure": "1970-01-01T00:00:08Z"
           },
-          "load": [5],
+          "load": [
+            5
+          ],
           "activities": [
             {
               "jobId": "job2",
@@ -114,12 +132,17 @@ SCENARIO("strict lock can be used with two relations (sequence and flexible) for
           ]
         },
         {
-          "location": [6.0, 0.0],
+          "location": [
+            6.0,
+            0.0
+          ],
           "time": {
             "arrival": "1970-01-01T00:00:12Z",
             "departure": "1970-01-01T00:00:13Z"
           },
-          "load": [4],
+          "load": [
+            4
+          ],
           "activities": [
             {
               "jobId": "job6",
@@ -128,12 +151,17 @@ SCENARIO("strict lock can be used with two relations (sequence and flexible) for
           ]
         },
         {
-          "location": [7.0, 0.0],
+          "location": [
+            7.0,
+            0.0
+          ],
           "time": {
             "arrival": "1970-01-01T00:00:14Z",
             "departure": "1970-01-01T00:00:15Z"
           },
-          "load": [3],
+          "load": [
+            3
+          ],
           "activities": [
             {
               "jobId": "job7",
@@ -142,12 +170,17 @@ SCENARIO("strict lock can be used with two relations (sequence and flexible) for
           ]
         },
         {
-          "location": [5.0, 0.0],
+          "location": [
+            5.0,
+            0.0
+          ],
           "time": {
             "arrival": "1970-01-01T00:00:17Z",
             "departure": "1970-01-01T00:00:18Z"
           },
-          "load": [2],
+          "load": [
+            2
+          ],
           "activities": [
             {
               "jobId": "job5",
@@ -156,26 +189,17 @@ SCENARIO("strict lock can be used with two relations (sequence and flexible) for
           ]
         },
         {
-          "location": [1.0, 0.0],
+          "location": [
+            3.0,
+            0.0
+          ],
           "time": {
-            "arrival": "1970-01-01T00:00:22Z",
-            "departure": "1970-01-01T00:00:23Z"
+            "arrival": "1970-01-01T00:00:20Z",
+            "departure": "1970-01-01T00:00:21Z"
           },
-          "load": [1],
-          "activities": [
-            {
-              "jobId": "job1",
-              "type": "delivery"
-            }
-          ]
-        },
-        {
-          "location": [3.0, 0.0],
-          "time": {
-            "arrival": "1970-01-01T00:00:25Z",
-            "departure": "1970-01-01T00:00:26Z"
-          },
-          "load": [0],
+          "load": [
+            1
+          ],
           "activities": [
             {
               "jobId": "job3",
@@ -184,12 +208,36 @@ SCENARIO("strict lock can be used with two relations (sequence and flexible) for
           ]
         },
         {
-          "location": [0.0, 0.0],
+          "location": [
+            1.0,
+            0.0
+          ],
           "time": {
-            "arrival": "1970-01-01T00:00:29Z",
-            "departure": "1970-01-01T00:00:29Z"
+            "arrival": "1970-01-01T00:00:23Z",
+            "departure": "1970-01-01T00:00:24Z"
           },
-          "load": [0],
+          "load": [
+            0
+          ],
+          "activities": [
+            {
+              "jobId": "job1",
+              "type": "delivery"
+            }
+          ]
+        },
+        {
+          "location": [
+            0.0,
+            0.0
+          ],
+          "time": {
+            "arrival": "1970-01-01T00:00:25Z",
+            "departure": "1970-01-01T00:00:25Z"
+          },
+          "load": [
+            0
+          ],
           "activities": [
             {
               "jobId": "arrival",
@@ -199,11 +247,11 @@ SCENARIO("strict lock can be used with two relations (sequence and flexible) for
         }
       ],
       "statistic": {
-        "cost": 61.0,
-        "distance": 22,
-        "duration": 29,
+        "cost": 53.0,
+        "distance": 18,
+        "duration": 25,
         "times": {
-          "driving": 22,
+          "driving": 18,
           "serving": 7,
           "waiting": 0,
           "break": 0

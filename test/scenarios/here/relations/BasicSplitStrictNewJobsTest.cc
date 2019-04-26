@@ -15,7 +15,7 @@ using namespace vrp::streams::in;
 
 namespace vrp::test::here {
 
-SCENARIO("strict lock can be used with two vehicles and new jobs", "[scenario][relations]") {
+SCENARIO("strict lock can be used with two vehicles, two sequence relations, and new jobs", "[scenario][relations]") {
   GIVEN("problem with two strict relations and two new jobs") {
     auto stream =
       build_test_problem{}

@@ -30,9 +30,10 @@ struct create_refinement_context final {
 
     // get various job types and construct initial routes
     auto unassignedJobs = std::map<problem::Job, int, problem::compare_jobs>{};
-    auto lockedJobs = std::make_shared<LockedJobs>();
-    auto initRoutes = createInitialRoutes(*problem, *registry, unassignedJobs, lockedJobs);
-    auto requiredJobs = createRequiredJobs(*problem, unassignedJobs, lockedJobs) | to_vector;
+    auto lockedJobs = std::make_shared<JobSet>();
+    auto reservedJobs = JobSet{};
+    auto initRoutes = createInitialRoutes(*problem, *registry, unassignedJobs, lockedJobs, reservedJobs);
+    auto requiredJobs = createRequiredJobs(*problem, unassignedJobs, lockedJobs, reservedJobs) | to_vector;
 
     // create initial solution represented by insertion context.
     auto iCtx = Heuristic{InsertionEvaluator{}}(
@@ -67,7 +68,7 @@ struct create_refinement_context final {
   }
 
 private:
-  using LockedJobs = std::set<models::problem::Job, models::problem::compare_jobs>;
+  using JobSet = std::set<models::problem::Job, models::problem::compare_jobs>;
   using InitRoutes = std::set<algorithms::construction::InsertionRouteContext,
                               algorithms::construction::compare_insertion_route_contexts>;
 
@@ -75,7 +76,8 @@ private:
   InitRoutes createInitialRoutes(const models::Problem& problem,
                                  models::solution::Registry& registry,
                                  std::map<models::problem::Job, int, models::problem::compare_jobs>& unassignedJobs,
-                                 std::shared_ptr<LockedJobs> lockedJobs) const {
+                                 std::shared_ptr<JobSet> lockedJobs,
+                                 JobSet& reservedJobs) const {
     using namespace ranges;
     using namespace vrp::algorithms::construction;
     using namespace vrp::models;
@@ -105,10 +107,11 @@ private:
                 Activity{{d.location.value_or(acc), d.duration, d.times.front()}, {}, service});
             };
 
-            // NOTE we do not add jobs with Any order to allow them to be removed.
-            // actor lock constrain will take care the rest
+            // copy jobs to avoid them to be added as required
             if (detail.order != Lock::Order::Any)
               ranges::copy(detail.jobs, ranges::inserter(*lockedJobs, lockedJobs->begin()));
+            else
+              ranges::copy(detail.jobs, ranges::inserter(reservedJobs, reservedJobs.begin()));
 
             return ranges::accumulate(detail.jobs, 0, [&](const auto&, const auto& job) {
               auto activities =
@@ -145,9 +148,12 @@ private:
   /// Creates required jobs.
   auto createRequiredJobs(const models::Problem& problem,
                           const std::map<models::problem::Job, int, models::problem::compare_jobs>& unassignedJobs,
-                          const std::shared_ptr<LockedJobs>& lockedJobs) const {
+                          const std::shared_ptr<JobSet>& lockedJobs,
+                          const JobSet& reservedJobs) const {
     return problem.jobs->all() | ranges::view::filter([&](const auto& j) {
-             return lockedJobs->find(j) == lockedJobs->end() && unassignedJobs.find(j) == unassignedJobs.end();
+             return lockedJobs->find(j) == lockedJobs->end() &&  //
+               reservedJobs.find(j) == reservedJobs.end() &&     //
+               unassignedJobs.find(j) == unassignedJobs.end();
            });
   }
 };
