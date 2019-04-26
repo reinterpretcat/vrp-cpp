@@ -91,10 +91,14 @@ public:
         ranges::for_each(
           ctx.registry->available() | ranges::view::filter([&](const auto& a) { return (*rule->condition)(*a); }),
           [&](const auto& actor) {
-            // TODO assert arrival postition is not set in rule for open VRP
+            // TODO assert arrival position is not set in rule for open VRP
             rules_[actor].push_back(rule);
           });
       });
+
+      /// Mark actor as used
+      ranges::for_each(rules_, [&](const auto& pair) { ctx.registry->use(pair.first); });
+
       initRules_.clear();
     }
   }

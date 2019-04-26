@@ -126,7 +126,7 @@ private:
             });
           });
 
-        registry.use(actor.value());
+        // NOTE actor is marked as used in actor job lock.
         problem.constraint->accept(rs);
         initRoutes.insert(rs);
 

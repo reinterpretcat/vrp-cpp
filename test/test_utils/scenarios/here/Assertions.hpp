@@ -17,7 +17,22 @@ inline void
 assertSolution(const std::shared_ptr<const models::Problem>& problem,
                const models::EstimatedSolution& estimatedSolution,
                const std::string& expected) {
-  REQUIRE(getSolutionAsJson(problem, estimatedSolution) == nlohmann::json::parse(expected));
+  static auto sortToursByVehicleId = [](auto& json) {
+    auto& tours = json["tours"];
+    std::sort(tours.begin(), tours.end(), [](const auto& lhs, const auto& rhs) {
+      return lhs.at("vehicleId") < rhs.at("vehicleId");
+    });
+  };
+
+  auto resultJson = getSolutionAsJson(problem, estimatedSolution);
+  auto expectedJson = nlohmann::json::parse(expected);
+
+  sortToursByVehicleId(resultJson);
+  sortToursByVehicleId(expectedJson);
+
+  std::cout << nlohmann::json::diff(resultJson, expectedJson).dump(2);
+
+  REQUIRE(resultJson == expectedJson);
 }
 
 /// Checks whether shipment activities are correctly defined in tour.
