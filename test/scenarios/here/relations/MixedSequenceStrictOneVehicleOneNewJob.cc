@@ -16,24 +16,27 @@ using namespace vrp::streams::in;
 namespace vrp::test::here {
 
 SCENARIO("strict lock can be used with two locks for the same vehicle", "[scenario][relations]") {
-  GIVEN("problem with two strict relations and one new job") {
+  GIVEN("problem with strict and flexible relations and one new job") {
     auto stream =
       build_test_problem{}
-        .plan(
-          build_test_plan{}
-            .addJob(build_test_delivery_job{}.id("job1").location(1, 0).content())
-            .addJob(build_test_delivery_job{}.id("job2").location(2, 0).content())
-            .addJob(build_test_delivery_job{}.id("job3").location(3, 0).content())
-            .addJob(build_test_delivery_job{}.id("job4").location(4, 0).content())
-            .addJob(build_test_delivery_job{}.id("job5").location(5, 0).content())
-            .addJob(build_test_delivery_job{}.id("job6").location(6, 0).content())
-            .addJob(build_test_delivery_job{}.id("job7").location(7, 0).content())
-            .addRelation(build_test_relation{}
-                           .type("sequence")
-                           .vehicle("vehicle_1")
-                           .jobs({"departure", "job4", "job2", "job6"})
-                           .content())
-            .addRelation(build_test_relation{}.type("sequence").vehicle("vehicle_1").jobs({"job1", "job3"}).content()))
+        .plan(build_test_plan{}
+                .addJob(build_test_delivery_job{}.id("job1").location(1, 0).content())
+                .addJob(build_test_delivery_job{}.id("job2").location(2, 0).content())
+                .addJob(build_test_delivery_job{}.id("job3").location(3, 0).content())
+                .addJob(build_test_delivery_job{}.id("job4").location(4, 0).content())
+                .addJob(build_test_delivery_job{}.id("job5").location(5, 0).content())
+                .addJob(build_test_delivery_job{}.id("job6").location(6, 0).content())
+                .addJob(build_test_delivery_job{}.id("job7").location(7, 0).content())
+                .addRelation(build_test_relation{}
+                               .type("sequence")
+                               .vehicle("vehicle_1")
+                               .jobs({"departure", "job4", "job2", "job6"})
+                               .content())
+                .addRelation(build_test_relation{}  //
+                               .type("flexible")
+                               .vehicle("vehicle_1")
+                               .jobs({"job1", "job3"})
+                               .content()))
         .fleet(build_test_fleet{}.addVehicle(build_test_vehicle{}.id("vehicle").amount(1).capacity(7).content()))
         .matrices(json::array({R"(
                       {
