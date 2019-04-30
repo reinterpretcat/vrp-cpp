@@ -25,8 +25,10 @@ struct InsertionHeuristic {
   InsertionContext operator()(const InsertionContext& ctx) const {
     auto newCtx = InsertionContext(ctx);
     auto rSelector = ResultSelector(ctx);
+
+    newCtx.problem->constraint->accept(*newCtx.solution);
+
     while (!newCtx.solution->required.empty()) {
-      newCtx.problem->constraint->accept(*newCtx.solution);
       auto [begin, end] = JobSelector{}(newCtx);
       auto result = std::transform_reduce(pstl::execution::seq,
                                           begin,
@@ -35,7 +37,9 @@ struct InsertionHeuristic {
                                           [&](const auto& acc, const auto& result) { return rSelector(acc, result); },
                                           [&](const auto& job) { return evaluator_.evaluate(job, newCtx); });
       insert(result, newCtx);
+      newCtx.problem->constraint->accept(*newCtx.solution);
     }
+
     return std::move(newCtx);
   }
 

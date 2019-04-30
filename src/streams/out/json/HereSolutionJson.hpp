@@ -195,13 +195,21 @@ struct create_solution final {
         auto [route, routeIndex] = indexedRoute;
         const auto& actor = *route->actor;
 
-        auto tour = Tour{};
         auto load = ranges::accumulate(route->tour.activities(), 0, [&](const auto& acc, const auto& a) {
           return a->service.has_value() ? acc + VehicleActivitySize<int>::getDemand(a).delivery.first : acc;
         });
 
+        auto tour = Tour{
+          {},
+          {},
+          {Stop{coordIndex.find(route->tour.start()->detail.location),
+                Schedule{date(route->tour.start()->schedule.arrival), date(route->tour.start()->schedule.departure)},
+                {load},
+                {Activity{"departure", "departure", {}, {}}}}},
+          {}};
+
         auto leg = ranges::accumulate(
-          view::zip(route->tour.activities(), view::iota(0)),
+          view::zip(route->tour.activities() | view::drop(1), view::iota(1)),
           Leg{route->tour.start()->detail.location,
               route->tour.start()->schedule.departure,
               0,
@@ -230,7 +238,7 @@ struct create_solution final {
 
             bool isSameLocation = acc.location == act->detail.location;
 
-            if (tour.stops.empty() || !isSameLocation)
+            if (!isSameLocation)
               tour.stops.push_back(
                 Stop{coordIndex.find(act->detail.location), Schedule{date(arrival), date(departure)}, {acc.load}, {}});
 

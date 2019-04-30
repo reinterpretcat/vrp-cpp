@@ -12,22 +12,23 @@ namespace vrp::streams::in::detail::here {
 /// Represents a break constraint to simulate vehicle breaks.
 struct BreakConstraint final : public vrp::algorithms::construction::HardActivityConstraint {
   BreakConstraint() :
-    conditionalJob_(
-      [](const vrp::algorithms::construction::InsertionSolutionContext& ctx, const models::problem::Job& job) {
-        return models::problem::analyze_job<bool>(
-          job,
-          [&ctx](const std::shared_ptr<const models::problem::Service>& service) {
-            // mark service as ignored only if it has break type and vehicle id is not present in routes
-            if (isNotBreak(service)) return true;
+    conditionalJob_([](const vrp::algorithms::construction::InsertionSolutionContext& ctx,
+                       const models::problem::Job& job) {
+      return models::problem::analyze_job<bool>(
+        job,
+        [&ctx](const std::shared_ptr<const models::problem::Service>& service) {
+          // mark service as ignored only if it has break type and vehicle id is not present in routes
+          if (isNotBreak(service)) return true;
 
-            const auto& vehicleId = std::any_cast<std::string>(service->dimens.at("vehicleId"));
-            return ranges::find_if(ctx.routes, [&vehicleId](const auto& iCtx) {
-                     // TODO check arrival time at last activity to avoid assigning break as last
-                     return std::any_cast<std::string>(iCtx.route->actor->vehicle->dimens.at("id")) == vehicleId;
-                   }) != ctx.routes.end();
-          },
-          [](const std::shared_ptr<const models::problem::Sequence>& sequence) { return true; });
-      }) {}
+          const auto& vehicleId = std::any_cast<std::string>(service->dimens.at("vehicleId"));
+          return ranges::find_if(ctx.routes, [&vehicleId, &ctx](const auto& iCtx) {
+                   // TODO check arrival time at last activity to avoid assigning break as last
+                   auto isTarget = std::any_cast<std::string>(iCtx.route->actor->vehicle->dimens.at("id")) == vehicleId;
+                   return isTarget && !ctx.required.empty();
+                 }) != ctx.routes.end();
+        },
+        [](const std::shared_ptr<const models::problem::Sequence>& sequence) { return true; });
+    }) {}
 
   ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>(); }
 

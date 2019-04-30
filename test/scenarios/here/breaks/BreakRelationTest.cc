@@ -50,7 +50,6 @@ getProblemStream(const std::string& relationType, json breakJson, std::initializ
                       })"_json}))
     .build();
 }
-
 }
 
 namespace vrp::test::here {
@@ -420,6 +419,4 @@ SCENARIO("break without location can be used with relation", "[scenarios][breaks
     }
   }
 }
-
-
 }

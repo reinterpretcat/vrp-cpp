@@ -6,6 +6,7 @@
 
 #include <catch/catch.hpp>
 #include <iostream>
+#include <optional>
 #include <range/v3/all.hpp>
 #include <string>
 
@@ -26,16 +27,19 @@ struct validate_solution final {
   };
 
   void operator()(const models::Problem& problem, const models::Solution& solution) const {
+    using namespace ranges;
+
     checkIds(problem, solution);
 
     ranges::for_each(solution.routes, [&](const auto& route) {
-      auto state = State{route, route->tour.start()->detail.location, route->tour.start()->schedule.departure, Size{}};
-      checkActivity(problem, state, route->tour.start());
+      auto state = State{route, route->tour.start()->detail.location, route->tour.start()->schedule.arrival, Size{}};
 
-      ranges::for_each(route->tour.activities(),
-                       [&](const auto& activity) { checkActivity(problem, state, activity); });
-
-      checkActivity(problem, state, route->tour.end());
+      ranges::for_each(view::zip(route->tour.activities(), view::iota(0)), [&](const auto& indexedActivity) {
+        auto [activity, index] = indexedActivity;
+        auto next = index == 0 ? std::make_optional<models::solution::Tour::Activity>(route->tour.get(1))
+                               : std::make_optional<models::solution::Tour::Activity>();
+        checkActivity(problem, state, index, activity, next);
+      });
     });
   }
 
@@ -67,10 +71,12 @@ private:
 
   void checkActivity(const models::Problem& problem,
                      State& state,
-                     const models::solution::Tour::Activity& activity) const {
+                     int index,
+                     const models::solution::Tour::Activity& activity,
+                     const std::optional<models::solution::Tour::Activity>& next) const {
     // logActivity(activity);
     checkSize(state, activity);
-    checkTime(problem, state, activity);
+    checkTime(problem, state, index, activity, next);
     checkLocation(state, activity);
     // logState(state);
   }
@@ -86,7 +92,11 @@ private:
     if (state.size > SizeHandler::getCapacity(state.route->actor->vehicle)) fail("size is exceeded");
   }
 
-  void checkTime(const models::Problem& problem, State& state, const models::solution::Tour::Activity& activity) const {
+  void checkTime(const models::Problem& problem,
+                 State& state,
+                 int index,
+                 const models::solution::Tour::Activity& activity,
+                 const std::optional<models::solution::Tour::Activity>& next) const {
     auto driving = problem.transport->duration(
       state.route->actor->vehicle->profile, state.location, activity->detail.location, state.time);
 
@@ -101,6 +111,14 @@ private:
 
     auto serviceStart = arrival + waiting;
     auto departure = serviceStart + problem.activity->duration(*state.route->actor, *activity, serviceStart);
+
+    if (index == 0) {
+      if (!next) fail("tour has only departure");
+      departure = next.value()->schedule.arrival -
+        problem.transport->duration(
+          state.route->actor->vehicle->profile, activity->detail.location, next.value()->detail.location, state.time);
+    }
+
     if (departure != activity->schedule.departure) fail("wrong departure");
 
     state.time = departure;

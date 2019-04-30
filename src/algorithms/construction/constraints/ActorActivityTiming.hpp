@@ -42,7 +42,16 @@ struct ActorActivityTiming final
   }
 
   /// Accept solution.
-  void accept(InsertionSolutionContext&) const override {}
+  void accept(InsertionSolutionContext& ctx) const override {
+    // NOTE revise this once routing is sensible to departure time
+    // reschedule departure and arrivals if arriving earlier to the first activity
+    // do it only in implicit end of algorithm
+    if (ctx.required.empty()) {
+      ranges::for_each(ranges::view::all(ctx.routes), [&](auto& routeCtx) {
+        if (routeCtx.route->tour.count() > 0) rescheduleDeparture(const_cast<InsertionRouteContext&>(routeCtx));
+      });
+    }
+  }
 
   /// Accept route and updates its insertion state.
   void accept(InsertionRouteContext& context) const override {
@@ -53,24 +62,9 @@ struct ActorActivityTiming final
     const auto& state = *context.state;
     const auto& actor = *route.actor;
 
-    // TODO investigate why it breaks some tests
-    //    // NOTE revise this once routing is sensible to departure time
-    //    // reschedule departure and arrivals if arriving earlier to the first activity
-    //    if (route.tour.count() > 0) {
-    //      const auto& first = route.tour.get(1);
-    //      auto earliestDepartureTime = route.tour.start()->schedule.departure;
-    //      auto startToFirst = transport_->duration(actor.vehicle->profile, route.tour.start()->detail.location,
-    //        first->detail.location, earliestDepartureTime);
-    //      auto newDepartureTime = std::max(earliestDepartureTime, first->detail.time.start - startToFirst);
-    //
-    //      if (newDepartureTime > earliestDepartureTime) {
-    //        route.tour.start()->schedule.departure = newDepartureTime;
-    //      }
-    //    }
-
     // update each activity schedule
     ranges::accumulate(  //
-      route.tour.activities(),
+      route.tour.activities() | view::drop(1),
       std::pair{route.tour.start()->detail.location, route.tour.start()->schedule.departure},
       [&](const auto& acc, auto& a) {
         const auto& [loc, dep] = acc;
@@ -218,6 +212,22 @@ struct ActorActivityTiming final
 private:
   using Cost = models::common::Cost;
   using Timestamp = models::common::Timestamp;
+
+  /// Reschedules departure activity if needed.
+  void rescheduleDeparture(InsertionRouteContext& ctx) const {
+    const auto& first = ctx.route->tour.get(1);
+    auto earliestDepartureTime = ctx.route->tour.start()->detail.time.start;
+    auto startToFirst = transport_->duration(ctx.route->actor->vehicle->profile,
+                                             ctx.route->tour.start()->detail.location,
+                                             first->detail.location,
+                                             earliestDepartureTime);
+    auto newDepartureTime = std::max(earliestDepartureTime, first->detail.time.start - startToFirst);
+
+    if (newDepartureTime > earliestDepartureTime) {
+      ctx.route->tour.start()->schedule.departure = newDepartureTime;
+      accept(ctx);
+    }
+  }
 
   /// Analyzes route leg.
   std::tuple<Cost, Cost, Timestamp> analyze(const models::solution::Actor& actor,
