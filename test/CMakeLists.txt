@@ -51,6 +51,7 @@ set(SOURCE_FILES
         scenarios/here/fleet/OpenEndBasicTest.cc
         scenarios/here/pickdev/PickDevMixedTest.cc
         scenarios/here/pickdev/PickDevBasicTest.cc
+        scenarios/here/pickdev/PickDevRelationTest.cc
         scenarios/here/skills/SkillsBasicTest.cc
         scenarios/here/skills/SkillsUnassignedTest.cc
         scenarios/here/relations/BasicSplitStrictNewJobsTest.cc

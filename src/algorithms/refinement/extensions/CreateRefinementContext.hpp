@@ -87,6 +87,7 @@ private:
     // TODO check that actor lock constraint is added when there is at least one jobs lock
 
     auto initRoutes = InitRoutes{};
+    auto sequenceJobUsage = std::map<Job, std::size_t, compare_jobs>{};
 
     ranges::for_each(*problem.locks, [&](const auto& lock) {
       auto actor = utils::first<const Registry::SharedActor>(
@@ -114,18 +115,21 @@ private:
               ranges::copy(detail.jobs, ranges::inserter(reservedJobs, reservedJobs.begin()));
 
             return ranges::accumulate(detail.jobs, 0, [&](const auto&, const auto& job) {
-              auto activities =
-                analyze_job<ranges::any_view<std::shared_ptr<Activity>>>(
-                  job,
-                  [&](const std::shared_ptr<const Service>& srv) { return view::single(createActivity(srv)); },
-                  [&](const std::shared_ptr<const problem::Sequence>& seq) {
-                    assert(!seq->services.empty());
-                    return seq->services | view::transform([&](const auto& srv) { return createActivity(srv); });
-                  }) |
-                to_vector;
-              ranges::for_each(activities, [&](const auto& activity) { rs.route->tour.insert(activity); });
+              auto activity = analyze_job<std::shared_ptr<Activity>>(
+                job,
+                [&](const std::shared_ptr<const Service>& srv) { return createActivity(srv); },
+                [&](const std::shared_ptr<const problem::Sequence>& seq) {
+                  assert(!seq->services.empty());
+                  auto usage = sequenceJobUsage.find(job);
+                  auto index = usage == sequenceJobUsage.end() ? std::size_t{0} : sequenceJobUsage[job];
 
-              return activities.back()->detail.location;
+                  sequenceJobUsage[job] = index + 1;
+
+                  return createActivity(seq->services.at(index));
+                });
+
+              rs.route->tour.insert(activity);
+              return activity->detail.location;
             });
           });
 
@@ -140,6 +144,14 @@ private:
                            [&](const auto& job) { unassignedJobs.insert(std::make_pair(job, JobLockConstraintCode)); });
         });
       }
+    });
+
+    // NOTE all services from sequence should be used in init route or none of them
+    ranges::for_each(sequenceJobUsage, [&](const auto& pair) {
+      analyze_job<void>(
+        pair.first,
+        [&](const std::shared_ptr<const Service>& srv) { assert(false); },
+        [&](const std::shared_ptr<const problem::Sequence>& seq) { assert(seq->services.size() == pair.second); });
     });
 
     return std::move(initRoutes);
