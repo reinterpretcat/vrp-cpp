@@ -143,7 +143,7 @@ private:
     auto targetToNext =
       func(actor.vehicle->profile, target.detail.location, next.value()->detail.location, target.schedule.departure);
 
-    return current + prevToTarget + targetToNext - prevToNext < limit;
+    return current + prevToTarget + targetToNext - prevToNext <= limit;
   }
 
   mutable std::unordered_map<std::shared_ptr<const models::solution::Actor>,  //
