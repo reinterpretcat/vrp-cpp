@@ -15,6 +15,7 @@ set(SOURCE_FILES
 
         algorithms/construction/constraints/ActorActivityTimingTest.cc
         algorithms/construction/constraints/ActorJobLockTest.cc
+        algorithms/construction/constraints/ActorTravelLimitTest.cc
         algorithms/construction/constraints/ConditionalJobTest.cc
         algorithms/construction/constraints/VehicleActivitySizeTest.cc
 

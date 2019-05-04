@@ -5,6 +5,7 @@
 #include "test_utils/algorithms/construction/Factories.hpp"
 #include "test_utils/algorithms/construction/constraints/Helpers.hpp"
 #include "test_utils/models/Factories.hpp"
+#include "test_utils/models/Helpers.hpp"
 
 #include <catch/catch.hpp>
 
@@ -17,12 +18,6 @@ using namespace ranges;
 using namespace Catch::Generators;
 
 namespace {
-const Registry::SharedActor
-getActorFromRegistry(const std::string& vehicleId, const Registry& registry) {
-  return ranges::front(registry.available() |
-                       view::remove_if([&](const auto& a) { return get_vehicle_id{}(*a->vehicle) != vehicleId; }) |
-                       to_vector);
-}
 
 const auto TerminalActivity =
   build_activity{}.detail({DefaultJobLocation, DefaultDuration, DefaultTimeWindow}).schedule({0, 0}).shared();
@@ -57,7 +52,7 @@ SCENARIO("actor job lock can manage any actor-job locks on route level", "[algor
 
       THEN("returns expected constraint check") {
         auto result = actorJobLock.hard(
-          InsertionRouteContext{std::make_shared<Route>(Route{getActorFromRegistry(used, *registry), {}}),
+          InsertionRouteContext{std::make_shared<Route>(Route{get_actor_from_registry{}(used, *registry), {}}),
                                 std::make_shared<InsertionRouteState>()},
           DefaultService);
 

@@ -37,15 +37,15 @@ SCENARIO("pickup and delivery can be used in relation", "[scenario][pickdev]") {
                                       .id("shipment2")
                                       .demand(1)
                                       .pickup({
-                                                {"location", json::array({5.0, 0.0})},
-                                                {"duration", 10},
-                                                {"times", LargeTimeWindows},
-                                              })
+                                        {"location", json::array({5.0, 0.0})},
+                                        {"duration", 10},
+                                        {"times", LargeTimeWindows},
+                                      })
                                       .delivery({
-                                                  {"location", json::array({20.0, 0.0})},
-                                                  {"duration", 10},
-                                                  {"times", LargeTimeWindows},
-                                                })
+                                        {"location", json::array({20.0, 0.0})},
+                                        {"duration", 10},
+                                        {"times", LargeTimeWindows},
+                                      })
                                       .content())
                             .addRelation(build_test_relation{}  //
                                            .type("sequence")

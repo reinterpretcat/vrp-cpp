@@ -34,4 +34,15 @@ struct find_route_by_vehicle_id {
     return routes.empty() ? std::make_shared<const models::solution::Route>() : routes.front();
   }
 };
+
+/// Returns actor by vehicle name from registry.
+struct get_actor_from_registry final {
+  const models::solution::Registry::SharedActor operator()(const std::string& vehicleId,
+                                                           const models::solution::Registry& registry) {
+    return ranges::front(registry.available() | ranges::view::remove_if([&](const auto& a) {
+                           return models::problem::get_vehicle_id{}(*a->vehicle) != vehicleId;
+                         }) |
+                         ranges::to_vector);
+  }
+};
 }

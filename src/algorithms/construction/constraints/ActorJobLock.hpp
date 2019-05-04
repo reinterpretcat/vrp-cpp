@@ -89,7 +89,7 @@ public:
     if (!initRules_.empty()) {
       ranges::for_each(initRules_, [&](const auto& rule) {
         ranges::for_each(
-          ctx.registry->available() | ranges::view::filter([&](const auto& a) { return (*rule->condition)(*a); }),
+          ctx.registry->all() | ranges::view::filter([&](const auto& a) { return (*rule->condition)(*a); }),
           [&](const auto& actor) {
             // TODO assert arrival position is not set in rule for open VRP
             rules_[actor].push_back(rule);

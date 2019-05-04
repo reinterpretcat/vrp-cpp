@@ -6,7 +6,7 @@
 
 namespace vrp::test {
 
-struct TestTransportCosts final : public models::costs::TransportCosts {
+struct TestTransportCosts : public models::costs::TransportCosts {
   models::common::Duration duration(const models::common::Profile profile,
                                     const models::common::Location& from,
                                     const models::common::Location& to,
