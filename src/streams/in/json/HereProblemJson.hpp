@@ -3,6 +3,7 @@
 #include "algorithms/construction/InsertionConstraint.hpp"
 #include "algorithms/construction/constraints/ActorActivityTiming.hpp"
 #include "algorithms/construction/constraints/ActorJobLock.hpp"
+#include "algorithms/construction/constraints/ActorTravelLimit.hpp"
 #include "algorithms/construction/constraints/VehicleActivitySize.hpp"
 #include "algorithms/objectives/PenalizeUnassignedJobs.hpp"
 #include "models/Problem.hpp"
@@ -61,6 +62,7 @@ private:
 struct read_here_json_type {
 private:
   using JobIndex = std::unordered_map<std::string, models::problem::Job>;
+  using Limit = algorithms::construction::ActorTravelLimit::Limit;
 
 public:
   std::shared_ptr<models::Problem> operator()(std::istream& input) const {
@@ -81,9 +83,11 @@ public:
     auto fleet = readFleet(problem, coordIndex);
     auto jobs = readJobs(problem, coordIndex, *transport, *fleet, jobIndex);
     auto locks = readLocks(problem, *jobs, jobIndex);
+    auto limits = readLimits(problem);
 
     auto constraint = std::make_shared<InsertionConstraint>();
     if (!locks->empty()) constraint->addHard<ActorJobLock>(std::make_shared<ActorJobLock>(*locks));
+    if (!limits.empty()) constraint->addHardActivity(std::make_shared<ActorTravelLimit>(limits, transport, activity));
     constraint->add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(fleet, transport, activity))
       .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>())
       .addHardActivity(std::make_shared<detail::here::BreakConstraint>())
@@ -362,6 +366,25 @@ private:
       acc->push_back(models::Lock{condition, std::move(details)});
       return acc;
     });
+  }
+
+  std::vector<Limit> readLimits(const detail::here::Problem& problem) const {
+    using namespace ranges;
+
+    return ranges::accumulate(  //
+      problem.fleet.types | view::filter([](const auto& v) {
+        return v.limits && (v.limits.value().maxDistance || v.limits.value().shiftTime);
+      }),
+      std::vector<Limit>{},
+      [&](auto& acc, const auto& v) {
+        auto typeId = v.id;
+        acc.push_back(Limit{[typeId = typeId](const auto& a) {
+                              return std::any_cast<std::string>(a.vehicle->dimens.find("typeId")->second) == typeId;
+                            },
+                            v.limits.value().maxDistance,
+                            v.limits.value().shiftTime});
+        return acc;
+      });
   }
 
   models::common::Profile getProfile(const std::string& value) const {

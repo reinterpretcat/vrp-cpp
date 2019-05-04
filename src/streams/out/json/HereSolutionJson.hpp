@@ -331,6 +331,10 @@ private:
       case 2:
         return 3;
       case 5:
+        return 101;
+      case 6:
+        return 102;
+      case 10:
         return 1;
       default:
         return 0;
@@ -344,6 +348,10 @@ private:
       case 2:
         return "does not fit into any vehicle due to capacity";
       case 5:
+        return "cannot be assigned due to max distance constraint of vehicle";
+      case 6:
+        return "cannot be assigned due to shift time constraint of vehicle";
+      case 10:
         return "cannot serve required skill";
       default:
         return "unknown";

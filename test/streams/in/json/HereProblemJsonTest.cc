@@ -1,12 +1,14 @@
 #include "streams/in/json/HereProblemJson.hpp"
 
 #include "algorithms/construction/InsertionSolutionContext.hpp"
+#include "test_utils/models/Factories.hpp"
 
 #include <any>
 #include <catch/catch.hpp>
 
 using namespace vrp::algorithms::construction;
 using namespace vrp::models::problem;
+using namespace vrp::models::solution;
 using namespace vrp::models::common;
 
 using Demand = VehicleActivitySize<int>::Demand;
@@ -238,7 +240,14 @@ SCENARIO("here json can read problem from stream", "[streams][in][json]") {
       }
 
       THEN("once accepted with no routes, breaks should be moved to ignored") {
-        auto ctx = InsertionSolutionContext{problem->jobs->all(), {}, {}, {}, {}};
+        auto fleet = Fleet{};
+        fleet  //
+          .add(test_build_driver{}.owned())
+          .add(test_build_vehicle{}
+                 .dimens({{"id", std::string("myVehicle_1")}, {"typeId", std::string("myVehicle")}})
+                 .owned());
+        auto registry = std::make_shared<Registry>(fleet);
+        auto ctx = InsertionSolutionContext{problem->jobs->all(), {}, {}, {}, registry};
         problem->constraint->accept(ctx);
 
         REQUIRE(ctx.required.size() == 3);

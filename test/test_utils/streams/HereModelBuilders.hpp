@@ -236,6 +236,14 @@ struct build_test_vehicle final {
     return *this;
   }
 
+  build_test_vehicle limits(std::optional<models::common::Distance> distance,
+                            std::optional<models::common::Duration> duration) {
+    if (distance) content_["limits"] = {{"maxDistance", distance.value()}};
+    if (duration) content_["limits"] = {{"shiftTime", duration.value()}};
+
+    return *this;
+  }
+
   nlohmann::json content() const { return content_; }
 
 private:

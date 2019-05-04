@@ -63,7 +63,7 @@ struct SkillConstraint final : public vrp::algorithms::construction::HardRouteCo
   using WrappedType = std::shared_ptr<RawType>;
   using Result = vrp::algorithms::construction::HardRouteConstraint::Result;
 
-  static constexpr int code = 5;
+  static constexpr int Code = 10;
 
   ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>(); }
 
@@ -76,10 +76,10 @@ struct SkillConstraint final : public vrp::algorithms::construction::HardRouteCo
     return models::problem::analyze_job<Result>(
       job,
       [&ctx](const std::shared_ptr<const models::problem::Service>& service) {
-        return satisfy(ctx.route->actor->vehicle->dimens, service->dimens) ? Result{} : Result{code};
+        return satisfy(ctx.route->actor->vehicle->dimens, service->dimens) ? Result{} : Result{Code};
       },
       [&ctx](const std::shared_ptr<const models::problem::Sequence>& sequence) {
-        return satisfy(ctx.route->actor->vehicle->dimens, sequence->dimens) ? Result{} : Result{code};
+        return satisfy(ctx.route->actor->vehicle->dimens, sequence->dimens) ? Result{} : Result{Code};
       });
   }
 
