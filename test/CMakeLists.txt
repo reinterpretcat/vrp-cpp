@@ -94,14 +94,14 @@ set(SOURCE_FILES
         test_utils/streams/SolomonStreams.hpp
 
         streams/in/json/HereProblemJsonTest.cc
-#        streams/in/json/RichProblemJsonTest.cc
-#        streams/in/scientific/LiLimTest.cc
-#        streams/in/scientific/SolomonTest.cc
-#        streams/out/json/HereSolutionJsonTest.cc
-#
-#        utils/DateTest.cc
-#
-#        SolverTest.cc
+        streams/in/json/RichProblemJsonTest.cc
+        streams/in/scientific/LiLimTest.cc
+        streams/in/scientific/SolomonTest.cc
+        streams/out/json/HereSolutionJsonTest.cc
+
+        utils/DateTest.cc
+
+        SolverTest.cc
 
         )
 

@@ -87,11 +87,13 @@ public:
 
     auto constraint = std::make_shared<InsertionConstraint>();
     if (!locks->empty()) constraint->addHard<ActorJobLock>(std::make_shared<ActorJobLock>(*locks));
-    if (!limits.empty()) constraint->addHardActivity(std::make_shared<ActorTravelLimit>(limits, transport, activity));
+
     constraint->add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(fleet, transport, activity))
       .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>())
       .addHardActivity(std::make_shared<detail::here::BreakConstraint>())
       .addHardRoute(std::make_shared<detail::here::SkillConstraint>());
+
+    if (!limits.empty()) constraint->addHardActivity(std::make_shared<ActorTravelLimit>(limits, transport, activity));
 
     auto extras = std::make_shared<std::map<std::string, std::any>>();
     extras->insert(std::make_pair("coordIndex", std::move(coordIndex)));

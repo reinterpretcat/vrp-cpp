@@ -24,11 +24,21 @@ assertSolution(const std::shared_ptr<const models::Problem>& problem,
     });
   };
 
+  static auto sortUnassignedByJobId = [](auto& json) {
+    auto& unassigned = json["unassigned"];
+    std::sort(unassigned.begin(), unassigned.end(), [](const auto& lhs, const auto& rhs) {
+      return lhs.at("jobId") < rhs.at("jobId");
+    });
+  };
+
   auto resultJson = getSolutionAsJson(problem, estimatedSolution);
   auto expectedJson = nlohmann::json::parse(expected);
 
   sortToursByVehicleId(resultJson);
   sortToursByVehicleId(expectedJson);
+
+  sortUnassignedByJobId(resultJson);
+  sortUnassignedByJobId(expectedJson);
 
   std::cout << nlohmann::json::diff(resultJson, expectedJson).dump(2);
 

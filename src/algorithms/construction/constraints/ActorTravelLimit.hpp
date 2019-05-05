@@ -113,10 +113,12 @@ private:
                      Limit::Duration limit) const {
     if (!limit) return true;
 
-    return checkTravel(
-      routeCtx, actCtx, DurationKey, limit.value(), [&](const auto& profile, auto from, auto to, auto dep) {
-        return transport_->duration(profile, from, to, dep);
-      });
+    // NOTE consider extra operation time
+    auto maxValue = limit.value() - actCtx.target->detail.duration;
+
+    return checkTravel(routeCtx, actCtx, DurationKey, maxValue, [&](const auto& profile, auto from, auto to, auto dep) {
+      return transport_->duration(profile, from, to, dep);
+    });
   }
 
   template<typename T, typename TravelFunc>
