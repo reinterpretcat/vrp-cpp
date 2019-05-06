@@ -50,6 +50,7 @@ set(SOURCE_FILES
         scenarios/here/breaks/BreakSkipTest.cc
         scenarios/here/breaks/BreakRelationTest.cc
         scenarios/here/fleet/OpenEndBasicTest.cc
+        scenarios/here/fleet/ReachableConstraintTest.cc
         scenarios/here/limits/MaxDistanceTest.cc
         scenarios/here/limits/ShiftTimeTest.cc
         scenarios/here/pickdev/PickDevMixedTest.cc

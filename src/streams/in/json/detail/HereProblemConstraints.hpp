@@ -11,6 +11,8 @@ namespace vrp::streams::in::detail::here {
 
 /// Represents a break constraint to simulate vehicle breaks.
 struct BreakConstraint final : public vrp::algorithms::construction::HardActivityConstraint {
+  static constexpr int Code = 4;
+
   BreakConstraint() :
     conditionalJob_([](const vrp::algorithms::construction::InsertionSolutionContext& ctx,
                        const models::problem::Job& job) {
@@ -43,7 +45,7 @@ struct BreakConstraint final : public vrp::algorithms::construction::HardActivit
     const vrp::algorithms::construction::InsertionActivityContext& actCtx) const override {
     using namespace vrp::algorithms::construction;
     // TODO check that break is not assigned as last?
-    return isNotBreak(actCtx.target->service.value()) || actCtx.prev->service.has_value() ? success() : stop(4);
+    return isNotBreak(actCtx.target->service.value()) || actCtx.prev->service.has_value() ? success() : stop(Code);
   }
 
 private:
@@ -92,6 +94,48 @@ struct SkillConstraint final : public vrp::algorithms::construction::HardRouteCo
     return ranges::all_of(*std::any_cast<const WrappedType&>(required.at("skills")),
                           [&skills](const auto& skill) { return skills->find(skill) != skills->end(); });
   }
+};
+
+/// Provides the way to check whether location is reachable.
+/// Non-reachable locations are defined by max int constant.
+struct ReachableConstraint final : public vrp::algorithms::construction::HardActivityConstraint {
+  static constexpr int Code = 11;
+  static constexpr double UnreachableDistance = std::numeric_limits<int>::max();
+
+  explicit ReachableConstraint(const std::shared_ptr<const models::costs::TransportCosts>& transport) :
+    transport_(transport) {}
+
+  ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>(); }
+
+  void accept(vrp::algorithms::construction::InsertionSolutionContext& ctx) const override {}
+
+  void accept(vrp::algorithms::construction::InsertionRouteContext&) const override {}
+
+  vrp::algorithms::construction::HardActivityConstraint::Result hard(
+    const vrp::algorithms::construction::InsertionRouteContext& routeCtx,
+    const vrp::algorithms::construction::InsertionActivityContext& actCtx) const override {
+    using namespace vrp::algorithms::construction;
+
+    const auto& actor = *routeCtx.route->actor;
+    const auto& prev = *actCtx.prev;
+    const auto& target = *actCtx.target;
+    const auto& next = actCtx.next;
+
+    auto prevToTarget = transport_->distance(
+      actor.vehicle->profile, prev.detail.location, target.detail.location, prev.schedule.departure);
+
+    if (prevToTarget >= UnreachableDistance) return stop(Code);
+
+    if (!next) return success();
+
+    auto targetToNext = transport_->distance(
+      actor.vehicle->profile, target.detail.location, next.value()->detail.location, target.schedule.departure);
+
+    return targetToNext < UnreachableDistance ? success() : stop(Code);
+  }
+
+private:
+  std::shared_ptr<const models::costs::TransportCosts> transport_;
 };
 
 // endregion

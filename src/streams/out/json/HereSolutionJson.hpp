@@ -336,6 +336,8 @@ private:
         return 102;
       case 10:
         return 1;
+      case 11:
+        return 100;
       default:
         return 0;
     }
@@ -353,6 +355,8 @@ private:
         return "cannot be assigned due to shift time constraint of vehicle";
       case 10:
         return "cannot serve required skill";
+      case 11:
+        return "location unreachable";
       default:
         return "unknown";
     }

@@ -88,7 +88,8 @@ public:
     auto constraint = std::make_shared<InsertionConstraint>();
     if (!locks->empty()) constraint->addHard<ActorJobLock>(std::make_shared<ActorJobLock>(*locks));
 
-    constraint->add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(fleet, transport, activity))
+    constraint->addHardActivity(std::make_shared<detail::here::ReachableConstraint>(transport))
+      .add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(fleet, transport, activity))
       .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>())
       .addHardActivity(std::make_shared<detail::here::BreakConstraint>())
       .addHardRoute(std::make_shared<detail::here::SkillConstraint>());
