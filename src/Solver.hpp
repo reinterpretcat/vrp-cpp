@@ -22,9 +22,9 @@ class Solver final {
     friend ranges::range_access;
 
     auto read() const {
-      auto child = refinement_(*ctx, selector_(*ctx));
-      auto accepted = acceptance_(*ctx, child);
-      terminated_ = termination_(*ctx, child, accepted);
+      auto child = refinement_->operator()(*ctx, selector_->operator()(*ctx));
+      auto accepted = acceptance_->operator()(*ctx, child);
+      terminated_ = termination_->operator()(*ctx, child, accepted);
 
       if (accepted) {
         ctx->population->push_back(child);
@@ -42,10 +42,10 @@ class Solver final {
     }
 
     mutable bool terminated_ = false;
-    mutable typename AlgorithmDefinition::Selection selector_;
-    mutable typename AlgorithmDefinition::Refinement refinement_;
-    mutable typename AlgorithmDefinition::Acceptance acceptance_;
-    mutable typename AlgorithmDefinition::Termination termination_;
+    std::shared_ptr<typename AlgorithmDefinition::Selection> selector_;
+    std::shared_ptr<typename AlgorithmDefinition::Refinement> refinement_;
+    std::shared_ptr<typename AlgorithmDefinition::Acceptance> acceptance_;
+    std::shared_ptr<typename AlgorithmDefinition::Termination> termination_;
 
   public:
     std::shared_ptr<Context> ctx;
@@ -53,7 +53,7 @@ class Solver final {
     SolutionSpace() = default;
     explicit SolutionSpace(const std::shared_ptr<const models::Problem>& problem,  //
                            const AlgorithmDefinition& algoDef) :
-      ctx(std::make_shared<Context>(algoDef.template operator()<typename AlgorithmDefinition::Initial>()(problem))),
+      ctx(std::make_shared<Context>((*algoDef.template operator()<typename AlgorithmDefinition::Initial>())(problem))),
       selector_(algoDef.template operator()<typename AlgorithmDefinition::Selection>()),
       refinement_(algoDef.template operator()<typename AlgorithmDefinition::Refinement>()),
       acceptance_(algoDef.template operator()<typename AlgorithmDefinition::Acceptance>()),
@@ -73,7 +73,7 @@ public:
         return SolutionSpace{problem, algoDef};
       },
       [&logger](const auto& result, auto duration) {  //
-        logger(*result.ctx, duration);
+        logger->operator()(*result.ctx, duration);
       });
 
     // return space.ctx->population->front();
@@ -83,12 +83,12 @@ public:
       [&]() {
         ranges::for_each(space, [&space, &logger](const auto& pair) {
           const auto& [individuum, accepted] = pair;
-          logger(*space.ctx, individuum, accepted);
+          logger->operator()(*space.ctx, individuum, accepted);
         });
         return space.ctx->population->front();
       },
       [&space, &logger](const auto& result, auto duration) {
-        logger(*space.ctx, result, duration);  //
+        logger->operator()(*space.ctx, result, duration);  //
       });
   }
 };

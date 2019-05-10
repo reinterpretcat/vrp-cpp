@@ -32,27 +32,28 @@ struct create_default_solver final {
     explicit DefaultAlgorithmDefinition(const std::shared_ptr<const models::Problem>& problem) : problem_(problem) {}
 
     template<typename T>
-    T operator()() const {
+    std::shared_ptr<T> operator()() const {
       return create(identity<T>());
     }
 
   private:
     template<typename T>
-    T create(identity<T>) const {
+    std::shared_ptr<T> create(identity<T>) const {
       throw std::domain_error("Unknown algorithm");
     }
 
-    Initial create(identity<Initial>) const { return Initial{}; }
+    std::shared_ptr<Initial> create(identity<Initial>) const { return std::make_shared<Initial>(); }
 
-    Selection create(identity<Selection>) const { return Selection{}; }
+    std::shared_ptr<Selection> create(identity<Selection>) const { return std::make_shared<Selection>(); }
 
-    Refinement create(identity<Refinement>) const { return Refinement{}; }
+    std::shared_ptr<Refinement> create(identity<Refinement>) const { return std::make_shared<Refinement>(); }
 
-    Acceptance create(identity<Acceptance>) const { return Acceptance{}; }
+    std::shared_ptr<Acceptance> create(identity<Acceptance>) const { return std::make_shared<Acceptance>(); }
 
-    Termination create(identity<Termination>) const { return Termination{}; }
+    std::shared_ptr<Termination> create(identity<Termination>) const { return std::make_shared<Termination>(); }
 
-    Logging create(identity<Logging>) const { return Logging{}; }
+    std::shared_ptr<Logging> create(identity<Logging>) const { return std::make_shared<Logging>(); }
+
 
     std::shared_ptr<const models::Problem> problem_;
   };
