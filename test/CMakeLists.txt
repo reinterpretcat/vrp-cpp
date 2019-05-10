@@ -71,7 +71,7 @@ set(SOURCE_FILES
         scenarios/here/times/TimeMultipleBasicTest.cc
         scenarios/here/times/WaitingBasicTest.cc
 
-        test_utils/StreamSolver.hpp
+        test_utils/Solvers.hpp
         test_utils/algorithms/acceptance/Factories.hpp
         test_utils/algorithms/construction/Factories.hpp
         test_utils/algorithms/construction/Contexts.hpp

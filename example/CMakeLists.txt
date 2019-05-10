@@ -11,11 +11,8 @@ include_directories(${MAIN_SOURCE}
         ${EXAMPLE_SOURCE}
         ${CMAKE_CURRENT_BINARY_DIR})
 
-
-#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2")
-#set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -O2")
-
 set(SOURCE_FILES
+        AlgorithmDefinition.hpp
         VarTypeSolver.hpp
         )
 

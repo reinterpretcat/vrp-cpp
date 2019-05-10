@@ -1,12 +1,7 @@
 #pragma once
 
 #include "algorithms/construction/extensions/Factories.hpp"
-#include "algorithms/refinement/acceptance/GreedyAcceptance.hpp"
-#include "algorithms/refinement/extensions/CreateRefinementContext.hpp"
-#include "algorithms/refinement/extensions/RuinAndRecreateSolution.hpp"
-#include "algorithms/refinement/extensions/SelectBestSolution.hpp"
-#include "algorithms/refinement/logging/LogToNothing.hpp"
-#include "algorithms/refinement/termination/MaxIterationCriteria.hpp"
+#include "algorithms/refinement/RefinementContext.hpp"
 #include "models/Problem.hpp"
 #include "models/Solution.hpp"
 #include "utils/Measure.hpp"
@@ -18,15 +13,10 @@
 namespace vrp {
 
 /// Provides the way to solve Vehicle Routing Problem.
-template<typename Initial,      /// Creates initial population.
-         typename Selection,    /// Selects individuum from population.
-         typename Refinement,   /// Refines individuum.
-         typename Acceptance,   /// Accepts individuum.
-         typename Termination,  /// Terminates algorithm.
-         typename Logging       /// Hook for logging.
-         >
+template<typename AlgorithmDefinition>
 class Solver final {
   using Context = algorithms::refinement::RefinementContext;
+
   /// Represents solution space.
   class SolutionSpace : public ranges::view_facade<SolutionSpace> {
     friend ranges::range_access;
@@ -52,37 +42,38 @@ class Solver final {
     }
 
     mutable bool terminated_ = false;
-    mutable Selection selector_;
-    mutable Refinement refinement_;
-    mutable Acceptance acceptance_;
-    mutable Termination termination_;
+    mutable typename AlgorithmDefinition::Selection selector_;
+    mutable typename AlgorithmDefinition::Refinement refinement_;
+    mutable typename AlgorithmDefinition::Acceptance acceptance_;
+    mutable typename AlgorithmDefinition::Termination termination_;
 
   public:
     std::shared_ptr<Context> ctx;
 
     SolutionSpace() = default;
-    explicit SolutionSpace(std::shared_ptr<Context> context) :
-      ctx(std::move(context)),
-      selector_(),
-      refinement_(),
-      acceptance_(),
-      termination_() {
+    explicit SolutionSpace(const std::shared_ptr<const models::Problem>& problem,  //
+                           const AlgorithmDefinition& algoDef) :
+      ctx(std::make_shared<Context>(algoDef.template operator()<typename AlgorithmDefinition::Initial>()(problem))),
+      selector_(algoDef.template operator()<typename AlgorithmDefinition::Selection>()),
+      refinement_(algoDef.template operator()<typename AlgorithmDefinition::Refinement>()),
+      acceptance_(algoDef.template operator()<typename AlgorithmDefinition::Acceptance>()),
+      termination_(algoDef.template operator()<typename AlgorithmDefinition::Termination>()) {
       ctx->generation = 1;
     }
   };
 
 public:
   models::EstimatedSolution operator()(const std::shared_ptr<const models::Problem>& problem) const {
-    auto logger = Logging{};
+    auto algoDef = AlgorithmDefinition{problem};
+    auto logger = algoDef.template operator()<typename AlgorithmDefinition::Logging>();
 
     // create solution space within initial solution
     auto space = utils::measure<>::execution_with_result(
-      [&problem]() {
-        auto ctx = std::make_shared<Context>(Initial{}(problem));
-        return SolutionSpace{ctx};  //
+      [&]() {
+        return SolutionSpace{problem, algoDef};
       },
-      [&logger](const auto& result, auto duration) {
-        logger(*result.ctx, duration);  //
+      [&logger](const auto& result, auto duration) {  //
+        logger(*result.ctx, duration);
       });
 
     // return space.ctx->population->front();

@@ -1,7 +1,7 @@
 #pragma once
 
+#include "AlgorithmDefinition.hpp"
 #include "Solver.hpp"
-#include "algorithms/refinement/logging/LogToConsole.hpp"
 #include "streams/in/json/HereProblemJson.hpp"
 #include "streams/in/json/RichProblemJson.hpp"
 #include "streams/in/scientific/LiLim.hpp"
@@ -17,13 +17,7 @@ namespace vrp::example {
 /// Solves the problem from input stream storing result in output stream.
 struct solve_based_on_type final {
   void operator()(const char* inType, std::istream& in, const char* outType, std::ostream& out) const {
-    // TODO configure solver
-    auto solver = vrp::Solver<vrp::algorithms::refinement::create_refinement_context<>,
-                              vrp::algorithms::refinement::select_best_solution,
-                              vrp::algorithms::refinement::ruin_and_recreate_solution<>,
-                              vrp::algorithms::refinement::GreedyAcceptance<>,
-                              vrp::algorithms::refinement::MaxIterationCriteria,
-                              vrp::algorithms::refinement::log_to_nothing>{};
+    auto solver = Solver<AlgorithmDefinition>{};
 
     auto problem = readProblem(inType, in);
 

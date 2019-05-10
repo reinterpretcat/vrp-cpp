@@ -1,8 +1,7 @@
 #include "streams/out/json/HereSolutionJson.hpp"
 
-#include "Solver.hpp"
-#include "algorithms/refinement/logging/LogToConsole.hpp"
 #include "streams/in/json/HereProblemJson.hpp"
+#include "test_utils/Solvers.hpp"
 #include "test_utils/streams/HereModelBuilders.hpp"
 
 #include <catch/catch.hpp>
@@ -17,13 +16,7 @@ using namespace vrp::streams::in;
 using namespace vrp::streams::out;
 
 namespace {
-
-auto solver = Solver<create_refinement_context<>,
-                     select_best_solution,
-                     ruin_and_recreate_solution<>,
-                     GreedyAcceptance<>,
-                     MaxIterationCriteria,
-                     log_to_console>{};
+auto solver = vrp::test::create_default_solver<>{}();
 }
 
 namespace vrp::test {
