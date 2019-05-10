@@ -39,6 +39,7 @@ set(SOURCE_FILES
         algorithms/refinement/ruin/RemoveRandomRoutesTest.cc
         algorithms/refinement/ruin/RuinWithProbabilitiesTest.cc
         algorithms/refinement/termination/MaxIterationCriteriaTest.cc
+        algorithms/refinement/termination/VariationCoefficientCriteriaTest.cc
 
         models/extensions/problem/DistancesTest.cc
         models/problem/FleetTest.cc

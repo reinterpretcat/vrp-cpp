@@ -55,6 +55,7 @@ set(SOURCE_FILES
         algorithms/refinement/ruin/RuinWithProbabilities.hpp
 
         algorithms/refinement/termination/MaxIterationCriteria.hpp
+        algorithms/refinement/termination/VariationCoefficientCriteria.hpp
 
 
         models/common/Cost.hpp
