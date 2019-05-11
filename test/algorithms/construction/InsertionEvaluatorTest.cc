@@ -40,7 +40,7 @@ createProblem(const std::shared_ptr<Fleet>& fleet) {
   auto transport = std::make_shared<TestTransportCosts>();
   auto constraint = std::make_shared<InsertionConstraint>();
 
-  constraint->add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(fleet, transport, activity));
+  constraint->add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(fleet, transport, activity, 1));
   return std::make_shared<Problem>(
     Problem{{}, {}, std::make_shared<std::vector<vrp::models::Lock>>(), constraint, {}, activity, transport, {}});
 }
@@ -63,7 +63,7 @@ createContext(const Tour::Activity& prev, const Tour::Activity& next) {
 
   auto constraint = std::make_shared<InsertionConstraint>();
   constraint->add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(
-    createFleet(), std::make_shared<TestTransportCosts>(), std::make_shared<ActivityCosts>()));
+    createFleet(), std::make_shared<TestTransportCosts>(), std::make_shared<ActivityCosts>(), 1));
 
   return test_build_insertion_context{}
     .problem(createProblem(constraint))
@@ -224,7 +224,7 @@ SCENARIO("insertion evaluator can handle service insertion with time constraints
       .add(test_build_vehicle{}.id("v2").details({{20, v2, {0, 100}}}).owned());
     auto constraint = std::make_shared<InsertionConstraint>();
     constraint->add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(
-      fleet, std::make_shared<TestTransportCosts>(), std::make_shared<ActivityCosts>()));
+      fleet, std::make_shared<TestTransportCosts>(), std::make_shared<ActivityCosts>(), 1));
 
     auto evaluator = InsertionEvaluator{};
 

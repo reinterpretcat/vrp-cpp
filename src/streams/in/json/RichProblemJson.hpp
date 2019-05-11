@@ -14,6 +14,12 @@
 
 namespace vrp::streams::in {
 
+/// Keeps tracks of unassigned jobs codes mapping.
+struct RichProblemUnassignedCodes final {
+  constexpr static int Time = 1;
+  constexpr static int Size = 2;
+};
+
 /// Parses rich VRP from json.
 /// TODO Not yet fully implemented.
 struct read_rich_json_type {
@@ -31,9 +37,10 @@ struct read_rich_json_type {
     auto fleet = readFleet(problem);
     auto jobs = readJobs(problem, *transport, *fleet);
 
+    using Codes = RichProblemUnassignedCodes;
     auto constraint = std::make_shared<InsertionConstraint>();
-    constraint->add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(fleet, transport, activity))
-      .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>());
+    constraint->add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(fleet, transport, activity, Codes::Time))
+      .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>(Codes::Size));
 
     return std::make_shared<models::Problem>(
       models::Problem{fleet,

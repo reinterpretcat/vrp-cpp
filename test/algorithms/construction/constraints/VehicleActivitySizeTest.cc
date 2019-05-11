@@ -73,7 +73,7 @@ SCENARIO("vehicle activity size calculates proper current load", "[algorithms][c
       }));
 
       route->tour.insert(activity("s1", 1, s1), 1).insert(activity("s2", 2, s2), 2).insert(activity("s3", 3, s3), 3);
-      VehicleActivitySize<int>{}.accept(routeState);
+      VehicleActivitySize<int>{2}.accept(routeState);
 
       THEN("has correct load at start") {
         REQUIRE(state->get<int>(CurrentKey, route->tour.start()).value_or(-1) == start);
@@ -102,7 +102,7 @@ SCENARIO("vehicle activity size handles different results", "[algorithms][constr
       auto [size, expected] = GENERATE(table<int, std::optional<int>>({{11, std::optional<int>{2}},  //
                                                                        {10, std::optional<int>{}}}));
 
-      auto result = VehicleActivitySize<int>{}.hard(
+      auto result = VehicleActivitySize<int>{2}.hard(
         routeCtx,
         as_job(test_build_service{}.dimens({{DemandKey, createDemand(size)}, {"id", std::string("v1")}}).shared()));
 
@@ -127,7 +127,7 @@ SCENARIO("vehicle activity size checks diffefrent cases", "[algorithms][construc
       auto routeState = createRouteState(*fleet);
       auto [route, state] = routeState;
       route->tour.insert(activity("s1", 1, s1), 1).insert(activity("s3", 3, s3), 2);
-      auto sized = VehicleActivitySize<int>{};
+      auto sized = VehicleActivitySize<int>{2};
       sized.accept(routeState);
       auto routeCtx = test_build_insertion_route_context{}.route(route).state(state).owned();
       auto actCtx =
@@ -158,7 +158,7 @@ SCENARIO("vehicle activity size handles tour with three services", "[algorithms]
       auto routeState = createRouteState(*fleet);
       auto [route, state] = routeState;
       route->tour.insert(activity("s1", 1, -3), 1).insert(activity("s2", 2, -5), 2).insert(activity("s3", 3, -2), 3);
-      auto sized = VehicleActivitySize<int>{};
+      auto sized = VehicleActivitySize<int>{2};
       sized.accept(routeState);
       auto routeCtx = test_build_insertion_route_context{}.route(route).state(state).owned();
       auto actCtx =

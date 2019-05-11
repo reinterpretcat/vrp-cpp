@@ -18,9 +18,6 @@ struct ActorTravelLimit final : public HardActivityConstraint {
   constexpr static int DistanceKey = BaseKey + 0;
   constexpr static int DurationKey = BaseKey + 1;
 
-  constexpr static int DistanceCode = 5;
-  constexpr static int DurationCode = 6;
-
   /// Specifies actor limit type.
   struct Limit final {
     using Distance = std::optional<models::common::Distance>;
@@ -38,7 +35,11 @@ struct ActorTravelLimit final : public HardActivityConstraint {
 
   explicit ActorTravelLimit(const std::vector<Limit>& limits,
                             const std::shared_ptr<const models::costs::TransportCosts>& transport,
-                            const std::shared_ptr<const models::costs::ActivityCosts>& activity) :
+                            const std::shared_ptr<const models::costs::ActivityCosts>& activity,
+                            int distanceCode,
+                            int durationCode) :
+    distanceCode_(distanceCode),
+    durationCode_(durationCode),
     actorLimits_(),
     initLimits_(limits),
     transport_(transport),
@@ -91,9 +92,9 @@ struct ActorTravelLimit final : public HardActivityConstraint {
 
     if (limitPair == actorLimits_.end()) return success();
 
-    if (!checkDistance(routeCtx, actCtx, limitPair->second.first)) return stop(DistanceCode);
+    if (!checkDistance(routeCtx, actCtx, limitPair->second.first)) return stop(distanceCode_);
 
-    return checkDuration(routeCtx, actCtx, limitPair->second.second) ? success() : stop(DurationCode);
+    return checkDuration(routeCtx, actCtx, limitPair->second.second) ? success() : stop(durationCode_);
   }
 
 private:
@@ -147,6 +148,9 @@ private:
 
     return current + prevToTarget + targetToNext - prevToNext <= limit;
   }
+
+  int distanceCode_;
+  int durationCode_;
 
   mutable std::unordered_map<std::shared_ptr<const models::solution::Actor>,  //
                              std::pair<Limit::Distance, Limit::Duration>>

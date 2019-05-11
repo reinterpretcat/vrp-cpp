@@ -38,6 +38,9 @@ struct TestDurationTransportCosts : public TestTransportCosts {
     return 1;
   }
 };
+
+constexpr static int DistanceCode = 1;
+constexpr static int DurationCode = 2;
 }
 
 namespace vrp::test {
@@ -50,11 +53,11 @@ SCENARIO("actor travel limit can manage distance limit", "[algorithms][construct
                                                                               DistLimit,
                                                                               DurLimit,
                                                                               HardActivityConstraint::Result>({
-    {std::make_shared<TestDistanceTransportCosts>(), "v1", "v1", 76, {100}, {}, stop(ActorTravelLimit::DistanceCode)},
+    {std::make_shared<TestDistanceTransportCosts>(), "v1", "v1", 76, {100}, {}, stop(DistanceCode)},
     {std::make_shared<TestDistanceTransportCosts>(), "v1", "v1", 74, {100}, {}, success()},
     {std::make_shared<TestDistanceTransportCosts>(), "v1", "v2", 76, {100}, {}, success()},
 
-    {std::make_shared<TestDurationTransportCosts>(), "v1", "v1", 76, {}, {100}, stop(ActorTravelLimit::DurationCode)},
+    {std::make_shared<TestDurationTransportCosts>(), "v1", "v1", 76, {}, {100}, stop(DurationCode)},
     {std::make_shared<TestDurationTransportCosts>(), "v1", "v1", 74, {}, {100}, success()},
     {std::make_shared<TestDurationTransportCosts>(), "v1", "v2", 76, {}, {100}, success()},
   }));
@@ -82,7 +85,9 @@ SCENARIO("actor travel limit can manage distance limit", "[algorithms][construct
       auto actorTravelLimit = ActorTravelLimit{
         {Limit{[target = target](const auto& a) { return get_vehicle_id{}(*a.vehicle) == target; }, dist, dur}},
         transport,
-        std::make_shared<ActivityCosts>()};
+        std::make_shared<ActivityCosts>(),
+        DistanceCode,
+        DurationCode};
 
       actorTravelLimit.accept(slnCtx);
 

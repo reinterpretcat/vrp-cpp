@@ -87,7 +87,8 @@ SCENARIO("vehicle activity timing checks states with 4 vehicles", "[algorithms][
       auto context = InsertionRouteContext{createRoute(*fleet, vehicle), std::make_shared<InsertionRouteState>()};
       ActorActivityTiming(fleet,
                           std::make_shared<TestTransportCosts>(),  //
-                          std::make_shared<ActivityCosts>())
+                          std::make_shared<ActivityCosts>(),
+                          1)
         .accept(context);
 
       THEN("should update latest operation time") {
@@ -130,7 +131,8 @@ SCENARIO("vehicle activity timing checks states with 6 vehicles", "[algorithms][
       auto context = InsertionRouteContext{createRoute(*fleet, vehicle), std::make_shared<InsertionRouteState>()};
       auto timing = ActorActivityTiming(fleet,
                                         std::make_shared<TestTransportCosts>(),  //
-                                        std::make_shared<ActivityCosts>());
+                                        std::make_shared<ActivityCosts>(),
+                                        1);
       timing.accept(context);
 
       THEN("returns fulfilled for insertion at the end") {
@@ -162,7 +164,8 @@ SCENARIO("vehicle activity timing updates activity schedule", "[algorithms][cons
     WHEN("accept route") {
       ActorActivityTiming(fleet,
                           std::make_shared<TestTransportCosts>(),  //
-                          std::make_shared<ActivityCosts>())
+                          std::make_shared<ActivityCosts>(),
+                          1)
         .accept(context);
 
       THEN("activity schedule are updated") {
@@ -192,7 +195,8 @@ SCENARIO("vehicle activity timing can calculate soft costs for tour with two act
       THEN("cost for activity is correct") {
         auto cost = ActorActivityTiming(fleet,
                                         std::make_shared<TestTransportCosts>(),  //
-                                        std::make_shared<ActivityCosts>())
+                                        std::make_shared<ActivityCosts>(),
+                                        1)
                       .soft(*routeCtx, *actCtx);
 
         REQUIRE(cost == 30);
@@ -216,7 +220,8 @@ SCENARIO("vehicle activity timing can calculate soft costs for empty tour", "[al
       THEN("cost for activity is correct") {
         auto cost = ActorActivityTiming(fleet,
                                         std::make_shared<TestTransportCosts>(),  //
-                                        std::make_shared<ActivityCosts>())
+                                        std::make_shared<ActivityCosts>(),
+                                        1)
                       .soft(*routeCtx, *actCtx);
 
         REQUIRE(cost == 21);

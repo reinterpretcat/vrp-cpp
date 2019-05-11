@@ -18,8 +18,6 @@ namespace vrp::algorithms::construction {
 struct ActorJobLock final
   : public HardRouteConstraint
   , public HardActivityConstraint {
-  constexpr static int Code = 3;
-
 private:
   /// Represents a simple job index.
   struct JobIndex final {
@@ -46,7 +44,7 @@ private:
   };
 
 public:
-  explicit ActorJobLock(const std::vector<models::Lock>& locks, int code = Code) :
+  explicit ActorJobLock(const std::vector<models::Lock>& locks, int code) :
     code_(code),
     conditions_(),
     rules_(),

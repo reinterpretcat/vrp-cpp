@@ -82,7 +82,7 @@ SCENARIO("cheapest insertion inserts service", "[algorithms][construction][inser
                                                                      {}});
 
     constraint->add<ActorActivityTiming>(
-      std::make_shared<ActorActivityTiming>(fleet, problem->transport, problem->activity));
+      std::make_shared<ActorActivityTiming>(fleet, problem->transport, problem->activity, 1));
 
     auto insertion = CheapestInsertion{InsertionEvaluator{}};
 
@@ -471,8 +471,8 @@ SCENARIO("Can solve simple open VRP problem", "[scenarios][openvrp]") {
     auto transport = std::make_shared<TestTransportCosts>();
 
     auto constraint = std::make_shared<InsertionConstraint>();
-    constraint->template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>());
-    constraint->add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(fleet, transport, activity));
+    constraint->template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>(1));
+    constraint->add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(fleet, transport, activity, 2));
 
     auto problem = std::make_shared<models::Problem>(
       models::Problem{{}, {}, std::make_shared<std::vector<models::Lock>>(), constraint, {}, activity, transport, {}});

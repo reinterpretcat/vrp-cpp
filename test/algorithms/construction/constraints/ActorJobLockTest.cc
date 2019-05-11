@@ -47,7 +47,8 @@ SCENARIO("actor job lock can manage any actor-job locks on route level", "[algor
       auto slnCtx = InsertionSolutionContext{{}, {}, {}, {}, registry};
       auto actorJobLock =
         ActorJobLock{{Lock{[locked = locked](const auto& a) { return get_vehicle_id{}(*a.vehicle) == locked; },
-                           {Lock::Detail{Lock::Order::Any, Lock::Position::middle(), {DefaultService}}}}}};
+                           {Lock::Detail{Lock::Order::Any, Lock::Position::middle(), {DefaultService}}}}},
+                     1};
       actorJobLock.accept(slnCtx);
 
       THEN("returns expected constraint check") {
@@ -208,7 +209,7 @@ SCENARIO("actor job lock can manage strict actor-job locks on activity level",
                       .target(test_build_activity{}.service(newJob).shared())
                       .next(next)
                       .owned();
-      auto constraint = ActorJobLock{locks};
+      auto constraint = ActorJobLock{locks, 3};
       constraint.accept(slnCtx);
 
       THEN(message) {

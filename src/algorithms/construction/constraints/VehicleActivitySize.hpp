@@ -39,7 +39,7 @@ struct VehicleActivitySize final
   inline static const std::string DimKeyDemand = "demand";
   inline static const std::string DimKeyCapacity = "capacity";
 
-  explicit VehicleActivitySize(int code = 2) : code_(code) {}
+  explicit VehicleActivitySize(int code) : code_(code) {}
 
   /// Returns used state keys.
   ranges::any_view<int> stateKeys() const override {

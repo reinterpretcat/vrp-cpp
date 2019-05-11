@@ -30,7 +30,7 @@ struct ActorActivityTiming final
   ActorActivityTiming(const std::shared_ptr<const models::problem::Fleet>& fleet,
                       const std::shared_ptr<const models::costs::TransportCosts>& transport,
                       const std::shared_ptr<const models::costs::ActivityCosts>& activity,
-                      int code = 1) :
+                      int code) :
     code_(code),
     transport_(transport),
     activity_(activity) {}

@@ -25,6 +25,20 @@
 
 namespace vrp::streams::in {
 
+/// Keeps tracks of unassigned jobs codes mapping.
+struct HereProblemUnassignedCodes final {
+  constexpr static int Time = 1;
+  constexpr static int Size = 2;
+  constexpr static int Lock = 3;
+  constexpr static int Break = 4;
+
+  constexpr static int DistanceLimit = 5;
+  constexpr static int DurationLimit = 6;
+
+  constexpr static int Skill = 10;
+  constexpr static int Reachable = 11;
+};
+
 /// Represents coordinate index.
 struct CoordIndex final {
   void add(const std::vector<double>& location) {
@@ -85,16 +99,19 @@ public:
     auto locks = readLocks(problem, *jobs, jobIndex);
     auto limits = readLimits(problem);
 
+    using Codes = HereProblemUnassignedCodes;
     auto constraint = std::make_shared<InsertionConstraint>();
-    if (!locks->empty()) constraint->addHard<ActorJobLock>(std::make_shared<ActorJobLock>(*locks));
+    if (!locks->empty()) constraint->addHard<ActorJobLock>(std::make_shared<ActorJobLock>(*locks, Codes::Lock));
 
-    constraint->addHardActivity(std::make_shared<detail::here::ReachableConstraint>(transport))
-      .add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(fleet, transport, activity))
-      .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>())
-      .addHardActivity(std::make_shared<detail::here::BreakConstraint>())
-      .addHardRoute(std::make_shared<detail::here::SkillConstraint>());
+    constraint->addHardActivity(std::make_shared<detail::here::ReachableConstraint>(transport, Codes::Reachable))
+      .add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(fleet, transport, activity, Codes::Time))
+      .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>(Codes::Size))
+      .addHardActivity(std::make_shared<detail::here::BreakConstraint>(Codes::Break))
+      .addHardRoute(std::make_shared<detail::here::SkillConstraint>(Codes::Skill));
 
-    if (!limits.empty()) constraint->addHardActivity(std::make_shared<ActorTravelLimit>(limits, transport, activity));
+    if (!limits.empty())
+      constraint->addHardActivity(
+        std::make_shared<ActorTravelLimit>(limits, transport, activity, Codes::DistanceLimit, Codes::DurationLimit));
 
     auto extras = std::make_shared<std::map<std::string, std::any>>();
     extras->insert(std::make_pair("coordIndex", std::move(coordIndex)));

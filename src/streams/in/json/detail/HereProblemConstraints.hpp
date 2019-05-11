@@ -7,13 +7,10 @@
 
 namespace vrp::streams::in::detail::here {
 
-// region Constraints
-
 /// Represents a break constraint to simulate vehicle breaks.
 struct BreakConstraint final : public vrp::algorithms::construction::HardActivityConstraint {
-  static constexpr int Code = 4;
-
-  BreakConstraint() :
+  BreakConstraint(int code) :
+    code_(code),
     conditionalJob_([](const vrp::algorithms::construction::InsertionSolutionContext& ctx,
                        const models::problem::Job& job) {
       return models::problem::analyze_job<bool>(
@@ -45,7 +42,7 @@ struct BreakConstraint final : public vrp::algorithms::construction::HardActivit
     const vrp::algorithms::construction::InsertionActivityContext& actCtx) const override {
     using namespace vrp::algorithms::construction;
     // TODO check that break is not assigned as last?
-    return isNotBreak(actCtx.target->service.value()) || actCtx.prev->service.has_value() ? success() : stop(Code);
+    return isNotBreak(actCtx.target->service.value()) || actCtx.prev->service.has_value() ? success() : stop(code_);
   }
 
 private:
@@ -56,6 +53,7 @@ private:
     return false;
   }
 
+  int code_;
   vrp::algorithms::construction::ConditionalJob conditionalJob_;
 };
 
@@ -65,7 +63,7 @@ struct SkillConstraint final : public vrp::algorithms::construction::HardRouteCo
   using WrappedType = std::shared_ptr<RawType>;
   using Result = vrp::algorithms::construction::HardRouteConstraint::Result;
 
-  static constexpr int Code = 10;
+  explicit SkillConstraint(int code) : code_(code) {}
 
   ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>(); }
 
@@ -77,11 +75,11 @@ struct SkillConstraint final : public vrp::algorithms::construction::HardRouteCo
               const vrp::models::problem::Job& job) const override {
     return models::problem::analyze_job<Result>(
       job,
-      [&ctx](const std::shared_ptr<const models::problem::Service>& service) {
-        return satisfy(ctx.route->actor->vehicle->dimens, service->dimens) ? Result{} : Result{Code};
+      [&ctx, code = code_](const std::shared_ptr<const models::problem::Service>& service) {
+        return satisfy(ctx.route->actor->vehicle->dimens, service->dimens) ? Result{} : Result{code};
       },
-      [&ctx](const std::shared_ptr<const models::problem::Sequence>& sequence) {
-        return satisfy(ctx.route->actor->vehicle->dimens, sequence->dimens) ? Result{} : Result{Code};
+      [&ctx, code = code_](const std::shared_ptr<const models::problem::Sequence>& sequence) {
+        return satisfy(ctx.route->actor->vehicle->dimens, sequence->dimens) ? Result{} : Result{code};
       });
   }
 
@@ -94,15 +92,18 @@ struct SkillConstraint final : public vrp::algorithms::construction::HardRouteCo
     return ranges::all_of(*std::any_cast<const WrappedType&>(required.at("skills")),
                           [&skills](const auto& skill) { return skills->find(skill) != skills->end(); });
   }
+
+private:
+  int code_;
 };
 
 /// Provides the way to check whether location is reachable.
 /// Non-reachable locations are defined by max int constant.
 struct ReachableConstraint final : public vrp::algorithms::construction::HardActivityConstraint {
-  static constexpr int Code = 11;
   static constexpr double UnreachableDistance = std::numeric_limits<int>::max();
 
-  explicit ReachableConstraint(const std::shared_ptr<const models::costs::TransportCosts>& transport) :
+  explicit ReachableConstraint(const std::shared_ptr<const models::costs::TransportCosts>& transport, int code) :
+    code_(code),
     transport_(transport) {}
 
   ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>(); }
@@ -124,19 +125,18 @@ struct ReachableConstraint final : public vrp::algorithms::construction::HardAct
     auto prevToTarget = transport_->distance(
       actor.vehicle->profile, prev.detail.location, target.detail.location, prev.schedule.departure);
 
-    if (prevToTarget >= UnreachableDistance) return stop(Code);
+    if (prevToTarget >= UnreachableDistance) return stop(code_);
 
     if (!next) return success();
 
     auto targetToNext = transport_->distance(
       actor.vehicle->profile, target.detail.location, next.value()->detail.location, target.schedule.departure);
 
-    return targetToNext < UnreachableDistance ? success() : stop(Code);
+    return targetToNext < UnreachableDistance ? success() : stop(code_);
   }
 
 private:
+  int code_;
   std::shared_ptr<const models::costs::TransportCosts> transport_;
 };
-
-// endregion
 }

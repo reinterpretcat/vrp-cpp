@@ -59,8 +59,8 @@ public:
     matrix->generate();
 
     (*constraint)
-      .add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(fleet, matrix, activity))
-      .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>());
+      .add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(fleet, matrix, activity, 1))
+      .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>(2));
 
     return std::make_shared<models::Problem>(
       models::Problem{fleet,

@@ -325,18 +325,20 @@ private:
   }
 
   static int mapUnassignedCode(int code) {
+    using Codes = in::HereProblemUnassignedCodes;
+
     switch (code) {
-      case 1:
+      case Codes::Time:
         return 2;
-      case 2:
+      case Codes::Size:
         return 3;
-      case 5:
+      case Codes::DistanceLimit:
         return 101;
-      case 6:
+      case Codes::DurationLimit:
         return 102;
-      case 10:
+      case Codes::Skill:
         return 1;
-      case 11:
+      case Codes::Reachable:
         return 100;
       default:
         return 0;
@@ -344,18 +346,20 @@ private:
   }
 
   static std::string mapUnassignedDescription(int code) {
+    using Codes = in::HereProblemUnassignedCodes;
+
     switch (code) {
-      case 1:
+      case Codes::Time:
         return "cannot be visited within time window";
-      case 2:
+      case Codes::Size:
         return "does not fit into any vehicle due to capacity";
-      case 5:
+      case Codes::DistanceLimit:
         return "cannot be assigned due to max distance constraint of vehicle";
-      case 6:
+      case Codes::DurationLimit:
         return "cannot be assigned due to shift time constraint of vehicle";
-      case 10:
+      case Codes::Skill:
         return "cannot serve required skill";
-      case 11:
+      case Codes::Reachable:
         return "location unreachable";
       default:
         return "unknown";
