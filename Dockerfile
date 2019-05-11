@@ -6,7 +6,7 @@ FROM ubuntu:18.04
 #   docker run -it -v $(pwd):/repo --rm vrp_solver
 #   mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release ..
 
-ARG CLANG_VERSION=6.0.1
+ARG CLANG_VERSION=7.0.1
 ARG CMAKE_VERSION=3.12.1
 
 # install clang and deps
@@ -16,9 +16,9 @@ RUN apt-get update && apt-get install -y \
   cmake \
   curl \
   && rm -rf /var/lib/apt/lists/* \
-  && curl -SL http://releases.llvm.org/${CLANG_VERSION}/clang+llvm-${CLANG_VERSION}-x86_64-linux-gnu-ubuntu-16.04.tar.xz \
+  && curl -SL http://releases.llvm.org/${CLANG_VERSION}/clang+llvm-${CLANG_VERSION}-x86_64-linux-gnu-ubuntu-18.04.tar.xz \
   | tar -xJC . && \
-  mv clang+llvm-${CLANG_VERSION}-x86_64-linux-gnu-ubuntu-16.04 clang_${CLANG_VERSION} && \
+  mv clang+llvm-${CLANG_VERSION}-x86_64-linux-gnu-ubuntu-18.04 clang_${CLANG_VERSION} && \
   echo 'export PATH=/clang_${CLANG_VERSION}/bin:$PATH' >> ~/.bashrc && \
   echo 'export LD_LIBRARY_PATH=/clang_${CLANG_VERSION}/lib:LD_LIBRARY_PATH' >> ~/.bashrc
 
