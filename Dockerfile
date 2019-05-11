@@ -1,9 +1,13 @@
 FROM ubuntu:18.04
 
-# docker rm vrp_solver
-# docker build --tag vrp_solver .
-# docker run -it -v $(pwd):/repo --rm vrp_solver
-# cmake -DCMAKE_BUILD_TYPE=Release ..
+# how to use:
+#   docker rm vrp_solver
+#   docker build --tag vrp_solver .
+#   docker run -it -v $(pwd):/repo --rm vrp_solver
+#   mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release ..
+
+ARG CLANG_VERSION=6.0.1
+ARG CMAKE_VERSION=3.12.1
 
 # install clang and deps
 RUN apt-get update && apt-get install -y \
@@ -12,22 +16,22 @@ RUN apt-get update && apt-get install -y \
   cmake \
   curl \
   && rm -rf /var/lib/apt/lists/* \
-  && curl -SL http://releases.llvm.org/6.0.1/clang+llvm-6.0.1-x86_64-linux-gnu-ubuntu-16.04.tar.xz \
+  && curl -SL http://releases.llvm.org/${CLANG_VERSION}/clang+llvm-${CLANG_VERSION}-x86_64-linux-gnu-ubuntu-16.04.tar.xz \
   | tar -xJC . && \
-  mv clang+llvm-6.0.1-x86_64-linux-gnu-ubuntu-16.04 clang_6.0.1 && \
-  echo 'export PATH=/clang_6.0.1/bin:$PATH' >> ~/.bashrc && \
-  echo 'export LD_LIBRARY_PATH=/clang_6.0.1/lib:LD_LIBRARY_PATH' >> ~/.bashrc
+  mv clang+llvm-${CLANG_VERSION}-x86_64-linux-gnu-ubuntu-16.04 clang_${CLANG_VERSION} && \
+  echo 'export PATH=/clang_${CLANG_VERSION}/bin:$PATH' >> ~/.bashrc && \
+  echo 'export LD_LIBRARY_PATH=/clang_${CLANG_VERSION}/lib:LD_LIBRARY_PATH' >> ~/.bashrc
 
-# install cmake 3.12.1
-RUN curl https://cmake.org/files/v3.12/cmake-3.12.1-Linux-x86_64.sh --output cmake-3.12.1.sh && \
+# install cmake
+RUN curl https://cmake.org/files/v3.12/cmake-${CMAKE_VERSION}-Linux-x86_64.sh --output cmake-${CMAKE_VERSION}.sh && \
   mkdir /opt/cmake && \
-  sh cmake-3.12.1.sh --skip-license --prefix=/opt/cmake && \
+  sh cmake-${CMAKE_VERSION}.sh --skip-license --prefix=/opt/cmake && \
   ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
 
 # TODO make sure that TBB dependency is satisfied
 
-ENV CC=/clang_6.0.1/bin/clang
-ENV CXX=/clang_6.0.1/bin/clang++
+ENV CC=/clang_${CLANG_VERSION}/bin/clang
+ENV CXX=/clang_${CLANG_VERSION}/bin/clang++
 
 WORKDIR /repo/build
 CMD [ "/bin/bash" ]
