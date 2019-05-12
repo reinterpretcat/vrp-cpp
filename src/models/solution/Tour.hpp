@@ -6,6 +6,7 @@
 #include "models/solution/Activity.hpp"
 
 #include <algorithm>
+#include <gsl/gsl>
 #include <range/v3/all.hpp>
 #include <set>
 #include <vector>
@@ -19,16 +20,16 @@ public:
 
   /// Sets tour start.
   Tour& start(const Tour::Activity& activity) {
-    assert(activities_.empty());
-    assert(!activity->service.has_value());
+    Expects(activities_.empty());
+    Expects(!activity->service.has_value());
     activities_.push_back(activity);
     return *this;
   }
 
   /// Sets tour end.
   Tour& end(const Tour::Activity& activity) {
-    assert(!activities_.empty());
-    assert(!activity->service.has_value());
+    Expects(!activities_.empty());
+    Expects(!activity->service.has_value());
     isClosed_ = true;
     activities_.push_back(activity);
     return *this;
@@ -42,8 +43,8 @@ public:
 
   /// Inserts activity within its job at specified index.
   Tour& insert(const Tour::Activity& activity, size_t index) {
-    assert(activity->service.has_value());
-    assert(!activities_.empty());
+    Expects(activity->service.has_value());
+    Expects(!activities_.empty());
 
     activities_.insert(activities_.begin() + index, activity);
 

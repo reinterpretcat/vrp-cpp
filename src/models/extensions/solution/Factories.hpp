@@ -6,6 +6,7 @@
 #include "models/solution/Actor.hpp"
 #include "models/solution/Route.hpp"
 
+#include <gsl/gsl>
 #include <memory>
 #include <numeric>
 
@@ -82,7 +83,7 @@ public:
   }
 
   std::shared_ptr<Route> shared() {
-    assert(!route_->tour.empty());
+    Expects(!route_->tour.empty());
     return route_;
   }
 

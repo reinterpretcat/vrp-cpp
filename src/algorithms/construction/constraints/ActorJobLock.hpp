@@ -7,6 +7,7 @@
 #include "models/extensions/solution/Helpers.hpp"
 #include "models/solution/Actor.hpp"
 
+#include <gsl/gsl>
 #include <map>
 #include <range/v3/all.hpp>
 #include <unordered_map>
@@ -55,7 +56,7 @@ public:
       ranges::for_each(lock.details, [&](const auto& detail) {
         // NOTE create rule only for strict order
         if (detail.order == models::Lock::Order::Strict) {
-          assert(!detail.jobs.empty());
+          Expects(!detail.jobs.empty());
 
           auto rule = std::make_shared<Rule>();
 

@@ -8,6 +8,7 @@
 #include "models/costs/MatrixTransportCosts.hpp"
 #include "streams/in/json/detail/RichProblemParser.hpp"
 
+#include <gsl/gsl>
 #include <istream>
 #include <map>
 #include <range/v3/utility/variant.hpp>
@@ -59,13 +60,13 @@ private:
     using namespace vrp::models::common;
     using namespace vrp::models::problem;
 
-    assert(problem.fleet.drivers.size() == 1);
+    Ensures(problem.fleet.drivers.size() == 1);
 
     auto fleet = std::make_shared<Fleet>();
     ranges::for_each(problem.fleet.vehicles, [&](const auto& vehicle) {
       ranges::for_each(ranges::view::closed_indices(1, vehicle.amount), [&](auto index) {
-        assert(vehicle.capabilities.has_value());
-        assert(vehicle.capabilities.value().capacity.size() == 1);
+        Expects(vehicle.capabilities.has_value());
+        Expects(vehicle.capabilities.value().capacity.size() == 1);
 
         fleet->add(
           Vehicle{getProfile(vehicle.profile),
@@ -117,13 +118,13 @@ private:
         if (newDemand.pickup.value().empty()) newDemand.pickup.value().push_back(0);
         if (newDemand.delivery.value().empty()) newDemand.delivery.value().push_back(0);
 
-        assert(newDemand.pickup.value().size() == 1 && newDemand.delivery.value().size() == 1);
+        Ensures(newDemand.pickup.value().size() == 1 && newDemand.delivery.value().size() == 1);
 
         return std::move(newDemand);
       };
 
       static auto createService = [](const auto& s, const std::string& id) {
-        assert(s.requirements.has_value());
+        Expects(s.requirements.has_value());
         auto fixed = ensureDemand(s.requirements.value().demands.fixed);
         auto dynamic = ensureDemand(s.requirements.value().demands.dynamic);
 

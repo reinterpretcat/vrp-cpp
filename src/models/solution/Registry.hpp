@@ -5,6 +5,7 @@
 #include "models/problem/Fleet.hpp"
 #include "models/solution/Actor.hpp"
 
+#include <gsl/gsl>
 #include <range/v3/all.hpp>
 #include <set>
 #include <unordered_map>
@@ -19,8 +20,8 @@ public:
 
   explicit Registry(const problem::Fleet& fleet) : availableActors_(), allActors_() {
     // TODO we should also consider multiple drivers to support smart vehicle-driver assignment
-    assert(ranges::distance(fleet.drivers()) == 1);
-    assert(ranges::distance(fleet.vehicles()) > 0);
+    Expects(ranges::distance(fleet.drivers()) == 1);
+    Expects(ranges::distance(fleet.vehicles()) > 0);
 
     using namespace ranges;
 

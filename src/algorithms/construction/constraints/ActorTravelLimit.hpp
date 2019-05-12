@@ -8,6 +8,7 @@
 #include "models/costs/TransportCosts.hpp"
 #include "models/extensions/problem/Comparators.hpp"
 
+#include <gsl/gsl>
 
 namespace vrp::algorithms::construction {
 
@@ -55,7 +56,7 @@ struct ActorTravelLimit final : public HardActivityConstraint {
       ranges::for_each(initLimits_, [&](const auto& limit) {
         ranges::for_each(ctx.registry->all() | ranges::view::filter([&](const auto& a) { return limit.condition(*a); }),
                          [&](const auto& actor) {
-                           assert(actorLimits_.find(actor) == actorLimits_.end());
+                           Expects(actorLimits_.find(actor) == actorLimits_.end());
 
                            actorLimits_[actor] = std::make_pair(limit.maxDistance, limit.maxDuration);
                          });

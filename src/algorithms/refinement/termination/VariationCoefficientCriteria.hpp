@@ -3,6 +3,7 @@
 #include "algorithms/refinement/RefinementContext.hpp"
 #include "models/common/Cost.hpp"
 
+#include <gsl/gsl>
 #include <optional>
 #include <range/v3/all.hpp>
 #include <vector>
@@ -17,7 +18,7 @@ struct VariationCoefficientCriteria final {
     threshold_(threshold),
     last_(models::common::NoCost),
     costs_() {
-    assert(capacity > 1);
+    Expects(capacity > 1);
     costs_.resize(capacity);
   }
 

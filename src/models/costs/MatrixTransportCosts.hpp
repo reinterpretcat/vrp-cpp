@@ -2,6 +2,7 @@
 
 #include "models/costs/TransportCosts.hpp"
 
+#include <gsl/gsl>
 #include <map>
 #include <range/v3/all.hpp>
 #include <vector>
@@ -19,12 +20,12 @@ public:
     durations_(std::move(durations)),
     distances_(std::move(distances)),
     size_(0) {
-    assert(!durations_.empty());
-    assert(durations_.size() == distances_.size());
+    Expects(!durations_.empty());
+    Expects(durations_.size() == distances_.size());
 
     auto size = std::sqrt(durations_.front().size());
-    assert(ranges::all_of(durations_, [size](const auto& d) { return std::sqrt(d.size()) == size; }));
-    assert(ranges::all_of(distances_, [size](const auto& d) { return std::sqrt(d.size()) == size; }));
+    Ensures(ranges::all_of(durations_, [size](const auto& d) { return std::sqrt(d.size()) == size; }));
+    Ensures(ranges::all_of(distances_, [size](const auto& d) { return std::sqrt(d.size()) == size; }));
 
     size_ = size;
   }

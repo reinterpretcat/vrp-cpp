@@ -7,6 +7,7 @@
 #include "models/solution/Registry.hpp"
 #include "utils/extensions/Ranges.hpp"
 
+#include <gsl/gsl>
 #include <memory>
 #include <numeric>
 
@@ -100,8 +101,8 @@ private:
         ranges::accumulate(
           lock.details, rs.route->tour.start()->detail.location, [&](const auto& acc, const auto& detail) {
             auto createActivity = [&](const auto& service) {
-              assert(service->details.size() == 1);
-              assert(service->details.front().times.size() == 1);
+              Expects(service->details.size() == 1);
+              Expects(service->details.front().times.size() == 1);
 
               const auto& d = service->details.front();
               return std::make_shared<Activity>(
@@ -119,7 +120,7 @@ private:
                 job,
                 [&](const std::shared_ptr<const Service>& srv) { return createActivity(srv); },
                 [&](const std::shared_ptr<const problem::Sequence>& seq) {
-                  assert(!seq->services.empty());
+                  Expects(!seq->services.empty());
                   auto usage = sequenceJobUsage.find(job);
                   auto index = usage == sequenceJobUsage.end() ? std::size_t{0} : sequenceJobUsage[job];
 
@@ -150,8 +151,8 @@ private:
     ranges::for_each(sequenceJobUsage, [&](const auto& pair) {
       analyze_job<void>(
         pair.first,
-        [&](const std::shared_ptr<const Service>& srv) { assert(false); },
-        [&](const std::shared_ptr<const problem::Sequence>& seq) { assert(seq->services.size() == pair.second); });
+        [&](const std::shared_ptr<const Service>& srv) { Expects(false); },
+        [&](const std::shared_ptr<const problem::Sequence>& seq) { Expects(seq->services.size() == pair.second); });
     });
 
     return std::move(initRoutes);

@@ -14,6 +14,7 @@
 #include "streams/in/json/detail/HereProblemParser.hpp"
 #include "utils/Date.hpp"
 
+#include <gsl/gsl>
 #include <istream>
 #include <limits>
 #include <map>
@@ -42,7 +43,7 @@ struct HereProblemUnassignedCodes final {
 /// Represents coordinate index.
 struct CoordIndex final {
   void add(const std::vector<double>& location) {
-    assert(location.size() == 2);
+    Expects(location.size() == 2);
     auto value = std::make_pair(location[0], location[1]);
     if (coordToIndex.find(value) == coordToIndex.end()) {
       auto index = coordToIndex.size();
@@ -57,7 +58,7 @@ struct CoordIndex final {
   }
 
   size_t find(const std::vector<double>& location) const {
-    assert(location.size() == 2);
+    Expects(location.size() == 2);
     return coordToIndex.at(std::make_pair(location[0], location[1]));
   }
 
@@ -161,7 +162,7 @@ private:
     auto fleet = std::make_shared<Fleet>();
 
     ranges::for_each(problem.fleet.types, [&](const auto& vehicle) {
-      assert(vehicle.capacity.size() == 1);
+      Expects(vehicle.capacity.size() == 1);
 
       auto details = std::vector<Vehicle::Detail>{
         Vehicle::Detail{coordIndex.find(vehicle.places.start.location),
@@ -226,10 +227,10 @@ private:
     auto dateParser = vrp::utils::parse_date_from_rc3339{};
 
     return view::for_each(problem.plan.jobs, [&, dateParser](const auto& job) {
-      assert(job.places.pickup || job.places.delivery);
+      Expects(job.places.pickup || job.places.delivery);
 
       static auto createDemand = [](const auto& job, bool isPickup, bool isFixed) {
-        assert(job.demand.size() == 1);
+        Expects(job.demand.size() == 1);
         auto value = job.demand.front();
         return VehicleActivitySize<int>::Demand{{isFixed && isPickup ? value : 0, !isFixed && isPickup ? value : 0},
                                                 {isFixed && !isPickup ? value : 0, !isFixed && !isPickup ? value : 0}};
@@ -355,7 +356,7 @@ private:
     auto relations = ranges::accumulate(problem.plan.relations.value(),
                                         std::map<std::string, std::vector<detail::here::Relation>>{},
                                         [](auto& acc, const auto& relation) {
-                                          assert(!relation.jobs.empty());
+                                          Expects(!relation.jobs.empty());
                                           acc[relation.vehicleId].push_back(relation);
                                           return std::move(acc);
                                         });

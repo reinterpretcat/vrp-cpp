@@ -127,6 +127,7 @@ set(SOURCE_FILES
         )
 
 include_directories(${MAIN_SOURCE}
+        ${EXTERNAL_SOURCE}/gsl/include
         ${EXTERNAL_SOURCE}/json/include
         ${EXTERNAL_SOURCE}/range-v3/include
         ${EXTERNAL_SOURCE}/parallelstl/include
