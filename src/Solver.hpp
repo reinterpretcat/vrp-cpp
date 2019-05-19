@@ -6,6 +6,7 @@
 #include "models/Solution.hpp"
 #include "utils/Measure.hpp"
 
+#include <chrono>
 #include <memory>
 #include <set>
 #include <vector>
@@ -22,6 +23,8 @@ class Solver final {
     friend ranges::range_access;
 
     auto read() const {
+      auto start = std::chrono::system_clock::now();
+
       auto child = refinement_->operator()(*ctx, selector_->operator()(*ctx));
       auto accepted = acceptance_->operator()(*ctx, child);
       terminated_ = termination_->operator()(*ctx, child, accepted);
@@ -32,7 +35,9 @@ class Solver final {
                              [](const auto& lhs, const auto& rhs) { return lhs.second.total() < rhs.second.total(); });
       }
 
-      return std::pair(child, accepted);
+      auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start);
+
+      return std::tuple(child, duration, accepted);
     }
 
     bool equal(ranges::default_sentinel) const { return terminated_; }
@@ -76,14 +81,12 @@ public:
         logger->operator()(*result.ctx, duration);
       });
 
-    // return space.ctx->population->front();
-
     // explore solution space and return best individuum
     return utils::measure<>::execution_with_result(
       [&]() {
-        ranges::for_each(space, [&space, &logger](const auto& pair) {
-          const auto& [individuum, accepted] = pair;
-          logger->operator()(*space.ctx, individuum, accepted);
+        ranges::for_each(space, [&space, &logger](const auto& tuple) {
+          const auto& [individuum, duration, accepted] = tuple;
+          logger->operator()(*space.ctx, individuum, duration, accepted);
         });
         return space.ctx->population->front();
       },

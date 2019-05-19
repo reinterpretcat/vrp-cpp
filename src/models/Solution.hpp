@@ -7,6 +7,7 @@
 #include "models/solution/Route.hpp"
 #include "models/solution/Statistic.hpp"
 
+#include <any>
 #include <map>
 #include <memory>
 #include <vector>
@@ -23,6 +24,9 @@ struct Solution final {
 
   /// Map of unassigned jobs within reason code.
   std::map<models::problem::Job, int, models::problem::compare_jobs> unassigned;
+
+  /// Specifies index for storing extra data of arbitrary type.
+  std::shared_ptr<const std::map<std::string, std::any>> extras;
 };
 
 /// Specifies solution with its cost.

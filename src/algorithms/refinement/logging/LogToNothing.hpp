@@ -13,7 +13,10 @@ struct log_to_nothing final {
   void operator()(const RefinementContext& ctx, std::chrono::milliseconds time) const {}
 
   /// Called when new individuum is discovered.
-  void operator()(const RefinementContext& ctx, const models::EstimatedSolution& individuum, bool accepted) const {}
+  void operator()(const RefinementContext& ctx,
+                  const models::EstimatedSolution& individuum,
+                  std::chrono::milliseconds duration,
+                  bool accepted) const {}
 
   /// Called when search is ended within best solution.
   void operator()(const RefinementContext& ctx, const models::EstimatedSolution& best, std::chrono::milliseconds time) {

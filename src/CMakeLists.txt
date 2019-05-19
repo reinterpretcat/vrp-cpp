@@ -45,6 +45,7 @@ set(SOURCE_FILES
         algorithms/refinement/extensions/SelectRandomJob.hpp
 
         algorithms/refinement/logging/LogToConsole.hpp
+        algorithms/refinement/logging/LogToExtras.hpp
         algorithms/refinement/logging/LogToNothing.hpp
 
 

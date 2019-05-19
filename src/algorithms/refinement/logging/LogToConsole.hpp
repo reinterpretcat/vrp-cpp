@@ -18,20 +18,26 @@ struct log_to_console final {
   }
 
   /// Called when new individuum is discovered.
-  void operator()(const RefinementContext& ctx, const models::EstimatedSolution& individuum, bool accepted) const {
+  void operator()(const RefinementContext& ctx,
+                  const models::EstimatedSolution& individuum,
+                  std::chrono::milliseconds duration,
+                  bool accepted) const {
     if (ctx.generation % 1000 == 0) std::cout << "Process " << ctx.generation << std::endl;
 
     if (accepted) {
       std::cout << "ACCEPTED solution is discovered at generation " << ctx.generation << ":" << std::endl
                 << "\t\tactual cost:" << individuum.second.actual << " + penalties: " << individuum.second.penalty
-                << "\n\t\ttotal routes:" << individuum.first->routes.size() << std::endl;
+                << "\n\t\ttotal routes:" << individuum.first->routes.size() << ", iteration took: " << duration.count()
+                << "ms " << std::endl;
       logIndividuum(individuum);
     }
   }
 
   /// Called when search is ended within best solution.
-  void operator()(const RefinementContext& ctx, const models::EstimatedSolution& best, std::chrono::milliseconds time) {
-    std::cout << "stopped at generation " << ctx.generation << ", refinement took: " << time.count()
+  void operator()(const RefinementContext& ctx,
+                  const models::EstimatedSolution& best,
+                  std::chrono::milliseconds duration) {
+    std::cout << "stopped at generation " << ctx.generation << ", refinement took: " << duration.count()
               << "ms, best known individuum is:" << std::endl;
     logIndividuum(ctx.population->front());
   }

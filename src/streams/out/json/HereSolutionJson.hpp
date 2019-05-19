@@ -1,6 +1,7 @@
 #pragma once
 
 #include "algorithms/construction/constraints/VehicleActivitySize.hpp"
+#include "algorithms/refinement/logging/LogToExtras.hpp"
 #include "models/Problem.hpp"
 #include "models/Solution.hpp"
 #include "models/extensions/problem/Helpers.hpp"
@@ -144,6 +145,44 @@ to_json(nlohmann::json& j, const UnassignedJob& job) {
 
 // endregion
 
+// region Extras
+
+/// Defines iteration model.
+struct Iteration final {
+  /// Iteration number.
+  int number;
+  /// Best known cost
+  double cost;
+  /// Elapsed time in seconds.
+  double timestamp;
+  /// Amount of tours
+  int tours;
+  /// Amount of unassigned jobs.
+  int unassinged;
+};
+
+/// Contains extra information.
+struct Extras final {
+  /// Stores information about iteration performance.
+  std::vector<Iteration> performance;
+};
+
+inline void
+to_json(nlohmann::json& j, const Extras& extras) {
+  j["extras"] = extras;
+}
+
+inline void
+to_json(nlohmann::json& j, const Iteration& iteration) {
+  j = nlohmann::json{{"number", iteration.number},
+                     {"cost", iteration.cost},
+                     {"timestamp", iteration.timestamp},
+                     {"tours", iteration.tours},
+                     {"unassinged", iteration.unassinged}};
+}
+
+// endregion
+
 // region Common
 
 struct Solution final {
@@ -151,6 +190,7 @@ struct Solution final {
   Statistic statistic;
   std::vector<Tour> tours;
   std::vector<UnassignedJob> unassigned;
+  Extras extras;
 };
 
 inline void
@@ -292,6 +332,8 @@ struct create_solution final {
 
     if (!es.first->unassigned.empty()) solution.unassigned = getUnassigned(es);
 
+    solution.extras = getExtras(es);
+
     return std::move(solution);
   }
 
@@ -368,6 +410,30 @@ private:
 
   static int changeLoad(int current, const algorithms::construction::VehicleActivitySize<int>::Demand& demand) {
     return current - demand.delivery.first - demand.delivery.second + demand.pickup.first + demand.pickup.second;
+  }
+
+  static Extras getExtras(const models::EstimatedSolution& es) {
+    using namespace algorithms::refinement;
+
+    if (es.first->extras) {
+      auto iterPair = es.first->extras->find(log_to_extras::ExtrasKey);
+      if (iterPair != es.first->extras->end()) {
+        return Extras{ranges::accumulate(std::any_cast<const std::vector<log_to_extras::Iteration>&>(iterPair->second),
+                                         std::vector<Iteration>{},
+                                         [](auto& acc, const auto& iter) {
+                                           acc.push_back(Iteration{
+                                             static_cast<int>(iter.number),
+                                             iter.cost.actual,
+                                             static_cast<double>(iter.timestamp),
+                                             static_cast<int>(iter.routes),
+                                             static_cast<int>(iter.unassigned),
+                                           });
+                                           return std::move(acc);
+                                         })};
+      }
+    }
+
+    return {};
   }
 };
 
