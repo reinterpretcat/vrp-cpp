@@ -14,6 +14,7 @@ include_directories(${MAIN_SOURCE}
 
 set(SOURCE_FILES
         AlgorithmDefinition.hpp
+        LogToSelected.hpp
         VarTypeSolver.hpp
         )
 

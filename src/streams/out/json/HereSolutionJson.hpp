@@ -168,17 +168,17 @@ struct Extras final {
 };
 
 inline void
-to_json(nlohmann::json& j, const Extras& extras) {
-  j["extras"] = extras;
-}
-
-inline void
 to_json(nlohmann::json& j, const Iteration& iteration) {
   j = nlohmann::json{{"number", iteration.number},
                      {"cost", iteration.cost},
                      {"timestamp", iteration.timestamp},
                      {"tours", iteration.tours},
                      {"unassinged", iteration.unassinged}};
+}
+
+inline void
+to_json(nlohmann::json& j, const Extras& extras) {
+  j = nlohmann::json{{"performance", extras.performance}};
 }
 
 // endregion
@@ -197,6 +197,7 @@ inline void
 to_json(nlohmann::json& j, const Solution& solution) {
   j = nlohmann::json{{"problemId", solution.problemId}, {"statistic", solution.statistic}, {"tours", solution.tours}};
 
+  if (!solution.extras.performance.empty()) j["extras"] = solution.extras;
   if (!solution.unassigned.empty()) j["unassigned"] = solution.unassigned;
 }
 
@@ -424,7 +425,7 @@ private:
                                            acc.push_back(Iteration{
                                              static_cast<int>(iter.number),
                                              iter.cost.actual,
-                                             static_cast<double>(iter.timestamp),
+                                             static_cast<double>(iter.timestamp) / 1000,
                                              static_cast<int>(iter.routes),
                                              static_cast<int>(iter.unassigned),
                                            });
