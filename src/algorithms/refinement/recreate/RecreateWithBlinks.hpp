@@ -11,7 +11,7 @@
 namespace vrp::algorithms::refinement {
 
 /// Recreates solution using insertion with blinks heuristic.
-struct RecreateWithBlinks final {
+struct recreate_with_blinks final {
   /// Creates a new solution from contexts.
   models::Solution operator()(const RefinementContext& rCtx, const construction::InsertionContext& iCtx) const {
     using namespace vrp::algorithms::construction;

@@ -28,7 +28,7 @@ SCENARIO("recreate with blinks handles simple problem", "[algorithms][refinement
       .add(test_build_vehicle{}.id("v1").details({{0, {}, {0, 100}}}).owned())
       .add(test_build_vehicle{}.id("v2").details({{20, {}, {0, 100}}}).owned());
 
-    auto recreate = RecreateWithBlinks{};
+    auto recreate = recreate_with_blinks{};
 
     WHEN("analyzes insertion context") {
       auto problem = std::make_shared<Problem>(Problem{{},

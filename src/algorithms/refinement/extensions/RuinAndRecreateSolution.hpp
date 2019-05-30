@@ -8,9 +8,9 @@
 namespace vrp::algorithms::refinement {
 
 /// Ruins and recreates solution.
-template<typename Ruin = ruin_with_probabilities<std::tuple<RemoveAdjustedString, Probability<10, 10>>,
-                                                 std::tuple<RemoveRandomRoutes, Probability<1, 100>>>,
-         typename Recreate = RecreateWithBlinks>
+template<typename Ruin = ruin_with_probabilities<std::tuple<remove_adjusted_string, Probability<10, 10>>,
+                                                 std::tuple<remove_random_routes, Probability<1, 100>>>,
+         typename Recreate = recreate_with_blinks>
 struct ruin_and_recreate_solution final {
   models::EstimatedSolution operator()(const RefinementContext& ctx, const models::EstimatedSolution& sln) const {
     // TODO how to pass settings?

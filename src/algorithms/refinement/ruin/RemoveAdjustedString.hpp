@@ -19,7 +19,7 @@ namespace vrp::algorithms::refinement {
 /// Some definitions from the paper:
 ///     String is a sequence of consecutive nodes in a tour.
 ///     Cardinality is the number of customers included in a string or tour.
-struct RemoveAdjustedString {
+struct remove_adjusted_string {
   /// Specifies max removed string cardinality for specific tour.
   int lmax = 10;
 

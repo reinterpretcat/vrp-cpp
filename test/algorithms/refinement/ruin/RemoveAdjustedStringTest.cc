@@ -57,7 +57,7 @@ SCENARIO("adjusted string removal can ruin solution with single route", "[algori
         0};
 
       auto iContext = restore_insertion_context{}(context, *solution);
-      RemoveAdjustedString{}.operator()(context, *solution, iContext);
+      remove_adjusted_string{}.operator()(context, *solution, iContext);
 
       THEN("should ruin expected jobs") {
         CHECK_THAT(get_job_ids_from_jobs{}.operator()(iContext.solution->required), Equals(ids));
@@ -89,7 +89,7 @@ SCENARIO("adjusted string removal can ruin solution with multiple routes", "[alg
         0};
       auto iContext = restore_insertion_context{}(context, *solution);
 
-      RemoveAdjustedString{}.operator()(context, *solution, iContext);
+      remove_adjusted_string{}.operator()(context, *solution, iContext);
 
       THEN("should ruin expected jobs") {
         CHECK_THAT(get_job_ids_from_jobs{}.operator()(iContext.solution->required), Equals(ids));
@@ -114,7 +114,7 @@ SCENARIO("adjusted string removal can ruin solution using data generators", "[al
 
       auto iCtx = restore_insertion_context{}(context, *solution);
 
-      RemoveAdjustedString{cardinality, average, alpha}.operator()(context, *solution, iCtx);
+      remove_adjusted_string{cardinality, average, alpha}.operator()(context, *solution, iCtx);
 
       THEN("should ruin some jobs and remove empty tours") {
         REQUIRE(!iCtx.solution->required.empty());
@@ -166,7 +166,7 @@ SCENARIO("adjusted string removal can ruin solution with sequence", "[algorithms
     WHEN("ruin without locked jobs") {
       auto iCtx = restore_insertion_context{}(ctx, *solution);
 
-      RemoveAdjustedString{}.operator()(
+      remove_adjusted_string{}.operator()(
         RefinementContext{
           problem,
           std::make_shared<Random>(FakeDistribution<int>{ints, 0}, FakeDistribution<double>{doubles, 0}),

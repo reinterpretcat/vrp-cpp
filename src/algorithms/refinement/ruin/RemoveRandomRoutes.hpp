@@ -7,7 +7,7 @@
 namespace vrp::algorithms::refinement {
 
 /// Removes random routes from insertion context.
-struct RemoveRandomRoutes final {
+struct remove_random_routes final {
   /// Specifies minimum amount of removed routes.
   int rmin = 1;
 
