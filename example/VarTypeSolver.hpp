@@ -9,7 +9,6 @@
 #include "streams/out/json/HereSolutionJson.hpp"
 #include "streams/out/text/DumpSolutionAsText.hpp"
 
-#include <iostream>
 #include <sstream>
 
 namespace vrp::example {

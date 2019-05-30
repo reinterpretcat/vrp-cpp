@@ -10,7 +10,6 @@
 #include "models/solution/Registry.hpp"
 #include "utils/Collections.hpp"
 
-#include <iostream>
 #include <numeric>
 #include <utility>
 #include <vector>

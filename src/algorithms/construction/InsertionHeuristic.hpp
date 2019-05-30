@@ -7,7 +7,6 @@
 
 #include <algorithm>
 #include <chrono>
-#include <iostream>
 #include <pstl/execution>
 #include <pstl/numeric>
 
