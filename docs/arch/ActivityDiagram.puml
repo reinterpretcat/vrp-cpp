@@ -1,0 +1,96 @@
+@startuml
+
+start
+
+:solve_based_on_type;
+
+-> problem parser format as specified;
+
+if (here) then (yes)
+  :read_here_json_type;
+elseif (rich) then (yes)
+  :read_rich_json_type;
+elseif (lilim) then (yes)
+  :read_li_lim_type;
+elseif (solomon) then (yes)
+  :read_solomon_type;
+else (else)
+  :fail;
+  stop
+endif
+
+-> return generic problem definition;
+
+partition "Solver" {
+
+    partition "AlgorithmDefinition::Initial" {
+        note right
+          Creates initial solution using
+          construction heuristic.
+          Defaults:
+          //create_refinement_context//
+        end note
+
+        :create initial solution;
+        note left
+          Defaults:
+          //cheapest insertion//
+        end note
+
+        :create population;
+
+    }
+
+    partition "AlgorithmDefinition::Refinement" {
+        note right
+          Tries to refine solution using
+          ruin and recreate metaheuristic.
+          Defaults:
+          //ruin_and_recreate_solution//
+          //VariationCoefficientCriteria//
+
+        end note
+
+        while (termination criteria met)
+          :selection;
+          note left
+            Selects individuum from
+            population. Defaults:
+            //select_best_solution//
+          end note
+
+          :ruin;
+          note left
+            Defaults:
+            //remove_adjusted_string// and
+            //remove_random_routes//
+          end note
+
+          :recreate;
+          note left
+            Defaults:
+            //recreate_with_blinks//
+          end note
+
+        endwhile
+    }
+}
+
+:return best solution from population;
+
+-> solution dump format as specified;
+
+if (here) then (yes)
+  :dump_solution_as_here_json;
+elseif (text) then (yes)
+  :dump_solution_as_text;
+else (else)
+  :fail;
+  stop
+endif
+
+:solution stream;
+
+stop
+
+@enduml
