@@ -1,6 +1,6 @@
-# Proposed vnext format
+# A "rich" json format
 
-In order to support extra requirements like driver-vehicle match, multiday planning, etc. a new json format is proposed.
+In order to support extra requirements like driver-vehicle match, multiday planning, etc., the following json format is proposed.
 
 ## Key points
 
@@ -23,7 +23,7 @@ To support driver-vehicle matching, a new _drivers_ property is introduced.
 * _fleet.drivers.amount_: amount of drivers
 
 * _fleet.drivers.availability_: array of properties defined as:
-    * _location_ (required): specifies start and end(optional) location of a driver
+    * _location_ (optional): specifies start and end(optional) location of a driver.
     * _time_ (optional): specifies driver's shift time
     * _break_ (optional): specifies driver's break time with optional location
 
@@ -109,9 +109,16 @@ Routes object is used to put some additional constraints how jobs are assigned i
         "amount": 1,
         "availability": [
           {
-            "location": {"start": 0, "end": 0},
-            "time": { "start": 0, "end": 1000 },
-            "break": { "start": 500, "end": 600, "duration": 50, "location": 0 }
+            "location": {
+                "start": {"lat": 52, "lon": 13 },
+                "end": {"lat": 52, "lon": 13 }
+            },
+            "time": { "start": "1970-01-01T00:00:00Z", "end": "1970-01-01T00:01:40Z" },
+            "break": { 
+                "time": {"start": "1970-01-01T00:00:40Z", "end": "1970-01-01T00:00:50Z"}, 
+                "duration": 50, 
+                "location": { "lat": 52.001, "lon": 13.001 }
+            }
           }
         ],
         "costs": { "fixed": 0, "distance": 1, "driving": 1, "waiting": 1, "serving": 1 },
@@ -129,8 +136,11 @@ Routes object is used to put some additional constraints how jobs are assigned i
         "profile": "car",
         "availability": [
           {
-            "location": {"start": 0, "end": 0},
-            "time": { "start": 0, "end": 1000 }
+            "location": {
+                "start": {"lat": 52, "lon": 13 },
+                "end": {"lat": 52, "lon": 13 }
+            },
+            "time": { "start": "1970-01-01T00:00:00Z", "end": "1970-01-01T00:01:40Z" }
           }
         ],
         "costs": { "fixed": 0, "distance": 1, "driving": 1, "waiting": 1, "serving": 1 },
@@ -148,10 +158,13 @@ Routes object is used to put some additional constraints how jobs are assigned i
         "type": "service",
         "details": [
           {
-            "location": 1,
+            "location": {"lat": 52.1, "lon": 13.1 },
             "duration": 0,
             "times": [
-              {"start": 0, "end": 1000 }
+              {
+                "start": "1970-01-01T00:00:00Z", 
+                "end": "1970-01-01T00:01:40Z"
+                }
             ]
           }
         ],
@@ -170,12 +183,12 @@ Routes object is used to put some additional constraints how jobs are assigned i
           {
             "details": [
               {
-                "location": 2,
+                "location": {"lat": 52.2, "lon": 13.2 },
                 "duration": 0,
                 "times": [
                   {
-                    "start": 0,
-                    "end": 1000
+                    "start": "1970-01-01T00:00:00Z",
+                    "end": "1970-01-01T00:01:40Z"
                   }
                 ]
               }
@@ -194,12 +207,12 @@ Routes object is used to put some additional constraints how jobs are assigned i
           {
             "details": [
               {
-                "location": 3,
+                "location": {"lat": 52.3, "lon": 13.3 },
                 "duration": 0,
                 "times": [
                   {
-                    "start": 0,
-                    "end": 1000
+                    "start": "1970-01-01T00:00:00Z",
+                    "end": "1970-01-01T00:01:40Z"
                   }
                 ]
               }
