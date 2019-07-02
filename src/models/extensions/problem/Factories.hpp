@@ -47,6 +47,11 @@ public:
     return *this;
   }
 
+  build_sequence& services(std::vector<std::shared_ptr<Service>> services) {
+    ranges::for_each(services, [&](const auto& s) { service(s); });
+    return *this;
+  }
+
   std::shared_ptr<Sequence> shared() { return sequence_; }
 
 protected:

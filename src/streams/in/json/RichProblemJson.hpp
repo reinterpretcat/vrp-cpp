@@ -6,7 +6,10 @@
 #include "algorithms/objectives/PenalizeUnassignedJobs.hpp"
 #include "models/Problem.hpp"
 #include "models/costs/MatrixTransportCosts.hpp"
+#include "models/extensions/problem/Factories.hpp"
+#include "streams/in/json/detail/CoordIndex.hpp"
 #include "streams/in/json/detail/RichProblemParser.hpp"
+#include "utils/Date.hpp"
 
 #include <gsl/gsl>
 #include <istream>
@@ -32,11 +35,13 @@ struct read_rich_json_type {
 
     auto problem = j.get<detail::rich::Problem>();
 
+    auto coordIndex = createCoordIndex(problem);
+
     auto transport = transportCosts(problem);
     auto activity = std::make_shared<models::costs::ActivityCosts>();
 
-    auto fleet = readFleet(problem);
-    auto jobs = readJobs(problem, *transport, *fleet);
+    auto fleet = readFleet(problem, coordIndex);
+    auto jobs = readJobs(problem, *transport, *fleet, coordIndex);
 
     using Codes = RichProblemUnassignedCodes;
     auto constraint = std::make_shared<InsertionConstraint>();
@@ -55,35 +60,98 @@ struct read_rich_json_type {
   }
 
 private:
-  std::shared_ptr<models::problem::Fleet> readFleet(const detail::rich::Problem& problem) const {
+  /// Creates coordinate index to match routing data.
+  CoordIndex createCoordIndex(const detail::rich::Problem& problem) const {
+    auto index = CoordIndex{};
+
+    // analyze jobs
+    const auto addService = [&index](const auto& service) {
+      ranges::for_each(service.details, [&](const auto& detail) {
+        if (detail.location) { index.add(detail.location.value().latitude, detail.location.value().longitude); }
+      });
+    };
+
+    ranges::for_each(problem.plan.jobs, [&](const auto& job) {
+      job.variant.visit(ranges::overload(
+        [&](const detail::rich::Service& service) { addService(service); },
+        [&](const detail::rich::Sequence& sequence) { ranges::for_each(sequence.services, addService); }));
+    });
+
+    // analyze fleet
+    ranges::for_each(problem.fleet.drivers, [&](const auto& driver) {
+      ranges::for_each(driver.availability, [&](const auto& availability) {
+        index.add(availability.location.start.latitude, availability.location.start.longitude);
+
+        if (availability.location.end) {
+          const auto& endLoc = availability.location.end.value();
+          index.add(endLoc.latitude, endLoc.longitude);
+        }
+
+        if (availability.breakTime && availability.breakTime.value().location) {
+          const auto& breakLoc = availability.breakTime.value().location.value();
+          index.add(breakLoc.latitude, breakLoc.longitude);
+        }
+      });
+    });
+
+    ranges::for_each(problem.fleet.vehicles, [&](const auto& vehicle) {
+      ranges::for_each(vehicle.availability, [&](const auto& availability) {
+        index.add(availability.location.start.latitude, availability.location.start.longitude);
+
+        if (availability.location.end) {
+          const auto& endLoc = availability.location.end.value();
+          index.add(endLoc.latitude, endLoc.longitude);
+        }
+      });
+    });
+
+    return std::move(index);
+  }
+
+  std::shared_ptr<models::problem::Fleet> readFleet(const detail::rich::Problem& problem,
+                                                    const CoordIndex& coordIndex) const {
     using namespace vrp::algorithms::construction;
     using namespace vrp::models::common;
     using namespace vrp::models::problem;
 
     Ensures(problem.fleet.drivers.size() == 1);
 
+    auto dateParser = vrp::utils::parse_date_from_rc3339{};
+
+    auto timeParser = [&](const auto& time) {
+      return time ? TimeWindow{static_cast<double>(dateParser(time.value().start)),
+                               static_cast<double>(dateParser(time.value().end))}
+                  : TimeWindow{};
+    };
+
     auto fleet = std::make_shared<Fleet>();
     ranges::for_each(problem.fleet.vehicles, [&](const auto& vehicle) {
       ranges::for_each(ranges::view::closed_indices(1, vehicle.amount), [&](auto index) {
+        // TODO do not require capabilities to be present
         Expects(vehicle.capabilities.has_value());
-        Expects(vehicle.capabilities.value().capacity.size() == 1);
+        Expects(vehicle.capabilities.value().capacities.size() == 1);
 
-        fleet->add(
-          Vehicle{getProfile(vehicle.profile),
+        fleet->add(Vehicle{
+          getProfile(vehicle.profile),
 
-                  Costs{vehicle.costs.fixed,
-                        vehicle.costs.distance,
-                        vehicle.costs.driving,
-                        vehicle.costs.waiting,
-                        vehicle.costs.serving},
+          Costs{vehicle.costs.fixed,
+                vehicle.costs.distance,
+                vehicle.costs.driving,
+                vehicle.costs.waiting,
+                vehicle.costs.serving},
 
-                  Dimensions{{"id", vehicle.id + "_" + std::to_string(index)},
-                             {VehicleActivitySize<int>::DimKeyCapacity, vehicle.capabilities.value().capacity.front()}},
+          Dimensions{{"id", vehicle.id + "_" + std::to_string(index)},
+                     {VehicleActivitySize<int>::DimKeyCapacity, vehicle.capabilities.value().capacities.front()}},
 
-                  ranges::accumulate(vehicle.details, std::vector<Vehicle::Detail>{}, [](auto& acc, const auto detail) {
-                    acc.push_back(Vehicle::Detail{detail.start, detail.end, {detail.time.start, detail.time.end}});
-                    return std::move(acc);
-                  })});
+          ranges::accumulate(vehicle.availability, std::vector<Vehicle::Detail>{}, [&](auto& acc, const auto av) {
+            acc.push_back(  //
+              Vehicle::Detail{coordIndex.find(av.location.start.latitude, av.location.start.longitude),
+                              av.location.end ? std::make_optional<Location>(Location{coordIndex.find(
+                                                  av.location.end.value().latitude, av.location.end.value().longitude)})
+                                              : std::make_optional<Location>(),
+                              timeParser(av.time)});
+            return std::move(acc);
+          })});
       });
     });
 
@@ -92,8 +160,27 @@ private:
         using namespace vrp::models::common;
         using namespace vrp::models::problem;
 
-        // TODO implement driver costs
-        fleet->add(Driver{Costs{0, 0, 0, 0, 0}, Dimensions{{"id", driver.id + "_" + std::to_string(index)}}});
+        // CONTINUE
+        // TODO profiles, skills, vehicles
+
+        fleet->add(Driver{
+          Costs{driver.costs.fixed,
+                driver.costs.distance,
+                driver.costs.driving,
+                driver.costs.waiting,
+                driver.costs.serving},
+
+          Dimensions{{"id", driver.id + "_" + std::to_string(index)}},
+
+          ranges::accumulate(driver.availability, std::vector<Driver::Detail>{}, [&](auto& acc, const auto av) {
+            acc.push_back(  //
+              Driver::Detail{coordIndex.find(av.location.start.latitude, av.location.start.longitude),
+                             av.location.end ? std::make_optional<Location>(Location{coordIndex.find(
+                                                 av.location.end.value().latitude, av.location.end.value().longitude)})
+                                             : std::make_optional<Location>(),
+                             timeParser(av.time)});
+            return std::move(acc);
+          })});
       });
     });
 
@@ -102,76 +189,81 @@ private:
 
   std::shared_ptr<models::problem::Jobs> readJobs(const detail::rich::Problem& problem,
                                                   const models::costs::TransportCosts& transport,
-                                                  const models::problem::Fleet& fleet) const {
+                                                  const models::problem::Fleet& fleet,
+                                                  const CoordIndex& coordIndex) const {
     using namespace ranges;
     using namespace algorithms::construction;
     using namespace models::common;
     using namespace models::problem;
 
-    auto jobs = view::for_each(problem.plan.jobs, [](const auto& job) {
-      static auto ensureDemand = [](const auto& demand) {
-        auto newDemand = demand.value_or(detail::rich::Demand{{{0}}, {{0}}});
+    auto dateParser = vrp::utils::parse_date_from_rc3339{};
 
-        newDemand.pickup = newDemand.pickup.value_or(std::vector<int>{0});
-        newDemand.delivery = newDemand.delivery.value_or(std::vector<int>{0});
+    auto ensureDemand = [](const auto& demand) {
+      auto newDemand = demand.value_or(detail::rich::Demand{{{0}}, {{0}}});
 
-        if (newDemand.pickup.value().empty()) newDemand.pickup.value().push_back(0);
-        if (newDemand.delivery.value().empty()) newDemand.delivery.value().push_back(0);
+      newDemand.pickup = newDemand.pickup.value_or(std::vector<int>{0});
+      newDemand.delivery = newDemand.delivery.value_or(std::vector<int>{0});
 
-        Ensures(newDemand.pickup.value().size() == 1 && newDemand.delivery.value().size() == 1);
+      if (newDemand.pickup.value().empty()) newDemand.pickup.value().push_back(0);
+      if (newDemand.delivery.value().empty()) newDemand.delivery.value().push_back(0);
 
-        return std::move(newDemand);
-      };
+      Ensures(newDemand.pickup.value().size() == 1 && newDemand.delivery.value().size() == 1);
 
-      static auto createService = [](const auto& s, const std::string& id) {
-        Expects(s.requirements.has_value());
-        auto fixed = ensureDemand(s.requirements.value().demands.fixed);
-        auto dynamic = ensureDemand(s.requirements.value().demands.dynamic);
+      return std::move(newDemand);
+    };
 
-        return std::make_shared<Service>(Service{
-          // details
-          ranges::accumulate(s.details,
-                             std::vector<Service::Detail>{},
-                             [](auto& acc, const auto detail) {
-                               auto times = ranges::accumulate(
-                                 detail.times, std::vector<TimeWindow>{}, [](auto& acc, const auto& time) {
-                                   acc.push_back({time.start, time.end});
-                                   return std::move(acc);
-                                 });
+    auto createService = [&](const auto& s, const std::string& id) {
+      Expects(s.requirements.has_value());
+      auto fixed = ensureDemand(s.requirements.value().demands.fixed);
+      auto dynamic = ensureDemand(s.requirements.value().demands.dynamic);
 
-                               acc.push_back(Service::Detail{detail.location, detail.duration, std::move(times)});
-                               return std::move(acc);
-                             }),
-          // demand
-          Dimensions{
-            {"id", id},
-            {VehicleActivitySize<int>::DimKeyDemand,
-             VehicleActivitySize<int>::Demand{{fixed.pickup.value().front(), dynamic.pickup.value().front()},
-                                              {fixed.delivery.value().front(), dynamic.delivery.value().front()}}}}});
-      };
+      return std::make_shared<Service>(Service{
+        // details
+        ranges::accumulate(  //
+          s.details,
+          std::vector<Service::Detail>{},
+          [&](auto& out, const auto detail) {
+            auto times = ranges::accumulate(detail.times, std::vector<TimeWindow>{}, [&](auto& in, const auto& time) {
+              in.push_back(TimeWindow{//
+                                      static_cast<double>(dateParser(time.start)),
+                                      static_cast<double>(dateParser(time.end))});
+              return std::move(in);
+            });
 
-      auto result = job.variant.visit(ranges::overload(  //
-        [&](const detail::rich::Service& s) -> models::problem::Job {
-          return Job{ranges::emplaced_index<0>, createService(s, job.id)};
-        },
-        [&](const detail::rich::Sequence& s) -> models::problem::Job {
-          // TODO use build_sequence as it adds specific dimens
-          return models::problem::Job{
-            ranges::emplaced_index<1>,
-            std::make_shared<Sequence>(  //
-              Sequence{ranges::accumulate(view::zip(s.services, view::iota(1)),
-                                          std::vector<std::shared_ptr<const Service>>{},
-                                          [&](auto& acc, const auto& pair) {
-                                            const auto& [srv, index] = pair;
+            out.push_back(Service::Detail{detail.location
+                                            ? std::make_optional<Location>(Location{coordIndex.find(
+                                                detail.location.value().latitude, detail.location.value().longitude)})
+                                            : std::make_optional<Location>(),
+                                          detail.duration,
+                                          std::move(times)});
+            return std::move(out);
+          }),
+        // demand
+        Dimensions{
+          {"id", id},
+          {VehicleActivitySize<int>::DimKeyDemand,
+           VehicleActivitySize<int>::Demand{{fixed.pickup.value().front(), dynamic.pickup.value().front()},
+                                            {fixed.delivery.value().front(), dynamic.delivery.value().front()}}}}});
+    };
 
-                                            acc.push_back(createService(srv, job.id + "_" + std::to_string(index)));
-                                            return std::move(acc);
-                                          }),
-                       Dimensions{{"id", job.id}}})};
-        }));
-      return yield(result.index() == 0 ? ranges::get<0>(result) : ranges::get<1>(result));
+    auto jobs = view::for_each(problem.plan.jobs, [&](const auto& job) {
+      if (job.variant.index() == 0)
+        return yield(Job{ranges::emplaced_index<0>, createService(ranges::get<0>(job.variant), job.id)});
+
+      return yield(models::problem::Job{
+        ranges::emplaced_index<1>,
+        build_sequence{}
+          .dimens(Dimensions{{"id", job.id}})
+          .services(ranges::accumulate(view::zip(ranges::get<1>(job.variant).services, view::iota(1)),
+                                       std::vector<std::shared_ptr<Service>>{},
+                                       [&](auto& acc, const auto& pair) {
+                                         const auto& [srv, index] = pair;
+
+                                         acc.push_back(createService(srv, job.id + "_" + std::to_string(index)));
+                                         return std::move(acc);
+                                       }))
+          .shared()});
     });
-
 
     return std::make_shared<models::problem::Jobs>(models::problem::Jobs{transport, fleet, jobs});
   }

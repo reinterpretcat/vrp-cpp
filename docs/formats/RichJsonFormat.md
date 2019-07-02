@@ -110,14 +110,14 @@ Routes object is used to put some additional constraints how jobs are assigned i
         "availability": [
           {
             "location": {
-                "start": {"lat": 52, "lon": 13 },
-                "end": {"lat": 52, "lon": 13 }
+                "start": {"lat": 52.4862, "lon": 13.45148 },
+                "end": {"lat": 52.4862, "lon": 13.45148 }
             },
             "time": { "start": "1970-01-01T00:00:00Z", "end": "1970-01-01T00:01:40Z" },
             "break": { 
                 "time": {"start": "1970-01-01T00:00:40Z", "end": "1970-01-01T00:00:50Z"}, 
                 "duration": 50, 
-                "location": { "lat": 52.001, "lon": 13.001 }
+                "location": { "lat": 52.48315, "lon": 13.4330 }
             }
           }
         ],
@@ -126,6 +126,9 @@ Routes object is used to put some additional constraints how jobs are assigned i
           "skills": [],
           "profiles": ["car"],
           "vehicles": ["vehicle1"]
+        },
+        "limits": {
+          "maxTime": 100
         }
       }
     ],
@@ -137,16 +140,19 @@ Routes object is used to put some additional constraints how jobs are assigned i
         "availability": [
           {
             "location": {
-                "start": {"lat": 52, "lon": 13 },
-                "end": {"lat": 52, "lon": 13 }
+                "start": {"lat": 52.4862, "lon": 13.45148 },
+                "end": {"lat": 52.4862, "lon": 13.45148 }
             },
             "time": { "start": "1970-01-01T00:00:00Z", "end": "1970-01-01T00:01:40Z" }
           }
         ],
         "costs": { "fixed": 0, "distance": 1, "driving": 1, "waiting": 1, "serving": 1 },
         "capabilities": {
-          "capacity": [10],
-          "facilities": []
+          "capacities": [10],
+          "facilities": ["fridge"]
+        },
+        "limits": {
+          "maxDistance": 100
         }
       }
     ]
@@ -158,8 +164,8 @@ Routes object is used to put some additional constraints how jobs are assigned i
         "type": "service",
         "details": [
           {
-            "location": {"lat": 52.1, "lon": 13.1 },
-            "duration": 0,
+            "location": {"lat": 52.48325, "lon": 13.4436 },
+            "duration": 5,
             "times": [
               {
                 "start": "1970-01-01T00:00:00Z", 
@@ -183,7 +189,7 @@ Routes object is used to put some additional constraints how jobs are assigned i
           {
             "details": [
               {
-                "location": {"lat": 52.2, "lon": 13.2 },
+                "location": {"lat": 52.48300, "lon": 13.442 },
                 "duration": 0,
                 "times": [
                   {
@@ -207,7 +213,7 @@ Routes object is used to put some additional constraints how jobs are assigned i
           {
             "details": [
               {
-                "location": {"lat": 52.3, "lon": 13.3 },
+                "location": {"lat": 52.48325, "lon": 13.4436 },
                 "duration": 0,
                 "times": [
                   {

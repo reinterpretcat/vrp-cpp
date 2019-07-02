@@ -1,7 +1,6 @@
 # Description
 
 A prototype of VRP solver
-https://github.com/justusc/FindTBB
 
 
 # Install
@@ -25,18 +24,11 @@ https://github.com/justusc/FindTBB
 
 
 # TODO
-
-## Next
-    * generate here solution
-    * initial routes
-        * any
-        * sequence
-        * strict
-    * Vehicle breaks
-        * break with location [done]
-        * break without location !!!
-        * write helper method to generate test json [done]
-
+    * work on vNext (rich) format
+        * use real RFC3339 times
+        * use real locations instead of ids
+        * add breaks
+        * use polygon to specify driver location?
 
 # Check
     * Check that real dates can be handled
@@ -45,14 +37,11 @@ https://github.com/justusc/FindTBB
        CreateRefinementContext adds all jobs as required
 
 ## TechDebt
-    * clean headers from iostream
-    * HereJsonTest: replace json text with json builder
-    * merge two accept method from constraint:
-        accept(SolutionContext, RouteContext, Job)? [No, can't do that]
+    * init routes: move rule creation logic from actor_job_lock to create_refinement_context
     * why routes are set in InsertionContext?
     * rename get_job_ids_from_jobs and etc.
-    * use snake case for ruin/recreate methods
-    * use release tbb for release
+    * update dependencies
+    * build with different compilers/versions
 
 ## Various
     * Ruin jobs neighbours when they are not assigned?
@@ -80,3 +69,7 @@ https://github.com/justusc/FindTBB
 
 # Ideas
     * compile to web assembly - run in browser
+
+# Docker
+    docker build -t solverex .
+    docker run -it -v $(pwd):/app --rm solverex

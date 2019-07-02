@@ -7,38 +7,151 @@
 
 namespace vrp::streams::in::detail::rich {
 
+// region Common
+
+struct RichLocation final {
+  double latitude;
+  double longitude;
+};
+
+struct RichTime final {
+  std::string start;
+  std::string end;
+};
+
+void
+from_json(const nlohmann::json& j, RichLocation& loc) {
+  j.at("lat").get_to(loc.latitude);
+  j.at("lon").get_to(loc.longitude);
+}
+
+void
+from_json(const nlohmann::json& j, RichTime& time) {
+  j.at("start").get_to(time.start);
+  j.at("end").get_to(time.end);
+}
+
+// endregion
+
 // region Driver
+
+struct DriverCosts {
+  double fixed;
+  double distance;
+  double driving;
+  double waiting;
+  double serving;
+};
+
+struct DriverLimits {
+  double maxTime;
+};
+
+struct DriverLocations {
+  RichLocation start;
+  std::optional<RichLocation> end;
+};
+
+struct DriverBreak {
+  std::vector<double> time;
+  double duration;
+  std::optional<RichLocation> location;
+};
+
+struct DriverCapabilities {
+  std::optional<std::vector<std::string>> skills;
+  std::vector<std::string> profiles;
+  std::optional<std::vector<std::string>> vehicles;
+};
+
+struct DriverAvailability {
+  DriverLocations location;
+  std::optional<RichTime> time;
+  std::optional<DriverBreak> breakTime;
+};
 
 struct DriverType {
   std::string id;
   int amount;
+
+  DriverCosts costs;
+  std::vector<DriverCapabilities> capabilities;
+  std::vector<DriverAvailability> availability;
+
+  std::optional<DriverLimits> limits;
 };
 
 void
-from_json(const nlohmann::json& j, DriverType& v) {
-  j.at("id").get_to(v.id);
-  j.at("amount").get_to(v.amount);
+from_json(const nlohmann::json& j, DriverLocations& loc) {
+  j.at("start").get_to(loc.start);
+  readOptional(j, "end", loc.end);
+}
+
+void
+from_json(const nlohmann::json& j, DriverLimits& d) {
+  j.at("maxTime").get_to(d.maxTime);
+}
+
+void
+from_json(const nlohmann::json& j, DriverCosts& d) {
+  j.at("fixed").get_to(d.fixed);
+  j.at("distance").get_to(d.distance);
+  j.at("driving").get_to(d.driving);
+  j.at("waiting").get_to(d.waiting);
+  j.at("serving").get_to(d.serving);
+}
+
+void
+from_json(const nlohmann::json& j, DriverBreak& d) {
+  j.at("time").get_to(d.time);
+  j.at("duration").get_to(d.duration);
+  j.at("location").get_to(d.location);
+}
+
+void
+from_json(const nlohmann::json& j, DriverAvailability& d) {
+  j.at("location").get_to(d.location);
+  j.at("time").get_to(d.time);
+  readOptional(j, "break", d.breakTime);
+}
+
+void
+from_json(const nlohmann::json& j, DriverCapabilities& d) {
+  readOptional(j, "skills", d.skills);
+  j.at("profiles").get_to(d.profiles);
+  readOptional(j, "vehicles", d.vehicles);
+}
+
+void
+from_json(const nlohmann::json& j, DriverType& d) {
+  j.at("id").get_to(d.id);
+
+  j.at("costs").get_to(d.costs);
+  j.at("amount").get_to(d.amount);
+
+  j.at("availability").get_to(d.availability);
+  j.at("capabilities").get_to(d.capabilities);
+
+  readOptional(j, "limits", d.limits);
 }
 
 // endregion
 
 // region Vehicle
 
-struct VehicleBreak {
-  double time;
-  double duration;
-  std::uint64_t location;
-};
-
 struct VehicleCapabilities {
-  std::vector<int> capacity;
-  std::vector<std::string> skills;
+  std::vector<int> capacities;
+  std::optional<std::vector<std::string>> facilities;
 };
 
-struct VehicleDetail {
-  Location start;
-  std::optional<Location> end;
-  TimeWindow time;
+struct VehicleLocations {
+  RichLocation start;
+  std::optional<RichLocation> end;
+};
+
+struct VehicleAvailability {
+  VehicleLocations location;
+  std::optional<RichTime> time;
 };
 
 struct VehicleCosts {
@@ -51,7 +164,6 @@ struct VehicleCosts {
 
 struct VehicleLimits {
   double maxDistance;
-  double maxTime;
 };
 
 struct VehicleType {
@@ -59,38 +171,33 @@ struct VehicleType {
   std::string profile;
   int amount;
 
-  std::vector<VehicleDetail> details;
+  std::vector<VehicleAvailability> availability;
   VehicleCosts costs;
-
-  std::optional<VehicleLimits> limits;
   std::optional<VehicleCapabilities> capabilities;
-  std::optional<VehicleBreak> breaks;
+  std::optional<VehicleLimits> limits;
 };
 
 void
-from_json(const nlohmann::json& j, VehicleDetail& v) {
-  j.at("start").get_to(v.start);
-  j.at("end").get_to(v.end);
-  j.at("time").get_to(v.time);
+from_json(const nlohmann::json& j, VehicleLocations& loc) {
+  j.at("start").get_to(loc.start);
+  readOptional(j, "end", loc.end);
 }
 
 void
-from_json(const nlohmann::json& j, VehicleBreak& v) {
-  j.at("time").get_to(v.time);
-  j.at("duration").get_to(v.duration);
+from_json(const nlohmann::json& j, VehicleAvailability& v) {
   j.at("location").get_to(v.location);
+  j.at("time").get_to(v.time);
 }
 
 void
 from_json(const nlohmann::json& j, VehicleCapabilities& v) {
-  j.at("capacity").get_to(v.capacity);
-  j.at("skills").get_to(v.skills);
+  readOptional(j, "capacities", v.capacities);
+  readOptional(j, "facilities", v.facilities);
 }
 
 void
 from_json(const nlohmann::json& j, VehicleLimits& v) {
-  j.at("max_distance").get_to(v.maxDistance);
-  j.at("max_time").get_to(v.maxTime);
+  j.at("maxDistance").get_to(v.maxDistance);
 }
 
 void
@@ -106,15 +213,14 @@ void
 from_json(const nlohmann::json& j, VehicleType& v) {
   j.at("id").get_to(v.id);
   j.at("profile").get_to(v.profile);
-  j.at("details").get_to(v.details);
 
   j.at("costs").get_to(v.costs);
-
   j.at("amount").get_to(v.amount);
 
-  readOptional(j, "capabilities", v.capabilities);
+  j.at("availability").get_to(v.availability);
+  j.at("capabilities").get_to(v.capabilities);
+
   readOptional(j, "limits", v.limits);
-  readOptional(j, "breaks", v.breaks);
 }
 
 // endregion
@@ -132,14 +238,15 @@ struct Demands final {
 };
 
 struct ServiceDetail {
-  std::optional<std::uint64_t> location;
+  std::optional<RichLocation> location;
   Timestamp duration;
-  std::vector<TimeWindow> times;
+  std::vector<RichTime> times;
 };
 
 struct ServiceRequirements {
   Demands demands;
-  std::vector<std::string> skills;
+  std::optional<std::vector<std::string>> skills;
+  std::optional<std::vector<std::string>> facilities;
 };
 
 struct Service {
