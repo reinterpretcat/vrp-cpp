@@ -2,6 +2,7 @@
 
 #include "algorithms/construction/InsertionSolutionContext.hpp"
 #include "test_utils/models/Factories.hpp"
+#include "test_utils/streams/ProblemAnalyzer.hpp"
 
 #include <any>
 #include <catch/catch.hpp>
@@ -13,21 +14,6 @@ using namespace vrp::models::common;
 
 using Demand = VehicleActivitySize<int>::Demand;
 using Skills = vrp::streams::in::detail::here::SkillConstraint::WrappedType;
-
-namespace {
-
-Job
-getJobAt(size_t index, const Jobs& jobs) {
-  auto v = jobs.all() | ranges::to_vector;
-  return v.at(index);
-}
-
-std::shared_ptr<const Vehicle>
-getVehicleAt(size_t index, const Fleet& fleet) {
-  auto v = fleet.vehicles() | ranges::to_vector;
-  return v.at(index);
-}
-}
 
 namespace vrp::test {
 
