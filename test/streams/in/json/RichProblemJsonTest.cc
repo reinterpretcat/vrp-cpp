@@ -21,7 +21,7 @@ SCENARIO("rich json can read problem from stream", "[streams][in][json]") {
     "drivers": [
       {
         "id": "myDriver",
-        "amount": 1,
+        "amount": 2,
         "availability": [
           {
             "time": { "start": "1970-01-01T00:00:00Z", "end": "1970-01-01T00:01:40Z" },
@@ -164,7 +164,7 @@ SCENARIO("rich json can read problem from stream", "[streams][in][json]") {
     WHEN("read from stream") {
       auto problem = streams::in::read_rich_json_type{}(ss);
       THEN("creates expected problem size") {
-        REQUIRE(ranges::distance(problem->fleet->drivers()) == 1);
+        REQUIRE(ranges::distance(problem->fleet->drivers()) == 2);
         REQUIRE(ranges::distance(problem->fleet->vehicles()) == 2);
         REQUIRE(ranges::distance(problem->fleet->profiles()) == 1);
         REQUIRE(problem->jobs->size() == 2);
@@ -240,6 +240,26 @@ SCENARIO("rich json can read problem from stream", "[streams][in][json]") {
           REQUIRE(vehicle->details.size() == 1);
           REQUIRE(vehicle->details.front().time.start == 0);
           REQUIRE(vehicle->details.front().time.end == 100);
+        });
+      }
+
+      THEN("creates expected drivers") {
+        ranges::for_each(ranges::view::closed_indices(0, 1), [&](auto index) {
+          auto driver = getDriverAt(index, *problem->fleet);
+
+          REQUIRE(std::any_cast<std::string>(driver->dimens.at("id")) ==
+                  (std::string("myDriver_") + std::to_string(index + 1)));
+
+          // TODO add missing checks
+
+          REQUIRE(driver->costs.fixed == 101);
+          REQUIRE(driver->costs.perDistance == 10);
+          REQUIRE(driver->costs.perDrivingTime == 20);
+          REQUIRE(driver->costs.perWaitingTime == 20);
+          REQUIRE(driver->costs.perServiceTime == 20);
+          REQUIRE(driver->details.size() == 1);
+          REQUIRE(driver->details.front().time.start == 0);
+          REQUIRE(driver->details.front().time.end == 100);
         });
       }
     }
