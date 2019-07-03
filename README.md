@@ -29,6 +29,7 @@ A prototype of VRP solver
         * use real locations instead of ids
         * add breaks
         * use polygon to specify driver location?
+        * specify duration using human-readable string
 
 # Check
     * Check that real dates can be handled

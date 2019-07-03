@@ -80,13 +80,6 @@ private:
     // analyze fleet
     ranges::for_each(problem.fleet.drivers, [&](const auto& driver) {
       ranges::for_each(driver.availability, [&](const auto& availability) {
-        index.add(availability.location.start.latitude, availability.location.start.longitude);
-
-        if (availability.location.end) {
-          const auto& endLoc = availability.location.end.value();
-          index.add(endLoc.latitude, endLoc.longitude);
-        }
-
         if (availability.breakTime && availability.breakTime.value().location) {
           const auto& breakLoc = availability.breakTime.value().location.value();
           index.add(breakLoc.latitude, breakLoc.longitude);
@@ -163,24 +156,19 @@ private:
         // CONTINUE
         // TODO profiles, skills, vehicles
 
-        fleet->add(Driver{
-          Costs{driver.costs.fixed,
-                driver.costs.distance,
-                driver.costs.driving,
-                driver.costs.waiting,
-                driver.costs.serving},
+        fleet->add(
+          Driver{Costs{driver.costs.fixed,
+                       driver.costs.distance,
+                       driver.costs.driving,
+                       driver.costs.waiting,
+                       driver.costs.serving},
 
-          Dimensions{{"id", driver.id + "_" + std::to_string(index)}},
+                 Dimensions{{"id", driver.id + "_" + std::to_string(index)}},
 
-          ranges::accumulate(driver.availability, std::vector<Driver::Detail>{}, [&](auto& acc, const auto av) {
-            acc.push_back(  //
-              Driver::Detail{coordIndex.find(av.location.start.latitude, av.location.start.longitude),
-                             av.location.end ? std::make_optional<Location>(Location{coordIndex.find(
-                                                 av.location.end.value().latitude, av.location.end.value().longitude)})
-                                             : std::make_optional<Location>(),
-                             timeParser(av.time)});
-            return std::move(acc);
-          })});
+                 ranges::accumulate(driver.availability, std::vector<Driver::Detail>{}, [&](auto& acc, const auto av) {
+                   acc.push_back(Driver::Detail{timeParser(av.time)});
+                   return std::move(acc);
+                 })});
       });
     });
 

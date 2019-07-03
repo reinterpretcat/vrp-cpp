@@ -47,13 +47,8 @@ struct DriverLimits {
   double maxTime;
 };
 
-struct DriverLocations {
-  RichLocation start;
-  std::optional<RichLocation> end;
-};
-
 struct DriverBreak {
-  std::vector<double> time;
+  RichTime time;
   double duration;
   std::optional<RichLocation> location;
 };
@@ -65,7 +60,6 @@ struct DriverCapabilities {
 };
 
 struct DriverAvailability {
-  DriverLocations location;
   std::optional<RichTime> time;
   std::optional<DriverBreak> breakTime;
 };
@@ -75,17 +69,11 @@ struct DriverType {
   int amount;
 
   DriverCosts costs;
-  std::vector<DriverCapabilities> capabilities;
+  DriverCapabilities capabilities;
   std::vector<DriverAvailability> availability;
 
   std::optional<DriverLimits> limits;
 };
-
-void
-from_json(const nlohmann::json& j, DriverLocations& loc) {
-  j.at("start").get_to(loc.start);
-  readOptional(j, "end", loc.end);
-}
 
 void
 from_json(const nlohmann::json& j, DriverLimits& d) {
@@ -110,7 +98,6 @@ from_json(const nlohmann::json& j, DriverBreak& d) {
 
 void
 from_json(const nlohmann::json& j, DriverAvailability& d) {
-  j.at("location").get_to(d.location);
   j.at("time").get_to(d.time);
   readOptional(j, "break", d.breakTime);
 }
@@ -406,7 +393,8 @@ from_json(const nlohmann::json& j, Fleet& f) {
 void
 from_json(const nlohmann::json& j, Plan& p) {
   j.at("jobs").get_to(p.jobs);
-  j.at("routes").get_to(p.routes);
+
+  readOptional(j, "routes", p.routes);
 }
 
 void

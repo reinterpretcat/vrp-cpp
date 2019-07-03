@@ -17,13 +17,7 @@ namespace vrp::models::problem {
 struct Driver {
   /// Represents driver detail.
   struct Detail final {
-    /// Location where driver starts.
-    common::Location start;
-
-    /// Location where driver ends.
-    std::optional<common::Location> end;
-
-    /// Time windows when vehicle can be used.
+    /// Time windows when driver can work.
     common::TimeWindow time;
   };
 

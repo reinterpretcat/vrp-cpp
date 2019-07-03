@@ -109,10 +109,6 @@ Routes object is used to put some additional constraints how jobs are assigned i
         "amount": 1,
         "availability": [
           {
-            "location": {
-                "start": {"lat": 52.4862, "lon": 13.45148 },
-                "end": {"lat": 52.4862, "lon": 13.45148 }
-            },
             "time": { "start": "1970-01-01T00:00:00Z", "end": "1970-01-01T00:01:40Z" },
             "break": { 
                 "time": {"start": "1970-01-01T00:00:40Z", "end": "1970-01-01T00:00:50Z"}, 
