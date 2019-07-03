@@ -1,4 +1,5 @@
 #include "streams/in/json/RichProblemJson.hpp"
+
 #include "test_utils/streams/ProblemAnalyzer.hpp"
 
 #include <catch/catch.hpp>
@@ -19,7 +20,7 @@ SCENARIO("rich json can read problem from stream", "[streams][in][json]") {
   "fleet": {
     "drivers": [
       {
-        "id": "driver1",
+        "id": "myDriver",
         "amount": 1,
         "availability": [
           {
@@ -31,7 +32,7 @@ SCENARIO("rich json can read problem from stream", "[streams][in][json]") {
             }
           }
         ],
-        "costs": { "fixed": 0, "distance": 1, "driving": 1, "waiting": 1, "serving": 1 },
+        "costs": { "fixed": 101, "distance": 10, "driving": 20, "waiting": 20, "serving": 20 },
         "capabilities": {
           "skills": [],
           "profiles": ["car"],
@@ -44,7 +45,7 @@ SCENARIO("rich json can read problem from stream", "[streams][in][json]") {
     ],
     "vehicles": [
       {
-        "id": "vehicle1",
+        "id": "myVehicle",
         "amount": 2,
         "profile": "car",
         "availability": [
@@ -56,7 +57,7 @@ SCENARIO("rich json can read problem from stream", "[streams][in][json]") {
             "time": { "start": "1970-01-01T00:00:00Z", "end": "1970-01-01T00:01:40Z" }
           }
         ],
-        "costs": { "fixed": 0, "distance": 1, "driving": 1, "waiting": 1, "serving": 1 },
+        "costs": { "fixed": 100, "distance": 1, "driving": 2, "waiting": 2, "serving": 2 },
         "capabilities": {
           "capacities": [10],
           "facilities": ["fridge"]
@@ -186,7 +187,7 @@ SCENARIO("rich json can read problem from stream", "[streams][in][json]") {
         REQUIRE(std::any_cast<Demand>(delivery->dimens.at("demand")).delivery.first == 1);
         REQUIRE(std::any_cast<Demand>(delivery->dimens.at("demand")).delivery.second == 0);
         // TODO
-        //REQUIRE(std::any_cast<Skills>(delivery->dimens.at("skills"))->size() == 1);
+        // REQUIRE(std::any_cast<Skills>(delivery->dimens.at("skills"))->size() == 1);
       }
 
       THEN("creates expected shipment job") {
@@ -220,6 +221,26 @@ SCENARIO("rich json can read problem from stream", "[streams][in][json]") {
         REQUIRE(std::any_cast<Demand>(delivery->dimens.at("demand")).pickup.second == 0);
         REQUIRE(std::any_cast<Demand>(delivery->dimens.at("demand")).delivery.first == 0);
         REQUIRE(std::any_cast<Demand>(delivery->dimens.at("demand")).delivery.second == 2);
+      }
+
+      THEN("creates expected vehicles") {
+        ranges::for_each(ranges::view::closed_indices(0, 1), [&](auto index) {
+          auto vehicle = getVehicleAt(index, *problem->fleet);
+
+          REQUIRE(std::any_cast<std::string>(vehicle->dimens.at("id")) ==
+                  (std::string("myVehicle_") + std::to_string(index + 1)));
+          // TODO
+          // REQUIRE(std::any_cast<Skills>(vehicle->dimens.at("skills"))->size() == 2);
+          REQUIRE(vehicle->profile == 0);
+          REQUIRE(vehicle->costs.fixed == 100);
+          REQUIRE(vehicle->costs.perDistance == 1);
+          REQUIRE(vehicle->costs.perDrivingTime == 2);
+          REQUIRE(vehicle->costs.perWaitingTime == 2);
+          REQUIRE(vehicle->costs.perServiceTime == 2);
+          REQUIRE(vehicle->details.size() == 1);
+          REQUIRE(vehicle->details.front().time.start == 0);
+          REQUIRE(vehicle->details.front().time.end == 100);
+        });
       }
     }
   }
