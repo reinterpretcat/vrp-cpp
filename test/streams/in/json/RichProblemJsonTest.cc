@@ -8,6 +8,7 @@ using namespace vrp::algorithms::construction;
 using namespace vrp::models::problem;
 
 using Demand = VehicleActivitySize<int>::Demand;
+using Skills = vrp::streams::in::detail::common::SkillConstraint::WrappedType;
 
 namespace vrp::test {
 
@@ -34,7 +35,7 @@ SCENARIO("rich json can read problem from stream", "[streams][in][json]") {
         ],
         "costs": { "fixed": 101, "distance": 10, "driving": 20, "waiting": 20, "serving": 20 },
         "capabilities": {
-          "skills": [],
+          "skills": ["skill1", "skill2"],
           "profiles": ["car"],
           "vehicles": ["vehicle1"]
         },
@@ -93,7 +94,7 @@ SCENARIO("rich json can read problem from stream", "[streams][in][json]") {
           "demands": {
             "fixed": { "delivery": [1] }
           },
-          "skills": [],
+          "skills": ["unique_skill"],
           "facilities": []
         }
       },
@@ -186,8 +187,9 @@ SCENARIO("rich json can read problem from stream", "[streams][in][json]") {
         REQUIRE(std::any_cast<Demand>(delivery->dimens.at("demand")).pickup.second == 0);
         REQUIRE(std::any_cast<Demand>(delivery->dimens.at("demand")).delivery.first == 1);
         REQUIRE(std::any_cast<Demand>(delivery->dimens.at("demand")).delivery.second == 0);
-        // TODO
-        // REQUIRE(std::any_cast<Skills>(delivery->dimens.at("skills"))->size() == 1);
+
+        // TODO continue here
+        REQUIRE(std::any_cast<Skills>(delivery->dimens.at("skills"))->size() == 1);
       }
 
       THEN("creates expected shipment job") {

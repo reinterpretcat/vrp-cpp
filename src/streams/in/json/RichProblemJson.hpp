@@ -7,6 +7,7 @@
 #include "models/Problem.hpp"
 #include "models/costs/MatrixTransportCosts.hpp"
 #include "models/extensions/problem/Factories.hpp"
+#include "streams/in/json/detail/CommonProblemConstraints.hpp"
 #include "streams/in/json/detail/CoordIndex.hpp"
 #include "streams/in/json/detail/RichProblemParser.hpp"
 #include "utils/Date.hpp"
@@ -184,6 +185,8 @@ private:
     using namespace models::common;
     using namespace models::problem;
 
+    using SkillRawType = detail::common::SkillConstraint::RawType;
+
     auto dateParser = vrp::utils::parse_date_from_rc3339{};
 
     auto ensureDemand = [](const auto& demand) {
@@ -200,21 +203,30 @@ private:
       return std::move(newDemand);
     };
 
+    auto addSkillsIfPresent = [](const auto& requirements, Dimensions&& dimens) {
+      if (requirements.has_value() && requirements.value().skills.has_value() &&
+          !requirements.value().skills.value().empty()) {
+        auto skills = std::make_shared<SkillRawType>(
+          SkillRawType(requirements.value().skills.value().begin(), requirements.value().skills.value().end()));
+        dimens.insert(std::make_pair("skills", skills));
+      }
+
+      return std::move(dimens);
+    };
+
     auto createService = [&](const auto& s, const std::string& id) {
       Expects(s.requirements.has_value());
       auto fixed = ensureDemand(s.requirements.value().demands.fixed);
       auto dynamic = ensureDemand(s.requirements.value().demands.dynamic);
 
-      return std::make_shared<Service>(Service{
-        // details
-        ranges::accumulate(  //
+      return build_service{}
+        .details(ranges::accumulate(
           s.details,
           std::vector<Service::Detail>{},
           [&](auto& out, const auto detail) {
             auto times = ranges::accumulate(detail.times, std::vector<TimeWindow>{}, [&](auto& in, const auto& time) {
-              in.push_back(TimeWindow{//
-                                      static_cast<double>(dateParser(time.start)),
-                                      static_cast<double>(dateParser(time.end))});
+              in.push_back(
+                TimeWindow{static_cast<double>(dateParser(time.start)), static_cast<double>(dateParser(time.end))});
               return std::move(in);
             });
 
@@ -225,13 +237,14 @@ private:
                                           detail.duration,
                                           std::move(times)});
             return std::move(out);
-          }),
-        // demand
-        Dimensions{
-          {"id", id},
-          {VehicleActivitySize<int>::DimKeyDemand,
-           VehicleActivitySize<int>::Demand{{fixed.pickup.value().front(), dynamic.pickup.value().front()},
-                                            {fixed.delivery.value().front(), dynamic.delivery.value().front()}}}}});
+          }))
+        .dimens(addSkillsIfPresent(s.requirements,
+                                   Dimensions{{"id", id},
+                                              {VehicleActivitySize<int>::DimKeyDemand,
+                                               VehicleActivitySize<int>::Demand{
+                                                 {fixed.pickup.value().front(), dynamic.pickup.value().front()},
+                                                 {fixed.delivery.value().front(), dynamic.delivery.value().front()}}}}))
+        .shared();
     };
 
     auto jobs = view::for_each(problem.plan.jobs, [&](const auto& job) {

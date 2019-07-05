@@ -13,7 +13,7 @@ using namespace vrp::models::solution;
 using namespace vrp::models::common;
 
 using Demand = VehicleActivitySize<int>::Demand;
-using Skills = vrp::streams::in::detail::here::SkillConstraint::WrappedType;
+using Skills = vrp::streams::in::detail::common::SkillConstraint::WrappedType;
 
 namespace vrp::test {
 
