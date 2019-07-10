@@ -10,8 +10,8 @@
 #include "models/costs/MatrixTransportCosts.hpp"
 #include "models/extensions/problem/Factories.hpp"
 #include "models/extensions/problem/Helpers.hpp"
-#include "streams/in/json/detail/CommonProblemConstraints.hpp"
 #include "streams/in/json/detail/CoordIndex.hpp"
+#include "streams/in/json/detail/HereProblemConstraints.hpp"
 #include "streams/in/json/detail/HereProblemParser.hpp"
 #include "utils/Date.hpp"
 
@@ -72,11 +72,11 @@ public:
     auto constraint = std::make_shared<InsertionConstraint>();
     if (!locks->empty()) constraint->addHard<ActorJobLock>(std::make_shared<ActorJobLock>(*locks, Codes::Lock));
 
-    constraint->addHardActivity(std::make_shared<detail::common::ReachableConstraint>(transport, Codes::Reachable))
+    constraint->addHardActivity(std::make_shared<detail::here::ReachableConstraint>(transport, Codes::Reachable))
       .add<ActorActivityTiming>(std::make_shared<ActorActivityTiming>(fleet, transport, activity, Codes::Time))
       .template addHard<VehicleActivitySize<int>>(std::make_shared<VehicleActivitySize<int>>(Codes::Size))
-      .addHardActivity(std::make_shared<detail::common::BreakConstraint>(Codes::Break))
-      .addHardRoute(std::make_shared<detail::common::SkillConstraint>(Codes::Skill));
+      .addHardActivity(std::make_shared<detail::here::BreakConstraint>(Codes::Break))
+      .addHardRoute(std::make_shared<detail::here::SkillConstraint>(Codes::Skill));
 
     if (!limits.empty())
       constraint->addHardActivity(
@@ -123,8 +123,8 @@ private:
     using namespace vrp::models::problem;
     using namespace vrp::utils;
 
-    using SkillWrappedType = detail::common::SkillConstraint::WrappedType;
-    using SkillRawType = detail::common::SkillConstraint::RawType;
+    using SkillWrappedType = detail::here::SkillConstraint::WrappedType;
+    using SkillRawType = detail::here::SkillConstraint::RawType;
 
     auto dateParser = parse_date_from_rc3339{};
     auto fleet = std::make_shared<Fleet>();
@@ -190,7 +190,7 @@ private:
     using namespace models::common;
     using namespace models::problem;
 
-    using SkillRawType = detail::common::SkillConstraint::RawType;
+    using SkillRawType = detail::here::SkillConstraint::RawType;
 
     auto dateParser = vrp::utils::parse_date_from_rc3339{};
 

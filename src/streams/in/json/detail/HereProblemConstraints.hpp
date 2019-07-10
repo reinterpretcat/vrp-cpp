@@ -5,7 +5,7 @@
 
 #include <unordered_set>
 
-namespace vrp::streams::in::detail::common {
+namespace vrp::streams::in::detail::here {
 
 /// Represents a break constraint to simulate vehicle breaks.
 struct BreakConstraint final : public vrp::algorithms::construction::HardActivityConstraint {

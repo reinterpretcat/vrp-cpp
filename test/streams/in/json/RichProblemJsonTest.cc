@@ -8,7 +8,7 @@ using namespace vrp::algorithms::construction;
 using namespace vrp::models::problem;
 
 using Demand = VehicleActivitySize<int>::Demand;
-using Skills = vrp::streams::in::detail::common::SkillConstraint::WrappedType;
+using Skills = vrp::streams::in::detail::rich::CapabilityConstraint::WrappedType;
 
 namespace vrp::test {
 

@@ -119,7 +119,7 @@ Routes object is used to put some additional constraints how jobs are assigned i
         ],
         "costs": { "fixed": 0, "distance": 1, "driving": 1, "waiting": 1, "serving": 1 },
         "capabilities": {
-          "skills": [],
+          "skills": ["repair"],
           "profiles": ["car"],
           "vehicles": ["vehicle1"]
         },
@@ -174,8 +174,8 @@ Routes object is used to put some additional constraints how jobs are assigned i
           "demands": {
             "fixed": { "delivery": [1] }
           },
-          "skills": [],
-          "facilities": []
+          "skills": ["repair"],
+          "facilities": ["fridge"]
         }
       },
       {
@@ -203,7 +203,8 @@ Routes object is used to put some additional constraints how jobs are assigned i
                   ]
                 }
               },
-              "skills": []
+              "skills": ["repair"],
+              "facilities": ["fridge"]
             }
           },
           {

@@ -7,8 +7,8 @@
 #include "models/Problem.hpp"
 #include "models/costs/MatrixTransportCosts.hpp"
 #include "models/extensions/problem/Factories.hpp"
-#include "streams/in/json/detail/CommonProblemConstraints.hpp"
 #include "streams/in/json/detail/CoordIndex.hpp"
+#include "streams/in/json/detail/RichProblemConstraints.hpp"
 #include "streams/in/json/detail/RichProblemParser.hpp"
 #include "utils/Date.hpp"
 
@@ -185,7 +185,7 @@ private:
     using namespace models::common;
     using namespace models::problem;
 
-    using SkillRawType = detail::common::SkillConstraint::RawType;
+    using SkillRawType = detail::rich::CapabilityConstraint::RawType;
 
     auto dateParser = vrp::utils::parse_date_from_rc3339{};
 
@@ -254,6 +254,7 @@ private:
       return yield(models::problem::Job{
         ranges::emplaced_index<1>,
         build_sequence{}
+          // TODO merge all tagged capabilities and put them on sequence dimension
           .dimens(Dimensions{{"id", job.id}})
           .services(ranges::accumulate(view::zip(ranges::get<1>(job.variant).services, view::iota(1)),
                                        std::vector<std::shared_ptr<Service>>{},
