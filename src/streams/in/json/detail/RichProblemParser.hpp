@@ -55,7 +55,7 @@ struct DriverBreak {
 
 struct DriverCapabilities {
   std::optional<std::vector<std::string>> skills;
-  std::vector<std::string> profiles;
+  std::optional<std::vector<std::string>> profiles;
   std::optional<std::vector<std::string>> vehicles;
 };
 
@@ -69,9 +69,9 @@ struct DriverType {
   int amount;
 
   DriverCosts costs;
-  DriverCapabilities capabilities;
-  std::vector<DriverAvailability> availability;
 
+  std::optional<DriverCapabilities> capabilities;
+  std::vector<DriverAvailability> availability;
   std::optional<DriverLimits> limits;
 };
 
@@ -105,7 +105,7 @@ from_json(const nlohmann::json& j, DriverAvailability& d) {
 void
 from_json(const nlohmann::json& j, DriverCapabilities& d) {
   readOptional(j, "skills", d.skills);
-  j.at("profiles").get_to(d.profiles);
+  readOptional(j, "profiles", d.profiles);
   readOptional(j, "vehicles", d.vehicles);
 }
 
@@ -117,7 +117,8 @@ from_json(const nlohmann::json& j, DriverType& d) {
   j.at("amount").get_to(d.amount);
 
   j.at("availability").get_to(d.availability);
-  j.at("capabilities").get_to(d.capabilities);
+
+  readOptional(j, "capabilities", d.capabilities);
 
   readOptional(j, "limits", d.limits);
 }

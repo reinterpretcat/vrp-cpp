@@ -11,6 +11,8 @@ using Capacity = VehicleActivitySize<int>::Capacity;
 using Demand = VehicleActivitySize<int>::Demand;
 using Facilities = vrp::streams::in::detail::rich::CapabilityConstraint::WrappedType;
 using Skills = vrp::streams::in::detail::rich::CapabilityConstraint::WrappedType;
+using Profiles = vrp::streams::in::detail::rich::CapabilityConstraint::WrappedType;
+using Vehicles = vrp::streams::in::detail::rich::CapabilityConstraint::WrappedType;
 
 namespace vrp::test {
 
@@ -234,7 +236,6 @@ SCENARIO("rich json can read problem from stream", "[streams][in][json]") {
           REQUIRE(std::any_cast<std::string>(vehicle->dimens.at("id")) ==
                   (std::string("myVehicle_") + std::to_string(index + 1)));
 
-          // TODO check capacities
           REQUIRE(std::any_cast<Capacity>(vehicle->dimens.at("capacity")) == 10);
           REQUIRE(std::any_cast<Facilities>(vehicle->dimens.at("facilities"))->size() == 1);
           REQUIRE(vehicle->profile == 0);
@@ -256,8 +257,9 @@ SCENARIO("rich json can read problem from stream", "[streams][in][json]") {
           REQUIRE(std::any_cast<std::string>(driver->dimens.at("id")) ==
                   (std::string("myDriver_") + std::to_string(index + 1)));
 
-          // TODO add missing checks
-
+          REQUIRE(std::any_cast<Skills>(driver->dimens.at("skills"))->size() == 2);
+          REQUIRE(std::any_cast<Profiles>(driver->dimens.at("profiles"))->size() == 1);
+          REQUIRE(std::any_cast<Vehicles>(driver->dimens.at("vehicles"))->size() == 1);
           REQUIRE(driver->costs.fixed == 101);
           REQUIRE(driver->costs.perDistance == 10);
           REQUIRE(driver->costs.perDrivingTime == 20);

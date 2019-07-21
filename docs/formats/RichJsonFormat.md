@@ -31,7 +31,7 @@ To support driver-vehicle matching, a new _drivers_ property is introduced.
     
 * _fleet.drivers.costs_: driver costs per time and distance
 
-* _fleet.drivers.capabilities_: array of properties defined as:
+* _fleet.drivers.capabilities_ (optional): array of properties defined as:
     * _skills_ (optional): a unique list of driver skills which might be required to perform a job
     * _profiles_ (optional): an array of vehicle profiles which driver is allowed to use
     * _vehicles_ (optional): an array of vehicle type ids which driver is allowed to use
@@ -50,8 +50,8 @@ To support driver-vehicle matching, a new _drivers_ property is introduced.
     
 * _fleet.vehicles.costs_: vehicle costs per time and distance
 
-* _fleet.vehicles.capabilities_: array of properties defined as:
-    * _capacity_ (required): a vehicle cargo capacity
+* _fleet.vehicles.capabilities_(optional): array of properties defined as:
+    * _capacity_ (optional): a vehicle cargo capacity
     * _facilities_ (optional): an array of available facilities
     
 ### Plan

@@ -157,7 +157,6 @@ private:
         if (facilities) dimens.insert(std::make_pair(detail::rich::CapabilityConstraint::Facilities, facilities));
 
         fleet->add(Vehicle{getProfile(vehicle.profile),
-
                            Costs{vehicle.costs.fixed,
                                  vehicle.costs.distance,
                                  vehicle.costs.driving,
@@ -169,12 +168,39 @@ private:
     });
 
     ranges::for_each(problem.fleet.drivers, [&](const auto& driver) {
+      WrappedType skills = {};
+      WrappedType vehicles = {};
+      WrappedType profiles = {};
+      int capacities = 0;
+
+      if (driver.capabilities) {
+        const auto& capabilities = driver.capabilities.value();
+
+        if (capabilities.skills.has_value() && !capabilities.skills.value().empty()) {
+          skills =
+            std::make_shared<RawType>(RawType(capabilities.skills.value().begin(), capabilities.skills.value().end()));
+        }
+
+        if (capabilities.vehicles.has_value() && !capabilities.vehicles.value().empty()) {
+          vehicles = std::make_shared<RawType>(
+            RawType(capabilities.vehicles.value().begin(), capabilities.vehicles.value().end()));
+        }
+
+        if (capabilities.profiles.has_value() && !capabilities.profiles.value().empty()) {
+          profiles = std::make_shared<RawType>(
+            RawType(capabilities.profiles.value().begin(), capabilities.profiles.value().end()));
+        }
+      }
+
       ranges::for_each(ranges::view::closed_indices(1, driver.amount), [&](auto index) {
         using namespace vrp::models::common;
         using namespace vrp::models::problem;
 
-        // CONTINUE
-        // TODO profiles, skills, vehicles
+        auto dimens = Dimensions{{"id", driver.id + "_" + std::to_string(index)}};
+
+        if (skills) dimens.insert(std::make_pair(detail::rich::CapabilityConstraint::Skills, skills));
+        if (profiles) dimens.insert(std::make_pair("profiles", profiles));
+        if (vehicles) dimens.insert(std::make_pair("vehicles", vehicles));
 
         fleet->add(
           Driver{Costs{driver.costs.fixed,
@@ -182,9 +208,7 @@ private:
                        driver.costs.driving,
                        driver.costs.waiting,
                        driver.costs.serving},
-
-                 Dimensions{{"id", driver.id + "_" + std::to_string(index)}},
-
+                 dimens,
                  ranges::accumulate(driver.availability, std::vector<Driver::Detail>{}, [&](auto& acc, const auto av) {
                    acc.push_back(Driver::Detail{timeParser(av.time)});
                    return std::move(acc);
