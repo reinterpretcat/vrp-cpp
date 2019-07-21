@@ -7,7 +7,9 @@
 using namespace vrp::algorithms::construction;
 using namespace vrp::models::problem;
 
+using Capacity = VehicleActivitySize<int>::Capacity;
 using Demand = VehicleActivitySize<int>::Demand;
+using Facilities = vrp::streams::in::detail::rich::CapabilityConstraint::WrappedType;
 using Skills = vrp::streams::in::detail::rich::CapabilityConstraint::WrappedType;
 
 namespace vrp::test {
@@ -231,8 +233,10 @@ SCENARIO("rich json can read problem from stream", "[streams][in][json]") {
 
           REQUIRE(std::any_cast<std::string>(vehicle->dimens.at("id")) ==
                   (std::string("myVehicle_") + std::to_string(index + 1)));
-          // TODO
-          // REQUIRE(std::any_cast<Skills>(vehicle->dimens.at("skills"))->size() == 2);
+
+          // TODO check capacities
+          REQUIRE(std::any_cast<Capacity>(vehicle->dimens.at("capacity")) == 10);
+          REQUIRE(std::any_cast<Facilities>(vehicle->dimens.at("facilities"))->size() == 1);
           REQUIRE(vehicle->profile == 0);
           REQUIRE(vehicle->costs.fixed == 100);
           REQUIRE(vehicle->costs.perDistance == 1);

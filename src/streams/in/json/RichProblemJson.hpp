@@ -108,6 +108,9 @@ private:
     using namespace vrp::models::common;
     using namespace vrp::models::problem;
 
+    using WrappedType = detail::rich::CapabilityConstraint::WrappedType;
+    using RawType = detail::rich::CapabilityConstraint::RawType;
+
     Ensures(problem.fleet.drivers.size() == 1);
 
     auto dateParser = vrp::utils::parse_date_from_rc3339{};
@@ -120,32 +123,48 @@ private:
 
     auto fleet = std::make_shared<Fleet>();
     ranges::for_each(problem.fleet.vehicles, [&](const auto& vehicle) {
+      // TODO do not require capabilities to be present
+      Expects(vehicle.capabilities.has_value());
+      Expects(vehicle.capabilities.value().capacities.size() == 1);
+
+      WrappedType facilities = {};
+      int capacities = 0;
+
+      if (vehicle.capabilities) {
+        const auto& capabilities = vehicle.capabilities.value();
+        capacities = capabilities.capacities.front();
+        if (capabilities.facilities.has_value() && !capabilities.facilities.value().empty()) {
+          facilities = std::make_shared<RawType>(
+            RawType(capabilities.facilities.value().begin(), capabilities.facilities.value().end()));
+        }
+      }
+
+      auto details =
+        ranges::accumulate(vehicle.availability, std::vector<Vehicle::Detail>{}, [&](auto& acc, const auto av) {
+          acc.push_back(Vehicle::Detail{coordIndex.find(av.location.start.latitude, av.location.start.longitude),
+                                        av.location.end
+                                          ? std::make_optional<Location>(Location{coordIndex.find(
+                                              av.location.end.value().latitude, av.location.end.value().longitude)})
+                                          : std::make_optional<Location>(),
+                                        timeParser(av.time)});
+          return std::move(acc);
+        });
+
       ranges::for_each(ranges::view::closed_indices(1, vehicle.amount), [&](auto index) {
-        // TODO do not require capabilities to be present
-        Expects(vehicle.capabilities.has_value());
-        Expects(vehicle.capabilities.value().capacities.size() == 1);
+        auto dimens = Dimensions{{"id", vehicle.id + "_" + std::to_string(index)},
+                                 {VehicleActivitySize<int>::DimKeyCapacity, capacities}};
 
-        fleet->add(Vehicle{
-          getProfile(vehicle.profile),
+        if (facilities) dimens.insert(std::make_pair(detail::rich::CapabilityConstraint::Facilities, facilities));
 
-          Costs{vehicle.costs.fixed,
-                vehicle.costs.distance,
-                vehicle.costs.driving,
-                vehicle.costs.waiting,
-                vehicle.costs.serving},
+        fleet->add(Vehicle{getProfile(vehicle.profile),
 
-          Dimensions{{"id", vehicle.id + "_" + std::to_string(index)},
-                     {VehicleActivitySize<int>::DimKeyCapacity, vehicle.capabilities.value().capacities.front()}},
-
-          ranges::accumulate(vehicle.availability, std::vector<Vehicle::Detail>{}, [&](auto& acc, const auto av) {
-            acc.push_back(  //
-              Vehicle::Detail{coordIndex.find(av.location.start.latitude, av.location.start.longitude),
-                              av.location.end ? std::make_optional<Location>(Location{coordIndex.find(
-                                                  av.location.end.value().latitude, av.location.end.value().longitude)})
-                                              : std::make_optional<Location>(),
-                              timeParser(av.time)});
-            return std::move(acc);
-          })});
+                           Costs{vehicle.costs.fixed,
+                                 vehicle.costs.distance,
+                                 vehicle.costs.driving,
+                                 vehicle.costs.waiting,
+                                 vehicle.costs.serving},
+                           dimens,
+                           details});
       });
     });
 
@@ -253,8 +272,7 @@ private:
 
       return yield(models::problem::Job{
         ranges::emplaced_index<1>,
-        build_sequence{}
-          // TODO merge all tagged capabilities and put them on sequence dimension
+        build_sequence{}  // TODO merge all tagged capabilities and put them on sequence dimension
           .dimens(Dimensions{{"id", job.id}})
           .services(ranges::accumulate(view::zip(ranges::get<1>(job.variant).services, view::iota(1)),
                                        std::vector<std::shared_ptr<Service>>{},

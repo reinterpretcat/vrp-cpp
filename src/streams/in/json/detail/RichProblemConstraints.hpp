@@ -43,8 +43,8 @@ private:
   }
 
   static bool checkTags(const std::string& tag,
-                       const vrp::models::common::Dimensions& target,
-                       const vrp::models::common::Dimensions& required) {
+                        const vrp::models::common::Dimensions& target,
+                        const vrp::models::common::Dimensions& required) {
     if (required.find(tag) == required.end()) return true;
     if (target.find(tag) == target.end()) return false;
 
@@ -64,5 +64,4 @@ private:
 
   int code_;
 };
-
 }
