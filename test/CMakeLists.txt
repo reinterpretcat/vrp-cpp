@@ -103,6 +103,7 @@ set(SOURCE_FILES
         streams/out/json/HereSolutionJsonTest.cc
 
         utils/DateTest.cc
+        utils/PermutationsTest.cc
 
         SolverTest.cc
 
