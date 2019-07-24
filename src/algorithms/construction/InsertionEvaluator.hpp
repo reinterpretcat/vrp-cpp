@@ -124,6 +124,24 @@ private:
     }
   };
 
+  /// Retrieves permutations from sequence's dimens.
+  struct retrieve_permutations final {
+    using ServicePermutation = ranges::any_view<std::shared_ptr<const models::problem::Service>>;
+
+    ranges::any_view<ServicePermutation> operator()(const models::problem::Sequence& sequence) const {
+      using PermutationFunc = std::function<ranges::any_view<std::vector<int>>()>;
+
+      auto permFunc = sequence.dimens.find(models::problem::Sequence::PermutationDimKey);
+
+      if (permFunc == sequence.dimens.end()) return ranges::view::single(ranges::view::all(sequence.services));
+
+      return std::any_cast<PermutationFunc>(permFunc->second)() | ranges::view::transform([&](const auto& permutation) {
+               return ranges::view::for_each(
+                 permutation, [&](const auto index) { return ranges::yield(sequence.services.at(index)); });
+             });
+    }
+  };
+
 public:
   /// Evaluates possibility to preform insertion from given insertion context.
   InsertionResult evaluate(const models::problem::Job& job, const InsertionContext& ctx) const {
@@ -236,56 +254,62 @@ private:
       return !acc.isStopped && acc.startIndex <= rCtx.route->tour.count();
     };
 
-    auto shadow = ShadowContext{false, false, iCtx.problem, rCtx};
-    auto result = accumulate_while(view::iota(0), SeqContext::empty(), outSeqPred, [&](auto& out, const auto) {
-      shadow.restore(job);
-      auto sqRes = accumulate_while(sequence->services, out.next(), inSeqPred, [&](auto& in1, const auto& service) {
-        const auto& route = *shadow.ctx.route;
-        auto activity = std::make_shared<solution::Activity>(solution::Activity{{}, {}, service});
-        auto legs = route.tour.legs() | view::drop(in1.index);
-        // NOTE condition below allows to stop at first success for first service to avoid situation
-        // when later insertion of first service is cheaper, but the whole sequence is more expensive.
-        // Due to complexity, we do this only for first service which is suboptimal for more than two services.
-        auto pred = [&](const SrvContext& acc) {
-          return !(sequence->services.front() == service && acc.isSuccess()) && !acc.isStopped;
-        };
+    auto result = ranges::accumulate(
+      retrieve_permutations{}(*sequence), SeqContext::empty(), [&](auto& accRes, const auto& services) {
+        auto shadow = ShadowContext{false, false, iCtx.problem, rCtx};
+        auto permRes = accumulate_while(view::iota(0), SeqContext::empty(), outSeqPred, [&](auto& out, const auto) {
+          shadow.restore(job);
+          auto sqRes = accumulate_while(services, out.next(), inSeqPred, [&](auto& in1, const auto& service) {
+            const auto& route = *shadow.ctx.route;
+            auto activity = std::make_shared<solution::Activity>(solution::Activity{{}, {}, service});
+            auto legs = route.tour.legs() | view::drop(in1.index);
+            // NOTE condition below allows to stop at first success for first service to avoid situation
+            // when later insertion of first service is cheaper, but the whole sequence is more expensive.
+            // Due to complexity, we do this only for first service which is suboptimal for more than two services.
+            auto pred = [&](const SrvContext& acc) {
+              return !(sequence->services.front() == service && acc.isSuccess()) && !acc.isStopped;
+            };
 
-        // region analyze legs
-        auto srvRes = accumulate_while(legs, SrvContext::empty(), pred, [&](auto& in2, const auto& leg) {
-          using NextAct = std::optional<models::solution::Tour::Activity>;
+            // region analyze legs
+            auto srvRes = accumulate_while(legs, SrvContext::empty(), pred, [&](auto& in2, const auto& leg) {
+              using NextAct = std::optional<models::solution::Tour::Activity>;
 
-          auto [items, index] = leg;
-          auto [prev, next] = std::tie(*std::begin(items), *(std::begin(items) + 1));
-          auto aCtx = InsertionActivityContext{index, prev, activity, prev == next ? NextAct{} : NextAct{next}};
+              auto [items, index] = leg;
+              auto [prev, next] = std::tie(*std::begin(items), *(std::begin(items) + 1));
+              auto aCtx = InsertionActivityContext{index, prev, activity, prev == next ? NextAct{} : NextAct{next}};
 
-          // service details
-          return accumulate_while(service->details, std::move(in2), srvPred, [&](auto& in3, const auto& dtl) {
-            // service time windows
-            return accumulate_while(dtl.times, std::move(in3), srvPred, [&](auto& in4, const auto& time) {
-              aCtx.target->detail = {dtl.location.value_or(aCtx.prev->detail.location), dtl.duration, time};
-              auto status = iCtx.problem->constraint->hard(shadow.ctx, aCtx);
-              if (status.has_value()) return SrvContext::fail(status.value(), in4);
+              // service details
+              return accumulate_while(service->details, std::move(in2), srvPred, [&](auto& in3, const auto& dtl) {
+                // service time windows
+                return accumulate_while(dtl.times, std::move(in3), srvPred, [&](auto& in4, const auto& time) {
+                  aCtx.target->detail = {dtl.location.value_or(aCtx.prev->detail.location), dtl.duration, time};
+                  auto status = iCtx.problem->constraint->hard(shadow.ctx, aCtx);
+                  if (status.has_value()) return SrvContext::fail(status.value(), in4);
 
-              auto costs = iCtx.problem->constraint->soft(shadow.ctx, aCtx);
-              return costs < in4.cost
-                ? SrvContext::success(aCtx.index, costs, {aCtx.target->detail.location, dtl.duration, time})
-                : SrvContext::skip(in4);
+                  auto costs = iCtx.problem->constraint->soft(shadow.ctx, aCtx);
+                  return costs < in4.cost
+                    ? SrvContext::success(aCtx.index, costs, {aCtx.target->detail.location, dtl.duration, time})
+                    : SrvContext::skip(in4);
+                });
+              });
             });
+            // endregion
+
+            if (srvRes.isSuccess()) {
+              activity->detail = srvRes.detail;
+              shadow.insert(activity, srvRes.index);
+              return SeqContext::success(in1.cost.value() + srvRes.cost,
+                                         concat(in1.activities, {activity, srvRes.index}));
+            }
+
+            return SeqContext::fail(srvRes, in1);
           });
+
+          return SeqContext::forward(std::move(sqRes), std::move(out));
         });
-        // endregion
 
-        if (srvRes.isSuccess()) {
-          activity->detail = srvRes.detail;
-          shadow.insert(activity, srvRes.index);
-          return SeqContext::success(in1.cost.value() + srvRes.cost, concat(in1.activities, {activity, srvRes.index}));
-        }
-
-        return SeqContext::fail(srvRes, in1);
+        return SeqContext::forward(std::move(permRes), std::move(accRes));
       });
-
-      return SeqContext::forward(std::move(sqRes), std::move(out));
-    });
 
     return result.isSuccess() ? make_result_success({result.cost.value(), job, std::move(result.activities), rCtx})
                               : make_result_failure(result.code);

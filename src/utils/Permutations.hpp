@@ -29,5 +29,4 @@ private:
   std::vector<int> data_;
   bool hasNext_;
 };
-
 }

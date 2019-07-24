@@ -8,7 +8,7 @@ using namespace vrp::utils;
 namespace vrp::test {
 
 SCENARIO("can generate permutations of given range", "[utils][permutations]") {
-  auto [rangeSize, expectedSize] = GENERATE(table<int, int>({ {3, 6}, {4, 24} }));
+  auto [rangeSize, expectedSize] = GENERATE(table<int, int>({{3, 6}, {4, 24}}));
 
   GIVEN("permutation generator within size") {
     auto generator = generate_permutations{rangeSize};
@@ -23,5 +23,4 @@ SCENARIO("can generate permutations of given range", "[utils][permutations]") {
     }
   }
 }
-
 }

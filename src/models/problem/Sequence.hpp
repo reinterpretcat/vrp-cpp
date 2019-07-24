@@ -2,7 +2,9 @@
 
 #include "models/problem/Service.hpp"
 
+#include <functional>
 #include <memory>
+#include <range/v3/all.hpp>
 #include <vector>
 
 namespace vrp::models::problem {
@@ -12,6 +14,9 @@ namespace vrp::models::problem {
 struct Sequence final {
   /// A key used to point to sequence from child service.
   constexpr static auto SeqRefDimKey = "seqRef";
+  /// A key used to point to permutation function in dimens.
+  /// TODO make it part of explicit interface?
+  constexpr static auto PermutationDimKey = "prm";
 
   /// A list of services which must be performed in order specified.
   std::vector<std::shared_ptr<const Service>> services;
