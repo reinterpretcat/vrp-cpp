@@ -67,6 +67,16 @@ public:
     sequence_->dimens["id"] = value;
     return *this;
   }
+
+  test_build_sequence& permutations(std::vector<std::vector<int>> perms) {
+    using PermutationFunc = std::function<ranges::any_view<const std::vector<int>&>(const models::problem::Sequence&)>;
+
+    sequence_->dimens["prm"] = std::make_shared<PermutationFunc>([perms](const auto&) {
+      return ranges::view::transform(perms, [](const auto& perm) -> const std::vector<int>& { return perm; });
+    });
+
+    return *this;
+  }
 };
 
 inline vrp::models::problem::Job DefaultSequence =

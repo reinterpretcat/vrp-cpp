@@ -513,5 +513,33 @@ SCENARIO("insertion evaluator can handle sequence insertion in tour with violati
   }
 }
 
+SCENARIO("insertion evaluator can handle sequence insertion with permutations",
+         "[algorithms][construction][insertion][sequence]") {
+  GIVEN("empty tour and timing constraint") {
+    auto fleet = createFleet();
+    WHEN("sequence is inserted with bad and good permutation alternatives") {
+      THEN("chooses second permutation") {
+        auto result = InsertionEvaluator{}.evaluate(
+          as_job(test_build_sequence{}
+                   .id("sequence")
+                   .permutations({{0, 1, 2}, {1, 0, 2}})
+                   .service(test_build_service{}.id("s1").location(10).shared())
+                   .service(test_build_service{}.id("s2").location(5).shared())
+                   .service(test_build_service{}.id("s3").location(15).shared())
+                   .shared()),
+          test_build_insertion_context{}
+            .problem(createProblem(fleet))
+            .progress(test_build_insertion_progress{}.owned())
+            .solution(build_insertion_solution_context{}.registry(std::make_shared<Registry>(*fleet)).shared())
+
+            .owned());
+        REQUIRE(result.index() == 0);
+        REQUIRE(ranges::get<0>(result).cost == 60);
+        assertActivities(ranges::get<0>(result), {{0, 5}, {1, 10}, {2, 15}});
+      }
+    }
+  }
+}
+
 // endregion
 }

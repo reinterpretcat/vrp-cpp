@@ -129,15 +129,17 @@ private:
     using ServicePermutation = ranges::any_view<std::shared_ptr<const models::problem::Service>>;
 
     ranges::any_view<ServicePermutation> operator()(const models::problem::Sequence& sequence) const {
-      using PermutationFunc = std::function<ranges::any_view<std::vector<int>>()>;
+      using PermutationFunc =
+        std::function<ranges::any_view<const std::vector<int>&>(const models::problem::Sequence&)>;
 
       auto permFunc = sequence.dimens.find(models::problem::Sequence::PermutationDimKey);
 
       if (permFunc == sequence.dimens.end()) return ranges::view::single(ranges::view::all(sequence.services));
 
-      return std::any_cast<PermutationFunc>(permFunc->second)() | ranges::view::transform([&](const auto& permutation) {
-               return ranges::view::for_each(
-                 permutation, [&](const auto index) { return ranges::yield(sequence.services.at(index)); });
+      return std::any_cast<std::shared_ptr<PermutationFunc>>(permFunc->second)->operator()(sequence) |
+        ranges::view::transform([&](const auto& permutation) {
+               return ranges::view::transform(permutation,
+                                              [&](const auto index) { return sequence.services.at(index); });
              });
     }
   };

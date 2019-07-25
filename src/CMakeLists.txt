@@ -122,6 +122,7 @@ set(SOURCE_FILES
         utils/Date.hpp
         utils/Random.hpp
         utils/Measure.hpp
+        utils/Permutations.hpp
         utils/extensions/Hash.hpp
         utils/extensions/Ranges.hpp
 
