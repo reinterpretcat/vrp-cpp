@@ -102,15 +102,16 @@ private:
   CoordIndex createCoordIndex(const detail::here::Problem& problem) const {
     auto index = CoordIndex{};
     ranges::for_each(problem.plan.jobs, [&](const auto& variant) {
-      detail::here::analyze_variant<void>(variant,
-                                          [&index](const detail::here::Job& job) {
-                                            if (job.places.pickup) index.add(job.places.pickup.value().location);
-                                            if (job.places.delivery) index.add(job.places.delivery.value().location);
-                                          },
-                                          [](const detail::here::MultiJob& multi) {
-                                            // TODO
-                                            throw std::domain_error("Not implemented");
-                                          });
+      detail::here::analyze_variant<void>(
+        variant,
+        [&index](const detail::here::Job& job) {
+          if (job.places.pickup) index.add(job.places.pickup.value().location);
+          if (job.places.delivery) index.add(job.places.delivery.value().location);
+        },
+        [&index](const detail::here::MultiJob& multi) {
+          ranges::for_each(multi.places.pickups, [&](const auto& pickup) { index.add(pickup.location); });
+          ranges::for_each(multi.places.deliveries, [&](const auto& delivery) { index.add(delivery.location); });
+        });
     });
 
     ranges::for_each(problem.fleet.types, [&](const auto& vehicle) {
