@@ -101,9 +101,16 @@ private:
   /// Creates coordinate index to match routing data.
   CoordIndex createCoordIndex(const detail::here::Problem& problem) const {
     auto index = CoordIndex{};
-    ranges::for_each(problem.plan.jobs, [&](const auto& job) {
-      if (job.places.pickup) index.add(job.places.pickup.value().location);
-      if (job.places.delivery) index.add(job.places.delivery.value().location);
+    ranges::for_each(problem.plan.jobs, [&](const auto& variant) {
+      detail::here::analyze_variant<void>(variant,
+                                          [&index](const detail::here::Job& job) {
+                                            if (job.places.pickup) index.add(job.places.pickup.value().location);
+                                            if (job.places.delivery) index.add(job.places.delivery.value().location);
+                                          },
+                                          [](const detail::here::MultiJob& multi) {
+                                            // TODO
+                                            throw std::domain_error("Not implemented");
+                                          });
     });
 
     ranges::for_each(problem.fleet.types, [&](const auto& vehicle) {
@@ -194,63 +201,72 @@ private:
 
     auto dateParser = vrp::utils::parse_date_from_rc3339{};
 
-    return view::for_each(problem.plan.jobs, [&, dateParser](const auto& job) {
-      Expects(job.places.pickup || job.places.delivery);
+    return view::for_each(problem.plan.jobs, [&, dateParser](const auto& variant) {
+      return ranges::yield(detail::here::analyze_variant<models::problem::Job>(
+        variant,
+        [&](const detail::here::Job& job) {
+          Expects(job.places.pickup || job.places.delivery);
 
-      static auto createDemand = [](const auto& job, bool isPickup, bool isFixed) {
-        Expects(job.demand.size() == 1);
-        auto value = job.demand.front();
-        return VehicleActivitySize<int>::Demand{{isFixed && isPickup ? value : 0, !isFixed && isPickup ? value : 0},
-                                                {isFixed && !isPickup ? value : 0, !isFixed && !isPickup ? value : 0}};
-      };
+          static auto createDemand = [](const auto& job, bool isPickup, bool isFixed) {
+            Expects(job.demand.size() == 1);
+            auto value = job.demand.front();
+            return VehicleActivitySize<int>::Demand{
+              {isFixed && isPickup ? value : 0, !isFixed && isPickup ? value : 0},
+              {isFixed && !isPickup ? value : 0, !isFixed && !isPickup ? value : 0}};
+          };
 
-      static auto addSkillsIfPresent = [](const auto& job, Dimensions&& dimens, bool skipSkills) {
-        if (!skipSkills && job.skills.has_value() && !job.skills.value().empty()) {
-          auto skills =
-            std::make_shared<SkillRawType>(SkillRawType(job.skills.value().begin(), job.skills.value().end()));
-          dimens.insert(std::make_pair("skills", skills));
-        }
+          static auto addSkillsIfPresent = [](const auto& job, Dimensions&& dimens, bool skipSkills) {
+            if (!skipSkills && job.skills.has_value() && !job.skills.value().empty()) {
+              auto skills =
+                std::make_shared<SkillRawType>(SkillRawType(job.skills.value().begin(), job.skills.value().end()));
+              dimens.insert(std::make_pair("skills", skills));
+            }
 
-        return std::move(dimens);
-      };
+            return std::move(dimens);
+          };
 
-      auto withIndex = [&](const auto& j) {
-        jobIndex[job.id] = j;
-        return j;
-      };
+          auto withIndex = [&](const auto& j) {
+            jobIndex[job.id] = j;
+            return j;
+          };
 
-      auto createService = [&, dateParser](
-                             const auto& job, const auto& place, const auto& demand, bool skipSkills = false) {
-        auto times = place.times.has_value()  //
-          ? ranges::accumulate(place.times.value(),
-                               std::vector<TimeWindow>{},
-                               [&](auto& acc, const auto& time) {
-                                 acc.push_back({static_cast<double>(dateParser(time.at(0))),
-                                                static_cast<double>(dateParser(time.at(1)))});
-                                 return std::move(acc);
-                               })
-          : std::vector<TimeWindow>{TimeWindow{0, std::numeric_limits<double>::max()}};
-        return std::make_shared<Service>(
-          Service{{Service::Detail{coordIndex.find(place.location), place.duration, std::move(times)}},
-                  addSkillsIfPresent(
-                    job, Dimensions{{"id", job.id}, {VehicleActivitySize<int>::DimKeyDemand, demand}}, skipSkills)});
-      };
+          auto createService = [&, dateParser](
+                                 const auto& job, const auto& place, const auto& demand, bool skipSkills = false) {
+            auto times = place.times.has_value()  //
+              ? ranges::accumulate(place.times.value(),
+                                   std::vector<TimeWindow>{},
+                                   [&](auto& acc, const auto& time) {
+                                     acc.push_back({static_cast<double>(dateParser(time.at(0))),
+                                                    static_cast<double>(dateParser(time.at(1)))});
+                                     return std::move(acc);
+                                   })
+              : std::vector<TimeWindow>{TimeWindow{0, std::numeric_limits<double>::max()}};
+            return std::make_shared<Service>(Service{
+              {Service::Detail{coordIndex.find(place.location), place.duration, std::move(times)}},
+              addSkillsIfPresent(
+                job, Dimensions{{"id", job.id}, {VehicleActivitySize<int>::DimKeyDemand, demand}}, skipSkills)});
+          };
 
-      // shipment
-      if (job.places.pickup && job.places.delivery) {
-        return yield(withIndex(
-          as_job(build_sequence{}
-                   .dimens(addSkillsIfPresent(job, Dimensions{{"id", job.id}}, false))
-                   .service(createService(job, job.places.pickup.value(), createDemand(job, true, false), true))
-                   .service(createService(job, job.places.delivery.value(), createDemand(job, false, false), true))
-                   .shared())));
-        // pickup
-      } else if (job.places.pickup) {
-        return yield(withIndex(as_job(createService(job, job.places.pickup.value(), createDemand(job, true, true)))));
-      }
+          // shipment
+          if (job.places.pickup && job.places.delivery) {
+            return withIndex(
+              as_job(build_sequence{}
+                       .dimens(addSkillsIfPresent(job, Dimensions{{"id", job.id}}, false))
+                       .service(createService(job, job.places.pickup.value(), createDemand(job, true, false), true))
+                       .service(createService(job, job.places.delivery.value(), createDemand(job, false, false), true))
+                       .shared()));
+            // pickup
+          } else if (job.places.pickup) {
+            return withIndex(as_job(createService(job, job.places.pickup.value(), createDemand(job, true, true))));
+          }
 
-      // delivery
-      return yield(withIndex(as_job(createService(job, job.places.delivery.value(), createDemand(job, false, true)))));
+          // delivery
+          return withIndex(as_job(createService(job, job.places.delivery.value(), createDemand(job, false, true))));
+        },
+        [](const detail::here::MultiJob& multi) -> models::problem::Job {
+          throw std::domain_error("Not implemented");
+          return {};
+        }));
     });
   }
 

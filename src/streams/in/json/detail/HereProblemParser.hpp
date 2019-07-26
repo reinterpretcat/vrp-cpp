@@ -4,6 +4,7 @@
 
 #include <nlohmann/json.hpp>
 #include <optional>
+#include <range/v3/utility/variant.hpp>
 
 namespace vrp::streams::in::detail::here {
 
@@ -22,6 +23,7 @@ struct JobPlace final {
   std::optional<std::vector<std::vector<std::string>>> times;
   std::vector<double> location;
   double duration;
+  std::optional<std::string> tag;
 };
 
 struct JobPlaces final {
@@ -36,8 +38,37 @@ struct Job final {
   std::optional<std::vector<std::string>> skills;
 };
 
+struct MultiJobPlace final {
+  std::optional<std::vector<std::vector<std::string>>> times;
+  std::vector<double> location;
+  double duration;
+  std::vector<int> demand;
+  std::optional<std::string> tag;
+};
+
+struct MultiJobPlaces final {
+  std::vector<MultiJobPlace> pickups;
+  std::vector<MultiJobPlace> deliveries;
+};
+
+struct MultiJob final {
+  std::string id;
+  MultiJobPlaces places;
+  std::optional<std::vector<std::string>> skills;
+};
+
+using JobVariant = ranges::variant<Job, MultiJob>;
+
+template<typename Return, typename JobFunc, typename MultiJobFunc>
+Return
+analyze_variant(const JobVariant& variant, JobFunc&& jobFunc, MultiJobFunc&& multiJobFunc) {
+  if (variant.index() == 0) return jobFunc(ranges::get<0>(variant));
+
+  return multiJobFunc(ranges::get<1>(variant));
+}
+
 struct Plan final {
-  std::vector<Job> jobs;
+  std::vector<JobVariant> jobs;
   std::optional<std::vector<Relation>> relations;
 };
 
@@ -64,27 +95,55 @@ from_json(const nlohmann::json& j, Relation& r) {
 
 
 inline void
-from_json(const nlohmann::json& j, JobPlace& job) {
-  readOptional(j, "times", job.times);
-  j.at("location").get_to(job.location);
-  j.at("duration").get_to(job.duration);
+from_json(const nlohmann::json& j, JobPlace& place) {
+  readOptional(j, "times", place.times);
+  j.at("location").get_to(place.location);
+  j.at("duration").get_to(place.duration);
+  readOptional(j, "tag", place.tag);
 }
 
 inline void
-from_json(const nlohmann::json& j, JobPlaces& job) {
-  readOptional(j, "pickup", job.pickup);
-  readOptional(j, "delivery", job.delivery);
+from_json(const nlohmann::json& j, JobPlaces& places) {
+  readOptional(j, "pickup", places.pickup);
+  readOptional(j, "delivery", places.delivery);
 }
 
 inline void
-from_json(const nlohmann::json& j, Job& job) {
-  j.at("id").get_to(job.id);
-  j.at("places").get_to(job.places);
-  j.at("demand").get_to(job.demand);
-
-  readOptional(j, "skills", job.skills);
+from_json(const nlohmann::json& j, MultiJobPlace& place) {
+  readOptional(j, "times", place.times);
+  j.at("location").get_to(place.location);
+  j.at("duration").get_to(place.duration);
+  j.at("demand").get_to(place.demand);
+  readOptional(j, "tag", place.tag);
 }
 
+inline void
+from_json(const nlohmann::json& j, MultiJobPlaces& places) {
+  readOptional(j, "pickups", places.pickups);
+  readOptional(j, "deliveries", places.deliveries);
+}
+
+inline void
+from_json(const nlohmann::json& j, JobVariant& variant) {
+  if (j.find("demand") != j.end()) {
+    auto job = Job{};
+
+    j.at("id").get_to(job.id);
+    j.at("places").get_to(job.places);
+    j.at("demand").get_to(job.demand);
+    readOptional(j, "skills", job.skills);
+
+    variant = JobVariant{ranges::emplaced_index<0>, job};
+  } else {
+    auto multi = MultiJob{};
+
+    j.at("id").get_to(multi.id);
+    j.at("places").get_to(multi.places);
+    readOptional(j, "skills", multi.skills);
+
+    variant = JobVariant{ranges::emplaced_index<1>, multi};
+  }
+}
 
 // endregion
 
