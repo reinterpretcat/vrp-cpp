@@ -2,6 +2,7 @@
 #pragma ide diagnostic ignored "cert-err58-cpp"
 #pragma once
 
+#include "algorithms/construction/InsertionEvaluator.hpp"
 #include "algorithms/construction/constraints/VehicleActivitySize.hpp"
 #include "models/extensions/problem/Factories.hpp"
 #include "models/extensions/solution/Factories.hpp"
@@ -60,6 +61,8 @@ public:
 inline vrp::models::problem::Job DefaultService = vrp::models::problem::as_job(test_build_service{}.shared());
 
 class test_build_sequence : public vrp::models::problem::build_sequence {
+  using PermutationFunc = algorithms::construction::InsertionEvaluator::PermutationFunc;
+
 public:
   explicit test_build_sequence() : vrp::models::problem::build_sequence() { dimens({{"id", "service"}}); }
 
@@ -69,12 +72,20 @@ public:
   }
 
   test_build_sequence& permutations(std::vector<std::vector<int>> perms) {
-    using PermutationFunc = std::function<ranges::any_view<const std::vector<int>&>(const models::problem::Sequence&)>;
-
     sequence_->dimens["prm"] = std::make_shared<PermutationFunc>([perms](const auto&) {
       return ranges::view::transform(perms, [](const auto& perm) -> const std::vector<int>& { return perm; });
     });
 
+    return *this;
+  }
+
+  test_build_sequence& permutations(PermutationFunc permutationFunc) {
+    sequence_->dimens["prm"] = std::make_shared<PermutationFunc>(permutationFunc);
+    return *this;
+  }
+
+  test_build_sequence& diIndex(int index) {
+    sequence_->dimens["di"] = index;
     return *this;
   }
 };

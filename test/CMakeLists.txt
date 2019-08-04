@@ -98,6 +98,7 @@ set(SOURCE_FILES
 
         streams/in/json/HereProblemJsonTest.cc
         streams/in/json/RichProblemJsonTest.cc
+        streams/in/json/detail/HereSequencePermutationTest.cc
         streams/in/scientific/LiLimTest.cc
         streams/in/scientific/SolomonTest.cc
         streams/out/json/HereSolutionJsonTest.cc

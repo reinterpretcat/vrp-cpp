@@ -18,6 +18,8 @@ namespace vrp::algorithms::construction {
 
 /// Provides the way to evaluate insertion cost.
 struct InsertionEvaluator final {
+  using PermutationFunc = std::function<ranges::any_view<const std::vector<int>&>(const models::problem::Sequence&)>;
+
 private:
   /// Stores information needed for service insertion.
   struct SrvContext final {
@@ -129,9 +131,6 @@ private:
     using ServicePermutation = ranges::any_view<std::shared_ptr<const models::problem::Service>>;
 
     ranges::any_view<ServicePermutation> operator()(const models::problem::Sequence& sequence) const {
-      using PermutationFunc =
-        std::function<ranges::any_view<const std::vector<int>&>(const models::problem::Sequence&)>;
-
       auto permFunc = sequence.dimens.find(models::problem::Sequence::PermutationDimKey);
 
       if (permFunc == sequence.dimens.end()) return ranges::view::single(ranges::view::all(sequence.services));

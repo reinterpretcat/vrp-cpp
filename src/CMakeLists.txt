@@ -107,6 +107,7 @@ set(SOURCE_FILES
         streams/in/json/detail/CoordIndex.hpp
         streams/in/json/detail/HereProblemConstraints.hpp
         streams/in/json/detail/HereProblemParser.hpp
+        streams/in/json/detail/HereSequencePermutation.hpp
         streams/in/json/detail/RichProblemConstraints.hpp
         streams/in/json/detail/RichProblemParser.hpp
         streams/in/json/HereProblemJson.hpp
