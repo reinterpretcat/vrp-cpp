@@ -18,7 +18,7 @@ namespace vrp::algorithms::construction {
 
 /// Provides the way to evaluate insertion cost.
 struct InsertionEvaluator final {
-  using PermutationFunc = std::function<ranges::any_view<const std::vector<int>&>(const models::problem::Sequence&)>;
+  using PermutationFunc = std::function<std::vector<std::vector<int>>(const models::problem::Sequence&)>;
 
 private:
   /// Stores information needed for service insertion.
@@ -127,19 +127,23 @@ private:
   };
 
   /// Retrieves permutations from sequence's dimens.
+  /// TODO make it memory efficient
   struct retrieve_permutations final {
-    using ServicePermutation = ranges::any_view<std::shared_ptr<const models::problem::Service>>;
+    using ServicePermutations = std::vector<std::vector<std::shared_ptr<const models::problem::Service>>>;
 
-    ranges::any_view<ServicePermutation> operator()(const models::problem::Sequence& sequence) const {
+    ServicePermutations operator()(const models::problem::Sequence& sequence) const {
+      using namespace ranges;
+
       auto permFunc = sequence.dimens.find(models::problem::Sequence::PermutationDimKey);
 
       if (permFunc == sequence.dimens.end()) return ranges::view::single(ranges::view::all(sequence.services));
 
-      return std::any_cast<std::shared_ptr<PermutationFunc>>(permFunc->second)->operator()(sequence) |
-        ranges::view::transform([&](const auto& permutation) {
-               return ranges::view::transform(permutation,
-                                              [&](const auto index) { return sequence.services.at(index); });
-             });
+      auto permutations = std::any_cast<std::shared_ptr<PermutationFunc>>(permFunc->second)->operator()(sequence);
+      return permutations | view::transform([&](const auto& permutation) {
+               return view::transform(permutation, [&](const auto index) { return sequence.services.at(index); }) |
+                 to_vector;
+             }) |
+        to_vector;
     }
   };
 

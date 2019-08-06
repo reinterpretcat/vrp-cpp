@@ -33,7 +33,7 @@ struct generate_set_permutations final {
   /// offset: offset of second range
   /// size: range size
   /// limit: result range max size
-  auto operator()(int offset, int size, int limit, std::mt19937& engine) {
+  std::vector<std::vector<int>> operator()(int offset, int size, int limit, std::mt19937& engine) {
     using namespace ranges;
 
     // NOTE memory allocations due to range requirements.

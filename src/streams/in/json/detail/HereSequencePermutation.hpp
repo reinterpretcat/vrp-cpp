@@ -17,11 +17,9 @@ namespace vrp::streams::in::detail::here {
 ///   p1,p3,p2,d1,d2  p1,p3,p2,d2,d1
 ///
 struct create_permutation_function final {
-  auto operator()(int limit) {
-    using namespace ranges;
-    using PermutationFunc = std::function<std::vector<std::vector<int>>(const models::problem::Sequence&)>;
-    // algorithms::construction::InsertionEvaluator::PermutationFunc;
+  using PermutationFunc = algorithms::construction::InsertionEvaluator::PermutationFunc;
 
+  std::shared_ptr<PermutationFunc> operator()(int limit) {
     return std::make_shared<PermutationFunc>([limit](const auto& sequence) {
       // NOTE that might be a bit not perfomant..
       std::mt19937 engine(std::random_device{}());
