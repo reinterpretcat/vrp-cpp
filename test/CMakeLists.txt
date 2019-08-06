@@ -55,6 +55,7 @@ set(SOURCE_FILES
         scenarios/here/fleet/ReachableConstraintTest.cc
         scenarios/here/limits/MaxDistanceTest.cc
         scenarios/here/limits/ShiftTimeTest.cc
+        scenarios/here/multjob/BasicMultiJobTest.cc
         scenarios/here/pickdev/PickDevMixedTest.cc
         scenarios/here/pickdev/PickDevBasicTest.cc
         scenarios/here/pickdev/PickDevRelationTest.cc

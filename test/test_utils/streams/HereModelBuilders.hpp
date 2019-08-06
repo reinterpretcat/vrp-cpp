@@ -30,6 +30,11 @@ struct build_test_single_job {
     return *this;
   }
 
+  build_test_single_job tag(const std::string& tag) {
+    content_["places"][type_]["tag"] = tag;
+    return *this;
+  }
+
   build_test_single_job demand(int demand) {
     content_["demand"] = nlohmann::json::array({demand});
     return *this;
@@ -123,6 +128,48 @@ private:
       "demand",
       nlohmann::json::array({1}),
     }};
+};
+
+/// Provides the way to create serialized representation of multi job.
+struct build_test_multi_job final {
+  build_test_multi_job id(nlohmann::json value) {
+    content_["id"] = std::move(value);
+    return *this;
+  }
+
+  build_test_multi_job addPickup(build_test_single_job pickup) {
+    auto pickupContent = pickup.content();
+    content_["places"]["pickups"].push_back(nlohmann::json{
+      {"times", pickupContent["places"]["pickup"]["times"]},
+      {"location", pickupContent["places"]["pickup"]["location"]},
+      {"duration", pickupContent["places"]["pickup"]["duration"]},
+      {"demand", pickupContent["demand"]},
+      {"tag", pickupContent["places"]["pickup"]["tag"]},
+    });
+    return *this;
+  }
+
+  build_test_multi_job addDelivery(build_test_single_job delivery) {
+    auto deliveryContent = delivery.content();
+    content_["places"]["deliveries"].push_back(nlohmann::json{
+      {"times", deliveryContent["places"]["delivery"]["times"]},
+      {"location", deliveryContent["places"]["delivery"]["location"]},
+      {"duration", deliveryContent["places"]["delivery"]["duration"]},
+      {"demand", deliveryContent["demand"]},
+      {"tag", deliveryContent["places"]["delivery"]["tag"]},
+    });
+    return *this;
+  }
+
+  nlohmann::json content() { return content_; }
+
+private:
+  nlohmann::json content_ = {{"id", "job1"},
+                             {"places",
+                              {
+                                {"pickups", nlohmann::json::array()},
+                                {"deliveries", nlohmann::json::array()},
+                              }}};
 };
 
 /// Provides the way to build relation.
