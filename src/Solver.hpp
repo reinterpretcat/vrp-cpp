@@ -40,7 +40,7 @@ class Solver final {
       return std::tuple(child, duration, accepted);
     }
 
-    bool equal(ranges::default_sentinel) const { return terminated_; }
+    bool equal(ranges::default_sentinel_t) const { return terminated_; }
 
     void next() {
       if (!terminated_) { ++ctx->generation; }

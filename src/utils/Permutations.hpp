@@ -15,7 +15,7 @@ class permutation_range : public ranges::view_facade<permutation_range> {
 
   const std::vector<int>& read() const { return data_; }
 
-  bool equal(ranges::default_sentinel) const { return !hasNext_; }
+  bool equal(ranges::default_sentinel_t) const { return !hasNext_; }
 
   void next() { hasNext_ = std::next_permutation(data_.begin(), data_.end()); }
 

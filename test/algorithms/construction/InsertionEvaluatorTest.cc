@@ -93,7 +93,7 @@ details(std::initializer_list<Service::Detail> ds) {
 void
 assertActivities(const InsertionSuccess& result, const std::vector<std::pair<size_t, Location>>& expected) {
   REQUIRE(result.activities.size() == expected.size());
-  ranges::for_each(view::iota(0, expected.size()), [&](auto i) {
+  ranges::for_each(view::iota(0, static_cast<int>(expected.size())), [&](auto i) {
     REQUIRE(result.activities[i].second == expected[i].first);
     REQUIRE(result.activities[i].first->detail.location == expected[i].second);
   });
