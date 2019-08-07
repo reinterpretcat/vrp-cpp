@@ -4,6 +4,3 @@
 [submodule "external/parallelstl"]
 	path = external/parallelstl
 	url = git@github.com:intel/parallelstl.git
-[submodule "external/tbb"]
-	path = external/tbb
-	url = git@github.com:01org/tbb.git
