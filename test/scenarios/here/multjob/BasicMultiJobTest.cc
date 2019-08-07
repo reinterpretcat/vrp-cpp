@@ -113,7 +113,8 @@ SCENARIO("Can assign properly simple and multi job", "[scenarios][multijob]") {
           "activities": [
             {
               "jobId": "multi",
-              "type": "pickup"
+              "type": "pickup",
+              "jobTag":"1"
             }
           ]
         },
@@ -132,7 +133,8 @@ SCENARIO("Can assign properly simple and multi job", "[scenarios][multijob]") {
           "activities": [
             {
               "jobId": "multi",
-              "type": "pickup"
+              "type": "pickup",
+              "jobTag":"2"
             }
           ]
         },
@@ -151,7 +153,8 @@ SCENARIO("Can assign properly simple and multi job", "[scenarios][multijob]") {
           "activities": [
             {
               "jobId": "multi",
-              "type": "delivery"
+              "type": "delivery",
+              "jobTag":"3"
             }
           ]
         },

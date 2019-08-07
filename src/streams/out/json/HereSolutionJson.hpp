@@ -70,6 +70,7 @@ struct Activity final {
   std::string type;
   std::optional<std::vector<double>> location;
   std::optional<Interval> time;
+  std::optional<std::string> jobTag;
 };
 
 struct Stop final {
@@ -104,6 +105,7 @@ to_json(nlohmann::json& j, const Activity& activity) {
   j["type"] = activity.type;
   if (activity.location) j["location"] = activity.location.value();
   if (activity.time) j["time"] = activity.time.value();
+  if (activity.jobTag) j["jobTag"] = activity.jobTag.value();
 }
 
 inline void
@@ -294,7 +296,8 @@ struct create_solution final {
                        addOptionalFields ? std::make_optional(coordIndex.find(act->detail.location))
                                          : std::optional<std::vector<double>>{},
                        addOptionalFields ? std::make_optional(Interval{date(arrival), date(departure)})
-                                         : std::optional<Interval>{}});
+                                         : std::optional<Interval>{},
+                       getActivityTag(*act)});
 
             auto cost = problem.activity->cost(actor, *act, act->schedule.arrival) +
               problem.transport->cost(actor, acc.location, act->detail.location, acc.departure);
@@ -365,6 +368,14 @@ private:
     }
 
     return index == 0 ? "departure" : "arrival";
+  }
+
+  static std::optional<std::string> getActivityTag(const models::solution::Activity& activity) {
+    if (activity.service.has_value()) {
+      auto dim = activity.service.value()->dimens.find("tag");
+      if (dim != activity.service.value()->dimens.end()) return {std::any_cast<std::string>(dim->second)};
+    }
+    return {};
   }
 
   static int mapUnassignedCode(int code) {

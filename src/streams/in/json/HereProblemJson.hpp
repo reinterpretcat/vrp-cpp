@@ -236,10 +236,13 @@ private:
                                  return std::move(acc);
                                })
           : std::vector<TimeWindow>{TimeWindow{0, std::numeric_limits<double>::max()}};
+
+        auto dimens = Dimensions{{"id", job.id}, {VehicleActivitySize<int>::DimKeyDemand, demand}};
+        if (place.tag.has_value()) dimens["tag"] = place.tag.value();
+
         return std::make_shared<Service>(
           Service{{Service::Detail{coordIndex.find(place.location), place.duration, std::move(times)}},
-                  addSkillsIfPresent(
-                    job, Dimensions{{"id", job.id}, {VehicleActivitySize<int>::DimKeyDemand, demand}}, skipSkills)});
+                  addSkillsIfPresent(job, std::move(dimens), skipSkills)});
       };
 
       return ranges::yield(detail::here::analyze_variant<models::problem::Job>(
