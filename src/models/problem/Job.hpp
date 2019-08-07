@@ -4,7 +4,6 @@
 #include "models/problem/Service.hpp"
 
 #include <memory>
-#include <range/v3/utility/functional.hpp>
 #include <range/v3/utility/variant.hpp>
 
 namespace vrp::models::problem {

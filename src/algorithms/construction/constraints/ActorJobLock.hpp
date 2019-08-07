@@ -80,7 +80,7 @@ public:
     });
   }
 
-  ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>(); }
+  ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>; }
 
   void accept(InsertionSolutionContext& ctx) const override {
     // NOTE initialize rules collection once. We do it here as constraint's constructor

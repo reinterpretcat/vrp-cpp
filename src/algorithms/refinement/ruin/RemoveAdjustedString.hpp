@@ -107,7 +107,7 @@ private:
   /// Returns randomly selected job and all its neighbours.
   ranges::any_view<models::problem::Job> selectJobs(const RefinementContext& ctx, const models::Solution& sln) const {
     auto seed = select_random_job{}(sln.routes, *ctx.random);
-    if (!seed) return ranges::view::empty<models::problem::Job>();
+    if (!seed) return ranges::view::empty<models::problem::Job>;
 
     auto [route, job] = seed.value();
 

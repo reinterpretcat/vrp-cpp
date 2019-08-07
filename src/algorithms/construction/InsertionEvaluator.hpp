@@ -136,7 +136,7 @@ private:
 
       auto permFunc = sequence.dimens.find(models::problem::Sequence::PermutationDimKey);
 
-      if (permFunc == sequence.dimens.end()) return ranges::view::single(ranges::view::all(sequence.services));
+      if (permFunc == sequence.dimens.end()) return ranges::view::single(sequence.services) | to_vector;
 
       auto permutations = std::any_cast<std::shared_ptr<PermutationFunc>>(permFunc->second)->operator()(sequence);
       return permutations | view::transform([&](const auto& permutation) {

@@ -21,7 +21,7 @@ SCENARIO("blink insertion handles solomon set problems", "[algorithms][construct
     auto problem = read_solomon_type<cartesian_distance>{}.operator()(stream);
     auto ctx = vrp::test::test_build_insertion_context{}
                  .solution(build_insertion_solution_context{}
-                             .required(problem->jobs->all())
+                             .required(problem->jobs->all() | ranges::to_vector)
                              .registry(std::make_shared<Registry>(*problem->fleet))
                              .shared())
                  .problem(problem)

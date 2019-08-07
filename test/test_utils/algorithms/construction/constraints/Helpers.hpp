@@ -48,7 +48,7 @@ template<typename Base, typename Return, typename Arg1, typename Arg2>
 struct SoftFunctionWrapper : Base {
   explicit SoftFunctionWrapper(typename Base::CheckFunc func) : func_(std::move(func)) {}
 
-  ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>(); }
+  ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>; }
 
   void accept(vrp::algorithms::construction::InsertionSolutionContext&) const override {}
 
@@ -63,7 +63,7 @@ template<typename Base, typename Return, typename Arg1, typename Arg2>
 struct HardFunctionWrapper : Base {
   explicit HardFunctionWrapper(typename Base::CheckFunc func) : func_(std::move(func)) {}
 
-  ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>(); }
+  ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>; }
 
   void accept(vrp::algorithms::construction::InsertionSolutionContext&) const override {}
 

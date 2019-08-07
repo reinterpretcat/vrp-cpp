@@ -17,7 +17,7 @@ struct ConditionalJob final : public Constraint {
 
   explicit ConditionalJob(Predicate predicate) : predicate_(std::move(predicate)) {}
 
-  ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>(); }
+  ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>; }
 
   /// Accepts solution change.
   void accept(InsertionSolutionContext& ctx) const override {

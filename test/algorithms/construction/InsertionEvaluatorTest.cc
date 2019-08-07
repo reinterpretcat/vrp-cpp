@@ -173,7 +173,8 @@ SCENARIO("insertion evaluator can insert service", "[algorithms][construction][i
     WHEN("service is inserted") {
       auto ds = view::all(locs) | view::transform([&](const auto& l) {
                   return Service::Detail{{l}, 0, {DefaultTimeWindow}};
-                });
+                }) |
+        ranges::to_vector;
 
       auto result = InsertionEvaluator{}.evaluate(
         as_job(test_build_service{}.details(std::vector<Service::Detail>{ds}).shared()), context);

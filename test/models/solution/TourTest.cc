@@ -35,7 +35,7 @@ SCENARIO("tour can handle activities with job relations", "[models][tour]") {
       }
 
       THEN("jobs returns range with original job") {
-        std::vector<Job> actual = tour.jobs() | ranges::view::take(1);
+        std::vector<Job> actual = tour.jobs() | ranges::view::take(1) | ranges::to_vector;
 
         REQUIRE(DefaultService == actual[0]);
       }

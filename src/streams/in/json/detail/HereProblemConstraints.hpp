@@ -29,7 +29,7 @@ struct BreakConstraint final : public vrp::algorithms::construction::HardActivit
         [](const std::shared_ptr<const models::problem::Sequence>& sequence) { return true; });
     }) {}
 
-  ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>(); }
+  ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>; }
 
   void accept(vrp::algorithms::construction::InsertionSolutionContext& ctx) const override {
     conditionalJob_.accept(ctx);
@@ -65,7 +65,7 @@ struct SkillConstraint final : public vrp::algorithms::construction::HardRouteCo
 
   explicit SkillConstraint(int code) : code_(code) {}
 
-  ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>(); }
+  ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>; }
 
   void accept(vrp::algorithms::construction::InsertionSolutionContext&) const override {}
 
@@ -106,7 +106,7 @@ struct ReachableConstraint final : public vrp::algorithms::construction::HardAct
     code_(code),
     transport_(transport) {}
 
-  ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>(); }
+  ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>; }
 
   void accept(vrp::algorithms::construction::InsertionSolutionContext& ctx) const override {}
 

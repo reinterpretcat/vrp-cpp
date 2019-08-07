@@ -379,7 +379,8 @@ private:
 
         auto jobs = rel.jobs |  //
           view::filter([](const auto& j) { return j != "departure" && j != "arrival"; }) |
-          view::transform([&](const auto& j) { return j == "break" ? jIndx.at(vehicleId + "_break") : jIndx.at(j); });
+          view::transform([&](const auto& j) { return j == "break" ? jIndx.at(vehicleId + "_break") : jIndx.at(j); }) |
+          ranges::to_vector;
 
         dtls.push_back(Lock::Detail{order, position, std::move(jobs)});
 

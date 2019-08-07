@@ -70,15 +70,16 @@ SCENARIO("solomon files can be read from input stream", "[streams][in]") {
       }
 
       THEN("vehicles have proper ids") {
-        std::vector<std::string> ids =
-          problem->fleet->vehicles() | view::transform([](const auto& v) { return get_vehicle_id{}(*v); });
+        std::vector<std::string> ids = problem->fleet->vehicles() |
+          view::transform([](const auto& v) { return get_vehicle_id{}(*v); }) | ranges::to_vector;
 
         CHECK_THAT(ids, Contains(std::vector<std::string>{"v1", "v2"}));
       }
 
       THEN("vehicles have proper capacity") {
         std::vector<int> capacities = problem->fleet->vehicles() |
-          view::transform([](const auto& v) { return std::any_cast<int>(v->dimens.find(CapacityKey)->second); });
+          view::transform([](const auto& v) { return std::any_cast<int>(v->dimens.find(CapacityKey)->second); }) |
+          ranges::to_vector;
 
         CHECK_THAT(capacities, Equals(std::vector<int>{10, 10}));
       }

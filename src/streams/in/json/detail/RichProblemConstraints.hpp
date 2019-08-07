@@ -19,7 +19,7 @@ struct CapabilityConstraint final : public vrp::algorithms::construction::HardRo
 
   explicit CapabilityConstraint(int code) : code_(code) {}
 
-  ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>(); }
+  ranges::any_view<int> stateKeys() const override { return ranges::view::empty<int>; }
 
   void accept(vrp::algorithms::construction::InsertionSolutionContext&) const override {}
 
