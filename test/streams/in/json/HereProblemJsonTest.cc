@@ -233,7 +233,7 @@ SCENARIO("here json can read problem from stream", "[streams][in][json]") {
                  .dimens({{"id", std::string("myVehicle_1")}, {"typeId", std::string("myVehicle")}})
                  .owned());
         auto registry = std::make_shared<Registry>(fleet);
-        auto ctx = InsertionSolutionContext{problem->jobs->all(), {}, {}, {}, registry};
+        auto ctx = InsertionSolutionContext{problem->jobs->all() | ranges::to_vector, {}, {}, {}, registry};
         problem->constraint->accept(ctx);
 
         REQUIRE(ctx.required.size() == 3);

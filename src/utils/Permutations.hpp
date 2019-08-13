@@ -23,6 +23,7 @@ public:
   permutation_range() = default;
 
   explicit permutation_range(int from, int to) : data_(), hasNext_(true) {
+    // TODO add precondition for from < to
     data_ = ranges::view::iota(from, to + 1) | ranges::to_vector;
   }
 };
@@ -39,13 +40,22 @@ struct generate_set_permutations final {
     // NOTE memory allocations due to range requirements.
     auto seqFirst = permutation_range{0, offset} | to_vector;
     auto seqSecond = permutation_range{offset + 1, size - 1} | to_vector;
-    auto prod = view::cartesian_product(seqFirst, seqSecond) | to_vector;
 
-    return view::for_each(prod | view::sample(limit, engine),
-                          [](const auto& tuple) {
-                            return yield(view::concat(std::get<0>(tuple), std::get<1>(tuple)) | to_vector);
-                          }) |
-      to_vector;
+    // TODO fixme
+    // NOTE cartesian_product seems to be buggy
+    // auto prod = view::cartesian_product(seqFirst, seqSecond) | to_vector;
+    auto prod = std::vector<std::vector<int>>{};
+    for (const auto& o : seqFirst)
+      for (const auto& i : seqSecond)
+        prod.push_back(view::concat(o, i) | to_vector);
+
+    return prod | view::sample(limit, engine) | to_vector;
+
+    //   return view::for_each(prod | view::sample(limit, engine),
+    //                          [](const auto& tuple) {
+    //                            return yield(view::concat(std::get<0>(tuple), std::get<1>(tuple)) | to_vector);
+    //                          }) |
+    //      to_vector;
   }
 };
 }

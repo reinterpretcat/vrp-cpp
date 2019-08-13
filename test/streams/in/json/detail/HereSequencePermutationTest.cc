@@ -27,7 +27,7 @@ SCENARIO("here sequence permutation can generate all permutations") {
     auto permFunc = streams::in::detail::here::create_permutation_function{}(100);
 
     WHEN("permutations are generated") {
-      auto permutations = permFunc->operator()(*sequence) | ranges::to<std::vector>;
+      auto permutations = permFunc->operator()(*sequence) | ranges::to_vector;
 
       THEN("creates expected ranges") {
         CHECK_THAT(permutations,
