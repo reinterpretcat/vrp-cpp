@@ -1,76 +1,31 @@
 # Description
 
-A prototype of VRP solver
+A prototype of rich Vehicle Routing Problem solver.
 
 
-# Install
+# Build in docker
 
-    # build tbb from https://github.com/philipp-classen/tbb-static-linking-tutorial
-    make extra_inc=big_iron.inc
+* Make sure that you have all git submodules fetched:
 
-    sudo apt install libtbb-dev
-    conan install parallelstl/20181004@conan/stable
+        git submodule update --recursive --remote
 
+* Compile TBB
 
-# Objective function
-    * minimize load
-        * minimize the number of vehicles
-        * minimize the total completion time
-        * minimize the total interval completion time
-            (reduce the difference between the total completion time of the
-             longest tour and the total completion time of the shortest tour)
-            minF = w0*NV + w1*TCT + w2*RCT
-    * minimize cost
+        # build tbb from https://github.com/philipp-classen/tbb-static-linking-tutorial
+        make extra_inc=big_iron.inc
 
+* Modify root CakeLists.txt to use proper TBB library path, e.g.:
 
-# TODO
-    * work on vNext (rich) format
-        * use real RFC3339 times
-        * use real locations instead of ids
-        * add breaks
-        * use polygon to specify driver location?
-        * specify duration using human-readable string
+        set(TBB_LIBRARY ${PROJECT_SOURCE_DIR}/external/tbb/build/linux_intel64_gcc_cc7.4.0_libc2.27_kernel5.0.0_release)
 
-# Check
-    * Check that real dates can be handled
-    * Check break:
-       ruin handles conditional jobs correctly
-       CreateRefinementContext adds all jobs as required
+* Build docker image and run container:
 
-## TechDebt
-    * init routes: move rule creation logic from actor_job_lock to create_refinement_context
-    * why routes are set in InsertionContext?
-    * rename get_job_ids_from_jobs and etc.
-    * update dependencies
-    * build with different compilers/versions
+        docker build -t solverex .
+        docker run -it -v $(pwd):/repo --rm solverex
 
-## Various
-    * Ruin jobs neighbours when they are not assigned?
-    * Ruin jobs without location?
+* Compile
 
-    * Fleet minimization
-    * R&R with sequence
-    * simplify registry
-    * check movement syntax within builders to avoid copying
-    * remove string selects job from activity (does not work for sequence)
-    * improve jobs distances logic?
-
-    * make expensive to allocate new actor during insertion by checking its tour?
-
-    * sequence picks best time window only once ignoring other services
-
-    * optimize tour activity insertion
-    * optimize size constraint for empty tours?
-    * hierarchical objective
-
-
-# Potential use cases
-    * Job with mixed demand
-    * Multiday planning
-
-# Ideas
-    * compile to web assembly - run in browser
-
-# Docker
-    docker build -t solverex .
-    docker run -it -v $(pwd):/app --rm solverex
+        mkdir build
+        cd build
+        cmake ..
+        make
